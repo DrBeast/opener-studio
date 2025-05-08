@@ -1,25 +1,58 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { AuthProvider } from "@/hooks/useAuth";
+
+// Layouts
+import MainLayout from "@/layouts/MainLayout";
+
+// Pages
+import Index from "@/pages/Index";
+import Login from "@/pages/auth/Login";
+import Signup from "@/pages/auth/Signup";
+import VerificationPending from "@/pages/auth/VerificationPending";
+import AuthCallback from "@/pages/auth/AuthCallback";
+import Profile from "@/pages/Profile";
+import NotFound from "@/pages/NotFound";
+
+// Components
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <MainLayout>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Auth Routes */}
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/signup" element={<Signup />} />
+              <Route path="/auth/verification-pending" element={<VerificationPending />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<Profile />} />
+                {/* Add more protected routes here */}
+              </Route>
+              
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MainLayout>
+        </BrowserRouter>
+      </AuthProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
