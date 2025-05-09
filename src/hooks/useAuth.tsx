@@ -51,6 +51,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("Auth state changed:", event);
         if (session?.user) {
           setUser(session.user);
+          
+          // Log LinkedIn metadata for debugging when a user signs in with LinkedIn
+          if (event === 'SIGNED_IN' && session.user.app_metadata.provider === 'linkedin_oidc') {
+            console.log("LinkedIn sign-in detected, user metadata:", session.user.user_metadata);
+          }
         } else {
           setUser(null);
         }

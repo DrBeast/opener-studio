@@ -58,7 +58,7 @@ const AuthCallback = () => {
         
         // Check if we need to update the profile with LinkedIn data
         if (user.app_metadata.provider === 'linkedin_oidc' && user.user_metadata) {
-          console.log("LinkedIn user metadata:", user.user_metadata);
+          console.log("LinkedIn user metadata structure:", JSON.stringify(user.user_metadata, null, 2));
           
           try {
             // Check if the user already has a profile
@@ -74,15 +74,25 @@ const AuthCallback = () => {
             
             // If no profile exists or profile fields are empty, update with LinkedIn data
             if (!profileData || (!profileData.first_name && !profileData.last_name)) {
-              const firstName = user.user_metadata.name?.split(' ')[0] || 
-                                user.user_metadata.full_name?.split(' ')[0] || 
-                                user.user_metadata.first_name || '';
+              // Try multiple potential field names that LinkedIn might provide
+              const firstName = 
+                user.user_metadata.given_name || 
+                user.user_metadata.first_name || 
+                user.user_metadata.name?.split(' ')[0] || 
+                user.user_metadata.full_name?.split(' ')[0] || 
+                '';
                                 
-              const lastName = user.user_metadata.name?.split(' ').slice(1).join(' ') || 
-                              user.user_metadata.full_name?.split(' ').slice(1).join(' ') || 
-                              user.user_metadata.last_name || '';
+              const lastName = 
+                user.user_metadata.family_name || 
+                user.user_metadata.last_name || 
+                user.user_metadata.name?.split(' ').slice(1).join(' ') || 
+                user.user_metadata.full_name?.split(' ').slice(1).join(' ') || 
+                '';
+              
+              console.log(`Extracted name data - First: "${firstName}", Last: "${lastName}"`);
               
               if (firstName || lastName) {
+                console.log("Updating profile with name data");
                 const { error: updateError } = await supabase
                   .from('profiles')
                   .upsert({
@@ -94,13 +104,20 @@ const AuthCallback = () => {
                 
                 if (updateError) {
                   console.error("Error updating profile with LinkedIn data:", updateError);
+                  toast.error("Failed to update profile with LinkedIn data");
                 } else {
                   console.log("Profile updated with LinkedIn data");
+                  toast.success("Profile updated with your LinkedIn information");
                 }
+              } else {
+                console.log("No name data available from LinkedIn");
               }
+            } else {
+              console.log("User already has profile data, not overwriting");
             }
-          } catch (profileErr) {
-            console.error("Error processing profile data:", profileErr);
+          } catch (profileErr: any) {
+            console.error("Error processing profile data:", profileErr.message);
+            toast.error("Error processing profile data");
           }
         }
         
