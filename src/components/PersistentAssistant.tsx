@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { MessageCircle, ChevronUp, ChevronDown, Send, ArrowRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { MessageCircle, ChevronLeft, ChevronRight, Send, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,7 +14,7 @@ interface Message {
 }
 
 const PersistentAssistant = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       text: "Hello! I'm your EngageAI assistant. How can I help with your networking and job search today?",
@@ -178,110 +178,113 @@ const PersistentAssistant = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md w-full md:w-96">
-      <div className={`rounded-lg shadow-lg transition-all duration-300 ${isOpen ? "h-[500px]" : "h-12"}`}>
+    <div className={`fixed top-16 bottom-0 right-0 z-40 flex flex-col transition-all duration-300 ${isOpen ? 'w-80' : 'w-12'} border-l shadow-md bg-background`}>
+      <div className="flex items-center p-2 border-b">
         <Button 
-          variant="default" 
-          className="w-full flex justify-between rounded-b-none" 
+          variant="ghost" 
+          size="icon" 
+          className="mr-2"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <div className="flex items-center">
-            <MessageCircle className="mr-2 h-5 w-5" />
-            <span>EngageAI Assistant</span>
-          </div>
-          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          {isOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
         
         {isOpen && (
-          <Card className="rounded-t-none border-t-0">
-            <CardHeader className="bg-primary/5 px-3 py-2">
-              <p className="text-xs text-muted-foreground">
-                I'm here to help with your networking and job search needs.
-              </p>
-            </CardHeader>
-            <CardContent className="p-0 flex flex-col h-[calc(500px-80px)]">
-              <div className="flex-1 overflow-y-auto p-3">
-                {messages.map((message, index) => (
-                  <div 
-                    key={index} 
-                    className={`mb-2 ${message.isUser ? "text-right" : ""}`}
-                  >
-                    <div 
-                      className={`inline-block rounded-lg px-3 py-2 text-sm ${
-                        message.isUser 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-secondary text-secondary-foreground"
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="p-2 border-t">
-                {/* Navigation shortcuts */}
-                {user && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    <button
-                      className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1.5 transition-colors flex items-center"
-                      onClick={() => handleNavigationSuggestion("/profile")}
-                    >
-                      Profile <ArrowRight className="ml-1 h-3 w-3" />
-                    </button>
-                    <button
-                      className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1.5 transition-colors flex items-center"
-                      onClick={() => handleNavigationSuggestion("/job-targets")}
-                    >
-                      Targets <ArrowRight className="ml-1 h-3 w-3" />
-                    </button>
-                    <button
-                      className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1.5 transition-colors flex items-center"
-                      onClick={() => handleNavigationSuggestion("/companies")}
-                    >
-                      Companies <ArrowRight className="ml-1 h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                
-                {/* Context-based suggestions */}
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {suggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      className="text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-full px-2 py-1 transition-colors"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-                
-                <div className="flex">
-                  <Textarea
-                    placeholder="Type a message..."
-                    className="min-h-[40px] resize-none"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="ml-2" 
-                    onClick={handleSendMessage}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center">
+            <MessageCircle className="h-5 w-5 mr-2 text-primary" />
+            <h3 className="text-sm font-medium">EngageAI Assistant</h3>
+          </div>
         )}
       </div>
+      
+      {isOpen && (
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="bg-muted/10 px-3 py-2">
+            <p className="text-xs text-muted-foreground">
+              I'm here to help with your networking and job search needs.
+            </p>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-3">
+            {messages.map((message, index) => (
+              <div 
+                key={index} 
+                className={`mb-2 ${message.isUser ? "text-right" : ""}`}
+              >
+                <div 
+                  className={`inline-block rounded-lg px-3 py-2 text-sm ${
+                    message.isUser 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-secondary text-secondary-foreground"
+                  }`}
+                >
+                  {message.text}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="p-2 border-t">
+            {/* Navigation shortcuts */}
+            {user && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                <button
+                  className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1 transition-colors flex items-center"
+                  onClick={() => handleNavigationSuggestion("/profile")}
+                >
+                  Profile <ArrowRight className="ml-1 h-3 w-3" />
+                </button>
+                <button
+                  className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1 transition-colors flex items-center"
+                  onClick={() => handleNavigationSuggestion("/job-targets")}
+                >
+                  Targets <ArrowRight className="ml-1 h-3 w-3" />
+                </button>
+                <button
+                  className="text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-full px-3 py-1 transition-colors flex items-center"
+                  onClick={() => handleNavigationSuggestion("/companies")}
+                >
+                  Companies <ArrowRight className="ml-1 h-3 w-3" />
+                </button>
+              </div>
+            )}
+            
+            {/* Context-based suggestions */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  className="text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-full px-2 py-1 transition-colors"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex">
+              <Textarea
+                placeholder="Type a message..."
+                className="min-h-[40px] resize-none"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="ml-2" 
+                onClick={handleSendMessage}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

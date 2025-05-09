@@ -1,7 +1,7 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, ArrowDown } from "lucide-react";
+import { ChevronDown, ChevronUp, ArrowDown, FileText } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -10,12 +10,14 @@ interface ProfessionalBackgroundProps {
   setLinkedinContent: (value: string) => void;
   additionalDetails: string;
   setAdditionalDetails: (value: string) => void;
+  cvContent: string;
+  setCvContent: (value: string) => void;
   isSubmitting: boolean;
   isEditing?: boolean;
   existingData?: {
     linkedin?: string;
     additional?: string;
-    cv?: { name: string; url: string };
+    cv?: string;
   };
 }
 
@@ -24,15 +26,19 @@ const ProfessionalBackground = ({
   setLinkedinContent,
   additionalDetails,
   setAdditionalDetails,
+  cvContent,
+  setCvContent,
   isSubmitting,
   isEditing = false,
   existingData = {}
 }: ProfessionalBackgroundProps) => {
   const [linkedinExpanded, setLinkedinExpanded] = useState(false);
   const [additionalExpanded, setAdditionalExpanded] = useState(false);
+  const [cvExpanded, setCvExpanded] = useState(false);
 
   const toggleLinkedin = () => setLinkedinExpanded(!linkedinExpanded);
   const toggleAdditional = () => setAdditionalExpanded(!additionalExpanded);
+  const toggleCv = () => setCvExpanded(!cvExpanded);
 
   return (
     <div className="space-y-6">
@@ -120,6 +126,54 @@ const ProfessionalBackground = ({
               className="min-h-[200px] w-full"
               value={additionalDetails}
               onChange={(e) => setAdditionalDetails(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* CV Content Section */}
+      <div className="relative">
+        <Card 
+          className={`bg-primary/5 p-6 rounded-lg ${cvExpanded ? 'border-primary' : ''}`}
+          onClick={toggleCv}
+        >
+          <div className="flex items-center justify-between cursor-pointer">
+            <h3 className="text-lg font-semibold mb-0 flex items-center">
+              <FileText className="mr-2 h-4 w-4" />
+              Resume Content
+            </h3>
+            {cvExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+          
+          {!cvExpanded && (
+            <div className="flex items-center mt-2 text-sm text-muted-foreground">
+              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
+              <span>Click to edit resume content</span>
+            </div>
+          )}
+        </Card>
+        
+        {cvExpanded && (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {isEditing && existingData.cv
+                ? "Update your resume content below."
+                : "Copy and paste the content of your resume into the text box below. This helps us understand your professional background better."
+              }
+            </p>
+            
+            {isEditing && existingData.cv && (
+              <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
+                <p>Your resume content is shown below. You can keep it as is or update it.</p>
+              </div>
+            )}
+            
+            <Textarea
+              placeholder="Paste your resume content here..."
+              className="min-h-[200px] w-full"
+              value={cvContent}
+              onChange={(e) => setCvContent(e.target.value)}
               disabled={isSubmitting}
             />
           </div>

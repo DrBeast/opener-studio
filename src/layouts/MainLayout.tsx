@@ -11,11 +11,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <div className="flex flex-1 relative">
+        <main className="flex-1 px-4 py-8 overflow-x-hidden">
+          {children}
+        </main>
+        <PersistentAssistant />
+      </div>
       <Footer />
-      <PersistentAssistant />
     </div>
   );
 };

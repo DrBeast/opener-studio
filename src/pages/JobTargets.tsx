@@ -283,6 +283,28 @@ const JobTargets = () => {
                       </p>
                     </div>
                   )}
+                  
+                  {/* Moved to the top: Describe Your Ideal Role and Company */}
+                  <FormField
+                    control={form.control}
+                    name="free_form_role_and_company_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
+                        <FormDescription>
+                          Provide any additional details about your dream job or the companies you'd like to work for
+                        </FormDescription>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." 
+                            className="min-h-[150px]" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 
                   {renderMultiSelect(
                     "target_functions",
@@ -325,27 +347,6 @@ const JobTargets = () => {
                     "Public/Private Company Preference",
                     "Do you prefer public or private companies?"
                   )}
-
-                  <FormField
-                    control={form.control}
-                    name="free_form_role_and_company_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>
-                          Provide any additional details about your dream job or the companies you'd like to work for
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." 
-                            className="min-h-[150px]" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   
                   <FormField
                     control={form.control}

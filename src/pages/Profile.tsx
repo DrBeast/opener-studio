@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { Textarea } from "@/components/ui/textarea";
-import { RefreshCcw, Save, Edit, FileText } from "lucide-react";
+import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
@@ -33,7 +31,6 @@ const Profile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
-  const [backgroundSources, setBackgroundSources] = useState<{ type: string, name: string }[]>([]);
   const navigate = useNavigate();
   
   // Form state
@@ -46,7 +43,7 @@ const Profile = () => {
   const [existingData, setExistingData] = useState<{
     linkedin?: string;
     additional?: string;
-    cv_content?: string;
+    cv?: string;
   }>({});
   
   // Dev mode - user data reset
@@ -87,21 +84,11 @@ const Profile = () => {
         
         // Get background sources
         if (backgroundData && backgroundData.length > 0) {
-          const sources = backgroundData.map(item => ({
-            type: item.content_type,
-            name: item.content_type === 'cv_content_raw' 
-              ? 'Resume Content' 
-              : item.content_type === 'linkedin_profile' 
-                ? 'LinkedIn Profile' 
-                : 'Additional Details'
-          }));
-          setBackgroundSources(sources);
-
           // Prepare form data from existing entries
           const existingBackgrounds: {
             linkedin?: string;
             additional?: string;
-            cv_content?: string;
+            cv?: string;
           } = {};
           
           // Process retrieved data for form
@@ -123,7 +110,7 @@ const Profile = () => {
             // Look for CV content raw
             const cvData = backgroundData.find(item => item.content_type === 'cv_content_raw');
             if (cvData) {
-              existingBackgrounds.cv_content = cvData.content;
+              existingBackgrounds.cv = cvData.content;
               setCvContent(cvData.content);
             }
           }
@@ -171,7 +158,7 @@ const Profile = () => {
     // Check if any changes were made compared to existing data
     const hasLinkedinChanges = linkedinContent !== (existingData.linkedin || "");
     const hasAdditionalChanges = additionalDetails !== (existingData.additional || "");
-    const hasCvChanges = cvContent !== (existingData.cv_content || "");
+    const hasCvChanges = cvContent !== (existingData.cv || "");
     
     setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges);
   }, [linkedinContent, additionalDetails, cvContent, existingData]);
@@ -410,32 +397,6 @@ const Profile = () => {
                 </div>
               )}
               
-              {backgroundSources.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">Background Sources</h3>
-                    {!editMode && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                        onClick={() => setEditMode(true)}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {backgroundSources.map((source, index) => (
-                      <div key={index} className="bg-secondary/20 px-2 py-1 rounded-md text-xs flex items-center">
-                        {source.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
               {/* Edit Form - Only visible when in edit mode */}
               {editMode && (
                 <div className="border-t pt-6 mt-6">
@@ -446,42 +407,12 @@ const Profile = () => {
                     setLinkedinContent={setLinkedinContent}
                     additionalDetails={additionalDetails}
                     setAdditionalDetails={setAdditionalDetails}
+                    cvContent={cvContent}
+                    setCvContent={setCvContent}
                     isSubmitting={isSubmitting}
                     isEditing={Object.keys(existingData).length > 0}
                     existingData={existingData}
                   />
-                  
-                  {/* CV Content */}
-                  <Card className="bg-primary/5 p-6 rounded-lg mt-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2 flex items-center">
-                          <FileText className="mr-2 h-4 w-4" />
-                          Resume Content
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {existingData.cv_content
-                            ? "Update your resume content below."
-                            : "Copy and paste the content of your resume into the text box below. This helps us understand your professional background better."
-                          }
-                        </p>
-                        
-                        {existingData.cv_content && (
-                          <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
-                            <p>Your resume content is shown below. You can keep it as is or update it.</p>
-                          </div>
-                        )}
-                        
-                        <Textarea
-                          placeholder="Paste your resume content here..."
-                          className="min-h-[200px] w-full"
-                          value={cvContent}
-                          onChange={(e) => setCvContent(e.target.value)}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-                  </Card>
                   
                   <div className="flex justify-end gap-4 mt-6">
                     <Button
