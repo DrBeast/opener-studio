@@ -9,12 +9,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import AiAssistant from "@/components/AiAssistant";
 
 const formSchema = z.object({
@@ -99,6 +99,8 @@ const JobTargets = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -119,6 +121,7 @@ const JobTargets = () => {
     const fetchExistingData = async () => {
       if (!user) return;
       
+      setIsLoading(true);
       try {
         const { data, error } = await supabase
           .from("target_criteria")
@@ -130,6 +133,7 @@ const JobTargets = () => {
         
         if (data) {
           setExistingData(data);
+          setIsEditing(true);
           form.reset({
             target_functions: ensureStringArray(data.target_functions),
             target_locations: ensureStringArray(data.target_locations),
@@ -144,6 +148,9 @@ const JobTargets = () => {
         }
       } catch (error: any) {
         console.error("Error fetching target criteria:", error.message);
+        toast.error("Failed to load your job target preferences");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -172,8 +179,26 @@ const JobTargets = () => {
             
       if (error) throw error;
       
-      toast.success("Job and company targets saved successfully!");
-      navigate("/profile");
+      toast.success(isEditing 
+        ? "Job and company targets updated successfully!" 
+        : "Job and company targets saved successfully!"
+      );
+      
+      // Check background completion status
+      const { data: backgroundData, error: backgroundError } = await supabase
+        .from("user_backgrounds")
+        .select("background_id")
+        .eq("user_id", user.id)
+        .limit(1);
+        
+      if (backgroundError) {
+        console.error("Error checking background data:", backgroundError);
+      }
+      
+      const hasBackground = backgroundData && backgroundData.length > 0;
+      
+      // Navigate to appropriate next step based on completion status
+      navigate(hasBackground ? "/profile" : "/profile/enrich");
     } catch (error: any) {
       console.error("Error saving target criteria:", error.message);
       toast.error("Failed to save your preferences. Please try again.");
@@ -235,20 +260,44 @@ const JobTargets = () => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 max-w-4xl">
+      <ProfileBreadcrumbs />
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">Define Your Job & Company Targets</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
+              </CardTitle>
               <CardDescription>
-                Tell us what roles and companies you're interested in. This helps us provide tailored recommendations.
+                {isEditing 
+                  ? "Review and refine what roles and companies you're interested in to keep your recommendations relevant."
+                  : "Tell us what roles and companies you're interested in. This helps us provide tailored recommendations."
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {isEditing && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                      <h3 className="font-medium text-blue-800">Updating Your Preferences</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Your current preferences are already loaded. Make any changes you'd like to update your job targets.
+                      </p>
+                    </div>
+                  )}
+                
                   {renderMultiSelect(
                     "target_functions",
                     functionOptions,
@@ -362,10 +411,10 @@ const JobTargets = () => {
                   
                   <div className="flex justify-end space-x-4">
                     <Button type="button" variant="outline" onClick={() => navigate("/profile")}>
-                      Skip for Now
+                      Cancel
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Saving..." : "Save Preferences"}
+                      {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
                     </Button>
                   </div>
                 </form>
@@ -384,6 +433,20 @@ const JobTargets = () => {
               achievements: ""
             }} 
           />
+          
+          <Card className="mt-6 bg-blue-50 border border-blue-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-md text-blue-800">Why This Matters</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-blue-700">
+              <p className="mb-3">
+                The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+              </p>
+              <p>
+                Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

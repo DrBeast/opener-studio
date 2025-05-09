@@ -11,6 +11,7 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [redirectStatus, setRedirectStatus] = useState<string>("Checking authentication...");
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -59,6 +60,7 @@ const AuthCallback = () => {
         // Check if we need to update the profile with LinkedIn data
         if (user.app_metadata.provider === 'linkedin_oidc' && user.user_metadata) {
           console.log("LinkedIn user detected, metadata structure:", JSON.stringify(user.user_metadata, null, 2));
+          setRedirectStatus("Processing LinkedIn data...");
           
           try {
             // Check if the user already has a profile
@@ -81,6 +83,8 @@ const AuthCallback = () => {
             const shouldUpdateProfile = !profileData || (!profileData.first_name && !profileData.last_name);
             
             if (shouldUpdateProfile) {
+              setRedirectStatus("Creating your profile...");
+              
               // Try multiple potential field names that LinkedIn might provide
               const firstName = 
                 user.user_metadata.given_name || 
@@ -137,59 +141,56 @@ const AuthCallback = () => {
             }
 
             // Check for user data completion status to determine redirect
-            const redirectToAppropriateDestination = async () => {
-              try {
-                // Check if the user has background data
-                const { data: backgroundData, error: backgroundError } = await supabase
-                  .from('user_backgrounds')
-                  .select('*')
-                  .eq('user_id', user.id)
-                  .limit(1);
-                  
-                if (backgroundError) {
-                  console.error("Error checking background data:", backgroundError);
-                  toast.error("Error checking profile completion");
-                  navigate("/profile");
-                  return;
-                }
+            setRedirectStatus("Checking profile completion...");
+            
+            try {
+              // Get all user background data first
+              const { data: backgroundData, error: backgroundError } = await supabase
+                .from('user_backgrounds')
+                .select('*')
+                .eq('user_id', user.id);
                 
+              if (backgroundError) {
+                console.error("Error checking background data:", backgroundError);
+                toast.error("Error checking profile completion");
+                navigate("/profile");
+                return;
+              }
+              
+              // Get target criteria data
+              const { data: targetData, error: targetError } = await supabase
+                .from('target_criteria')
+                .select('*')
+                .eq('user_id', user.id);
+                
+              if (targetError) {
+                console.error("Error checking target criteria:", targetError);
+              }
+              
+              // Determine best path based on profile completion
+              const hasBackground = backgroundData && backgroundData.length > 0;
+              const hasTargets = targetData && targetData.length > 0;
+              
+              setRedirectStatus("Redirecting you to the appropriate page...");
+              
+              // Decision logic for redirection:
+              if (!hasBackground) {
                 // If user doesn't have background data, redirect to enrichment page
-                if (!backgroundData || backgroundData.length === 0) {
-                  console.log("User needs to complete profile enrichment");
-                  navigate("/profile/enrich");
-                  return;
-                }
-                
-                // Check if the user has target criteria data
-                const { data: targetData, error: targetError } = await supabase
-                  .from('target_criteria')
-                  .select('*')
-                  .eq('user_id', user.id)
-                  .limit(1);
-                  
-                if (targetError) {
-                  console.error("Error checking target criteria:", targetError);
-                }
-                
-                // If user has background data but no target criteria, redirect to job targets page
-                if (!targetData || targetData.length === 0) {
-                  console.log("User needs to complete job targets");
-                  navigate("/profile/job-targets");
-                  return;
-                }
-                
-                // If user has both background and target data, redirect to profile
+                console.log("User needs to complete profile enrichment");
+                navigate("/profile/enrich");
+              } else if (!hasTargets) {
+                // If user has background but no targets, redirect to job targets
+                console.log("User needs to complete job targets");
+                navigate("/profile/job-targets");
+              } else {
+                // User has completed both sections, redirect to profile
                 console.log("User profile is complete, redirecting to profile");
                 navigate("/profile");
-              } catch (err: any) {
-                console.error("Error in redirect logic:", err.message);
-                navigate("/profile");
               }
-            };
-            
-            console.log("Authentication successful, checking profile completion status");
-            toast.success("Successfully logged in");
-            redirectToAppropriateDestination();
+            } catch (err: any) {
+              console.error("Error in redirect logic:", err.message);
+              navigate("/profile");
+            }
             
           } catch (profileErr: any) {
             console.error("Error processing profile data:", profileErr.message);
@@ -198,10 +199,54 @@ const AuthCallback = () => {
             navigate("/profile/enrich"); // Still redirect to enrichment on error
           }
         } else {
-          // Not a LinkedIn user, redirect to profile
-          console.log("Non-LinkedIn authentication successful, redirecting to profile");
+          // Not a LinkedIn user, use same logic for redirection
+          setRedirectStatus("Checking profile completion...");
           toast.success("Successfully logged in");
-          navigate("/profile");
+          
+          try {
+            // Get all user background data
+            const { data: backgroundData, error: backgroundError } = await supabase
+              .from('user_backgrounds')
+              .select('*')
+              .eq('user_id', user.id);
+              
+            if (backgroundError) {
+              console.error("Error checking background data:", backgroundError);
+            }
+            
+            // Get target criteria data
+            const { data: targetData, error: targetError } = await supabase
+              .from('target_criteria')
+              .select('*')
+              .eq('user_id', user.id);
+              
+            if (targetError) {
+              console.error("Error checking target criteria:", targetError);
+            }
+            
+            // Determine best path based on profile completion
+            const hasBackground = backgroundData && backgroundData.length > 0;
+            const hasTargets = targetData && targetData.length > 0;
+            
+            setRedirectStatus("Redirecting you to the appropriate page...");
+            
+            if (!hasBackground) {
+              // If user doesn't have background data, redirect to enrichment page
+              console.log("User needs to complete profile enrichment");
+              navigate("/profile/enrich");
+            } else if (!hasTargets) {
+              // If user has background but no targets, redirect to job targets
+              console.log("User needs to complete job targets");
+              navigate("/profile/job-targets");
+            } else {
+              // User has completed both sections, redirect to profile
+              console.log("User profile is complete, redirecting to profile");
+              navigate("/profile");
+            }
+          } catch (err: any) {
+            console.error("Unexpected error determining user status:", err.message);
+            navigate("/profile");
+          }
         }
         
       } catch (err: any) {
@@ -254,7 +299,7 @@ const AuthCallback = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               <h2 className="text-xl font-medium">Logging you in...</h2>
               <p className="text-center text-muted-foreground">
-                Please wait while we complete the authentication process.
+                {redirectStatus}
               </p>
             </>
           )}
