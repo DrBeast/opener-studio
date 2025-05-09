@@ -1,4 +1,3 @@
-
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ChevronDown, ChevronUp, ArrowDown, FileText } from "lucide-react";
@@ -17,7 +16,7 @@ interface ProfessionalBackgroundProps {
   existingData?: {
     linkedin?: string;
     additional?: string;
-    cv?: string;
+    cv?: { name: string; url: string } | string;
   };
 }
 
