@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event);
         if (session?.user) {
           setUser(session.user);
         } else {
@@ -107,15 +108,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithLinkedIn = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "linkedin_oidc", // Updated from "linkedin" to "linkedin_oidc"
+      console.log("Starting LinkedIn authentication...");
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "linkedin_oidc", 
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'r_emailaddress r_liteprofile',
         },
       });
 
       if (error) {
+        console.error("LinkedIn auth error:", error);
         throw error;
+      }
+
+      if (data) {
+        console.log("LinkedIn auth data:", data);
       }
     } catch (error: any) {
       console.error("Error signing in with LinkedIn:", error.message);
