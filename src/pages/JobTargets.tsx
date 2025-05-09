@@ -242,7 +242,7 @@ const JobTargets = () => {
       field
     }) => <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
-            <FormDescription>{description}</FormDescription>
+            
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {options.map(option => <FormField key={option.value} control={form.control} name={name as any} render={({
           field
@@ -276,9 +276,7 @@ const JobTargets = () => {
               <CardTitle className="text-2xl font-bold">
                 {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
               </CardTitle>
-              <CardDescription>
-                {isEditing ? "Review and refine what roles and companies you're interested in to keep your recommendations relevant." : "Tell us what roles and companies you're interested in. This helps us provide tailored recommendations."}
-              </CardDescription>
+              
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -293,9 +291,7 @@ const JobTargets = () => {
                   field
                 }) => <FormItem>
                         <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>
-                          Provide any additional details about your dream job or the companies you'd like to work for
-                        </FormDescription>
+                        <FormDescription>Provide any details in free form about your dream job or the companies you'd like to work for.</FormDescription>
                         <FormControl>
                           <Textarea placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." className="min-h-[150px]" {...field} />
                         </FormControl>
@@ -317,10 +313,8 @@ const JobTargets = () => {
                   <FormField control={form.control} name="similar_companies" render={({
                   field
                 }) => <FormItem>
-                        <FormLabel>Similar Companies</FormLabel>
-                        <FormDescription>
-                          Enter names of companies you admire or would like to work for (comma separated)
-                        </FormDescription>
+                        <FormLabel>Company Examples</FormLabel>
+                        <FormDescription>We will use this to generate more examples</FormDescription>
                         <FormControl>
                           <Input placeholder="Google, Apple, Microsoft, etc." onChange={e => {
                       const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
