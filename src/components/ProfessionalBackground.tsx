@@ -1,6 +1,9 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { ChevronDown, ChevronUp, ArrowDown } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface ProfessionalBackgroundProps {
   linkedinContent: string;
@@ -25,13 +28,36 @@ const ProfessionalBackground = ({
   isEditing = false,
   existingData = {}
 }: ProfessionalBackgroundProps) => {
+  const [linkedinExpanded, setLinkedinExpanded] = useState(false);
+  const [additionalExpanded, setAdditionalExpanded] = useState(false);
+
+  const toggleLinkedin = () => setLinkedinExpanded(!linkedinExpanded);
+  const toggleAdditional = () => setAdditionalExpanded(!additionalExpanded);
+
   return (
     <div className="space-y-6">
-      <Card className="bg-primary/5 p-6 rounded-lg">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">LinkedIn Profile</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+      {/* LinkedIn Section */}
+      <div className="relative">
+        <Card 
+          className={`bg-primary/5 p-6 rounded-lg ${linkedinExpanded ? 'border-primary' : ''}`}
+          onClick={toggleLinkedin}
+        >
+          <div className="flex items-center justify-between cursor-pointer">
+            <h3 className="text-lg font-semibold mb-0">LinkedIn Profile</h3>
+            {linkedinExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+          
+          {!linkedinExpanded && (
+            <div className="flex items-center mt-2 text-sm text-muted-foreground">
+              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
+              <span>Click to edit LinkedIn content</span>
+            </div>
+          )}
+        </Card>
+        
+        {linkedinExpanded && (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
               {isEditing && existingData.linkedin 
                 ? "Update your LinkedIn profile information or add more details below."
                 : "Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it into the text box below. This will help us understand your professional background better."
@@ -52,14 +78,31 @@ const ProfessionalBackground = ({
               disabled={isSubmitting}
             />
           </div>
-        </div>
-      </Card>
+        )}
+      </div>
       
-      <Card className="bg-primary/5 p-6 rounded-lg">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Additional Details</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+      {/* Additional Details Section */}
+      <div className="relative">
+        <Card 
+          className={`bg-primary/5 p-6 rounded-lg ${additionalExpanded ? 'border-primary' : ''}`}
+          onClick={toggleAdditional}
+        >
+          <div className="flex items-center justify-between cursor-pointer">
+            <h3 className="text-lg font-semibold mb-0">Additional Details</h3>
+            {additionalExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+          
+          {!additionalExpanded && (
+            <div className="flex items-center mt-2 text-sm text-muted-foreground">
+              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
+              <span>Click to edit additional professional details</span>
+            </div>
+          )}
+        </Card>
+        
+        {additionalExpanded && (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
               {isEditing && existingData.additional
                 ? "Update or add to your additional professional details below."
                 : "Add any additional details about your professional background, specific strengths, or key successes that might not be captured in your LinkedIn profile."
@@ -80,8 +123,8 @@ const ProfessionalBackground = ({
               disabled={isSubmitting}
             />
           </div>
-        </div>
-      </Card>
+        )}
+      </div>
     </div>
   );
 };
