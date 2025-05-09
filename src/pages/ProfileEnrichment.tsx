@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
-import { ArrowRight, Save, AlertCircle, FileText, Edit } from "lucide-react";
+import { ArrowRight, Save, AlertCircle, FileText, Edit, UserCheck, ShieldAlert } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 
 // Import custom components
@@ -49,6 +49,9 @@ const ProfileEnrichment = () => {
     expertise: "",
     achievements: ""
   });
+
+  // Add state to store authenticated user email for confirmation
+  const [userEmail, setUserEmail] = useState("");
   
   // Fetch existing data when component mounts
   useEffect(() => {
@@ -57,6 +60,9 @@ const ProfileEnrichment = () => {
         navigate("/auth/login");
         return;
       }
+      
+      // Set user email for confirmation
+      setUserEmail(user.email || "");
       
       setIsLoading(true);
       try {
@@ -151,9 +157,15 @@ const ProfileEnrichment = () => {
   };
   
   const saveUserBackground = async (contentType: string, content: string, storageUrl?: string) => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Authentication error. Please log in again.");
+      navigate("/auth/login");
+      return;
+    }
     
     try {
+      console.log(`Saving ${contentType} for user: ${user.id} (${user.email})`);
+      
       // First check if this content type already exists for this user
       const { data: existingData, error: existingError } = await supabase
         .from("user_backgrounds")
@@ -207,6 +219,42 @@ const ProfileEnrichment = () => {
   };
   
   const handleSubmit = async () => {
+    // Verify user is authenticated
+    if (!user) {
+      toast.error("Authentication error. Please log in again.");
+      navigate("/auth/login");
+      return;
+    }
+
+    // Refresh authentication session to ensure the token is valid
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        console.error("Session validation error:", sessionError || "No active session");
+        toast.error("Your login session has expired. Please log in again.");
+        navigate("/auth/login");
+        return;
+      }
+
+      // Double-check the user is still the same
+      if (sessionData.session.user.id !== user.id) {
+        console.error("User mismatch:", {
+          currentUserId: user.id,
+          sessionUserId: sessionData.session.user.id
+        });
+        toast.error("User identity changed. Please log in again to continue.");
+        navigate("/auth/login");
+        return;
+      }
+
+      console.log(`Confirmed user identity: ${user.id} (${user.email})`);
+    } catch (error: any) {
+      console.error("Error validating session:", error.message);
+      toast.error("Failed to validate your session. Please log in again.");
+      navigate("/auth/login");
+      return;
+    }
+
     // Validation
     if (!linkedinContent.trim() && !additionalDetails.trim() && !uploadedCvUrl && !cvContent.trim()) {
       toast.error("Please provide at least one source of information: LinkedIn, additional details, or CV");
@@ -240,10 +288,13 @@ const ProfileEnrichment = () => {
         setIsProcessingWithAI(true);
         
         try {
-          // Call the edge function to process the profile data
+          console.log(`Calling generate_profile with userId: ${user.id}, backgroundIds:`, backgroundIds);
+          
+          // Call the edge function to process the profile data with additional logging
           const { data, error } = await supabase.functions.invoke("generate_profile", {
             body: {
-              userId: user?.id,
+              userId: user.id,
+              userEmail: user.email,
               backgroundIds: backgroundIds
             }
           });
@@ -336,6 +387,19 @@ const ProfileEnrichment = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-8">
+        {/* User Identity Confirmation Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center">
+          <UserCheck className="text-blue-500 mr-3 h-5 w-5" />
+          <div>
+            <p className="text-blue-800 font-medium">
+              Logged in as: {userEmail}
+            </p>
+            <p className="text-blue-600 text-sm">
+              All profile data will be saved for this account
+            </p>
+          </div>
+        </div>
+
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">
