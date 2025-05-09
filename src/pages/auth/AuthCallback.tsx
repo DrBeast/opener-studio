@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { AlertTriangle } from "lucide-react";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ const AuthCallback = () => {
               </p>
               {debugInfo && (
                 <Alert variant="destructive" className="mt-4">
-                  <ExclamationTriangleIcon className="h-4 w-4" />
+                  <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Troubleshooting Information</AlertTitle>
                   <AlertDescription>
                     {debugInfo}
