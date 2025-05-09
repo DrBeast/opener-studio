@@ -52,6 +52,58 @@ const AuthCallback = () => {
           return;
         }
         
+        // Check for LinkedIn data in user metadata
+        const user = data.session.user;
+        console.log("Authentication successful, user data:", user);
+        
+        // Check if we need to update the profile with LinkedIn data
+        if (user.app_metadata.provider === 'linkedin_oidc' && user.user_metadata) {
+          console.log("LinkedIn user metadata:", user.user_metadata);
+          
+          try {
+            // Check if the user already has a profile
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single();
+            
+            if (profileError && profileError.code !== 'PGRST116') {
+              console.error("Error checking profile:", profileError);
+            }
+            
+            // If no profile exists or profile fields are empty, update with LinkedIn data
+            if (!profileData || (!profileData.first_name && !profileData.last_name)) {
+              const firstName = user.user_metadata.name?.split(' ')[0] || 
+                                user.user_metadata.full_name?.split(' ')[0] || 
+                                user.user_metadata.first_name || '';
+                                
+              const lastName = user.user_metadata.name?.split(' ').slice(1).join(' ') || 
+                              user.user_metadata.full_name?.split(' ').slice(1).join(' ') || 
+                              user.user_metadata.last_name || '';
+              
+              if (firstName || lastName) {
+                const { error: updateError } = await supabase
+                  .from('profiles')
+                  .upsert({
+                    id: user.id,
+                    first_name: firstName,
+                    last_name: lastName,
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'id' });
+                
+                if (updateError) {
+                  console.error("Error updating profile with LinkedIn data:", updateError);
+                } else {
+                  console.log("Profile updated with LinkedIn data");
+                }
+              }
+            }
+          } catch (profileErr) {
+            console.error("Error processing profile data:", profileErr);
+          }
+        }
+        
         console.log("Authentication successful, redirecting to profile");
         toast.success("Successfully logged in");
         

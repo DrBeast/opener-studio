@@ -29,6 +29,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session?.user) {
           setUser(session.user);
+          
+          // Log the user metadata for debugging
+          if (session.user.app_metadata.provider === 'linkedin_oidc') {
+            console.log("LinkedIn user metadata in auth provider:", session.user.user_metadata);
+          }
         }
       } catch (error: any) {
         console.error("Error checking authentication:", error.message);
