@@ -72,8 +72,10 @@ const AuthCallback = () => {
               console.error("Error checking profile:", profileError);
             }
             
-            // If no profile exists or profile fields are empty, update with LinkedIn data
-            if (!profileData || (!profileData.first_name && !profileData.last_name)) {
+            // We'll update the profile even if it exists but has empty name fields
+            const shouldUpdateProfile = !profileData || (!profileData.first_name && !profileData.last_name);
+            
+            if (shouldUpdateProfile) {
               // Try multiple potential field names that LinkedIn might provide
               const firstName = 
                 user.user_metadata.given_name || 
@@ -111,6 +113,7 @@ const AuthCallback = () => {
                 }
               } else {
                 console.log("No name data available from LinkedIn");
+                toast.warning("Could not extract name from your LinkedIn profile");
               }
             } else {
               console.log("User already has profile data, not overwriting");
