@@ -89,16 +89,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
+      // Configure sign-up to skip email verification
+      // This is for development only, in production you'd want email verification enabled
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          // Skip email verification during development
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            email_confirmed: true // This attribute will be stored in user metadata
+          }
+        }
       });
 
       if (error) {
         throw error;
       }
 
-      toast.success("Check your email to verify your account");
+      // Since we're skipping email verification, we immediately sign the user in
+      await signIn(email, password);
+      
+      toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Error signing up:", error.message);
       toast.error(error.message || "Failed to sign up");
@@ -119,12 +131,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithLinkedIn = async () => {
     try {
       console.log("Starting LinkedIn authentication...");
-      console.log("Redirect URL:", `${window.location.origin}/auth/callback`);
+      
+      // Get the origin for the redirect URL
+      const origin = window.location.origin;
+      console.log("Redirect URL:", `${origin}/auth/callback`);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "linkedin_oidc", 
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${origin}/auth/callback`,
           scopes: 'openid profile email',
         },
       });
@@ -136,7 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (data) {
-        console.log("LinkedIn auth data:", data);
+        console.log("LinkedIn auth initialized, redirecting...");
       }
     } catch (error: any) {
       console.error("Error signing in with LinkedIn:", error);

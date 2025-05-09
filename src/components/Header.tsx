@@ -16,19 +16,23 @@ const Header = () => {
           </Link>
           
           <nav className="hidden md:flex items-center gap-4">
-            <Link to="/" className="text-sm hover:underline">
-              Home
-            </Link>
+            {/* Only show navigation links for logged-in users */}
             {user && (
               <>
                 <Link to="/profile" className="text-sm hover:underline">
                   Profile
                 </Link>
                 <Link to="/job-targets" className="text-sm hover:underline">
-                  Job Targets
+                  Targets
                 </Link>
                 <Link to="/companies" className="text-sm hover:underline">
-                  Companies
+                  Companies & Contacts
+                </Link>
+                <Link to="/tracking" className="text-sm hover:underline">
+                  Tracking
+                </Link>
+                <Link to="/pipeline" className="text-sm hover:underline">
+                  Pipeline
                 </Link>
               </>
             )}

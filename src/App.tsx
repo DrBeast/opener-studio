@@ -20,6 +20,8 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import CompaniesDashboard from "@/pages/CompaniesDashboard";
+import TrackingDashboard from "@/pages/TrackingDashboard";
+import PipelineDashboard from "@/pages/PipelineDashboard";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -48,7 +50,8 @@ const App = () => (
                 <Route path="/profile/edit" element={<ProfileEdit />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/companies" element={<CompaniesDashboard />} />
-                {/* Add more protected routes here */}
+                <Route path="/tracking" element={<TrackingDashboard />} />
+                <Route path="/pipeline" element={<PipelineDashboard />} />
               </Route>
               
               {/* 404 Route */}

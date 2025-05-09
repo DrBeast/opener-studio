@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { RefreshCcw, Save, Edit } from "lucide-react";
+import { RefreshCcw, Save, Edit, FileText } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
@@ -48,6 +48,10 @@ const Profile = () => {
     additional?: string;
     cv_content?: string;
   }>({});
+  
+  // Dev mode - user data reset
+  const [showDevOptions, setShowDevOptions] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -294,6 +298,45 @@ const Profile = () => {
         .catch(() => toast.error("Failed to save your updated summary"));
     }, 2000);
   };
+  
+  // Development mode - Reset user data
+  const handleResetUserData = async () => {
+    if (!user) return;
+    if (!window.confirm("Are you sure you want to reset all user data? This will delete your background data.")) return;
+    
+    setIsResetting(true);
+    
+    try {
+      // Delete user background data
+      const { error: backgroundError } = await supabase
+        .from("user_backgrounds")
+        .delete()
+        .eq("user_id", user.id);
+      
+      if (backgroundError) throw backgroundError;
+      
+      // Delete user target criteria
+      const { error: targetError } = await supabase
+        .from("target_criteria")
+        .delete()
+        .eq("user_id", user.id);
+      
+      if (targetError) throw targetError;
+      
+      toast.success("User data has been reset successfully");
+      
+      // Refresh the page after a brief delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error("Error resetting user data:", error.message);
+      toast.error(`Failed to reset user data: ${error.message}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -310,7 +353,7 @@ const Profile = () => {
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-2xl font-bold">Professional Profile</CardTitle>
                 <CardDescription>
@@ -330,79 +373,12 @@ const Profile = () => {
               )}
             </CardHeader>
             
-            {editMode ? (
-              <CardContent className="space-y-6">
-                <ProfessionalBackground 
-                  linkedinContent={linkedinContent}
-                  setLinkedinContent={setLinkedinContent}
-                  additionalDetails={additionalDetails}
-                  setAdditionalDetails={setAdditionalDetails}
-                  isSubmitting={isSubmitting}
-                  isEditing={Object.keys(existingData).length > 0}
-                  existingData={existingData}
-                />
-                
-                {/* CV Content */}
-                <Card className="bg-primary/5 p-6 rounded-lg">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Resume Content</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {existingData.cv_content
-                          ? "Update your resume content below."
-                          : "Copy and paste the content of your resume into the text box below. This helps us understand your professional background better."
-                        }
-                      </p>
-                      
-                      {existingData.cv_content && (
-                        <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
-                          <p>Your resume content is shown below. You can keep it as is or update it.</p>
-                        </div>
-                      )}
-                      
-                      <Textarea
-                        placeholder="Paste your resume content here..."
-                        className="min-h-[200px] w-full"
-                        value={cvContent}
-                        onChange={(e) => setCvContent(e.target.value)}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-                </Card>
-                
-                <div className="flex justify-end gap-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setEditMode(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveProfile}
-                    disabled={!hasChanges || isSubmitting}
-                    className="flex items-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        Processing... 
-                        <span className="ml-2 animate-spin">⟳</span>
-                      </>
-                    ) : (
-                      <>
-                        Save Changes
-                        <Save className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            ) : backgroundSummary ? (
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-4 flex justify-between items-center">
-                    <span>Professional Summary</span>
+            <CardContent className="space-y-6">
+              {/* Professional Summary - Always Visible */}
+              {backgroundSummary && (
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Professional Summary</h3>
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -410,9 +386,9 @@ const Profile = () => {
                       className="flex items-center gap-2"
                     >
                       <RefreshCcw className="h-4 w-4" />
-                      Regenerate Summary
+                      Regenerate
                     </Button>
-                  </h3>
+                  </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="bg-primary/5 p-4 rounded-lg">
                       <h4 className="font-semibold">Experience</h4>
@@ -432,24 +408,159 @@ const Profile = () => {
                     </div>
                   </div>
                 </div>
-                
-                {backgroundSources.length > 0 && (
-                  <div className="mt-2">
+              )}
+              
+              {backgroundSources.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-sm font-medium text-muted-foreground">Background Sources</h3>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {backgroundSources.map((source, index) => (
-                        <div key={index} className="bg-secondary/20 px-2 py-1 rounded-md text-xs">
-                          {source.name}
-                        </div>
-                      ))}
-                    </div>
+                    {!editMode && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => setEditMode(true)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            ) : (
-              <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {backgroundSources.map((source, index) => (
+                      <div key={index} className="bg-secondary/20 px-2 py-1 rounded-md text-xs flex items-center">
+                        {source.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Edit Form - Only visible when in edit mode */}
+              {editMode && (
+                <div className="border-t pt-6 mt-6">
+                  <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
+                  
+                  <ProfessionalBackground 
+                    linkedinContent={linkedinContent}
+                    setLinkedinContent={setLinkedinContent}
+                    additionalDetails={additionalDetails}
+                    setAdditionalDetails={setAdditionalDetails}
+                    isSubmitting={isSubmitting}
+                    isEditing={Object.keys(existingData).length > 0}
+                    existingData={existingData}
+                  />
+                  
+                  {/* CV Content */}
+                  <Card className="bg-primary/5 p-6 rounded-lg mt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center">
+                          <FileText className="mr-2 h-4 w-4" />
+                          Resume Content
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {existingData.cv_content
+                            ? "Update your resume content below."
+                            : "Copy and paste the content of your resume into the text box below. This helps us understand your professional background better."
+                          }
+                        </p>
+                        
+                        {existingData.cv_content && (
+                          <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
+                            <p>Your resume content is shown below. You can keep it as is or update it.</p>
+                          </div>
+                        )}
+                        
+                        <Textarea
+                          placeholder="Paste your resume content here..."
+                          className="min-h-[200px] w-full"
+                          value={cvContent}
+                          onChange={(e) => setCvContent(e.target.value)}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                  
+                  <div className="flex justify-end gap-4 mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditMode(false)}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={!hasChanges || isSubmitting}
+                      className="flex items-center gap-2"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          Processing... 
+                          <span className="ml-2 animate-spin">⟳</span>
+                        </>
+                      ) : (
+                        <>
+                          Save Changes
+                          <Save className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Show empty state if no summary and not in edit mode */}
+              {!backgroundSummary && !editMode && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
                   <p>You haven't provided any professional background information yet. Click 'Edit Profile' to get started.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Development Tools Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-md flex items-center justify-between">
+                <span>Development Tools</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowDevOptions(!showDevOptions)}
+                >
+                  {showDevOptions ? "Hide Options" : "Show Options"}
+                </Button>
+              </CardTitle>
+              <CardDescription>Tools for testing and development purposes</CardDescription>
+            </CardHeader>
+            {showDevOptions && (
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-red-800 mb-2">Reset User Data</h3>
+                    <p className="text-xs text-red-700 mb-4">
+                      Warning: This will delete all your profile data, background information, and job target criteria.
+                      Use this option to test the new user onboarding flow.
+                    </p>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={handleResetUserData}
+                      disabled={isResetting}
+                    >
+                      {isResetting ? "Resetting..." : "Reset All User Data"}
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-blue-800 mb-2">Email Verification</h3>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Email verification is required by default. For testing purposes, you can disable it in the Supabase dashboard.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             )}

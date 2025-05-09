@@ -38,11 +38,38 @@ export function ProfileBreadcrumbs() {
       });
     }
     
-    // Add Job Targets as a separate section
+    // Add specific sections based on paths
     if (path === "/job-targets") {
       items.push({
-        name: "Job Targets",
+        name: "Targets",
         path: "/job-targets",
+        isCurrentPage: true,
+        icon: null
+      });
+    }
+
+    if (path === "/companies") {
+      items.push({
+        name: "Companies & Contacts",
+        path: "/companies",
+        isCurrentPage: true,
+        icon: null
+      });
+    }
+    
+    if (path === "/tracking") {
+      items.push({
+        name: "Tracking",
+        path: "/tracking",
+        isCurrentPage: true,
+        icon: null
+      });
+    }
+    
+    if (path === "/pipeline") {
+      items.push({
+        name: "Pipeline",
+        path: "/pipeline",
         isCurrentPage: true,
         icon: null
       });
