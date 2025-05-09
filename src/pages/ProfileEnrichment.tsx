@@ -31,6 +31,7 @@ const ProfileEnrichment = () => {
   // Form state
   const [linkedinContent, setLinkedinContent] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
+  const [cvContent, setCvContent] = useState(""); // Add this state for cv content
   const [uploadedCvUrl, setUploadedCvUrl] = useState("");
   const [uploadedCvName, setUploadedCvName] = useState("");
   const [existingData, setExistingData] = useState<{
@@ -268,7 +269,7 @@ const ProfileEnrichment = () => {
   };
   
   const isProcessing = isSubmitting || isUploading;
-  const hasContent = linkedinContent.trim() || additionalDetails.trim() || uploadedCvUrl;
+  const hasContent = linkedinContent.trim() || additionalDetails.trim() || uploadedCvUrl || cvContent.trim();
   const isEditing = Object.keys(existingData).length > 0;
   
   if (isLoading) {
@@ -300,12 +301,14 @@ const ProfileEnrichment = () => {
           <CardContent className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
-                {/* Professional Background Component */}
+                {/* Professional Background Component - Fix by adding the missing props */}
                 <ProfessionalBackground 
                   linkedinContent={linkedinContent}
                   setLinkedinContent={setLinkedinContent}
                   additionalDetails={additionalDetails}
                   setAdditionalDetails={setAdditionalDetails}
+                  cvContent={cvContent}
+                  setCvContent={setCvContent}
                   isSubmitting={isProcessing}
                   isEditing={isEditing}
                   existingData={existingData}
