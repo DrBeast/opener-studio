@@ -1,17 +1,11 @@
-
 import { Link } from "react-router-dom";
-
 const Footer = () => {
   const year = new Date().getFullYear();
-
-  return (
-    <footer className="border-t py-8 bg-gray-50">
+  return <footer className="border-t py-8 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-6 md:mb-0">
-            <Link to="/" className="text-xl font-bold">
-              EngageAI
-            </Link>
+            <Link to="/" className="text-xl font-bold">ConnectorAI</Link>
             <p className="mt-2 text-sm text-gray-600">
               Building better professional networks
             </p>
@@ -70,8 +64,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
