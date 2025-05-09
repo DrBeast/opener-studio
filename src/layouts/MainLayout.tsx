@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PersistentAssistant from "@/components/PersistentAssistant";
+import PersistentAssistant from "@/components/PersistantAssistant";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -46,7 +46,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <Header />
       <div className="flex flex-1 relative">
         <main className={`flex-1 px-4 py-8 overflow-x-hidden transition-all duration-300 ${
-          assistantVisible ? 'md:pr-[320px]' : ''
+          assistantVisible ? 'pr-[20rem]' : ''
         }`}>
           {children}
         </main>
