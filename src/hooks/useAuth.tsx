@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/sonner";
 
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithLinkedIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "linkedin",
+        provider: "linkedin_oidc", // Updated from "linkedin" to "linkedin_oidc"
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },

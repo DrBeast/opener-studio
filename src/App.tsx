@@ -16,6 +16,7 @@ import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
+import ProfileEdit from "@/pages/ProfileEdit";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -42,6 +43,7 @@ const App = () => (
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/edit" element={<ProfileEdit />} />
                 {/* Add more protected routes here */}
               </Route>
               

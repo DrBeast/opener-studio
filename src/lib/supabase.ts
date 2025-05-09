@@ -1,17 +1,12 @@
+// This file is no longer needed as we're using the client from @/integrations/supabase/client
+// Keeping it for backward compatibility but with a deprecation warning
 
 import { createClient } from "@supabase/supabase-js";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 
-// In a real production environment, these should be set as environment variables
-// For now, we'll use placeholders so the app can load for development
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://example.supabase.co";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
+console.warn(
+  "Warning: Using deprecated supabase client from @/lib/supabase. " +
+  "Please update your imports to use @/integrations/supabase/client instead."
+);
 
-// Log a warning if environment variables are missing
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  console.warn(
-    "Supabase environment variables are missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables. " +
-    "Using placeholder values for development."
-  );
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = supabaseClient;

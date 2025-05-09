@@ -2,17 +2,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut } from "lucide-react";
 
 interface UserProfile {
-  user_id: string;
-  email?: string;
+  id: string;
   first_name?: string;
   last_name?: string;
-  current_role?: string;
+  job_role?: string; // Updated from current_role
   current_company?: string;
   location?: string;
 }
@@ -32,9 +31,9 @@ const Profile = () => {
 
       try {
         const { data, error } = await supabase
-          .from("users")
+          .from("profiles")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("id", user.id)
           .single();
 
         if (error) {
@@ -91,7 +90,7 @@ const Profile = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Current Role</h3>
-                <p className="font-medium">{profile?.current_role || "Not provided"}</p>
+                <p className="font-medium">{profile?.job_role || "Not provided"}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Current Company</h3>
