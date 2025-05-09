@@ -87,6 +87,13 @@ const publicPrivateOptions = [
   { value: "private", label: "Private" },
 ];
 
+// Helper function to safely cast JSON data to string arrays
+const ensureStringArray = (value: any): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(String);
+  return [];
+};
+
 const JobTargets = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -124,14 +131,14 @@ const JobTargets = () => {
         if (data) {
           setExistingData(data);
           form.reset({
-            target_functions: data.target_functions || [],
-            target_locations: data.target_locations || [],
-            target_wfh_preference: data.target_wfh_preference || [],
+            target_functions: ensureStringArray(data.target_functions),
+            target_locations: ensureStringArray(data.target_locations),
+            target_wfh_preference: ensureStringArray(data.target_wfh_preference),
             free_form_role_and_company_description: data.free_form_role_and_company_description || "",
-            target_industries: data.target_industries || [],
-            target_sizes: data.target_sizes || [],
-            target_public_private: data.target_public_private || [],
-            similar_companies: data.similar_companies || [],
+            target_industries: ensureStringArray(data.target_industries),
+            target_sizes: ensureStringArray(data.target_sizes),
+            target_public_private: ensureStringArray(data.target_public_private),
+            similar_companies: ensureStringArray(data.similar_companies),
             visa_sponsorship_required: data.visa_sponsorship_required || false,
           });
         }
