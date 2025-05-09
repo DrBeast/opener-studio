@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -108,6 +109,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithLinkedIn = async () => {
     try {
       console.log("Starting LinkedIn authentication...");
+      console.log("Redirect URL:", `${window.location.origin}/auth/callback`);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "linkedin_oidc", 
         options: {
@@ -118,6 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error("LinkedIn auth error:", error);
+        toast.error(`LinkedIn login failed: ${error.message}`);
         throw error;
       }
 
@@ -125,8 +129,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("LinkedIn auth data:", data);
       }
     } catch (error: any) {
-      console.error("Error signing in with LinkedIn:", error.message);
-      toast.error("Failed to sign in with LinkedIn");
+      console.error("Error signing in with LinkedIn:", error);
+      toast.error(`Failed to sign in with LinkedIn: ${error.message}`);
       throw error;
     }
   };
