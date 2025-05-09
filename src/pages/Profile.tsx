@@ -5,9 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/sonner";
-import { LogOut, Briefcase, Upload, UserRound, Edit, File, RefreshCcw } from "lucide-react";
+import { Briefcase, Upload, UserRound, Edit, File, RefreshCcw } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 
 interface UserProfile {
@@ -32,7 +31,7 @@ interface Background {
 }
 
 const Profile = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [completionStatus, setCompletionStatus] = useState<CompletionStatus>({
     hasBackground: false,
@@ -139,10 +138,17 @@ const Profile = () => {
     fetchUserProfile();
   }, [user, navigate]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+  const getNextStep = () => {
+    if (!completionStatus.hasBackground) {
+      return { path: "/profile/enrich", label: "Complete Your Professional Background" };
+    }
+    if (!completionStatus.hasJobTargets) {
+      return { path: "/profile/job-targets", label: "Define Your Job Targets" };
+    }
+    return { path: "/companies", label: "Generate Target Companies" };
   };
+
+  const nextStep = getNextStep();
 
   if (isLoading) {
     return (
@@ -152,18 +158,6 @@ const Profile = () => {
     );
   }
 
-  const getNextStep = () => {
-    if (!completionStatus.hasBackground) {
-      return { path: "/profile/enrich", label: "Complete Your Professional Background" };
-    }
-    if (!completionStatus.hasJobTargets) {
-      return { path: "/profile/job-targets", label: "Define Your Job Targets" };
-    }
-    return { path: "/companies", label: "View Target Companies" };
-  };
-
-  const nextStep = getNextStep();
-
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
@@ -171,50 +165,16 @@ const Profile = () => {
       <div className="grid gap-8">
         <Card>
           <CardHeader className="space-y-1">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold">Your Profile</CardTitle>
-              <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => navigate("/profile/edit")}>
-                <Edit className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            </div>
+            <CardTitle className="text-2xl font-bold">Welcome, {profile?.first_name || user?.email}</CardTitle>
             <CardDescription>
-              View and manage your profile information
+              Complete your profile to get personalized recommendations
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+          {backgroundSummary && (
+            <CardContent className="space-y-6">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-                <p className="font-medium">{user?.email || "Not provided"}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-                <p className="font-medium">
-                  {profile?.first_name && profile?.last_name 
-                    ? `${profile.first_name} ${profile.last_name}` 
-                    : "Not provided"}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Current Role</h3>
-                <p className="font-medium">{profile?.job_role || "Not provided"}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Current Company</h3>
-                <p className="font-medium">{profile?.current_company || "Not provided"}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Location</h3>
-                <p className="font-medium">{profile?.location || "Not provided"}</p>
-              </div>
-            </div>
-            
-            {backgroundSummary && (
-              <div className="mt-6">
                 <h3 className="text-lg font-medium mb-4">Professional Summary</h3>
-                <Separator className="mb-4" />
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="bg-primary/5 p-4 rounded-lg">
                     <h4 className="font-semibold">Experience</h4>
@@ -245,29 +205,28 @@ const Profile = () => {
                   </Button>
                 </div>
               </div>
-            )}
-            
-            {backgroundSources.length > 0 && (
-              <div className="mt-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Background Sources</h3>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {backgroundSources.map((source, index) => (
-                    <div key={index} className="bg-secondary/20 px-2 py-1 rounded-md text-xs flex items-center">
-                      <File className="h-3 w-3 mr-1" />
-                      {source.name}
-                    </div>
-                  ))}
+              
+              {backgroundSources.length > 0 && (
+                <div className="mt-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Background Sources</h3>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {backgroundSources.map((source, index) => (
+                      <div key={index} className="bg-secondary/20 px-2 py-1 rounded-md text-xs flex items-center">
+                        <File className="h-3 w-3 mr-1" />
+                        {source.name}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
+              )}
+            </CardContent>
+          )}
           
-          <CardFooter className="flex justify-between border-t pt-6">
-            <Button variant="outline" onClick={handleSignOut} className="flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-            <Button onClick={() => navigate(nextStep.path)}>
+          <CardFooter className="pt-6">
+            <Button 
+              className="w-full" 
+              onClick={() => navigate(nextStep.path)}
+            >
               {nextStep.label}
             </Button>
           </CardFooter>
@@ -350,14 +309,34 @@ const Profile = () => {
                   {backgroundSources.some(s => s.type === 'cv_upload') ? "Update" : "Upload"}
                 </Button>
               </div>
+              
+              <div className="flex items-center p-4 rounded-lg bg-primary/5">
+                <div className="mr-4 p-2 rounded-full bg-primary/10">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium">Target Companies</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Generate a list of target companies based on your profile and job targets
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate("/companies")}
+                  disabled={!completionStatus.hasBackground || !completionStatus.hasJobTargets}
+                >
+                  {completionStatus.hasBackground && completionStatus.hasJobTargets ? "Generate" : "Coming Soon"}
+                </Button>
+              </div>
             </div>
           </CardContent>
           <CardFooter>
             <Button 
               className="w-full" 
-              onClick={() => navigate(completionStatus.hasBackground && completionStatus.hasJobTargets ? "/companies" : nextStep.path)}
+              onClick={() => navigate(nextStep.path)}
             >
-              {completionStatus.hasBackground && completionStatus.hasJobTargets ? "View Your Dashboard" : "Continue Setup"}
+              {nextStep.label}
             </Button>
           </CardFooter>
         </Card>

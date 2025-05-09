@@ -2,10 +2,16 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { UserRound, LogIn } from "lucide-react";
+import { UserRound, LogIn, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
 
   return (
     <header className="border-b">
@@ -46,12 +52,30 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <Button asChild variant="ghost">
-              <Link to="/profile">
-                <UserRound className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </Button>
+            <>
+              <Button asChild variant="ghost">
+                <Link to="/profile">
+                  <UserRound className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <UserRound className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">My Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )}
         </div>
       </div>
