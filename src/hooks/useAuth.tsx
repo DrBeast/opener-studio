@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -113,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         provider: "linkedin_oidc", 
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'r_emailaddress r_liteprofile',
+          scopes: 'openid profile email',
         },
       });
 
