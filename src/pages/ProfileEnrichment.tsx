@@ -27,11 +27,12 @@ const ProfileEnrichment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessingWithAI, setIsProcessingWithAI] = useState(false);
   
   // Form state
   const [linkedinContent, setLinkedinContent] = useState("");
   const [additionalDetails, setAdditionalDetails] = useState("");
-  const [cvContent, setCvContent] = useState(""); // Add this state for cv content
+  const [cvContent, setCvContent] = useState("");
   const [uploadedCvUrl, setUploadedCvUrl] = useState("");
   const [uploadedCvName, setUploadedCvName] = useState("");
   const [existingData, setExistingData] = useState<{
@@ -165,7 +166,7 @@ const ProfileEnrichment = () => {
       
       if (existingData) {
         // Update existing record
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("user_backgrounds")
           .update({
             content: content,
@@ -178,9 +179,10 @@ const ProfileEnrichment = () => {
           .eq("background_id", existingData.background_id);
           
         if (error) throw error;
+        return existingData.background_id;
       } else {
         // Insert new record
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("user_backgrounds")
           .insert({
             user_id: user.id,
@@ -191,9 +193,11 @@ const ProfileEnrichment = () => {
               raw_content: true,
               status: "pending_processing"
             }
-          });
+          })
+          .select("background_id");
             
         if (error) throw error;
+        return data?.[0]?.background_id;
       }
     } catch (error: any) {
       console.error(`Error saving ${contentType}:`, error.message);
@@ -204,47 +208,94 @@ const ProfileEnrichment = () => {
   
   const handleSubmit = async () => {
     // Validation
-    if (!linkedinContent.trim() && !additionalDetails.trim() && !uploadedCvUrl) {
+    if (!linkedinContent.trim() && !additionalDetails.trim() && !uploadedCvUrl && !cvContent.trim()) {
       toast.error("Please provide at least one source of information: LinkedIn, additional details, or CV");
       return;
     }
     
     setIsSubmitting(true);
+    const backgroundIds: string[] = [];
     
     try {
       // Save LinkedIn content if provided
       if (linkedinContent.trim()) {
-        await saveUserBackground("linkedin_profile", linkedinContent);
+        const linkedinId = await saveUserBackground("linkedin_profile", linkedinContent);
+        if (linkedinId) backgroundIds.push(linkedinId);
       }
       
       // Save additional details if provided
       if (additionalDetails.trim()) {
-        await saveUserBackground("additional_details", additionalDetails);
+        const additionalId = await saveUserBackground("additional_details", additionalDetails);
+        if (additionalId) backgroundIds.push(additionalId);
       }
       
-      // For demo purposes, create a simulated AI-processed summary
-      // In a real implementation, this would come from an AI service like Gemini
-      const simulatedSummary = {
-        experience: "Your most recent roles appear to be in product management and leadership positions.",
-        education: "You have a background in business and technology from reputable institutions.",
-        expertise: "Your key skills include product strategy, team leadership, and business development.",
-        achievements: "You've successfully led teams and delivered impactful products in your career."
-      };
+      // Save CV content if provided
+      if (cvContent.trim()) {
+        const cvContentId = await saveUserBackground("cv_content", cvContent);
+        if (cvContentId) backgroundIds.push(cvContentId);
+      }
       
-      // Save the generated summary to the database
-      await saveUserBackground("generated_summary", JSON.stringify(simulatedSummary));
-      
-      // Update UI to show the summary
-      setSummary(simulatedSummary);
-      setShowSummary(true);
-      
-      toast.success("Profile information processed successfully!");
+      // Process with generate_profile edge function
+      if (backgroundIds.length > 0) {
+        setIsProcessingWithAI(true);
+        
+        try {
+          // Call the edge function to process the profile data
+          const { data, error } = await supabase.functions.invoke("generate_profile", {
+            body: {
+              userId: user?.id,
+              backgroundIds: backgroundIds
+            }
+          });
+          
+          if (error) {
+            throw new Error(`Edge function error: ${error.message}`);
+          }
+          
+          console.log("Edge function response:", data);
+          
+          if (data && data.summary) {
+            // Update the summary state with the response from the edge function
+            setSummary({
+              experience: data.summary.experience || "Experience data could not be processed.",
+              education: data.summary.education || "Education data could not be processed.",
+              expertise: data.summary.expertise || "Expertise data could not be processed.",
+              achievements: data.summary.achievements || "Achievements data could not be processed."
+            });
+            
+            // Save the generated summary to the database
+            await saveUserBackground("generated_summary", JSON.stringify(data.summary));
+            
+            setShowSummary(true);
+            toast.success("Profile information processed successfully!");
+          } else {
+            throw new Error("Invalid or missing summary data from edge function");
+          }
+        } catch (error: any) {
+          console.error("Error calling generate_profile edge function:", error);
+          toast.error(`AI processing failed: ${error.message}`);
+          
+          // Fallback to simulated summary if edge function fails
+          const simulatedSummary = {
+            experience: "Your most recent roles appear to be in product management and leadership positions.",
+            education: "You have a background in business and technology from reputable institutions.",
+            expertise: "Your key skills include product strategy, team leadership, and business development.",
+            achievements: "You've successfully led teams and delivered impactful products in your career."
+          };
+          
+          setSummary(simulatedSummary);
+          await saveUserBackground("generated_summary", JSON.stringify(simulatedSummary));
+          setShowSummary(true);
+        } finally {
+          setIsProcessingWithAI(false);
+        }
+      }
       
       // Check if user has job targets
       const { data: targetData, error: targetError } = await supabase
         .from("target_criteria")
         .select("criteria_id")
-        .eq("user_id", user.id)
+        .eq("user_id", user?.id)
         .limit(1);
         
       if (targetError) {
@@ -268,7 +319,7 @@ const ProfileEnrichment = () => {
     }
   };
   
-  const isProcessing = isSubmitting || isUploading;
+  const isProcessing = isSubmitting || isUploading || isProcessingWithAI;
   const hasContent = linkedinContent.trim() || additionalDetails.trim() || uploadedCvUrl || cvContent.trim();
   const isEditing = Object.keys(existingData).length > 0;
   
@@ -301,7 +352,7 @@ const ProfileEnrichment = () => {
           <CardContent className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
-                {/* Professional Background Component - Fix by adding the missing props */}
+                {/* Professional Background Component */}
                 <ProfessionalBackground 
                   linkedinContent={linkedinContent}
                   setLinkedinContent={setLinkedinContent}
@@ -397,6 +448,11 @@ const ProfileEnrichment = () => {
               {isSubmitting ? (
                 <>
                   Processing... 
+                  <span className="ml-2 animate-spin">⟳</span>
+                </>
+              ) : isProcessingWithAI ? (
+                <>
+                  AI Processing...
                   <span className="ml-2 animate-spin">⟳</span>
                 </>
               ) : (
