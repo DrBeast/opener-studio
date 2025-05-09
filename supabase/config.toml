@@ -1,1 +1,5 @@
-project_id = "tfpduruccpbfyrjfwnso"
+
+tfpduruccpbfyrjfwnso = "project_ref"
+
+[functions.process-profile]
+verify_jwt = true
