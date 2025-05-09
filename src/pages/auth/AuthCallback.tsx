@@ -58,7 +58,7 @@ const AuthCallback = () => {
         
         // Check if we need to update the profile with LinkedIn data
         if (user.app_metadata.provider === 'linkedin_oidc' && user.user_metadata) {
-          console.log("LinkedIn user metadata structure:", JSON.stringify(user.user_metadata, null, 2));
+          console.log("LinkedIn user detected, metadata structure:", JSON.stringify(user.user_metadata, null, 2));
           
           try {
             // Check if the user already has a profile
@@ -68,8 +68,13 @@ const AuthCallback = () => {
               .eq('id', user.id)
               .single();
             
-            if (profileError && profileError.code !== 'PGRST116') {
-              console.error("Error checking profile:", profileError);
+            if (profileError) {
+              if (profileError.code === 'PGRST116') {
+                console.log("No profile found for user, will create one");
+              } else {
+                console.error("Error checking profile:", profileError);
+                toast.error("Error checking profile status");
+              }
             }
             
             // We'll update the profile even if it exists but has empty name fields
@@ -91,28 +96,40 @@ const AuthCallback = () => {
                 user.user_metadata.full_name?.split(' ').slice(1).join(' ') || 
                 '';
               
-              console.log(`Extracted name data - First: "${firstName}", Last: "${lastName}"`);
+              console.log(`Extracted name data from LinkedIn - First: "${firstName}", Last: "${lastName}"`);
               
               if (firstName || lastName) {
                 console.log("Updating profile with name data");
+                const profileUpdate = {
+                  id: user.id,
+                  first_name: firstName,
+                  last_name: lastName,
+                  updated_at: new Date().toISOString()
+                };
+                
+                console.log("Profile update payload:", profileUpdate);
+                
                 const { error: updateError } = await supabase
                   .from('profiles')
-                  .upsert({
-                    id: user.id,
-                    first_name: firstName,
-                    last_name: lastName,
-                    updated_at: new Date().toISOString()
-                  }, { onConflict: 'id' });
+                  .upsert(profileUpdate, { onConflict: 'id' });
                 
                 if (updateError) {
                   console.error("Error updating profile with LinkedIn data:", updateError);
+                  console.error("Full error details:", JSON.stringify(updateError, null, 2));
                   toast.error("Failed to update profile with LinkedIn data");
+                  
+                  // Try to provide more specific error information
+                  if (updateError.code === '42501') {
+                    setDebugInfo("Permission denied. This may be due to Row Level Security (RLS) policies.");
+                  } else if (updateError.code === '23505') {
+                    setDebugInfo("Duplicate key violation. The profile may already exist.");
+                  }
                 } else {
-                  console.log("Profile updated with LinkedIn data");
+                  console.log("Profile updated with LinkedIn data successfully");
                   toast.success("Profile updated with your LinkedIn information");
                 }
               } else {
-                console.log("No name data available from LinkedIn");
+                console.log("No name data available from LinkedIn metadata");
                 toast.warning("Could not extract name from your LinkedIn profile");
               }
             } else {
@@ -120,6 +137,7 @@ const AuthCallback = () => {
             }
           } catch (profileErr: any) {
             console.error("Error processing profile data:", profileErr.message);
+            console.error("Full error details:", JSON.stringify(profileErr, null, 2));
             toast.error("Error processing profile data");
           }
         }
@@ -131,6 +149,7 @@ const AuthCallback = () => {
         navigate("/profile");
       } catch (err: any) {
         console.error("Unexpected error during authentication:", err.message);
+        console.error("Full error details:", err);
         setError(`Unexpected error: ${err.message}`);
         setDebugInfo("Please check browser console for more details");
         toast.error("An unexpected error occurred. Please try again.");
