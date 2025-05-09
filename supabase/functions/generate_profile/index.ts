@@ -149,20 +149,48 @@ serve(async (req) => {
       achievements: "Generated summary of key achievements based on provided content.",
     };
 
-    // Store the generated summary in the user_backgrounds table
-    const { error: insertError } = await supabaseClient
+    // Check if a generated summary already exists for this user
+    const { data: existingSummary, error: existingSummaryError } = await supabaseClient
       .from("user_backgrounds")
-      .insert({
-        user_id: userId,
-        content_type: "generated_summary",
-        content: JSON.stringify(generatedSummary),
-        processed_data: generatedSummary,
-        processed_at: new Date().toISOString(),
-      });
+      .select("background_id")
+      .eq("user_id", userId)
+      .eq("content_type", "generated_summary")
+      .maybeSingle();
 
-    if (insertError) {
-      console.error("Error storing generated summary:", insertError);
-      throw new Error(`Failed to store generated summary: ${insertError.message}`);
+    if (existingSummaryError) {
+      console.error("Error checking for existing summary:", existingSummaryError);
+      throw new Error(`Failed to check for existing summary: ${existingSummaryError.message}`);
+    }
+
+    // Update existing summary or insert a new one
+    let summaryResponse;
+    if (existingSummary) {
+      console.log(`Updating existing summary with ID: ${existingSummary.background_id}`);
+      summaryResponse = await supabaseClient
+        .from("user_backgrounds")
+        .update({
+          content: JSON.stringify(generatedSummary),
+          processed_data: generatedSummary,
+          processed_at: new Date().toISOString(),
+        })
+        .eq("background_id", existingSummary.background_id)
+        .eq("user_id", userId); // Extra check to ensure we only update summaries owned by this user
+    } else {
+      console.log("Creating new summary record");
+      summaryResponse = await supabaseClient
+        .from("user_backgrounds")
+        .insert({
+          user_id: userId,
+          content_type: "generated_summary",
+          content: JSON.stringify(generatedSummary),
+          processed_data: generatedSummary,
+          processed_at: new Date().toISOString(),
+        });
+    }
+
+    if (summaryResponse.error) {
+      console.error("Error handling summary record:", summaryResponse.error);
+      throw new Error(`Failed to handle summary record: ${summaryResponse.error.message}`);
     }
 
     // Update the processed status for all input backgrounds

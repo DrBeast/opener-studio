@@ -1,5 +1,5 @@
 
 tfpduruccpbfyrjfwnso = "project_ref"
 
-[functions.process-profile]
+[functions.generate_profile]
 verify_jwt = true
