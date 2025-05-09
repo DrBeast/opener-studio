@@ -1,8 +1,7 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PersistentAssistant from "@/components/PersistentAssistant";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -16,8 +15,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         {children}
       </main>
       <Footer />
-      <Toaster />
-      <Sonner />
+      <PersistentAssistant />
     </div>
   );
 };

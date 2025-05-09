@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import AiAssistant from "@/components/AiAssistant";
+import ProgressTracker from "@/components/ProgressTracker";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -184,21 +183,8 @@ const JobTargets = () => {
         : "Job and company targets saved successfully!"
       );
       
-      // Check background completion status
-      const { data: backgroundData, error: backgroundError } = await supabase
-        .from("user_backgrounds")
-        .select("background_id")
-        .eq("user_id", user.id)
-        .limit(1);
-        
-      if (backgroundError) {
-        console.error("Error checking background data:", backgroundError);
-      }
-      
-      const hasBackground = backgroundData && backgroundData.length > 0;
-      
-      // Navigate to appropriate next step based on completion status
-      navigate(hasBackground ? "/profile" : "/profile/enrich");
+      // Navigate to companies after saving job targets
+      navigate("/companies");
     } catch (error: any) {
       console.error("Error saving target criteria:", error.message);
       toast.error("Failed to save your preferences. Please try again.");
@@ -411,7 +397,7 @@ const JobTargets = () => {
                   
                   <div className="flex justify-end space-x-4">
                     <Button type="button" variant="outline" onClick={() => navigate("/profile")}>
-                      Cancel
+                      Back to Profile
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
@@ -424,15 +410,7 @@ const JobTargets = () => {
         </div>
         
         <div className="md:col-span-1">
-          <AiAssistant 
-            showSummary={false} 
-            summary={{
-              experience: "",
-              education: "",
-              expertise: "",
-              achievements: ""
-            }} 
-          />
+          <ProgressTracker />
           
           <Card className="mt-6 bg-blue-50 border border-blue-200">
             <CardHeader className="pb-2">

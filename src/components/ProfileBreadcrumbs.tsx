@@ -38,25 +38,21 @@ export function ProfileBreadcrumbs() {
       });
     }
     
+    // Add Job Targets as a separate section
+    if (path === "/job-targets") {
+      items.push({
+        name: "Job Targets",
+        path: "/job-targets",
+        isCurrentPage: true,
+        icon: null
+      });
+    }
+    
     // Add specific profile sections
     if (path === "/profile/edit") {
       items.push({
         name: "Edit Profile",
         path: "/profile/edit",
-        isCurrentPage: true,
-        icon: null
-      });
-    } else if (path === "/profile/enrich") {
-      items.push({
-        name: "Professional Background",
-        path: "/profile/enrich",
-        isCurrentPage: true,
-        icon: null
-      });
-    } else if (path === "/profile/job-targets") {
-      items.push({
-        name: "Job Targets",
-        path: "/profile/job-targets",
         isCurrentPage: true,
         icon: null
       });

@@ -2,13 +2,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { UserRound, LogIn, LogOut } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { LogIn, LogOut } from "lucide-react";
 
 const Header = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -27,11 +21,14 @@ const Header = () => {
             </Link>
             {user && (
               <>
+                <Link to="/profile" className="text-sm hover:underline">
+                  Profile
+                </Link>
+                <Link to="/job-targets" className="text-sm hover:underline">
+                  Job Targets
+                </Link>
                 <Link to="/companies" className="text-sm hover:underline">
                   Companies
-                </Link>
-                <Link to="/contacts" className="text-sm hover:underline">
-                  Contacts
                 </Link>
               </>
             )}
@@ -52,30 +49,14 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <>
-              <Button asChild variant="ghost">
-                <Link to="/profile">
-                  <UserRound className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <UserRound className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">My Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+            <Button 
+              variant="ghost" 
+              onClick={signOut} 
+              className="flex items-center"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           )}
         </div>
       </div>
