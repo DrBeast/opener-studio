@@ -135,27 +135,61 @@ const AuthCallback = () => {
             } else {
               console.log("User already has profile data, not overwriting");
             }
+
+            // Check for user data completion status to determine redirect
+            const redirectToAppropriateDestination = async () => {
+              try {
+                // Check if the user has background data
+                const { data: backgroundData, error: backgroundError } = await supabase
+                  .from('user_backgrounds')
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .limit(1);
+                  
+                if (backgroundError) {
+                  console.error("Error checking background data:", backgroundError);
+                  toast.error("Error checking profile completion");
+                  navigate("/profile");
+                  return;
+                }
+                
+                // If user doesn't have background data, redirect to enrichment page
+                if (!backgroundData || backgroundData.length === 0) {
+                  console.log("User needs to complete profile enrichment");
+                  navigate("/profile/enrich");
+                  return;
+                }
+                
+                // Check if the user has target criteria data
+                const { data: targetData, error: targetError } = await supabase
+                  .from('target_criteria')
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .limit(1);
+                  
+                if (targetError) {
+                  console.error("Error checking target criteria:", targetError);
+                }
+                
+                // If user has background data but no target criteria, redirect to job targets page
+                if (!targetData || targetData.length === 0) {
+                  console.log("User needs to complete job targets");
+                  navigate("/profile/job-targets");
+                  return;
+                }
+                
+                // If user has both background and target data, redirect to profile
+                console.log("User profile is complete, redirecting to profile");
+                navigate("/profile");
+              } catch (err: any) {
+                console.error("Error in redirect logic:", err.message);
+                navigate("/profile");
+              }
+            };
             
-            // Check if the user already has background data
-            const { data: backgroundData, error: backgroundError } = await supabase
-              .from('user_backgrounds')
-              .select('*')
-              .eq('user_id', user.id)
-              .limit(1);
-              
-            if (backgroundError) {
-              console.error("Error checking background data:", backgroundError);
-            }
-            
-            console.log("Authentication successful, redirecting to appropriate page");
+            console.log("Authentication successful, checking profile completion status");
             toast.success("Successfully logged in");
-            
-            // If user doesn't have background data, direct to enrichment page, otherwise to profile
-            if (!backgroundData || backgroundData.length === 0) {
-              navigate("/profile/enrich");
-            } else {
-              navigate("/profile");
-            }
+            redirectToAppropriateDestination();
             
           } catch (profileErr: any) {
             console.error("Error processing profile data:", profileErr.message);

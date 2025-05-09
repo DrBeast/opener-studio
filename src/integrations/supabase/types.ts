@@ -42,6 +42,54 @@ export type Database = {
         }
         Relationships: []
       }
+      target_criteria: {
+        Row: {
+          created_at: string | null
+          criteria_id: string
+          free_form_role_and_company_description: string | null
+          similar_companies: Json | null
+          target_functions: Json | null
+          target_industries: Json | null
+          target_locations: Json | null
+          target_public_private: Json | null
+          target_sizes: Json | null
+          target_wfh_preference: Json | null
+          updated_at: string | null
+          user_id: string
+          visa_sponsorship_required: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          criteria_id?: string
+          free_form_role_and_company_description?: string | null
+          similar_companies?: Json | null
+          target_functions?: Json | null
+          target_industries?: Json | null
+          target_locations?: Json | null
+          target_public_private?: Json | null
+          target_sizes?: Json | null
+          target_wfh_preference?: Json | null
+          updated_at?: string | null
+          user_id: string
+          visa_sponsorship_required?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          criteria_id?: string
+          free_form_role_and_company_description?: string | null
+          similar_companies?: Json | null
+          target_functions?: Json | null
+          target_industries?: Json | null
+          target_locations?: Json | null
+          target_public_private?: Json | null
+          target_sizes?: Json | null
+          target_wfh_preference?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          visa_sponsorship_required?: boolean | null
+        }
+        Relationships: []
+      }
       user_backgrounds: {
         Row: {
           background_id: string

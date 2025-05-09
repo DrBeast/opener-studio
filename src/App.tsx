@@ -18,6 +18,7 @@ import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
 import ProfileEnrichment from "@/pages/ProfileEnrichment";
+import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/edit" element={<ProfileEdit />} />
                 <Route path="/profile/enrich" element={<ProfileEnrichment />} />
+                <Route path="/profile/job-targets" element={<JobTargets />} />
                 {/* Add more protected routes here */}
               </Route>
               

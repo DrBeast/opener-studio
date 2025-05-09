@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "react-router-dom";
 
 interface AiAssistantProps {
   showSummary: boolean;
@@ -19,6 +20,11 @@ interface AiAssistantProps {
 const AiAssistant = ({ showSummary, summary }: AiAssistantProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const { user } = useAuth();
+  const location = useLocation();
+  
+  // Determine which assistant content to show based on the current path
+  const isJobTargetsPage = location.pathname === "/profile/job-targets";
+  const isProfileEnrichmentPage = location.pathname === "/profile/enrich";
   
   return (
     <Collapsible
@@ -37,23 +43,59 @@ const AiAssistant = ({ showSummary, summary }: AiAssistantProps) => {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="p-4 space-y-4">
-          <div className="bg-primary/5 p-4 rounded-lg">
-            <p className="text-sm">
-              <strong>Welcome{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}!</strong> I'll help you enrich your profile with detailed information about your background.
-            </p>
-          </div>
-          
-          <div className="bg-primary/5 p-4 rounded-lg">
-            <p className="text-sm">
-              Start by pasting your LinkedIn profile content, adding any additional professional details, and uploading your CV if available. This will help us create a comprehensive profile to assist in your networking and job search.
-            </p>
-          </div>
-          
-          <div className="bg-primary/5 p-4 rounded-lg">
-            <p className="text-sm">
-              The more context you provide, the better I can assist you in crafting effective outreach messages and finding the right opportunities.
-            </p>
-          </div>
+          {isJobTargetsPage ? (
+            <>
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  <strong>Welcome to Job Targets{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}!</strong> I'll help you define what kinds of roles and companies you're interested in.
+                </p>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  Select your preferences for job functions, locations, industries, and other criteria. Be as specific as possible to get the most relevant recommendations.
+                </p>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  Don't worry about being too narrow - you can always update these preferences later as your job search evolves.
+                </p>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  The "Similar Companies" field is particularly valuable - listing companies you admire helps me understand what kind of workplace culture and industry you prefer.
+                </p>
+              </div>
+            </>
+          ) : isProfileEnrichmentPage ? (
+            <>
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  <strong>Welcome{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}!</strong> I'll help you enrich your profile with detailed information about your background.
+                </p>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  Start by pasting your LinkedIn profile content, adding any additional professional details, and uploading your CV if available. This will help us create a comprehensive profile to assist in your networking and job search.
+                </p>
+              </div>
+              
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <p className="text-sm">
+                  The more context you provide, the better I can assist you in crafting effective outreach messages and finding the right opportunities.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <p className="text-sm">
+                <strong>Hello{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}!</strong> I'm your EngageAI assistant, ready to help you with your networking and job search. How can I assist you today?
+              </p>
+            </div>
+          )}
           
           {showSummary && (
             <Card className="bg-green-50 border-l-4 border-green-500">
