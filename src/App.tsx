@@ -17,6 +17,7 @@ import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
+import ProfileEnrichment from "@/pages/ProfileEnrichment";
 import NotFound from "@/pages/NotFound";
 
 // Components
@@ -44,6 +45,7 @@ const App = () => (
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/edit" element={<ProfileEdit />} />
+                <Route path="/profile/enrich" element={<ProfileEnrichment />} />
                 {/* Add more protected routes here */}
               </Route>
               

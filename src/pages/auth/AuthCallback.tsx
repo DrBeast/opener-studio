@@ -135,18 +135,41 @@ const AuthCallback = () => {
             } else {
               console.log("User already has profile data, not overwriting");
             }
+            
+            // Check if the user already has background data
+            const { data: backgroundData, error: backgroundError } = await supabase
+              .from('user_backgrounds')
+              .select('*')
+              .eq('user_id', user.id)
+              .limit(1);
+              
+            if (backgroundError) {
+              console.error("Error checking background data:", backgroundError);
+            }
+            
+            console.log("Authentication successful, redirecting to appropriate page");
+            toast.success("Successfully logged in");
+            
+            // If user doesn't have background data, direct to enrichment page, otherwise to profile
+            if (!backgroundData || backgroundData.length === 0) {
+              navigate("/profile/enrich");
+            } else {
+              navigate("/profile");
+            }
+            
           } catch (profileErr: any) {
             console.error("Error processing profile data:", profileErr.message);
             console.error("Full error details:", JSON.stringify(profileErr, null, 2));
             toast.error("Error processing profile data");
+            navigate("/profile/enrich"); // Still redirect to enrichment on error
           }
+        } else {
+          // Not a LinkedIn user, redirect to profile
+          console.log("Non-LinkedIn authentication successful, redirecting to profile");
+          toast.success("Successfully logged in");
+          navigate("/profile");
         }
         
-        console.log("Authentication successful, redirecting to profile");
-        toast.success("Successfully logged in");
-        
-        // If successful, redirect to profile
-        navigate("/profile");
       } catch (err: any) {
         console.error("Unexpected error during authentication:", err.message);
         console.error("Full error details:", err);
