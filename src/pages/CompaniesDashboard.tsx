@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -96,9 +95,21 @@ const CompaniesDashboard = () => {
     
     setIsGenerating(true);
     try {
-      // Call the edge function
+      // Get the current session for authentication
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      
+      if (!sessionData.session) {
+        throw new Error("No active session found");
+      }
+
+      // Include authentication in the function call
       const { data, error } = await supabase.functions.invoke('generate_companies', {
-        body: { user_id: user.id }
+        body: { user_id: user.id },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
       
       if (error) throw error;
