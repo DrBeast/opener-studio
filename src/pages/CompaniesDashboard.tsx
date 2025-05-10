@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -118,7 +119,7 @@ const CompaniesDashboard = () => {
         throw new Error("Invalid response from generate_companies function");
       }
       
-      // Insert the generated companies into the database
+      // Fix: Remove the onConflict parameter to avoid the constraint error
       const { error: insertError } = await supabase
         .from("companies")
         .upsert(
@@ -127,8 +128,8 @@ const CompaniesDashboard = () => {
             user_id: user.id,
             added_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })),
-          { onConflict: "name" } // Assuming name is unique per user
+          }))
+          // Removed the onConflict parameter
         );
       
       if (insertError) throw insertError;
