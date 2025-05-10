@@ -66,13 +66,17 @@ const ProfileEnrichment = () => {
       
       setIsLoading(true);
       try {
-        // Fetch existing background data
-        const { data, error } = await supabase
-          .from("user_backgrounds")
+        // Fetch existing profile data from new user_profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
           .select("*")
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .maybeSingle();
           
-        if (error) throw error;
+        if (profileError && profileError.code !== "PGRST116") {
+          // Only throw if it's not a "not found" error
+          throw profileError;
+        }
         
         const existingBackgrounds: {
           linkedin?: string;
@@ -80,62 +84,56 @@ const ProfileEnrichment = () => {
           cv?: { name: string; url: string };
         } = {};
         
-        // Process retrieved data
-        if (data && data.length > 0) {
-          // Look for LinkedIn data
-          const linkedinData = data.find(item => item.content_type === 'linkedin_profile');
-          if (linkedinData) {
-            existingBackgrounds.linkedin = linkedinData.content;
+        // Process profile data if it exists
+        if (profileData) {
+          if (profileData.linkedin_content) {
+            existingBackgrounds.linkedin = profileData.linkedin_content;
+            setLinkedinContent(profileData.linkedin_content);
           }
           
-          // Look for additional details
-          const additionalData = data.find(item => item.content_type === 'additional_details');
-          if (additionalData) {
-            existingBackgrounds.additional = additionalData.content;
+          if (profileData.additional_details) {
+            existingBackgrounds.additional = profileData.additional_details;
+            setAdditionalDetails(profileData.additional_details);
           }
           
-          // Look for CV data
-          const cvData = data.find(item => item.content_type === 'cv_upload');
-          if (cvData) {
+          if (profileData.cv_content) {
             existingBackgrounds.cv = {
-              name: cvData.content.split('CV: ')[1] || 'Uploaded CV',
-              url: cvData.storage_url || ''
+              name: 'Uploaded CV', // We don't store the name in the new schema
+              url: '' // We don't store URLs in the new schema
             };
+            setCvContent(profileData.cv_content);
           }
+        } else {
+          console.log("No existing profile data found for user");
+        }
+        
+        // Fetch AI-generated summary from user_summaries table
+        const { data: summaryData, error: summaryError } = await supabase
+          .from("user_summaries")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
           
-          // Look for generated summary
-          const summaryData = data.find(item => item.content_type === 'generated_summary');
-          if (summaryData) {
-            try {
-              const parsedSummary = JSON.parse(summaryData.content);
-              setSummary(parsedSummary);
-              setShowSummary(true);
-            } catch (e) {
-              console.error("Error parsing summary data", e);
-              // Set dummy summary data as fallback
-              setSummary({
-                experience: "Your most recent roles appear to be in product management and leadership positions.",
-                education: "You have a background in business and technology from reputable institutions.",
-                expertise: "Your key skills include product strategy, team leadership, and business development.",
-                achievements: "You've successfully led teams and delivered impactful products in your career."
-              });
-            }
-          }
+        if (summaryError && summaryError.code !== "PGRST116") {
+          // Only throw if it's not a "not found" error
+          throw summaryError;
+        }
+        
+        if (summaryData) {
+          setSummary({
+            experience: summaryData.experience || "Experience data could not be processed.",
+            education: summaryData.education || "Education data could not be processed.",
+            expertise: summaryData.expertise || "Expertise data could not be processed.",
+            achievements: summaryData.achievements || "Achievements data could not be processed."
+          });
+          setShowSummary(true);
         }
         
         setExistingData(existingBackgrounds);
         
-        // Pre-populate form with existing data
-        if (existingBackgrounds.linkedin) setLinkedinContent(existingBackgrounds.linkedin);
-        if (existingBackgrounds.additional) setAdditionalDetails(existingBackgrounds.additional);
-        if (existingBackgrounds.cv) {
-          setUploadedCvUrl(existingBackgrounds.cv.url);
-          setUploadedCvName(existingBackgrounds.cv.name);
-        }
-        
       } catch (error: any) {
-        console.error("Error fetching background data:", error.message);
-        toast.error("Failed to load your existing background data");
+        console.error("Error fetching profile data:", error.message);
+        toast.error("Failed to load your existing profile data");
       } finally {
         setIsLoading(false);
       }
@@ -148,15 +146,17 @@ const ProfileEnrichment = () => {
     setUploadedCvUrl(url);
     setUploadedCvName(fileName);
     
-    // Store CV reference in user_backgrounds
-    saveUserBackground("cv_upload", `CV: ${fileName}`, url);
+    // In the new approach, we'd need to convert the CV to text content
+    // This is a placeholder - in a real implementation, you might want to
+    // process the uploaded CV and extract text content
+    setCvContent(`Uploaded CV: ${fileName}`);
   };
   
   const handleUploadError = (error: string) => {
     console.error("CV upload error:", error);
   };
   
-  const saveUserBackground = async (contentType: string, content: string, storageUrl?: string) => {
+  const saveUserProfile = async () => {
     if (!user) {
       toast.error("Authentication error. Please log in again.");
       navigate("/auth/login");
@@ -164,56 +164,55 @@ const ProfileEnrichment = () => {
     }
     
     try {
-      console.log(`Saving ${contentType} for user: ${user.id} (${user.email})`);
+      console.log(`Saving profile data for user: ${user.id} (${user.email})`);
       
-      // First check if this content type already exists for this user
-      const { data: existingData, error: existingError } = await supabase
-        .from("user_backgrounds")
-        .select("background_id")
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from("user_profiles")
+        .select("user_id")
         .eq("user_id", user.id)
-        .eq("content_type", contentType)
         .maybeSingle();
         
-      if (existingError) throw existingError;
+      if (checkError && checkError.code !== "PGRST116") {
+        throw checkError;
+      }
       
-      if (existingData) {
-        // Update existing record
-        const { data, error } = await supabase
-          .from("user_backgrounds")
+      let upsertError;
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from("user_profiles")
           .update({
-            content: content,
-            storage_url: storageUrl || null,
-            processed_data: {
-              raw_content: true,
-              status: "pending_processing"
-            }
+            linkedin_content: linkedinContent || null,
+            additional_details: additionalDetails || null,
+            cv_content: cvContent || null,
+            updated_at: new Date().toISOString()
           })
-          .eq("background_id", existingData.background_id);
+          .eq("user_id", user.id);
           
-        if (error) throw error;
-        return existingData.background_id;
+        upsertError = error;
       } else {
-        // Insert new record
-        const { data, error } = await supabase
-          .from("user_backgrounds")
+        // Insert new profile
+        const { error } = await supabase
+          .from("user_profiles")
           .insert({
             user_id: user.id,
-            content_type: contentType,
-            content: content,
-            storage_url: storageUrl || null,
-            processed_data: {
-              raw_content: true,
-              status: "pending_processing"
-            }
-          })
-          .select("background_id");
-            
-        if (error) throw error;
-        return data?.[0]?.background_id;
+            linkedin_content: linkedinContent || null,
+            additional_details: additionalDetails || null,
+            cv_content: cvContent || null
+          });
+          
+        upsertError = error;
       }
+      
+      if (upsertError) throw upsertError;
+      
+      return true;
+      
     } catch (error: any) {
-      console.error(`Error saving ${contentType}:`, error.message);
-      toast.error(`Failed to save ${contentType}: ${error.message}`);
+      console.error(`Error saving profile data:`, error.message);
+      toast.error(`Failed to save profile data: ${error.message}`);
       throw error;
     }
   };
@@ -262,84 +261,61 @@ const ProfileEnrichment = () => {
     }
     
     setIsSubmitting(true);
-    const backgroundIds: string[] = [];
     
     try {
-      // Save LinkedIn content if provided
-      if (linkedinContent.trim()) {
-        const linkedinId = await saveUserBackground("linkedin_profile", linkedinContent);
-        if (linkedinId) backgroundIds.push(linkedinId);
-      }
-      
-      // Save additional details if provided
-      if (additionalDetails.trim()) {
-        const additionalId = await saveUserBackground("additional_details", additionalDetails);
-        if (additionalId) backgroundIds.push(additionalId);
-      }
-      
-      // Save CV content if provided
-      if (cvContent.trim()) {
-        const cvContentId = await saveUserBackground("cv_content", cvContent);
-        if (cvContentId) backgroundIds.push(cvContentId);
-      }
+      // Save profile data
+      await saveUserProfile();
       
       // Process with generate_profile edge function
-      if (backgroundIds.length > 0) {
-        setIsProcessingWithAI(true);
+      setIsProcessingWithAI(true);
+      
+      try {
+        console.log(`Calling generate_profile with userId: ${user.id}`);
         
-        try {
-          console.log(`Calling generate_profile with userId: ${user.id}, backgroundIds:`, backgroundIds);
-          
-          // Call the edge function to process the profile data with additional logging
-          const { data, error } = await supabase.functions.invoke("generate_profile", {
-            body: {
-              userId: user.id,
-              userEmail: user.email,
-              backgroundIds: backgroundIds
-            }
+        // Call the edge function to process the profile data
+        const { data, error } = await supabase.functions.invoke("generate_profile", {
+          body: {
+            userId: user.id,
+            userEmail: user.email
+          }
+        });
+        
+        if (error) {
+          throw new Error(`Edge function error: ${error.message}`);
+        }
+        
+        console.log("Edge function response:", data);
+        
+        if (data && data.summary) {
+          // Update the summary state with the response from the edge function
+          setSummary({
+            experience: data.summary.experience || "Experience data could not be processed.",
+            education: data.summary.education || "Education data could not be processed.",
+            expertise: data.summary.expertise || "Expertise data could not be processed.",
+            achievements: data.summary.achievements || "Achievements data could not be processed."
           });
           
-          if (error) {
-            throw new Error(`Edge function error: ${error.message}`);
-          }
-          
-          console.log("Edge function response:", data);
-          
-          if (data && data.summary) {
-            // Update the summary state with the response from the edge function
-            setSummary({
-              experience: data.summary.experience || "Experience data could not be processed.",
-              education: data.summary.education || "Education data could not be processed.",
-              expertise: data.summary.expertise || "Expertise data could not be processed.",
-              achievements: data.summary.achievements || "Achievements data could not be processed."
-            });
-            
-            // Save the generated summary to the database
-            await saveUserBackground("generated_summary", JSON.stringify(data.summary));
-            
-            setShowSummary(true);
-            toast.success("Profile information processed successfully!");
-          } else {
-            throw new Error("Invalid or missing summary data from edge function");
-          }
-        } catch (error: any) {
-          console.error("Error calling generate_profile edge function:", error);
-          toast.error(`AI processing failed: ${error.message}`);
-          
-          // Fallback to simulated summary if edge function fails
-          const simulatedSummary = {
-            experience: "Your most recent roles appear to be in product management and leadership positions.",
-            education: "You have a background in business and technology from reputable institutions.",
-            expertise: "Your key skills include product strategy, team leadership, and business development.",
-            achievements: "You've successfully led teams and delivered impactful products in your career."
-          };
-          
-          setSummary(simulatedSummary);
-          await saveUserBackground("generated_summary", JSON.stringify(simulatedSummary));
           setShowSummary(true);
-        } finally {
-          setIsProcessingWithAI(false);
+          toast.success("Profile information processed successfully!");
+        } else {
+          throw new Error("Invalid or missing summary data from edge function");
         }
+      } catch (error: any) {
+        console.error("Error calling generate_profile edge function:", error);
+        toast.error(`AI processing failed: ${error.message}`);
+        
+        // Fallback to simulated summary if edge function fails
+        const simulatedSummary = {
+          experience: "Your most recent roles appear to be in product management and leadership positions.",
+          education: "You have a background in business and technology from reputable institutions.",
+          expertise: "Your key skills include product strategy, team leadership, and business development.",
+          achievements: "You've successfully led teams and delivered impactful products in your career."
+        };
+        
+        setSummary(simulatedSummary);
+        setShowSummary(true);
+      } finally {
+        setIsProcessingWithAI(false);
       }
       
       // Check if user has job targets

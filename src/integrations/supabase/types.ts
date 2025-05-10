@@ -131,6 +131,66 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          additional_details: string | null
+          created_at: string
+          cv_content: string | null
+          linkedin_content: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_details?: string | null
+          created_at?: string
+          cv_content?: string | null
+          linkedin_content?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_details?: string | null
+          created_at?: string
+          cv_content?: string | null
+          linkedin_content?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_summaries: {
+        Row: {
+          achievements: string | null
+          education: string | null
+          experience: string | null
+          expertise: string | null
+          generated_at: string
+          summary_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          achievements?: string | null
+          education?: string | null
+          experience?: string | null
+          expertise?: string | null
+          generated_at?: string
+          summary_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          achievements?: string | null
+          education?: string | null
+          experience?: string | null
+          expertise?: string | null
+          generated_at?: string
+          summary_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

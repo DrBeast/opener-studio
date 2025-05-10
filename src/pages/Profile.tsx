@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +10,7 @@ import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
+
 interface UserProfile {
   id: string;
   first_name?: string;
@@ -17,16 +19,16 @@ interface UserProfile {
   current_company?: string;
   location?: string;
 }
+
 interface Background {
   experience: string;
   education: string;
   expertise: string;
   achievements: string;
 }
+
 const Profile = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
@@ -48,6 +50,7 @@ const Profile = () => {
   // Dev mode - user data reset
   const [showDevOptions, setShowDevOptions] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -56,26 +59,30 @@ const Profile = () => {
       }
       try {
         setIsLoading(true);
-        const {
-          data,
-          error
-        } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
         if (error) {
           throw error;
         }
         setProfile(data);
 
-        // Check for background data
-        const {
-          data: backgroundData,
-          error: backgroundError
-        } = await supabase.from("user_backgrounds").select("*").eq("user_id", user.id);
-        if (backgroundError) {
-          console.error("Error checking background data:", backgroundError);
+        // Fetch user profile data from the new structure
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileError && profileError.code !== "PGRST116") {
+          console.error("Error fetching profile data:", profileError);
         }
 
         // Get background sources
-        if (backgroundData && backgroundData.length > 0) {
+        if (profileData) {
           // Prepare form data from existing entries
           const existingBackgrounds: {
             linkedin?: string;
@@ -84,55 +91,51 @@ const Profile = () => {
           } = {};
 
           // Process retrieved data for form
-          if (backgroundData && backgroundData.length > 0) {
-            // Look for LinkedIn data
-            const linkedinData = backgroundData.find(item => item.content_type === 'linkedin_profile');
-            if (linkedinData) {
-              existingBackgrounds.linkedin = linkedinData.content;
-              setLinkedinContent(linkedinData.content);
+          if (profileData) {
+            if (profileData.linkedin_content) {
+              existingBackgrounds.linkedin = profileData.linkedin_content;
+              setLinkedinContent(profileData.linkedin_content);
             }
 
-            // Look for additional details
-            const additionalData = backgroundData.find(item => item.content_type === 'additional_details');
-            if (additionalData) {
-              existingBackgrounds.additional = additionalData.content;
-              setAdditionalDetails(additionalData.content);
+            if (profileData.additional_details) {
+              existingBackgrounds.additional = profileData.additional_details;
+              setAdditionalDetails(profileData.additional_details);
             }
 
-            // Look for CV content raw
-            const cvData = backgroundData.find(item => item.content_type === 'cv_content_raw');
-            if (cvData) {
-              existingBackgrounds.cv = cvData.content;
-              setCvContent(cvData.content);
+            if (profileData.cv_content) {
+              existingBackgrounds.cv = profileData.cv_content;
+              setCvContent(profileData.cv_content);
             }
           }
           setExistingData(existingBackgrounds);
+        }
 
-          // Look for processed summary
-          const summary = backgroundData.find(item => item.content_type === 'generated_summary');
-          if (summary && summary.content) {
-            try {
-              setBackgroundSummary(JSON.parse(summary.content));
-            } catch (e) {
-              console.error("Error parsing background summary", e);
+        // Fetch summary data from the new user_summaries table
+        const { data: summaryData, error: summaryError } = await supabase
+          .from("user_summaries")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-              // Set dummy data if parsing fails
-              setBackgroundSummary({
-                experience: "Product leader with expertise in SaaS and technology companies.",
-                education: "MBA from a top business school with undergraduate degree in Computer Science.",
-                expertise: "Product strategy, cross-functional leadership, and go-to-market execution.",
-                achievements: "Successfully launched multiple products driving significant revenue growth."
-              });
-            }
-          } else {
-            // Set dummy data if no summary was found
-            setBackgroundSummary({
-              experience: "Product leader with expertise in SaaS and technology companies.",
-              education: "MBA from a top business school with undergraduate degree in Computer Science.",
-              expertise: "Product strategy, cross-functional leadership, and go-to-market execution.",
-              achievements: "Successfully launched multiple products driving significant revenue growth."
-            });
-          }
+        if (summaryError && summaryError.code !== "PGRST116") {
+          console.error("Error fetching summary data:", summaryError);
+        }
+
+        if (summaryData) {
+          setBackgroundSummary({
+            experience: summaryData.experience,
+            education: summaryData.education,
+            expertise: summaryData.expertise,
+            achievements: summaryData.achievements
+          });
+        } else {
+          // Set dummy data if no summary was found
+          setBackgroundSummary({
+            experience: "Product leader with expertise in SaaS and technology companies.",
+            education: "MBA from a top business school with undergraduate degree in Computer Science.",
+            expertise: "Product strategy, cross-functional leadership, and go-to-market execution.",
+            achievements: "Successfully launched multiple products driving significant revenue growth."
+          });
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error.message);
@@ -143,6 +146,7 @@ const Profile = () => {
     };
     fetchUserProfile();
   }, [user, navigate]);
+
   useEffect(() => {
     // Check if any changes were made compared to existing data
     const hasLinkedinChanges = linkedinContent !== (existingData.linkedin || "");
@@ -150,81 +154,81 @@ const Profile = () => {
     const hasCvChanges = cvContent !== (existingData.cv || "");
     setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges);
   }, [linkedinContent, additionalDetails, cvContent, existingData]);
-  const saveUserBackground = async (contentType: string, content: string) => {
+
+  const saveUserProfile = async () => {
     if (!user) return;
     try {
-      // First check if this content type already exists for this user
-      const {
-        data: existingData,
-        error: existingError
-      } = await supabase.from("user_backgrounds").select("background_id").eq("user_id", user.id).eq("content_type", contentType).maybeSingle();
-      if (existingError) throw existingError;
-      if (existingData) {
-        // Update existing record
-        const {
-          error
-        } = await supabase.from("user_backgrounds").update({
-          content: content,
-          processed_data: {
-            raw_content: true,
-            status: "pending_processing"
-          }
-        }).eq("background_id", existingData.background_id);
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const {
-          error
-        } = await supabase.from("user_backgrounds").insert({
-          user_id: user.id,
-          content_type: contentType,
-          content: content,
-          processed_data: {
-            raw_content: true,
-            status: "pending_processing"
-          }
-        });
-        if (error) throw error;
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from("user_profiles")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+        
+      if (checkError && checkError.code !== "PGRST116") {
+        throw checkError;
       }
+      
+      let upsertError;
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from("user_profiles")
+          .update({
+            linkedin_content: linkedinContent || null,
+            additional_details: additionalDetails || null,
+            cv_content: cvContent || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", user.id);
+          
+        upsertError = error;
+      } else {
+        // Insert new profile
+        const { error } = await supabase
+          .from("user_profiles")
+          .insert({
+            user_id: user.id,
+            linkedin_content: linkedinContent || null,
+            additional_details: additionalDetails || null,
+            cv_content: cvContent || null
+          });
+          
+        upsertError = error;
+      }
+      
+      if (upsertError) throw upsertError;
     } catch (error: any) {
-      console.error(`Error saving ${contentType}:`, error.message);
-      toast.error(`Failed to save ${contentType}: ${error.message}`);
+      console.error(`Error saving profile data:`, error.message);
+      toast.error(`Failed to save profile data: ${error.message}`);
       throw error;
     }
   };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setIsSubmitting(true);
     try {
-      // Save LinkedIn content if provided
-      if (linkedinContent.trim()) {
-        await saveUserBackground("linkedin_profile", linkedinContent);
+      // Save profile data to user_profiles table
+      await saveUserProfile();
+
+      // Call the edge function to regenerate the summary
+      const { data, error } = await supabase.functions.invoke("generate_profile", {
+        body: {
+          userId: user.id,
+          userEmail: user.email
+        }
+      });
+
+      if (error) {
+        throw new Error(`Edge function error: ${error.message}`);
       }
 
-      // Save additional details if provided
-      if (additionalDetails.trim()) {
-        await saveUserBackground("additional_details", additionalDetails);
+      if (data && data.summary) {
+        setBackgroundSummary(data.summary);
       }
 
-      // Save CV content if provided
-      if (cvContent.trim()) {
-        await saveUserBackground("cv_content_raw", cvContent);
-      }
-
-      // For demo purposes, create a simulated AI-processed summary
-      // In a real implementation, this would come from an AI service like Gemini
-      const simulatedSummary = {
-        experience: "Your most recent roles appear to be in product management and leadership positions.",
-        education: "You have a background in business and technology from reputable institutions.",
-        expertise: "Your key skills include product strategy, team leadership, and business development.",
-        achievements: "You've successfully led teams and delivered impactful products in your career."
-      };
-
-      // Save the generated summary to the database
-      await saveUserBackground("generated_summary", JSON.stringify(simulatedSummary));
-
-      // Update UI to show the summary
-      setBackgroundSummary(simulatedSummary);
       toast.success("Profile information updated successfully!");
       setEditMode(false);
       setHasChanges(false);
@@ -238,23 +242,34 @@ const Profile = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleRegenerateAISummary = async () => {
-    // In a real implementation, this would call an AI service
+    if (!user) return;
     toast.info("Regenerating your professional summary...");
 
-    // Simulate API call
-    setTimeout(() => {
-      const newSummary = {
-        experience: "Updated summary based on your recent experience in product leadership and SaaS.",
-        education: "Education background in business and computer science with specialized training.",
-        expertise: "Core skills include product strategy, team leadership, and go-to-market execution.",
-        achievements: "Notable achievements in launching successful products and driving revenue growth."
-      };
-      setBackgroundSummary(newSummary);
+    try {
+      // Call the edge function to regenerate the summary
+      const { data, error } = await supabase.functions.invoke("generate_profile", {
+        body: {
+          userId: user.id,
+          userEmail: user.email
+        }
+      });
 
-      // Save the new summary
-      saveUserBackground("generated_summary", JSON.stringify(newSummary)).then(() => toast.success("Your professional summary has been updated!")).catch(() => toast.error("Failed to save your updated summary"));
-    }, 2000);
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.summary) {
+        setBackgroundSummary(data.summary);
+        toast.success("Your professional summary has been updated!");
+      } else {
+        toast.error("Failed to generate a new summary");
+      }
+    } catch (error: any) {
+      console.error("Error regenerating summary:", error.message);
+      toast.error(`Failed to regenerate summary: ${error.message}`);
+    }
   };
 
   // Development mode - Reset user data
@@ -263,17 +278,38 @@ const Profile = () => {
     if (!window.confirm("Are you sure you want to reset all user data? This will delete your background data.")) return;
     setIsResetting(true);
     try {
-      // Delete user background data
-      const {
-        error: backgroundError
-      } = await supabase.from("user_backgrounds").delete().eq("user_id", user.id);
+      // Delete user profile data
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .delete()
+        .eq("user_id", user.id);
+        
+      if (profileError) throw profileError;
+
+      // Delete user summary data
+      const { error: summaryError } = await supabase
+        .from("user_summaries")
+        .delete()
+        .eq("user_id", user.id);
+        
+      if (summaryError) throw summaryError;
+
+      // Delete user background data (legacy table)
+      const { error: backgroundError } = await supabase
+        .from("user_backgrounds")
+        .delete()
+        .eq("user_id", user.id);
+        
       if (backgroundError) throw backgroundError;
 
       // Delete user target criteria
-      const {
-        error: targetError
-      } = await supabase.from("target_criteria").delete().eq("user_id", user.id);
+      const { error: targetError } = await supabase
+        .from("target_criteria")
+        .delete()
+        .eq("user_id", user.id);
+        
       if (targetError) throw targetError;
+        
       toast.success("User data has been reset successfully");
 
       // Refresh the page after a brief delay
@@ -287,11 +323,13 @@ const Profile = () => {
       setIsResetting(false);
     }
   };
+
   if (isLoading) {
     return <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>;
   }
+  
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
@@ -409,4 +447,5 @@ const Profile = () => {
       </div>
     </div>;
 };
+
 export default Profile;

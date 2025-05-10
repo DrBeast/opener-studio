@@ -17,7 +17,7 @@ const supabaseClient = createClient(
 interface ProfileData {
   linkedinContent?: string;
   additionalDetails?: string;
-  cvStorageUrl?: string;
+  cvContent?: string;
 }
 
 interface GeneratedSummary {
@@ -45,11 +45,11 @@ serve(async (req) => {
     }
 
     // Parse the request body
-    const { userId, userEmail, backgroundIds } = await req.json();
+    const { userId, userEmail } = await req.json();
 
-    if (!userId || !backgroundIds || !Array.isArray(backgroundIds) || backgroundIds.length === 0) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: userId and backgroundIds array" }),
+        JSON.stringify({ error: "Missing required field: userId" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -58,87 +58,87 @@ serve(async (req) => {
     }
 
     console.log(`Processing profile data for user: ${userId} (${userEmail || 'Email not provided'})`);
-    console.log(`Background IDs to process: ${backgroundIds.join(", ")}`);
 
-    // Validate user identity
-    const { data: userValidation, error: userValidationError } = await supabaseClient
-      .from("user_backgrounds")
-      .select("user_id")
-      .eq("user_id", userId)
-      .limit(1);
-
-    if (userValidationError || !userValidation || userValidation.length === 0) {
-      console.error("User validation failed:", userValidationError || "No data found for user");
-      return new Response(
-        JSON.stringify({ error: "User validation failed. User ID may be invalid." }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // Verify ownership of the background IDs
-    const { data: ownedBackgrounds, error: ownershipError } = await supabaseClient
-      .from("user_backgrounds")
-      .select("background_id, user_id")
-      .in("background_id", backgroundIds)
-      .eq("user_id", userId);
-
-    if (ownershipError) {
-      console.error("Ownership verification error:", ownershipError);
-      throw new Error(`Failed to verify background ownership: ${ownershipError.message}`);
-    }
-
-    if (!ownedBackgrounds || ownedBackgrounds.length !== backgroundIds.length) {
-      console.error("Background ownership verification failed", {
-        requested: backgroundIds.length,
-        verified: ownedBackgrounds?.length || 0,
-      });
-      return new Response(
-        JSON.stringify({ error: "One or more background IDs do not belong to the specified user" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // All background IDs belong to the user, proceed with fetching
-    const { data: backgrounds, error: fetchError } = await supabaseClient
-      .from("user_backgrounds")
+    // Fetch user profile data
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from("user_profiles")
       .select("*")
       .eq("user_id", userId)
-      .in("background_id", backgroundIds);
+      .single();
 
-    if (fetchError) {
-      console.error("Error fetching backgrounds:", fetchError);
-      throw new Error(`Failed to fetch backgrounds: ${fetchError.message}`);
+    if (profileError) {
+      console.error("Error fetching profile data:", profileError);
+      
+      if (profileError.code === "PGRST116") {
+        // Profile not found - this is not necessarily an error
+        console.log("No profile data found for user. Creating default summary.");
+        
+        // Create a default summary
+        const defaultSummary: GeneratedSummary = {
+          experience: "No experience data available yet.",
+          education: "No education data available yet.",
+          expertise: "No expertise data available yet.",
+          achievements: "No achievements data available yet.",
+        };
+        
+        // Insert default summary
+        await createOrUpdateSummary(userId, defaultSummary);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Default profile summary created. Please add more information to your profile.",
+            summary: defaultSummary,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      throw new Error(`Failed to fetch profile data: ${profileError.message}`);
     }
 
-    if (!backgrounds || backgrounds.length === 0) {
+    if (!profileData || (!profileData.linkedin_content && !profileData.additional_details && !profileData.cv_content)) {
+      console.log("Profile data found but empty or incomplete");
+      
+      // Create a basic summary with what we have
+      const basicSummary: GeneratedSummary = {
+        experience: "Your professional experience will appear here once you provide more information.",
+        education: "Your education details will appear here once you provide more information.",
+        expertise: "Your expertise areas will appear here once you provide more information.",
+        achievements: "Your key achievements will appear here once you provide more information.",
+      };
+      
+      // Insert basic summary
+      await createOrUpdateSummary(userId, basicSummary);
+      
       return new Response(
-        JSON.stringify({ error: "No background data found for the provided IDs" }),
+        JSON.stringify({
+          success: true,
+          message: "Basic profile summary created. Please add more information to your profile.",
+          summary: basicSummary,
+        }),
         {
-          status: 404,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    // Organize the background data
-    const profileData: ProfileData = {};
-    backgrounds.forEach((bg) => {
-      if (bg.content_type === "linkedin_profile") {
-        profileData.linkedinContent = bg.content;
-      } else if (bg.content_type === "additional_details") {
-        profileData.additionalDetails = bg.content;
-      } else if (bg.content_type === "cv_upload" && bg.storage_url) {
-        profileData.cvStorageUrl = bg.storage_url;
-      }
+    console.log("Profile data found:", {
+      hasLinkedinContent: !!profileData.linkedin_content,
+      hasAdditionalDetails: !!profileData.additional_details,
+      hasCvContent: !!profileData.cv_content
     });
 
-    console.log("Collected profile data:", Object.keys(profileData));
+    // Organize the profile data
+    const profileContent: ProfileData = {
+      linkedinContent: profileData.linkedin_content,
+      additionalDetails: profileData.additional_details,
+      cvContent: profileData.cv_content
+    };
 
     // For now, since we don't have Gemini API integration yet, we'll generate a simple summary
     // In the future, this will use the Gemini API to analyze and summarize the data
@@ -149,67 +149,19 @@ serve(async (req) => {
       achievements: "Generated summary of key achievements based on provided content.",
     };
 
-    // Check if a generated summary already exists for this user
-    const { data: existingSummary, error: existingSummaryError } = await supabaseClient
-      .from("user_backgrounds")
-      .select("background_id")
-      .eq("user_id", userId)
-      .eq("content_type", "generated_summary")
-      .maybeSingle();
-
-    if (existingSummaryError) {
-      console.error("Error checking for existing summary:", existingSummaryError);
-      throw new Error(`Failed to check for existing summary: ${existingSummaryError.message}`);
-    }
-
-    // Update existing summary or insert a new one
-    let summaryResponse;
-    if (existingSummary) {
-      console.log(`Updating existing summary with ID: ${existingSummary.background_id}`);
-      summaryResponse = await supabaseClient
-        .from("user_backgrounds")
-        .update({
-          content: JSON.stringify(generatedSummary),
-          processed_data: generatedSummary,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("background_id", existingSummary.background_id)
-        .eq("user_id", userId); // Extra check to ensure we only update summaries owned by this user
-    } else {
-      console.log("Creating new summary record");
-      summaryResponse = await supabaseClient
-        .from("user_backgrounds")
-        .insert({
-          user_id: userId,
-          content_type: "generated_summary",
-          content: JSON.stringify(generatedSummary),
-          processed_data: generatedSummary,
-          processed_at: new Date().toISOString(),
-        });
-    }
-
-    if (summaryResponse.error) {
-      console.error("Error handling summary record:", summaryResponse.error);
-      throw new Error(`Failed to handle summary record: ${summaryResponse.error.message}`);
-    }
-
-    // Update the processed status for all input backgrounds
-    for (const bgId of backgroundIds) {
-      const { error: updateError } = await supabaseClient
-        .from("user_backgrounds")
-        .update({
-          processed_at: new Date().toISOString(),
-          processed_data: {
-            status: "processed",
-            included_in_summary: true,
-          },
-        })
-        .eq("background_id", bgId)
-        .eq("user_id", userId); // Extra check to ensure we only update backgrounds owned by this user
+    // Create or update the summary in the user_summaries table
+    await createOrUpdateSummary(userId, generatedSummary);
+    
+    // Update the processed status for the user profile
+    const { error: updateError } = await supabaseClient
+      .from("user_profiles")
+      .update({
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId);
       
-      if (updateError) {
-        console.error(`Error updating background ${bgId}:`, updateError);
-      }
+    if (updateError) {
+      console.error(`Error updating user profile:`, updateError);
     }
 
     return new Response(
@@ -237,3 +189,53 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to create or update a user summary
+async function createOrUpdateSummary(userId: string, summary: GeneratedSummary) {
+  // Check if a summary already exists
+  const { data: existingSummary, error: checkError } = await supabaseClient
+    .from("user_summaries")
+    .select("summary_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+    
+  if (checkError) {
+    console.error("Error checking for existing summary:", checkError);
+    throw new Error(`Failed to check for existing summary: ${checkError.message}`);
+  }
+  
+  let response;
+  
+  if (existingSummary) {
+    console.log(`Updating existing summary for user: ${userId}`);
+    response = await supabaseClient
+      .from("user_summaries")
+      .update({
+        experience: summary.experience,
+        education: summary.education,
+        expertise: summary.expertise,
+        achievements: summary.achievements,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("summary_id", existingSummary.summary_id)
+      .eq("user_id", userId); // Extra security check
+  } else {
+    console.log(`Creating new summary for user: ${userId}`);
+    response = await supabaseClient
+      .from("user_summaries")
+      .insert({
+        user_id: userId,
+        experience: summary.experience,
+        education: summary.education,
+        expertise: summary.expertise,
+        achievements: summary.achievements,
+      });
+  }
+  
+  if (response.error) {
+    console.error("Error handling summary record:", response.error);
+    throw new Error(`Failed to handle summary record: ${response.error.message}`);
+  }
+  
+  return response;
+}

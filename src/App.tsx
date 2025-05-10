@@ -17,6 +17,7 @@ import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
 import ProfileEdit from "@/pages/ProfileEdit";
+import ProfileEnrichment from "@/pages/ProfileEnrichment";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import CompaniesDashboard from "@/pages/CompaniesDashboard";
@@ -48,6 +49,7 @@ const App = () => (
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/edit" element={<ProfileEdit />} />
+                <Route path="/profile/enrichment" element={<ProfileEnrichment />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/companies" element={<CompaniesDashboard />} />
                 <Route path="/tracking" element={<TrackingDashboard />} />
