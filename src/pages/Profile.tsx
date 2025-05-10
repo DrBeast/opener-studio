@@ -12,12 +12,15 @@ import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
 
 interface UserProfile {
-  id: string;
+  user_id: string;
   first_name?: string;
   last_name?: string;
   job_role?: string;
   current_company?: string;
   location?: string;
+  linkedin_content?: string;
+  additional_details?: string;
+  cv_content?: string;
 }
 
 // Helper function to ensure we have a string array from Json type
@@ -75,30 +78,21 @@ const Profile = () => {
       }
       try {
         setIsLoading(true);
+        
+        // Fetch profile from user_profiles
         const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          throw error;
-        }
-        setProfile(data);
-
-        // Fetch user profile data from the new structure
-        const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", user.id)
-          .maybeSingle();
+          .single();
 
-        if (profileError && profileError.code !== "PGRST116") {
-          console.error("Error fetching profile data:", profileError);
+        if (error && error.code !== "PGRST116") {
+          throw error;
         }
-
-        // Get background sources
-        if (profileData) {
+        
+        if (data) {
+          setProfile(data);
+          
           // Prepare form data from existing entries
           const existingBackgrounds: {
             linkedin?: string;
@@ -107,26 +101,25 @@ const Profile = () => {
           } = {};
 
           // Process retrieved data for form
-          if (profileData) {
-            if (profileData.linkedin_content) {
-              existingBackgrounds.linkedin = profileData.linkedin_content;
-              setLinkedinContent(profileData.linkedin_content);
-            }
-
-            if (profileData.additional_details) {
-              existingBackgrounds.additional = profileData.additional_details;
-              setAdditionalDetails(profileData.additional_details);
-            }
-
-            if (profileData.cv_content) {
-              existingBackgrounds.cv = profileData.cv_content;
-              setCvContent(profileData.cv_content);
-            }
+          if (data.linkedin_content) {
+            existingBackgrounds.linkedin = data.linkedin_content;
+            setLinkedinContent(data.linkedin_content);
           }
+
+          if (data.additional_details) {
+            existingBackgrounds.additional = data.additional_details;
+            setAdditionalDetails(data.additional_details);
+          }
+
+          if (data.cv_content) {
+            existingBackgrounds.cv = data.cv_content;
+            setCvContent(data.cv_content);
+          }
+          
           setExistingData(existingBackgrounds);
         }
 
-        // Fetch summary data from the new user_summaries table
+        // Fetch summary data from the user_summaries table
         const { data: summaryData, error: summaryError } = await supabase
           .from("user_summaries")
           .select("*")
@@ -316,14 +309,6 @@ const Profile = () => {
         .eq("user_id", user.id);
         
       if (summaryError) throw summaryError;
-
-      // Delete user background data (legacy table)
-      const { error: backgroundError } = await supabase
-        .from("user_backgrounds")
-        .delete()
-        .eq("user_id", user.id);
-        
-      if (backgroundError) throw backgroundError;
 
       // Delete user target criteria
       const { error: targetError } = await supabase

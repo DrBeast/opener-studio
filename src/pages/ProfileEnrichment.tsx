@@ -82,7 +82,7 @@ const ProfileEnrichment = () => {
       
       setIsLoading(true);
       try {
-        // Fetch existing profile data from new user_profiles table
+        // Fetch existing profile data from user_profiles table
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("*")
@@ -369,7 +369,7 @@ const ProfileEnrichment = () => {
       const hasJobTargets = targetData && targetData.length > 0;
       
       // Redirect to appropriate next step
-      const nextStep = hasJobTargets ? "/profile" : "/profile/job-targets";
+      const nextStep = hasJobTargets ? "/profile" : "/job-targets";
       
       // Auto-navigate after a brief delay to show the success message and summary
       setTimeout(() => {

@@ -135,24 +135,39 @@ export type Database = {
         Row: {
           additional_details: string | null
           created_at: string
+          current_company: string | null
           cv_content: string | null
+          first_name: string | null
+          job_role: string | null
+          last_name: string | null
           linkedin_content: string | null
+          location: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           additional_details?: string | null
           created_at?: string
+          current_company?: string | null
           cv_content?: string | null
+          first_name?: string | null
+          job_role?: string | null
+          last_name?: string | null
           linkedin_content?: string | null
+          location?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           additional_details?: string | null
           created_at?: string
+          current_company?: string | null
           cv_content?: string | null
+          first_name?: string | null
+          job_role?: string | null
+          last_name?: string | null
           linkedin_content?: string | null
+          location?: string | null
           updated_at?: string
           user_id?: string
         }

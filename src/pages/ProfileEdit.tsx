@@ -34,10 +34,11 @@ const ProfileEdit = () => {
       }
 
       try {
+        // Updated to fetch from user_profiles instead of profiles
         const { data, error } = await supabase
-          .from("profiles")
+          .from("user_profiles")
           .select("*")
-          .eq("id", user.id)
+          .eq("user_id", user.id)
           .single();
 
         if (error) {
@@ -68,8 +69,9 @@ const ProfileEdit = () => {
     setIsSaving(true);
     
     try {
+      // Updated to save to user_profiles instead of profiles
       const { error } = await supabase
-        .from("profiles")
+        .from("user_profiles")
         .update({
           first_name: data.first_name,
           last_name: data.last_name,
@@ -78,7 +80,7 @@ const ProfileEdit = () => {
           location: data.location,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user.id);
+        .eq("user_id", user.id);
 
       if (error) {
         throw error;

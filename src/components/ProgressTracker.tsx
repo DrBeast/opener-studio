@@ -27,14 +27,15 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
       
       setIsLoading(true);
       try {
-        // Check for background data
-        const { data: backgroundData, error: backgroundError } = await supabase
-          .from("user_backgrounds")
-          .select("*")
-          .eq("user_id", user.id);
+        // Check for background data in user_profiles (instead of user_backgrounds)
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("linkedin_content, additional_details, cv_content")
+          .eq("user_id", user.id)
+          .single();
           
-        if (backgroundError) {
-          console.error("Error checking background data:", backgroundError);
+        if (profileError && profileError.code !== "PGRST116") {
+          console.error("Error checking profile data:", profileError);
         }
         
         // Check for job targets data
@@ -48,8 +49,12 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
           console.error("Error checking target criteria:", targetError);
         }
         
+        // Consider profile complete if user has at least one background data entry
+        const hasBackgroundData = profileData && 
+          (profileData.linkedin_content || profileData.additional_details || profileData.cv_content);
+        
         setCompletionStatus({
-          hasBackground: backgroundData && backgroundData.length > 0,
+          hasBackground: !!hasBackgroundData,
           hasJobTargets: targetData && targetData.length > 0,
         });
       } catch (error: any) {

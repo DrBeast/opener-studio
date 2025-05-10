@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -329,13 +330,13 @@ serve(async (req) => {
         );
       }
     } else {
-      // If we don't have any content, return a simple summary
+      // If we don't have any content, return a basic response
       const emptySummary: GeneratedSummary = {
-        experience: "No professional experience information provided yet.",
-        education: "No education information provided yet.",
-        expertise: "No expertise information provided yet.",
-        achievements: "No achievements information provided yet.",
-        overall_blurb: "Please add your professional information to generate a complete summary."
+        experience: "No professional experience data available.",
+        education: "No education data available.",
+        expertise: "No expertise data available.",
+        achievements: "No achievements data available.",
+        overall_blurb: "Please add your professional information to generate a summary."
       };
       
       // Create or update with empty summary
@@ -344,7 +345,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: true,
-          message: "Created empty profile summary placeholder",
+          message: "No content found to process. Please add professional information to your profile.",
           summary: emptySummary,
         }),
         {
@@ -354,11 +355,11 @@ serve(async (req) => {
       );
     }
   } catch (error) {
-    console.error("Error processing profile data:", error);
+    console.error("Unexpected error:", error);
+    
     return new Response(
       JSON.stringify({
-        error: "Failed to process profile data",
-        details: error instanceof Error ? error.message : String(error),
+        error: `Unexpected error: ${error.message}`,
       }),
       {
         status: 500,
@@ -368,86 +369,70 @@ serve(async (req) => {
   }
 });
 
-// Helper function to safely parse JSON array or return empty array
-function safeParseJsonArray(jsonData: any): string[] {
-  if (!jsonData) return [];
-  
+/**
+ * Create or update the summary in the user_summaries table
+ */
+async function createOrUpdateSummary(userId: string, summary: GeneratedSummary): Promise<void> {
   try {
-    if (typeof jsonData === 'string') {
-      const parsed = JSON.parse(jsonData);
-      return Array.isArray(parsed) ? parsed.map(String) : [];
+    // Check if a summary already exists
+    const { data: existingSummary, error: checkError } = await supabaseClient
+      .from("user_summaries")
+      .select("summary_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+      
+    if (checkError && checkError.code !== "PGRST116") {
+      throw new Error(`Error checking for existing summary: ${checkError.message}`);
     }
     
-    if (Array.isArray(jsonData)) {
-      return jsonData.map(String);
+    if (existingSummary) {
+      // Update the existing summary
+      const { error: updateError } = await supabaseClient
+        .from("user_summaries")
+        .update({
+          experience: summary.experience,
+          education: summary.education,
+          expertise: summary.expertise,
+          achievements: summary.achievements,
+          overall_blurb: summary.overall_blurb || null,
+          combined_experience_highlights: summary.combined_experience_highlights || null,
+          combined_education_highlights: summary.combined_education_highlights || null,
+          key_skills: summary.key_skills || null,
+          domain_expertise: summary.domain_expertise || null,
+          technical_expertise: summary.technical_expertise || null,
+          value_proposition_summary: summary.value_proposition_summary || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", userId);
+        
+      if (updateError) {
+        throw new Error(`Error updating summary: ${updateError.message}`);
+      }
+    } else {
+      // Insert a new summary
+      const { error: insertError } = await supabaseClient
+        .from("user_summaries")
+        .insert({
+          user_id: userId,
+          experience: summary.experience,
+          education: summary.education,
+          expertise: summary.expertise,
+          achievements: summary.achievements,
+          overall_blurb: summary.overall_blurb || null,
+          combined_experience_highlights: summary.combined_experience_highlights || null,
+          combined_education_highlights: summary.combined_education_highlights || null,
+          key_skills: summary.key_skills || null,
+          domain_expertise: summary.domain_expertise || null,
+          technical_expertise: summary.technical_expertise || null,
+          value_proposition_summary: summary.value_proposition_summary || null
+        });
+        
+      if (insertError) {
+        throw new Error(`Error inserting summary: ${insertError.message}`);
+      }
     }
-  } catch (e) {
-    console.error("Error parsing JSON array:", e);
+  } catch (error) {
+    console.error("Error in createOrUpdateSummary:", error);
+    throw error;
   }
-  
-  return [];
-}
-
-// Helper function to create or update a user summary
-async function createOrUpdateSummary(userId: string, summary: GeneratedSummary) {
-  // Check if a summary already exists
-  const { data: existingSummary, error: checkError } = await supabaseClient
-    .from("user_summaries")
-    .select("summary_id")
-    .eq("user_id", userId)
-    .maybeSingle();
-    
-  if (checkError) {
-    console.error("Error checking for existing summary:", checkError);
-    throw new Error(`Failed to check for existing summary: ${checkError.message}`);
-  }
-  
-  let response;
-  
-  if (existingSummary) {
-    console.log(`Updating existing summary for user: ${userId}`);
-    response = await supabaseClient
-      .from("user_summaries")
-      .update({
-        experience: summary.experience,
-        education: summary.education,
-        expertise: summary.expertise,
-        achievements: summary.achievements,
-        overall_blurb: summary.overall_blurb,
-        combined_experience_highlights: summary.combined_experience_highlights,
-        combined_education_highlights: summary.combined_education_highlights,
-        key_skills: summary.key_skills,
-        domain_expertise: summary.domain_expertise,
-        technical_expertise: summary.technical_expertise,
-        value_proposition_summary: summary.value_proposition_summary,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("summary_id", existingSummary.summary_id)
-      .eq("user_id", userId); // Extra security check
-  } else {
-    console.log(`Creating new summary for user: ${userId}`);
-    response = await supabaseClient
-      .from("user_summaries")
-      .insert({
-        user_id: userId,
-        experience: summary.experience,
-        education: summary.education,
-        expertise: summary.expertise,
-        achievements: summary.achievements,
-        overall_blurb: summary.overall_blurb,
-        combined_experience_highlights: summary.combined_experience_highlights,
-        combined_education_highlights: summary.combined_education_highlights,
-        key_skills: summary.key_skills,
-        domain_expertise: summary.domain_expertise,
-        technical_expertise: summary.technical_expertise,
-        value_proposition_summary: summary.value_proposition_summary,
-      });
-  }
-  
-  if (response.error) {
-    console.error("Error handling summary record:", response.error);
-    throw new Error(`Failed to handle summary record: ${response.error.message}`);
-  }
-  
-  return response;
 }

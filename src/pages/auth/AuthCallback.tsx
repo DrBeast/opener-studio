@@ -63,11 +63,11 @@ const AuthCallback = () => {
           setRedirectStatus("Processing LinkedIn data...");
           
           try {
-            // Check if the user already has a profile
+            // Check if the user already has a profile in user_profiles table
             const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
+              .from('user_profiles')
               .select('*')
-              .eq('id', user.id)
+              .eq('user_id', user.id)
               .single();
             
             if (profileError) {
@@ -105,7 +105,7 @@ const AuthCallback = () => {
               if (firstName || lastName) {
                 console.log("Updating profile with name data");
                 const profileUpdate = {
-                  id: user.id,
+                  user_id: user.id,
                   first_name: firstName,
                   last_name: lastName,
                   updated_at: new Date().toISOString()
@@ -114,8 +114,8 @@ const AuthCallback = () => {
                 console.log("Profile update payload:", profileUpdate);
                 
                 const { error: updateError } = await supabase
-                  .from('profiles')
-                  .upsert(profileUpdate, { onConflict: 'id' });
+                  .from('user_profiles')
+                  .upsert(profileUpdate, { onConflict: 'user_id' });
                 
                 if (updateError) {
                   console.error("Error updating profile with LinkedIn data:", updateError);
@@ -144,17 +144,15 @@ const AuthCallback = () => {
             setRedirectStatus("Checking profile completion...");
             
             try {
-              // Get all user background data first
-              const { data: backgroundData, error: backgroundError } = await supabase
-                .from('user_backgrounds')
-                .select('*')
-                .eq('user_id', user.id);
+              // Check for background data in user_profiles
+              const { data: profileContentData, error: profileContentError } = await supabase
+                .from('user_profiles')
+                .select('linkedin_content, additional_details, cv_content')
+                .eq('user_id', user.id)
+                .single();
                 
-              if (backgroundError) {
-                console.error("Error checking background data:", backgroundError);
-                toast.error("Error checking profile completion");
-                navigate("/profile");
-                return;
+              if (profileContentError && profileContentError.code !== 'PGRST116') {
+                console.error("Error checking profile content:", profileContentError);
               }
               
               // Get target criteria data
@@ -168,7 +166,8 @@ const AuthCallback = () => {
               }
               
               // Determine best path based on profile completion
-              const hasBackground = backgroundData && backgroundData.length > 0;
+              const hasBackground = profileContentData && 
+                (profileContentData.linkedin_content || profileContentData.additional_details || profileContentData.cv_content);
               const hasTargets = targetData && targetData.length > 0;
               
               setRedirectStatus("Redirecting you to the appropriate page...");
@@ -177,11 +176,11 @@ const AuthCallback = () => {
               if (!hasBackground) {
                 // If user doesn't have background data, redirect to enrichment page
                 console.log("User needs to complete profile enrichment");
-                navigate("/profile/enrich");
+                navigate("/profile/enrichment");
               } else if (!hasTargets) {
                 // If user has background but no targets, redirect to job targets
                 console.log("User needs to complete job targets");
-                navigate("/profile/job-targets");
+                navigate("/job-targets");
               } else {
                 // User has completed both sections, redirect to profile
                 console.log("User profile is complete, redirecting to profile");
@@ -196,7 +195,7 @@ const AuthCallback = () => {
             console.error("Error processing profile data:", profileErr.message);
             console.error("Full error details:", JSON.stringify(profileErr, null, 2));
             toast.error("Error processing profile data");
-            navigate("/profile/enrich"); // Still redirect to enrichment on error
+            navigate("/profile/enrichment"); // Still redirect to enrichment on error
           }
         } else {
           // Not a LinkedIn user, use same logic for redirection
@@ -204,14 +203,15 @@ const AuthCallback = () => {
           toast.success("Successfully logged in");
           
           try {
-            // Get all user background data
-            const { data: backgroundData, error: backgroundError } = await supabase
-              .from('user_backgrounds')
-              .select('*')
-              .eq('user_id', user.id);
+            // Check for background data in user_profiles
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('linkedin_content, additional_details, cv_content')
+              .eq('user_id', user.id)
+              .single();
               
-            if (backgroundError) {
-              console.error("Error checking background data:", backgroundError);
+            if (profileError && profileError.code !== 'PGRST116') {
+              console.error("Error checking profile data:", profileError);
             }
             
             // Get target criteria data
@@ -225,7 +225,8 @@ const AuthCallback = () => {
             }
             
             // Determine best path based on profile completion
-            const hasBackground = backgroundData && backgroundData.length > 0;
+            const hasBackground = profileData && 
+              (profileData.linkedin_content || profileData.additional_details || profileData.cv_content);
             const hasTargets = targetData && targetData.length > 0;
             
             setRedirectStatus("Redirecting you to the appropriate page...");
@@ -233,11 +234,11 @@ const AuthCallback = () => {
             if (!hasBackground) {
               // If user doesn't have background data, redirect to enrichment page
               console.log("User needs to complete profile enrichment");
-              navigate("/profile/enrich");
+              navigate("/profile/enrichment");
             } else if (!hasTargets) {
               // If user has background but no targets, redirect to job targets
               console.log("User needs to complete job targets");
-              navigate("/profile/job-targets");
+              navigate("/job-targets");
             } else {
               // User has completed both sections, redirect to profile
               console.log("User profile is complete, redirecting to profile");
