@@ -161,33 +161,54 @@ export type Database = {
       user_summaries: {
         Row: {
           achievements: string | null
+          combined_education_highlights: Json | null
+          combined_experience_highlights: Json | null
+          domain_expertise: Json | null
           education: string | null
           experience: string | null
           expertise: string | null
           generated_at: string
+          key_skills: Json | null
+          overall_blurb: string | null
           summary_id: string
+          technical_expertise: Json | null
           updated_at: string
           user_id: string | null
+          value_proposition_summary: string | null
         }
         Insert: {
           achievements?: string | null
+          combined_education_highlights?: Json | null
+          combined_experience_highlights?: Json | null
+          domain_expertise?: Json | null
           education?: string | null
           experience?: string | null
           expertise?: string | null
           generated_at?: string
+          key_skills?: Json | null
+          overall_blurb?: string | null
           summary_id?: string
+          technical_expertise?: Json | null
           updated_at?: string
           user_id?: string | null
+          value_proposition_summary?: string | null
         }
         Update: {
           achievements?: string | null
+          combined_education_highlights?: Json | null
+          combined_experience_highlights?: Json | null
+          domain_expertise?: Json | null
           education?: string | null
           experience?: string | null
           expertise?: string | null
           generated_at?: string
+          key_skills?: Json | null
+          overall_blurb?: string | null
           summary_id?: string
+          technical_expertise?: Json | null
           updated_at?: string
           user_id?: string | null
+          value_proposition_summary?: string | null
         }
         Relationships: []
       }

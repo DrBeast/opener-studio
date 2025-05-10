@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +24,13 @@ interface Background {
   education: string;
   expertise: string;
   achievements: string;
+  overall_blurb?: string;
+  combined_experience_highlights?: string[];
+  combined_education_highlights?: string[];
+  key_skills?: string[];
+  domain_expertise?: string[];
+  technical_expertise?: string[];
+  value_proposition_summary?: string;
 }
 
 const Profile = () => {
@@ -126,7 +132,14 @@ const Profile = () => {
             experience: summaryData.experience,
             education: summaryData.education,
             expertise: summaryData.expertise,
-            achievements: summaryData.achievements
+            achievements: summaryData.achievements,
+            overall_blurb: summaryData.overall_blurb,
+            combined_experience_highlights: summaryData.combined_experience_highlights,
+            combined_education_highlights: summaryData.combined_education_highlights,
+            key_skills: summaryData.key_skills,
+            domain_expertise: summaryData.domain_expertise,
+            technical_expertise: summaryData.technical_expertise,
+            value_proposition_summary: summaryData.value_proposition_summary
           });
         } else {
           // Set dummy data if no summary was found
@@ -330,6 +343,18 @@ const Profile = () => {
       </div>;
   }
   
+  // Helper function to render arrays safely
+  const renderArrayItems = (items?: string[]) => {
+    if (!items || !Array.isArray(items) || items.length === 0) return null;
+    return (
+      <ul className="list-disc list-inside text-sm space-y-1 pl-2">
+        {items.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
@@ -357,22 +382,60 @@ const Profile = () => {
                       Regenerate
                     </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Experience</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.experience}</p>
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Education</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.education}</p>
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Expertise</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Key Achievements</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
+                  <div className="space-y-4">
+                    {/* Show overall blurb if available */}
+                    {backgroundSummary.overall_blurb && (
+                      <div className="bg-primary/10 p-4 rounded-lg">
+                        <h4 className="font-semibold">Overall</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.overall_blurb}</p>
+                      </div>
+                    )}
+                    
+                    {/* Show value proposition if available */}
+                    {backgroundSummary.value_proposition_summary && (
+                      <div className="bg-primary/10 p-4 rounded-lg">
+                        <h4 className="font-semibold">Value Proposition</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.value_proposition_summary}</p>
+                      </div>
+                    )}
+                  
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="bg-primary/5 p-4 rounded-lg">
+                        <h4 className="font-semibold">Experience</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.experience}</p>
+                        {renderArrayItems(backgroundSummary.combined_experience_highlights)}
+                      </div>
+                      <div className="bg-primary/5 p-4 rounded-lg">
+                        <h4 className="font-semibold">Education</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.education}</p>
+                        {renderArrayItems(backgroundSummary.combined_education_highlights)}
+                      </div>
+                      <div className="bg-primary/5 p-4 rounded-lg">
+                        <h4 className="font-semibold">Expertise</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
+                        {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && (
+                          <div className="mt-2">
+                            <h5 className="text-sm font-medium">Key Skills:</h5>
+                            {renderArrayItems(backgroundSummary.key_skills)}
+                          </div>
+                        )}
+                        {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && (
+                          <div className="mt-2">
+                            <h5 className="text-sm font-medium">Domain Expertise:</h5>
+                            {renderArrayItems(backgroundSummary.domain_expertise)}
+                          </div>
+                        )}
+                        {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && (
+                          <div className="mt-2">
+                            <h5 className="text-sm font-medium">Technical Expertise:</h5>
+                            {renderArrayItems(backgroundSummary.technical_expertise)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="bg-primary/5 p-4 rounded-lg">
+                        <h4 className="font-semibold">Key Achievements</h4>
+                        <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
+                      </div>
                     </div>
                   </div>
                 </div>}

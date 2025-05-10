@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,7 +46,14 @@ const ProfileEnrichment = () => {
     experience: "",
     education: "",
     expertise: "",
-    achievements: ""
+    achievements: "",
+    overall_blurb: "",
+    combined_experience_highlights: [] as string[],
+    combined_education_highlights: [] as string[],
+    key_skills: [] as string[],
+    domain_expertise: [] as string[],
+    technical_expertise: [] as string[],
+    value_proposition_summary: ""
   });
 
   // Add state to store authenticated user email for confirmation
@@ -124,7 +130,14 @@ const ProfileEnrichment = () => {
             experience: summaryData.experience || "Experience data could not be processed.",
             education: summaryData.education || "Education data could not be processed.",
             expertise: summaryData.expertise || "Expertise data could not be processed.",
-            achievements: summaryData.achievements || "Achievements data could not be processed."
+            achievements: summaryData.achievements || "Achievements data could not be processed.",
+            overall_blurb: summaryData.overall_blurb || "",
+            combined_experience_highlights: summaryData.combined_experience_highlights || [],
+            combined_education_highlights: summaryData.combined_education_highlights || [],
+            key_skills: summaryData.key_skills || [],
+            domain_expertise: summaryData.domain_expertise || [],
+            technical_expertise: summaryData.technical_expertise || [],
+            value_proposition_summary: summaryData.value_proposition_summary || ""
           });
           setShowSummary(true);
         }
@@ -292,7 +305,14 @@ const ProfileEnrichment = () => {
             experience: data.summary.experience || "Experience data could not be processed.",
             education: data.summary.education || "Education data could not be processed.",
             expertise: data.summary.expertise || "Expertise data could not be processed.",
-            achievements: data.summary.achievements || "Achievements data could not be processed."
+            achievements: data.summary.achievements || "Achievements data could not be processed.",
+            overall_blurb: data.summary.overall_blurb || "",
+            combined_experience_highlights: data.summary.combined_experience_highlights || [],
+            combined_education_highlights: data.summary.combined_education_highlights || [],
+            key_skills: data.summary.key_skills || [],
+            domain_expertise: data.summary.domain_expertise || [],
+            technical_expertise: data.summary.technical_expertise || [],
+            value_proposition_summary: data.summary.value_proposition_summary || ""
           });
           
           setShowSummary(true);
@@ -514,25 +534,47 @@ const ProfileEnrichment = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
+              {summary.overall_blurb && (
+                <div className="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+                  <h3 className="font-semibold text-green-800">Overview</h3>
+                  <p className="text-sm mt-2">{summary.overall_blurb}</p>
+                </div>
+              )}
+              
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="font-semibold text-green-800">Your Experience</h3>
                 <p className="text-sm mt-2">{summary.experience}</p>
+                {renderArrayItems(summary.combined_experience_highlights)}
               </div>
               
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="font-semibold text-green-800">Your Education</h3>
                 <p className="text-sm mt-2">{summary.education}</p>
+                {renderArrayItems(summary.combined_education_highlights)}
               </div>
               
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="font-semibold text-green-800">Your Expertise</h3>
                 <p className="text-sm mt-2">{summary.expertise}</p>
+                {summary.key_skills && summary.key_skills.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium text-green-800">Key Skills:</h4>
+                    {renderArrayItems(summary.key_skills)}
+                  </div>
+                )}
               </div>
               
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="font-semibold text-green-800">Key Achievements</h3>
                 <p className="text-sm mt-2">{summary.achievements}</p>
               </div>
+              
+              {summary.value_proposition_summary && (
+                <div className="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+                  <h3 className="font-semibold text-green-800">Value Proposition</h3>
+                  <p className="text-sm mt-2">{summary.value_proposition_summary}</p>
+                </div>
+              )}
             </CardContent>
             <CardFooter>
               <Button
@@ -547,6 +589,18 @@ const ProfileEnrichment = () => {
         )}
       </div>
     </div>
+  );
+};
+
+// Helper function to render arrays safely
+const renderArrayItems = (items?: string[]) => {
+  if (!items || !Array.isArray(items) || items.length === 0) return null;
+  return (
+    <ul className="list-disc list-inside text-sm space-y-1 pl-2">
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
   );
 };
 

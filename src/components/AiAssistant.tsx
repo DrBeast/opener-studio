@@ -14,6 +14,13 @@ interface AiAssistantProps {
     education: string;
     expertise: string;
     achievements: string;
+    overall_blurb?: string;
+    combined_experience_highlights?: string[];
+    combined_education_highlights?: string[];
+    key_skills?: string[];
+    domain_expertise?: string[];
+    technical_expertise?: string[];
+    value_proposition_summary?: string;
   };
 }
 
@@ -25,6 +32,18 @@ const AiAssistant = ({ showSummary, summary }: AiAssistantProps) => {
   // Determine which assistant content to show based on the current path
   const isJobTargetsPage = location.pathname === "/profile/job-targets";
   const isProfileEnrichmentPage = location.pathname === "/profile/enrich";
+  
+  // Helper function to render arrays safely
+  const renderArrayItems = (items?: string[]) => {
+    if (!items || !Array.isArray(items) || items.length === 0) return null;
+    return (
+      <ul className="list-disc list-inside text-xs space-y-1 pl-2">
+        {items.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
   
   return (
     <Collapsible
@@ -103,22 +122,62 @@ const AiAssistant = ({ showSummary, summary }: AiAssistantProps) => {
                 <CardTitle className="text-md text-green-800">Profile Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-0">
+                {summary.overall_blurb && (
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-sm">Overview</h4>
+                    <p className="text-xs text-green-800">{summary.overall_blurb}</p>
+                  </div>
+                )}
+                
                 <div>
                   <h4 className="font-semibold text-sm">Experience</h4>
                   <p className="text-xs text-green-800">{summary.experience}</p>
+                  {renderArrayItems(summary.combined_experience_highlights)}
                 </div>
+                
                 <div>
                   <h4 className="font-semibold text-sm">Education</h4>
                   <p className="text-xs text-green-800">{summary.education}</p>
+                  {renderArrayItems(summary.combined_education_highlights)}
                 </div>
+                
                 <div>
                   <h4 className="font-semibold text-sm">Expertise</h4>
                   <p className="text-xs text-green-800">{summary.expertise}</p>
                 </div>
+                
                 <div>
                   <h4 className="font-semibold text-sm">Achievements</h4>
                   <p className="text-xs text-green-800">{summary.achievements}</p>
                 </div>
+                
+                {(summary.key_skills && summary.key_skills.length > 0) && (
+                  <div>
+                    <h4 className="font-semibold text-sm">Key Skills</h4>
+                    {renderArrayItems(summary.key_skills)}
+                  </div>
+                )}
+                
+                {(summary.domain_expertise && summary.domain_expertise.length > 0) && (
+                  <div>
+                    <h4 className="font-semibold text-sm">Domain Expertise</h4>
+                    {renderArrayItems(summary.domain_expertise)}
+                  </div>
+                )}
+                
+                {(summary.technical_expertise && summary.technical_expertise.length > 0) && (
+                  <div>
+                    <h4 className="font-semibold text-sm">Technical Expertise</h4>
+                    {renderArrayItems(summary.technical_expertise)}
+                  </div>
+                )}
+                
+                {summary.value_proposition_summary && (
+                  <div>
+                    <h4 className="font-semibold text-sm">Value Proposition</h4>
+                    <p className="text-xs text-green-800">{summary.value_proposition_summary}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
