@@ -15,6 +15,8 @@ const CompaniesDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [hasCompanies, setHasCompanies] = useState(false);
   
   useEffect(() => {
     if (!user) return;
@@ -46,6 +48,20 @@ const CompaniesDashboard = () => {
         if (!(hasBackground && hasTargets)) {
           toast.info("Complete your profile to get personalized company recommendations.");
         }
+
+        // Check if user has any companies
+        if (hasBackground && hasTargets) {
+          const { data: companiesData, error: companiesError } = await supabase
+            .from("companies")
+            .select("company_id")
+            .eq("user_id", user.id)
+            .limit(1);
+          
+          if (!companiesError && companiesData && companiesData.length > 0) {
+            setHasCompanies(true);
+            fetchCompanies();
+          }
+        }
       } catch (error) {
         // Simplified error handling without excessive logging
         toast.error("Failed to check profile completion.");
@@ -57,20 +73,63 @@ const CompaniesDashboard = () => {
     checkProfileCompletion();
   }, [user]);
   
+  const fetchCompanies = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("match_quality_score", { ascending: false });
+        
+      if (error) throw error;
+      
+      setCompanies(data || []);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+    }
+  };
+  
   const handleGenerateCompanies = async () => {
     if (!user) return;
     
     setIsGenerating(true);
     try {
+      // Call the edge function
       const { data, error } = await supabase.functions.invoke('generate_companies', {
         body: { user_id: user.id }
       });
       
       if (error) throw error;
       
-      toast.success("Company generation started successfully.");
+      if (!data || !data.companies || !Array.isArray(data.companies)) {
+        throw new Error("Invalid response from generate_companies function");
+      }
+      
+      // Insert the generated companies into the database
+      const { error: insertError } = await supabase
+        .from("companies")
+        .upsert(
+          data.companies.map(company => ({
+            ...company,
+            user_id: user.id,
+            added_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })),
+          { onConflict: "name" } // Assuming name is unique per user
+        );
+      
+      if (insertError) throw insertError;
+      
+      // Refresh the companies list
+      fetchCompanies();
+      setHasCompanies(true);
+      
+      toast.success("Companies generated and saved successfully!");
     } catch (error) {
-      toast.error("Failed to generate companies.");
+      console.error("Error generating companies:", error);
+      toast.error("Failed to generate companies: " + (error.message || "Unknown error"));
     } finally {
       setIsGenerating(false);
     }
@@ -164,30 +223,71 @@ const CompaniesDashboard = () => {
         </Button>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Companies Dashboard</CardTitle>
-          <CardDescription>
-            Based on your profile and preferences, we'll help you identify ideal companies to target
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 text-center">
-            <Building className="h-16 w-16 mx-auto text-blue-500 mb-4" />
-            <h3 className="text-xl font-medium text-blue-800">Ready to Generate Company Recommendations</h3>
-            <p className="text-blue-600 mt-2 mb-6">
-              Click the button below to generate a list of target companies based on your background and preferences.
-            </p>
-            <Button 
-              size="lg"
-              onClick={handleGenerateCompanies}
-              disabled={isGenerating}
-            >
-              {isGenerating ? "Generating..." : "Generate Target Companies"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {!hasCompanies ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Companies Dashboard</CardTitle>
+            <CardDescription>
+              Based on your profile and preferences, we'll help you identify ideal companies to target
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 text-center">
+              <Building className="h-16 w-16 mx-auto text-blue-500 mb-4" />
+              <h3 className="text-xl font-medium text-blue-800">Ready to Generate Company Recommendations</h3>
+              <p className="text-blue-600 mt-2 mb-6">
+                Click the button below to generate a list of target companies based on your background and preferences.
+              </p>
+              <Button 
+                size="lg"
+                onClick={handleGenerateCompanies}
+                disabled={isGenerating}
+              >
+                {isGenerating ? "Generating..." : "Generate Target Companies"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div>
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Your Target Companies</CardTitle>
+              <CardDescription>
+                Here are the companies that match your profile and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {companies.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No companies found. Try generating new recommendations.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {companies.map((company) => (
+                    <Card key={company.company_id} className="p-4 hover:bg-accent/5 transition-colors">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-medium text-lg">{company.name}</h3>
+                          <p className="text-muted-foreground text-sm">{company.industry || 'Industry not specified'}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            Match: {company.match_quality_score || 'N/A'}%
+                          </span>
+                        </div>
+                      </div>
+                      {company.ai_description && (
+                        <p className="mt-2 text-sm">{company.ai_description}</p>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
