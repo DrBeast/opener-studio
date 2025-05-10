@@ -3,3 +3,6 @@ tfpduruccpbfyrjfwnso = "project_ref"
 
 [functions.generate_profile]
 verify_jwt = true
+
+[functions.generate_companies]
+verify_jwt = true

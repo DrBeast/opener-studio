@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      companies: {
+        Row: {
+          added_at: string | null
+          ai_description: string | null
+          ai_match_reasoning: string | null
+          company_id: string
+          estimated_headcount: string | null
+          estimated_revenue: string | null
+          generated_criteria_highlights: Json | null
+          hq_location: string | null
+          industry: string | null
+          match_quality_score: number | null
+          name: string
+          public_private: string | null
+          updated_at: string | null
+          user_id: string | null
+          user_notes: string | null
+          user_priority: string | null
+          website_url: string | null
+          wfh_policy: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          ai_description?: string | null
+          ai_match_reasoning?: string | null
+          company_id?: string
+          estimated_headcount?: string | null
+          estimated_revenue?: string | null
+          generated_criteria_highlights?: Json | null
+          hq_location?: string | null
+          industry?: string | null
+          match_quality_score?: number | null
+          name: string
+          public_private?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_notes?: string | null
+          user_priority?: string | null
+          website_url?: string | null
+          wfh_policy?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          ai_description?: string | null
+          ai_match_reasoning?: string | null
+          company_id?: string
+          estimated_headcount?: string | null
+          estimated_revenue?: string | null
+          generated_criteria_highlights?: Json | null
+          hq_location?: string | null
+          industry?: string | null
+          match_quality_score?: number | null
+          name?: string
+          public_private?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_notes?: string | null
+          user_priority?: string | null
+          website_url?: string | null
+          wfh_policy?: string | null
+        }
+        Relationships: []
+      }
       target_criteria: {
         Row: {
           created_at: string | null
