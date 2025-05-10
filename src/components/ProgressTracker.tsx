@@ -27,7 +27,7 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
       
       setIsLoading(true);
       try {
-        // Check for background data in user_profiles (instead of user_backgrounds)
+        // Check for background data in user_profiles
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("linkedin_content, additional_details, cv_content")

@@ -9,39 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          created_at: string | null
-          current_company: string | null
-          first_name: string | null
-          id: string
-          job_role: string | null
-          last_name: string | null
-          location: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_company?: string | null
-          first_name?: string | null
-          id: string
-          job_role?: string | null
-          last_name?: string | null
-          location?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_company?: string | null
-          first_name?: string | null
-          id?: string
-          job_role?: string | null
-          last_name?: string | null
-          location?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       target_criteria: {
         Row: {
           created_at: string | null
@@ -89,47 +56,6 @@ export type Database = {
           visa_sponsorship_required?: boolean | null
         }
         Relationships: []
-      }
-      user_backgrounds: {
-        Row: {
-          background_id: string
-          content: string
-          content_type: string
-          processed_at: string | null
-          processed_data: Json | null
-          storage_url: string | null
-          uploaded_at: string | null
-          user_id: string
-        }
-        Insert: {
-          background_id?: string
-          content: string
-          content_type: string
-          processed_at?: string | null
-          processed_data?: Json | null
-          storage_url?: string | null
-          uploaded_at?: string | null
-          user_id: string
-        }
-        Update: {
-          background_id?: string
-          content?: string
-          content_type?: string
-          processed_at?: string | null
-          processed_data?: Json | null
-          storage_url?: string | null
-          uploaded_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_backgrounds_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_profiles: {
         Row: {
