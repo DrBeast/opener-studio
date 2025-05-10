@@ -22,7 +22,7 @@ const CompaniesDashboard = () => {
       try {
         // Check if the user has both background and target criteria
         const [backgroundResponse, targetResponse] = await Promise.all([
-          supabase.from("user_backgrounds").select("background_id").eq("user_id", user.id).limit(1),
+          supabase.from("user_profiles").select("user_id").eq("user_id", user.id).limit(1),
           supabase.from("target_criteria").select("criteria_id").eq("user_id", user.id).limit(1)
         ]);
         
