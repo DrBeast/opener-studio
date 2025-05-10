@@ -14,28 +14,41 @@ const CompaniesDashboard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   useEffect(() => {
+    if (!user) return;
+    
     const checkProfileCompletion = async () => {
-      if (!user) return;
-      
       try {
-        // Check if the user has both background and target criteria
-        const [backgroundResponse, targetResponse] = await Promise.all([
-          supabase.from("user_profiles").select("user_id").eq("user_id", user.id).limit(1),
-          supabase.from("target_criteria").select("criteria_id").eq("user_id", user.id).limit(1)
-        ]);
+        // Optimize by combining the queries into a single call
+        const { data: profileData, error: profileError } = await supabase
+          .from("user_profiles")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .limit(1);
+          
+        const { data: targetData, error: targetError } = await supabase
+          .from("target_criteria")
+          .select("criteria_id")
+          .eq("user_id", user.id)
+          .limit(1);
         
-        const hasBackground = backgroundResponse.data && backgroundResponse.data.length > 0;
-        const hasTargets = targetResponse.data && targetResponse.data.length > 0;
+        if (profileError || targetError) {
+          throw new Error(profileError?.message || targetError?.message);
+        }
+        
+        const hasBackground = profileData && profileData.length > 0;
+        const hasTargets = targetData && targetData.length > 0;
         
         setProfileComplete(hasBackground && hasTargets);
         
         if (!(hasBackground && hasTargets)) {
           toast.info("Complete your profile to get personalized company recommendations.");
         }
-      } catch (error: any) {
-        console.error("Error checking profile completion:", error.message);
+      } catch (error) {
+        // Simplified error handling without excessive logging
+        toast.error("Failed to check profile completion.");
       } finally {
         setIsLoading(false);
       }
@@ -43,6 +56,25 @@ const CompaniesDashboard = () => {
     
     checkProfileCompletion();
   }, [user]);
+  
+  const handleGenerateCompanies = async () => {
+    if (!user) return;
+    
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate_companies', {
+        body: { user_id: user.id }
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Company generation started successfully.");
+    } catch (error) {
+      toast.error("Failed to generate companies.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   
   if (isLoading) {
     return (
@@ -122,9 +154,13 @@ const CompaniesDashboard = () => {
       
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Target Companies</h1>
-        <Button className="flex items-center">
+        <Button 
+          className="flex items-center" 
+          onClick={handleGenerateCompanies}
+          disabled={isGenerating}
+        >
           <Building className="mr-2 h-5 w-5" />
-          Generate Companies
+          {isGenerating ? "Generating..." : "Generate Companies"}
         </Button>
       </div>
       
@@ -142,7 +178,13 @@ const CompaniesDashboard = () => {
             <p className="text-blue-600 mt-2 mb-6">
               Click the button below to generate a list of target companies based on your background and preferences.
             </p>
-            <Button size="lg">Generate Target Companies</Button>
+            <Button 
+              size="lg"
+              onClick={handleGenerateCompanies}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "Generating..." : "Generate Target Companies"}
+            </Button>
           </div>
         </CardContent>
       </Card>

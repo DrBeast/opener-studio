@@ -29,15 +29,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session?.user) {
           setUser(session.user);
-          
-          // Log the user metadata for debugging
-          if (session.user.app_metadata.provider === 'linkedin_oidc') {
-            console.log("LinkedIn user metadata in auth provider:", session.user.user_metadata);
-          }
         }
       } catch (error: any) {
-        console.error("Error checking authentication:", error.message);
-        toast.error("Authentication check failed. Please try again.");
+        toast.error("Authentication check failed");
       } finally {
         setIsLoading(false);
       }
@@ -48,14 +42,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event);
         if (session?.user) {
           setUser(session.user);
-          
-          // Log LinkedIn metadata for debugging when a user signs in with LinkedIn
-          if (event === 'SIGNED_IN' && session.user.app_metadata.provider === 'linkedin_oidc') {
-            console.log("LinkedIn sign-in detected, user metadata:", session.user.user_metadata);
-          }
         } else {
           setUser(null);
         }
@@ -81,7 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast.success("Successfully logged in");
     } catch (error: any) {
-      console.error("Error signing in:", error.message);
       toast.error(error.message || "Failed to sign in");
       throw error;
     }
@@ -89,16 +76,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Configure sign-up to skip email verification
-      // This is for development only, in production you'd want email verification enabled
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          // Skip email verification during development
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            email_confirmed: true // This attribute will be stored in user metadata
+            email_confirmed: true
           }
         }
       });
@@ -107,12 +91,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      // Since we're skipping email verification, we immediately sign the user in
       await signIn(email, password);
       
       toast.success("Account created successfully!");
     } catch (error: any) {
-      console.error("Error signing up:", error.message);
       toast.error(error.message || "Failed to sign up");
       throw error;
     }
@@ -123,20 +105,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut();
       toast.success("Successfully logged out");
     } catch (error: any) {
-      console.error("Error signing out:", error.message);
       toast.error("Failed to sign out");
     }
   };
 
   const signInWithLinkedIn = async () => {
     try {
-      console.log("Starting LinkedIn authentication...");
-      
-      // Get the origin for the redirect URL
       const origin = window.location.origin;
-      console.log("Redirect URL:", `${origin}/auth/callback`);
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "linkedin_oidc", 
         options: {
           redirectTo: `${origin}/auth/callback`,
@@ -145,17 +122,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error("LinkedIn auth error:", error);
-        toast.error(`LinkedIn login failed: ${error.message}`);
+        toast.error(`LinkedIn login failed`);
         throw error;
       }
-
-      if (data) {
-        console.log("LinkedIn auth initialized, redirecting...");
-      }
     } catch (error: any) {
-      console.error("Error signing in with LinkedIn:", error);
-      toast.error(`Failed to sign in with LinkedIn: ${error.message}`);
+      toast.error(`Failed to sign in with LinkedIn`);
       throw error;
     }
   };
