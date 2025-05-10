@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,6 +20,15 @@ import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import CVUpload from "@/components/CVUpload";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
 import AiAssistant from "@/components/AiAssistant";
+
+// Helper function to ensure we have a string array from Json type
+const ensureStringArray = (value: any): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map(item => String(item));
+  }
+  return [];
+};
 
 const ProfileEnrichment = () => {
   const { user } = useAuth();
@@ -132,11 +142,11 @@ const ProfileEnrichment = () => {
             expertise: summaryData.expertise || "Expertise data could not be processed.",
             achievements: summaryData.achievements || "Achievements data could not be processed.",
             overall_blurb: summaryData.overall_blurb || "",
-            combined_experience_highlights: summaryData.combined_experience_highlights || [],
-            combined_education_highlights: summaryData.combined_education_highlights || [],
-            key_skills: summaryData.key_skills || [],
-            domain_expertise: summaryData.domain_expertise || [],
-            technical_expertise: summaryData.technical_expertise || [],
+            combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
+            combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
+            key_skills: ensureStringArray(summaryData.key_skills),
+            domain_expertise: ensureStringArray(summaryData.domain_expertise),
+            technical_expertise: ensureStringArray(summaryData.technical_expertise),
             value_proposition_summary: summaryData.value_proposition_summary || ""
           });
           setShowSummary(true);
@@ -307,11 +317,11 @@ const ProfileEnrichment = () => {
             expertise: data.summary.expertise || "Expertise data could not be processed.",
             achievements: data.summary.achievements || "Achievements data could not be processed.",
             overall_blurb: data.summary.overall_blurb || "",
-            combined_experience_highlights: data.summary.combined_experience_highlights || [],
-            combined_education_highlights: data.summary.combined_education_highlights || [],
-            key_skills: data.summary.key_skills || [],
-            domain_expertise: data.summary.domain_expertise || [],
-            technical_expertise: data.summary.technical_expertise || [],
+            combined_experience_highlights: ensureStringArray(data.summary.combined_experience_highlights),
+            combined_education_highlights: ensureStringArray(data.summary.combined_education_highlights),
+            key_skills: ensureStringArray(data.summary.key_skills),
+            domain_expertise: ensureStringArray(data.summary.domain_expertise),
+            technical_expertise: ensureStringArray(data.summary.technical_expertise),
             value_proposition_summary: data.summary.value_proposition_summary || ""
           });
           
@@ -329,7 +339,14 @@ const ProfileEnrichment = () => {
           experience: "Your most recent roles appear to be in product management and leadership positions.",
           education: "You have a background in business and technology from reputable institutions.",
           expertise: "Your key skills include product strategy, team leadership, and business development.",
-          achievements: "You've successfully led teams and delivered impactful products in your career."
+          achievements: "You've successfully led teams and delivered impactful products in your career.",
+          overall_blurb: "",
+          combined_experience_highlights: [] as string[],
+          combined_education_highlights: [] as string[],
+          key_skills: [] as string[],
+          domain_expertise: [] as string[],
+          technical_expertise: [] as string[],
+          value_proposition_summary: ""
         };
         
         setSummary(simulatedSummary);

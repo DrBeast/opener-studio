@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +19,15 @@ interface UserProfile {
   current_company?: string;
   location?: string;
 }
+
+// Helper function to ensure we have a string array from Json type
+const ensureStringArray = (value: any): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map(item => String(item));
+  }
+  return [];
+};
 
 interface Background {
   experience: string;
@@ -134,11 +144,11 @@ const Profile = () => {
             expertise: summaryData.expertise,
             achievements: summaryData.achievements,
             overall_blurb: summaryData.overall_blurb,
-            combined_experience_highlights: summaryData.combined_experience_highlights,
-            combined_education_highlights: summaryData.combined_education_highlights,
-            key_skills: summaryData.key_skills,
-            domain_expertise: summaryData.domain_expertise,
-            technical_expertise: summaryData.technical_expertise,
+            combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
+            combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
+            key_skills: ensureStringArray(summaryData.key_skills),
+            domain_expertise: ensureStringArray(summaryData.domain_expertise),
+            technical_expertise: ensureStringArray(summaryData.technical_expertise),
             value_proposition_summary: summaryData.value_proposition_summary
           });
         } else {

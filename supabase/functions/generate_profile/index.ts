@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -23,7 +22,7 @@ interface ProfileData {
   cvContent?: string;
 }
 
-// Define the expected structure for the generated summary
+// Updated interface to match our data structure
 interface GeneratedSummary {
   experience: string;
   education: string;
@@ -368,6 +367,26 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to safely parse JSON array or return empty array
+function safeParseJsonArray(jsonData: any): string[] {
+  if (!jsonData) return [];
+  
+  try {
+    if (typeof jsonData === 'string') {
+      const parsed = JSON.parse(jsonData);
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    }
+    
+    if (Array.isArray(jsonData)) {
+      return jsonData.map(String);
+    }
+  } catch (e) {
+    console.error("Error parsing JSON array:", e);
+  }
+  
+  return [];
+}
 
 // Helper function to create or update a user summary
 async function createOrUpdateSummary(userId: string, summary: GeneratedSummary) {
