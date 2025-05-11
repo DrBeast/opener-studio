@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -99,7 +98,8 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       
       if (fnError) throw fnError;
       
-      if (!data || !data.status !== "success" || !data.generated_messages) {
+      // Fix: Changed comparison from status !== "success" to status === "error"
+      if (!data || data.status === "error" || !data.generated_messages) {
         throw new Error("Invalid response from generate_message function");
       }
       
