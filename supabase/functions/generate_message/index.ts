@@ -9,9 +9,8 @@ const corsHeaders = {
 };
 
 // Define the Gemini API endpoint
-// Using gemini-pro for message generation - good balance of cost and quality.
-// gemini-flash could be an alternative for potentially lower cost/faster response if context fits.
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+// CORRECTED: Changed model from gemini-pro to gemini-1.5-pro as per error message
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 
 // Define the expected structure for the AI's message generation output
 interface GeneratedMessageOutput {
@@ -196,7 +195,7 @@ serve(async (req) => {
   // Include other relevant company fields
 
   Communication Medium: ${medium}
-  Maximum Length for Medium: ${maxLength} characters 
+  Maximum Length for Medium: ${maxLength} characters
   Message Objective: ${objective}
   Additional Context/Points to Include: ${additional_context ?? 'None provided'}
 
