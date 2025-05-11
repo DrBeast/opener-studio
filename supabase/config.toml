@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.generate_companies]
 verify_jwt = true
+
+[functions.generate_contacts]
+verify_jwt = true
