@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,8 +14,8 @@ import { toast } from "@/components/ui/sonner";
 
 interface ContactData {
   contact_id: string;
-  first_name?: string;  // Changed from required to optional
-  last_name?: string;   // Changed from required to optional
+  first_name?: string;
+  last_name?: string;
   role?: string;
   company_id?: string;
 }
@@ -26,27 +27,32 @@ interface MessageGenerationProps {
   onClose: () => void;
 }
 
-interface GeneratedMessage {
-  version_name: string;
-  message_text: string;
+interface GeneratedMessageResponse {
+  status: string;
+  message: string;
+  generated_messages: {
+    version1: string;
+    version2: string;
+    version3: string;
+  };
   ai_reasoning: string;
 }
 
 export function MessageGeneration({ contact, companyName, isOpen, onClose }: MessageGenerationProps) {
-  const [medium, setMedium] = useState<string>("linkedin_connection");
+  const [medium, setMedium] = useState<string>("LinkedIn connection note");
   const [objective, setObjective] = useState<string>("");
   const [additionalContext, setAdditionalContext] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [generatedMessages, setGeneratedMessages] = useState<GeneratedMessage[]>([]);
+  const [generatedMessages, setGeneratedMessages] = useState<{[key: string]: {text: string, reasoning: string}}>({});
   const [editedMessages, setEditedMessages] = useState<{[key: string]: string}>({});
   const [maxLength, setMaxLength] = useState<number>(300);
   const [showAIReasoning, setShowAIReasoning] = useState<{[key: string]: boolean}>({});
 
   const mediumOptions = [
-    { id: "linkedin_connection", label: "LinkedIn Connection Note (max 300 symbols)", maxLength: 300 },
-    { id: "linkedin_inmail", label: "LinkedIn InMail (max 400 symbols)", maxLength: 400 },
-    { id: "linkedin_message", label: "LinkedIn Message to 1st Connection (max 400 symbols)", maxLength: 400 },
-    { id: "email", label: "Cold Email (max 500 symbols)", maxLength: 500 }
+    { id: "LinkedIn connection note", label: "LinkedIn Connection Note (max 300 symbols)", maxLength: 300 },
+    { id: "LinkedIn InMail", label: "LinkedIn InMail (max 2000 symbols)", maxLength: 2000 },
+    { id: "LinkedIn message to 1st connection", label: "LinkedIn Message to 1st Connection (max 400 symbols)", maxLength: 400 },
+    { id: "Cold email", label: "Cold Email (max 500 symbols)", maxLength: 500 }
   ];
 
   const handleMediumChange = (value: string) => {
@@ -64,7 +70,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
     }
 
     setIsGenerating(true);
-    setGeneratedMessages([]);
+    setGeneratedMessages({});
     setEditedMessages({});
     setShowAIReasoning({});
 
@@ -93,22 +99,36 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       
       if (fnError) throw fnError;
       
-      if (!data || !data.messages || !Array.isArray(data.messages)) {
+      if (!data || !data.status !== "success" || !data.generated_messages) {
         throw new Error("Invalid response from generate_message function");
       }
       
-      setGeneratedMessages(data.messages);
+      const messageVersions = {
+        "Version 1": {
+          text: data.generated_messages.version1,
+          reasoning: data.ai_reasoning
+        },
+        "Version 2": {
+          text: data.generated_messages.version2, 
+          reasoning: data.ai_reasoning
+        },
+        "Version 3": {
+          text: data.generated_messages.version3,
+          reasoning: data.ai_reasoning
+        }
+      };
+      
+      setGeneratedMessages(messageVersions);
       
       // Initialize edited messages with the generated ones
       const initialEditedMessages: {[key: string]: string} = {};
-      data.messages.forEach((message: GeneratedMessage, index: number) => {
-        initialEditedMessages[`${index}`] = message.message_text;
+      Object.entries(messageVersions).forEach(([version, content]) => {
+        if (content.text) {
+          initialEditedMessages[version] = content.text;
+        }
       });
-      setEditedMessages(initialEditedMessages);
       
-      if (data.maxLength) {
-        setMaxLength(data.maxLength);
-      }
+      setEditedMessages(initialEditedMessages);
       
       toast.success("Messages generated successfully!");
     } catch (err: any) {
@@ -119,10 +139,10 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
     }
   };
   
-  const handleMessageEdit = (index: number, text: string) => {
+  const handleMessageEdit = (version: string, text: string) => {
     setEditedMessages(prev => ({
       ...prev,
-      [`${index}`]: text.substring(0, maxLength)
+      [version]: text.substring(0, maxLength)
     }));
   };
   
@@ -135,10 +155,8 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       });
   };
   
-  const saveMessage = async (message: GeneratedMessage, index: number) => {
+  const saveMessage = async (version: string, messageText: string) => {
     try {
-      const editedText = editedMessages[`${index}`] || message.message_text;
-      
       // Save to saved_message_versions table
       const { data, error } = await supabase
         .from('saved_message_versions')
@@ -146,8 +164,8 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           user_id: (await supabase.auth.getUser()).data.user?.id,
           contact_id: contact.contact_id,
           company_id: contact.company_id,
-          version_name: message.version_name,
-          message_text: editedText,
+          version_name: version,
+          message_text: messageText,
           medium: medium,
           message_objective: objective,
           message_additional_context: additionalContext || null
@@ -163,7 +181,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           contact_id: contact.contact_id,
           company_id: contact.company_id,
           interaction_type: 'message_draft',
-          description: editedText,
+          description: messageText,
           medium: medium,
           message_objective: objective,
           message_additional_context: additionalContext || null
@@ -178,10 +196,10 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
     }
   };
   
-  const toggleAIReasoning = (index: number) => {
+  const toggleAIReasoning = (version: string) => {
     setShowAIReasoning(prev => ({
       ...prev,
-      [`${index}`]: !prev[`${index}`]
+      [version]: !prev[version]
     }));
   };
 
@@ -253,46 +271,46 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           </div>
           
           {/* Generated Messages */}
-          {generatedMessages.length > 0 && (
+          {Object.keys(generatedMessages).length > 0 && (
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Message Options</h3>
-              {generatedMessages.map((message, index) => (
-                <Card key={index} className="p-4 relative">
+              {Object.entries(generatedMessages).map(([version, content]) => (
+                <Card key={version} className="p-4 relative">
                   <div className="flex justify-between mb-2 items-center">
-                    <h4 className="font-medium text-base">{message.version_name}</h4>
+                    <h4 className="font-medium text-base">{version}</h4>
                     <div className="space-x-1">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => toggleAIReasoning(index)}
+                        onClick={() => toggleAIReasoning(version)}
                       >
-                        {showAIReasoning[`${index}`] ? <ThumbsDown className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
+                        {showAIReasoning[version] ? <ThumbsDown className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
                         <span className="ml-1 hidden sm:inline">
-                          {showAIReasoning[`${index}`] ? "Hide Reasoning" : "Show Reasoning"}
+                          {showAIReasoning[version] ? "Hide Reasoning" : "Show Reasoning"}
                         </span>
                       </Button>
                     </div>
                   </div>
                   
                   {/* AI Reasoning */}
-                  {showAIReasoning[`${index}`] && (
+                  {showAIReasoning[version] && (
                     <div className="mb-3 p-3 bg-muted/50 rounded-md text-sm">
                       <p className="font-medium mb-1">Why this approach works:</p>
-                      <p>{message.ai_reasoning}</p>
+                      <p>{content.reasoning}</p>
                     </div>
                   )}
                   
                   {/* Editable Message Text */}
                   <div className="space-y-2">
                     <Textarea
-                      value={editedMessages[`${index}`] || message.message_text}
-                      onChange={(e) => handleMessageEdit(index, e.target.value)}
+                      value={editedMessages[version] || content.text}
+                      onChange={(e) => handleMessageEdit(version, e.target.value)}
                       className="w-full resize-none"
                       rows={5}
                       maxLength={maxLength}
                     />
                     <div className="text-xs text-muted-foreground text-right">
-                      {(editedMessages[`${index}`] || message.message_text).length}/{maxLength} symbols
+                      {(editedMessages[version] || content.text).length}/{maxLength} symbols
                     </div>
                   </div>
                   
@@ -301,7 +319,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyMessage(editedMessages[`${index}`] || message.message_text)}
+                      onClick={() => copyMessage(editedMessages[version] || content.text)}
                     >
                       <Copy className="mr-1 h-4 w-4" />
                       Copy
@@ -309,7 +327,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => saveMessage(message, index)}
+                      onClick={() => saveMessage(version, editedMessages[version] || content.text)}
                     >
                       <Save className="mr-1 h-4 w-4" />
                       Save to History
@@ -317,7 +335,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleMessageEdit(index, message.message_text)}
+                      onClick={() => handleMessageEdit(version, content.text)}
                     >
                       <RotateCcw className="mr-1 h-4 w-4" />
                       Reset
