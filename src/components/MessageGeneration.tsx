@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,8 +13,8 @@ import { toast } from "@/components/ui/sonner";
 
 interface ContactData {
   contact_id: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;  // Changed from required to optional
+  last_name?: string;   // Changed from required to optional
   role?: string;
   company_id?: string;
 }
@@ -191,7 +190,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Generate Messages for {contact.first_name} {contact.last_name}
+            Generate Messages for {contact.first_name || ''} {contact.last_name || ''}
             {contact.role && ` (${contact.role})`} at {companyName}
           </DialogTitle>
           <DialogDescription>
