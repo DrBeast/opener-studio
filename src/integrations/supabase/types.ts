@@ -72,6 +72,68 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          added_at: string | null
+          bio_summary: string | null
+          company_id: string | null
+          contact_id: string
+          email: string | null
+          first_name: string | null
+          how_i_can_help: string | null
+          last_name: string | null
+          linkedin_url: string | null
+          location: string | null
+          recent_activity_summary: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+          user_notes: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          bio_summary?: string | null
+          company_id?: string | null
+          contact_id?: string
+          email?: string | null
+          first_name?: string | null
+          how_i_can_help?: string | null
+          last_name?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          recent_activity_summary?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_notes?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          bio_summary?: string | null
+          company_id?: string | null
+          contact_id?: string
+          email?: string | null
+          first_name?: string | null
+          how_i_can_help?: string | null
+          last_name?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          recent_activity_summary?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
+          },
+        ]
+      }
       target_criteria: {
         Row: {
           created_at: string | null

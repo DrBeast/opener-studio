@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { Briefcase, Building, Search } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { ContactRecommendation } from "@/components/ContactRecommendation";
 
 const CompaniesDashboard = () => {
   const { user } = useAuth();
@@ -292,6 +293,14 @@ const CompaniesDashboard = () => {
                       {company.ai_description && (
                         <p className="mt-2 text-sm">{company.ai_description}</p>
                       )}
+                      
+                      {/* Add contact recommendation button */}
+                      <div className="mt-4 flex justify-end">
+                        <ContactRecommendation 
+                          companyId={company.company_id}
+                          companyName={company.name}
+                        />
+                      </div>
                     </Card>
                   ))}
                 </div>
