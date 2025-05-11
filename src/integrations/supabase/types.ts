@@ -134,6 +134,139 @@ export type Database = {
           },
         ]
       }
+      interactions: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          description: string | null
+          follow_up_completed: boolean | null
+          follow_up_completed_date: string | null
+          follow_up_due_date: string | null
+          interaction_date: string | null
+          interaction_id: string
+          interaction_type: string
+          is_ai_suggestion: boolean | null
+          medium: string | null
+          message_additional_context: string | null
+          message_objective: string | null
+          message_version_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          description?: string | null
+          follow_up_completed?: boolean | null
+          follow_up_completed_date?: string | null
+          follow_up_due_date?: string | null
+          interaction_date?: string | null
+          interaction_id?: string
+          interaction_type: string
+          is_ai_suggestion?: boolean | null
+          medium?: string | null
+          message_additional_context?: string | null
+          message_objective?: string | null
+          message_version_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          description?: string | null
+          follow_up_completed?: boolean | null
+          follow_up_completed_date?: string | null
+          follow_up_due_date?: string | null
+          interaction_date?: string | null
+          interaction_id?: string
+          interaction_type?: string
+          is_ai_suggestion?: boolean | null
+          medium?: string | null
+          message_additional_context?: string | null
+          message_objective?: string | null
+          message_version_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["contact_id"]
+          },
+          {
+            foreignKeyName: "interactions_message_version_id_fkey"
+            columns: ["message_version_id"]
+            isOneToOne: false
+            referencedRelation: "saved_message_versions"
+            referencedColumns: ["message_version_id"]
+          },
+        ]
+      }
+      saved_message_versions: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          medium: string | null
+          message_additional_context: string | null
+          message_objective: string | null
+          message_text: string
+          message_version_id: string
+          updated_at: string | null
+          user_id: string | null
+          version_name: string
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          medium?: string | null
+          message_additional_context?: string | null
+          message_objective?: string | null
+          message_text: string
+          message_version_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          version_name: string
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          medium?: string | null
+          message_additional_context?: string | null
+          message_objective?: string | null
+          message_text?: string
+          message_version_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          version_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_message_versions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "saved_message_versions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["contact_id"]
+          },
+        ]
+      }
       target_criteria: {
         Row: {
           created_at: string | null

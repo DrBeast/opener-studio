@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Mail, User } from "lucide-react";
+import { Mail, MessageCircle, User } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { MessageGeneration } from "@/components/MessageGeneration";
 
 interface ContactRecommendationProps {
   companyId: string;
@@ -13,13 +14,17 @@ interface ContactRecommendationProps {
 }
 
 interface ContactData {
+  contact_id: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   role?: string;
   location?: string;
   linkedin_url?: string;
   email?: string;
   bio_summary?: string;
   how_i_can_help?: string;
+  company_id?: string;
 }
 
 export function ContactRecommendation({ companyId, companyName }: ContactRecommendationProps) {
@@ -27,6 +32,8 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
   const [isLoading, setIsLoading] = useState(false);
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [messageContact, setMessageContact] = useState<ContactData | null>(null);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
   const generateContacts = async () => {
     setIsLoading(true);
@@ -56,7 +63,16 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         throw new Error("Invalid response from generate_contacts function");
       }
       
-      setContacts(data.contacts);
+      // Add contact_id field to each contact for easier reference
+      const contactsWithIds = data.contacts.map((contact: Omit<ContactData, 'contact_id'>) => ({
+        ...contact,
+        contact_id: crypto.randomUUID(), // Temporary ID for UI purposes before saving to DB
+        first_name: contact.name.split(' ')[0],
+        last_name: contact.name.includes(' ') ? contact.name.split(' ').slice(1).join(' ') : '',
+        company_id: companyId
+      }));
+      
+      setContacts(contactsWithIds);
       setIsOpen(true);
     } catch (err: any) {
       console.error("Error generating contacts:", err);
@@ -79,8 +95,8 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
       const contactData = {
         company_id: companyId,
         user_id: session.session.user.id,
-        first_name: contact.name.split(' ')[0],
-        last_name: contact.name.includes(' ') ? contact.name.split(' ').slice(1).join(' ') : '',
+        first_name: contact.first_name || contact.name.split(' ')[0],
+        last_name: contact.last_name || (contact.name.includes(' ') ? contact.name.split(' ').slice(1).join(' ') : ''),
         role: contact.role,
         location: contact.location,
         linkedin_url: contact.linkedin_url,
@@ -89,17 +105,38 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         how_i_can_help: contact.how_i_can_help
       };
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("contacts")
-        .insert(contactData);
+        .insert(contactData)
+        .select('contact_id')
+        .single();
         
       if (error) throw error;
+      
+      // Update the contact in the state with the actual database ID
+      if (data) {
+        setContacts(prev => 
+          prev.map(c => 
+            c === contact ? { ...c, contact_id: data.contact_id } : c
+          )
+        );
+      }
       
       toast.success("Contact saved successfully!");
     } catch (err: any) {
       console.error("Error saving contact:", err);
       toast.error("Failed to save contact: " + (err.message || "Unknown error"));
     }
+  };
+
+  const handleGenerateMessage = (contact: ContactData) => {
+    setMessageContact(contact);
+    setIsMessageDialogOpen(true);
+  };
+  
+  const handleCloseMessageDialog = () => {
+    setIsMessageDialogOpen(false);
+    setMessageContact(null);
   };
   
   return (
@@ -161,6 +198,15 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
                     <div className="mt-4 sm:mt-0 flex flex-col sm:items-end gap-2">
                       <Button 
                         size="sm" 
+                        variant="outline"
+                        onClick={() => handleGenerateMessage(contact)}
+                      >
+                        <MessageCircle className="mr-1 h-4 w-4" />
+                        Generate Message
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
                         variant="outline" 
                         onClick={() => saveContact(contact)}
                       >
@@ -188,6 +234,16 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Message Generation Dialog */}
+      {messageContact && (
+        <MessageGeneration
+          contact={messageContact}
+          companyName={companyName}
+          isOpen={isMessageDialogOpen}
+          onClose={handleCloseMessageDialog}
+        />
+      )}
     </>
   );
 }
