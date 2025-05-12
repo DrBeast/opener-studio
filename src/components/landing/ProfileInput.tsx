@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+
 const ProfileInput = () => {
   const {
     user
@@ -72,7 +73,9 @@ const ProfileInput = () => {
   };
   return <div>
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Get Started: Generate Your Profile</h2>
+        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text py-1 inline-block">
+          Get Started: Generate Your Profile
+        </h2>
         <p className="text-xl text-gray-600">
           To get started, share a bit about your professional background. Our AI will process it and show you how it builds your profile.
         </p>
