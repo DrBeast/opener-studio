@@ -16,7 +16,7 @@ import {
   Filter, 
   Plus, 
   X, 
-  FileEdit,
+  FileText,
   UserRound,
   Calendar,
   AlertCircle
@@ -286,7 +286,7 @@ const PipelineDashboard = () => {
                             size="sm"
                             onClick={() => handleViewCompany(company)}
                           >
-                            <FileEdit className="h-4 w-4 mr-1" />
+                            <FileText className="h-4 w-4 mr-1" />
                             Details
                           </Button>
                         </TableCell>
