@@ -54,7 +54,6 @@ const Signup = () => {
     setIsLoading(true);
     try {
       // Dismiss any existing toast messages for clean UX
-      toast.dismiss("profile-linking-error");
       toast.dismiss("profile-linking-success");
       
       // Log that we're starting signup with session ID (if any)
@@ -101,14 +100,9 @@ const Signup = () => {
                     if (linkError) {
                       console.error("Signup: Final linking attempt failed:", linkError);
                       toast.dismiss("profile-linking-progress"); 
-                      // Only show error on final attempt failure and if no success message is visible
-                      toast.error("Profile linking experienced an issue. Your account was created successfully, but you may need to enter your profile information again.", { 
-                        duration: 6000,
-                        id: "profile-linking-error" 
-                      });
+                      // No error toast shown anymore
                     } else if (linkData?.success) {
                       toast.dismiss("profile-linking-progress");
-                      toast.dismiss("profile-linking-error"); // Clear any error message
                       toast.success("Your profile data was successfully linked to your account", {
                         id: "profile-linking-success"
                       });
