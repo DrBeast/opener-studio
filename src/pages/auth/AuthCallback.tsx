@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +53,7 @@ const AuthCallback = () => {
           return;
         }
         
-        // Check for LinkedIn data in user metadata
+        // Get the user data
         const user = data.session.user;
         console.log("Authentication successful, user data:", user);
         
@@ -60,27 +61,35 @@ const AuthCallback = () => {
         setRedirectStatus("Checking for guest profile to link...");
         const sessionId = localStorage.getItem('profile-session-id');
         
-        if (sessionId) {
+        if (sessionId && user) {
           try {
             console.log("Found session ID, attempting to link guest profile");
             setRedirectStatus("Linking your guest profile...");
             
-            const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
-              body: { userId: user.id, sessionId }
-            });
+            // Important: Create a linkStatusKey unique to this user and session
+            const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
+            const alreadyLinked = localStorage.getItem(linkStatusKey);
             
-            if (linkError) {
-              console.error("Error linking guest profile:", linkError);
-              // Non-critical error, continue with auth flow
-            } else if (linkData?.success) {
-              console.log("Guest profile successfully linked");
-              toast.success("Your profile data has been saved to your new account");
-              // Mark this session as linked
-              localStorage.setItem(`linked-profile-${sessionId}`, 'true');
+            if (!alreadyLinked) {
+              const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
+                body: { userId: user.id, sessionId }
+              });
+              
+              if (linkError) {
+                console.error("Error linking guest profile:", linkError);
+                toast.error("There was an issue linking your profile data");
+              } else if (linkData?.success) {
+                console.log("Guest profile successfully linked to user account:", linkData);
+                toast.success("Your profile data has been saved to your account");
+                // Mark this session as linked for this specific user
+                localStorage.setItem(linkStatusKey, 'true');
+              }
+            } else {
+              console.log("Guest profile was already linked for this session and user");
             }
           } catch (linkErr) {
             console.error("Failed to link guest profile:", linkErr);
-            // Non-critical error, continue with auth flow
+            toast.error("Failed to link your profile data");
           }
         }
         
@@ -222,7 +231,7 @@ const AuthCallback = () => {
             console.error("Error processing profile data:", profileErr.message);
             console.error("Full error details:", JSON.stringify(profileErr, null, 2));
             toast.error("Error processing profile data");
-            navigate("/profile/enrichment"); // Still redirect to enrichment on error
+            navigate("/profile/enrichment");
           }
         } else {
           // Not a LinkedIn user, use same logic for redirection
@@ -235,7 +244,7 @@ const AuthCallback = () => {
               .from('user_profiles')
               .select('linkedin_content, additional_details, cv_content')
               .eq('user_id', user.id)
-              .single();
+              .maybeSingle();
               
             if (profileError && profileError.code !== 'PGRST116') {
               console.error("Error checking profile data:", profileError);

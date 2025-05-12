@@ -4,14 +4,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const ProfileInput = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("linkedin");
   const [linkedinContent, setLinkedinContent] = useState("");
@@ -55,11 +54,12 @@ const ProfileInput = () => {
     const linkGuestProfile = async () => {
       if (user && sessionId) {
         try {
-          // Check if we've already linked this session
-          const linkStatusKey = `linked-profile-${sessionId}`;
+          // Create a unique key for this specific user and session
+          const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
           const alreadyLinked = localStorage.getItem(linkStatusKey);
           
           if (alreadyLinked) {
+            console.log("This profile has already been linked to the current user");
             return;
           }
 
@@ -71,28 +71,32 @@ const ProfileInput = () => {
 
           if (error) {
             console.error("Error linking guest profile:", error);
+            toast.error("Failed to link your profile data");
             return;
           }
 
           if (data?.success) {
-            // Mark this session as linked
+            // Mark this session as linked for this specific user
             localStorage.setItem(linkStatusKey, 'true');
             console.log("Guest profile successfully linked to user account");
             
-            // Optional: show success toast
             toast({
               title: "Profile Linked",
               description: "Your temporary profile has been linked to your account",
             });
+            
+            // Redirect to profile page after successful linking
+            navigate("/profile");
           }
         } catch (err) {
           console.error("Failed to link guest profile:", err);
+          toast.error("Failed to link your profile data");
         }
       }
     };
 
     linkGuestProfile();
-  }, [user, sessionId, toast]);
+  }, [user, sessionId, toast, navigate]);
 
   const getActiveContent = () => {
     switch (activeTab) {
@@ -197,11 +201,8 @@ const ProfileInput = () => {
 
   const handleSaveProfile = () => {
     if (user) {
-      // If user is logged in, we'll save the profile directly
-      toast({
-        title: "Profile saved!",
-        description: "Your profile has been saved successfully."
-      });
+      // If user is logged in, redirect to profile page
+      navigate("/profile");
     } else {
       // Redirect to signup page
       navigate("/auth/signup");

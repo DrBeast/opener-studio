@@ -46,18 +46,7 @@ serve(async (req) => {
 
     console.log(`Linking guest profile (session: ${sessionId}) to user: ${userId}`);
 
-    // Check if the user exists
-    const { data: userData, error: userError } = await supabaseClient
-      .from("user_profiles")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (userError && userError.code !== "PGRST116") {
-      throw new Error(`Error checking user: ${userError.message}`);
-    }
-
-    // Check if guest profile exists
+    // Check if the guest profile exists
     const { data: guestProfile, error: guestProfileError } = await supabaseClient
       .from("user_profiles")
       .select("*")
@@ -65,7 +54,7 @@ serve(async (req) => {
       .eq("is_temporary", true)
       .maybeSingle();
 
-    if (guestProfileError && guestProfileError.code !== "PGRST116") {
+    if (guestProfileError) {
       throw new Error(`Error checking guest profile: ${guestProfileError.message}`);
     }
 
@@ -79,19 +68,26 @@ serve(async (req) => {
       );
     }
 
-    // Begin transaction
-    // Note: Since EdgeRuntime doesn't support proper transactions yet,
-    // we'll handle this as a sequence of operations
-    
-    // Step 1: If the user already has a profile, merge the data
-    if (userData) {
-      // Update the existing user profile with data from the guest profile
+    // Check if a user profile already exists for this user
+    const { data: existingUserProfile, error: userProfileError } = await supabaseClient
+      .from("user_profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+      
+    if (userProfileError && userProfileError.code !== "PGRST116") {
+      throw new Error(`Error checking user profile: ${userProfileError.message}`);
+    }
+
+    // Begin transaction to handle profile linking
+    if (existingUserProfile) {
+      // Update existing user profile with guest data
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
         .update({
-          linkedin_content: guestProfile.linkedin_content || userData.linkedin_content,
-          additional_details: guestProfile.additional_details || userData.additional_details,
-          cv_content: guestProfile.cv_content || userData.cv_content,
+          linkedin_content: guestProfile.linkedin_content || existingUserProfile.linkedin_content,
+          additional_details: guestProfile.additional_details || existingUserProfile.additional_details,
+          cv_content: guestProfile.cv_content || existingUserProfile.cv_content,
           updated_at: new Date().toISOString()
         })
         .eq("user_id", userId);
@@ -109,10 +105,9 @@ serve(async (req) => {
 
       if (deleteError) {
         console.error(`Warning: Failed to delete guest profile: ${deleteError.message}`);
-        // Continue without failing the request
       }
     } else {
-      // If the user doesn't have a profile yet, convert the guest profile to a user profile
+      // Convert the guest profile to a user profile
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
         .update({
@@ -130,8 +125,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 2: Handle the summary data
-    // Check if guest summary exists
+    // Handle the user summary data
     const { data: guestSummary, error: guestSummaryError } = await supabaseClient
       .from("user_summaries")
       .select("*")
@@ -159,17 +153,17 @@ serve(async (req) => {
         const { error: updateSummaryError } = await supabaseClient
           .from("user_summaries")
           .update({
-            experience: guestSummary.experience,
-            education: guestSummary.education,
-            expertise: guestSummary.expertise,
-            achievements: guestSummary.achievements,
-            overall_blurb: guestSummary.overall_blurb,
-            combined_experience_highlights: guestSummary.combined_experience_highlights,
-            combined_education_highlights: guestSummary.combined_education_highlights,
-            key_skills: guestSummary.key_skills,
-            domain_expertise: guestSummary.domain_expertise,
-            technical_expertise: guestSummary.technical_expertise,
-            value_proposition_summary: guestSummary.value_proposition_summary,
+            experience: guestSummary.experience || userSummary.experience,
+            education: guestSummary.education || userSummary.education,
+            expertise: guestSummary.expertise || userSummary.expertise,
+            achievements: guestSummary.achievements || userSummary.achievements,
+            overall_blurb: guestSummary.overall_blurb || userSummary.overall_blurb,
+            combined_experience_highlights: guestSummary.combined_experience_highlights || userSummary.combined_experience_highlights,
+            combined_education_highlights: guestSummary.combined_education_highlights || userSummary.combined_education_highlights,
+            key_skills: guestSummary.key_skills || userSummary.key_skills,
+            domain_expertise: guestSummary.domain_expertise || userSummary.domain_expertise,
+            technical_expertise: guestSummary.technical_expertise || userSummary.technical_expertise,
+            value_proposition_summary: guestSummary.value_proposition_summary || userSummary.value_proposition_summary,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", userId);
@@ -186,7 +180,6 @@ serve(async (req) => {
 
         if (deleteSummaryError) {
           console.error(`Warning: Failed to delete guest summary: ${deleteSummaryError.message}`);
-          // Continue without failing the request
         }
       } else {
         // Convert guest summary to user summary
@@ -200,7 +193,7 @@ serve(async (req) => {
           .eq("session_id", sessionId);
 
         if (updateSummaryError) {
-          throw new Error(`Failed to convert guest summary: ${updateSummaryError.message}`);
+          throw new Error(`Failed to convert guest summary to user summary: ${updateSummaryError.message}`);
         }
       }
     }
