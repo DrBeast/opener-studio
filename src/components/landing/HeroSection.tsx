@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, HandHelpingIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const HeroSection = () => {
@@ -41,8 +41,8 @@ const HeroSection = () => {
             <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-primary/30 p-2">
               <div className="aspect-[4/3] overflow-hidden rounded-xl bg-white shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                  alt="Professional networking concept"
+                  src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                  alt="Professionals connecting and building relationships"
                   className="object-cover w-full h-full"
                 />
               </div>
