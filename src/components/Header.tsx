@@ -13,57 +13,80 @@ const Header = () => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
+  // Check if we're on the landing page
+  const isLandingPage = location.pathname === "/";
+
   return (
-    <header className="border-b shadow-sm">
+    <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="text-2xl font-bold text-primary">ConnectorAI</Link>
+          <Link to="/" className="text-2xl font-bold">
+            <span className="text-primary">Connector</span>AI
+          </Link>
           
           <nav className="hidden md:flex items-center gap-4">
-            {/* Only show navigation links for logged-in users */}
-            {user && (
+            {isLandingPage ? (
+              // Landing page navigation
               <>
-                <Link 
-                  to="/profile" 
-                  className={`text-sm transition-colors ${
-                    isActive("/profile") 
-                      ? "text-primary font-medium underline underline-offset-4" 
-                      : "hover:text-primary hover:underline"
-                  }`}
+                <a 
+                  href="#profile-builder" 
+                  className="text-sm transition-colors hover:text-primary"
                 >
-                  Profile
-                </Link>
-                <Link 
-                  to="/job-targets" 
-                  className={`text-sm transition-colors ${
-                    isActive("/job-targets") 
-                      ? "text-primary font-medium underline underline-offset-4" 
-                      : "hover:text-primary hover:underline"
-                  }`}
+                  Try It
+                </a>
+                <a 
+                  href="#features" 
+                  className="text-sm transition-colors hover:text-primary"
                 >
-                  Targets
-                </Link>
-                <Link 
-                  to="/companies" 
-                  className={`text-sm transition-colors ${
-                    isActive("/companies") 
-                      ? "text-primary font-medium underline underline-offset-4" 
-                      : "hover:text-primary hover:underline"
-                  }`}
-                >
-                  Companies
-                </Link>
-                <Link 
-                  to="/pipeline" 
-                  className={`text-sm transition-colors ${
-                    isActive("/pipeline") 
-                      ? "text-primary font-medium underline underline-offset-4" 
-                      : "hover:text-primary hover:underline"
-                  }`}
-                >
-                  Pipeline & Tracking
-                </Link>
+                  Features
+                </a>
               </>
+            ) : (
+              // App navigation (only for logged-in users)
+              user && (
+                <>
+                  <Link 
+                    to="/profile" 
+                    className={`text-sm transition-colors ${
+                      isActive("/profile") 
+                        ? "text-primary font-medium underline underline-offset-4" 
+                        : "hover:text-primary hover:underline"
+                    }`}
+                  >
+                    Profile
+                  </Link>
+                  <Link 
+                    to="/job-targets" 
+                    className={`text-sm transition-colors ${
+                      isActive("/job-targets") 
+                        ? "text-primary font-medium underline underline-offset-4" 
+                        : "hover:text-primary hover:underline"
+                    }`}
+                  >
+                    Targets
+                  </Link>
+                  <Link 
+                    to="/companies" 
+                    className={`text-sm transition-colors ${
+                      isActive("/companies") 
+                        ? "text-primary font-medium underline underline-offset-4" 
+                        : "hover:text-primary hover:underline"
+                    }`}
+                  >
+                    Companies
+                  </Link>
+                  <Link 
+                    to="/pipeline" 
+                    className={`text-sm transition-colors ${
+                      isActive("/pipeline") 
+                        ? "text-primary font-medium underline underline-offset-4" 
+                        : "hover:text-primary hover:underline"
+                    }`}
+                  >
+                    Pipeline
+                  </Link>
+                </>
+              )
             )}
           </nav>
         </div>
