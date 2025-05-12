@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ContactData {
   contact_id: string;
@@ -58,6 +59,7 @@ export function InteractionForm({
   existingInteraction,
   isPlanningMode = false
 }: InteractionFormProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     interaction_type: existingInteraction?.interaction_type || (isPlanningMode ? 'Planned Action' : 'Email'),
     description: existingInteraction?.description || '',
@@ -124,8 +126,13 @@ export function InteractionForm({
     setIsLoading(true);
     
     try {
+      if (!user) {
+        throw new Error("You must be logged in to perform this action");
+      }
+
       const interactionData = {
         company_id: companyId,
+        user_id: user.id,  // Add user ID from auth context
         interaction_type: formData.interaction_type,
         description: formData.description,
         interaction_date: formData.interaction_date || null,
@@ -167,6 +174,7 @@ export function InteractionForm({
       }
       
       onInteractionCreated();
+      onClose();
     } catch (error: any) {
       console.error("Error saving interaction:", error);
       toast.error(`Failed to save: ${error.message || error}`);
@@ -275,12 +283,13 @@ export function InteractionForm({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0 z-50">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
                   initialFocus
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -333,12 +342,13 @@ export function InteractionForm({
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 z-50">
                     <Calendar
                       mode="single"
                       selected={followUpDate}
                       onSelect={handleFollowUpDateSelect}
                       initialFocus
+                      className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>

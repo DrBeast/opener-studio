@@ -26,6 +26,7 @@ import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ContactData {
   contact_id: string;
@@ -81,6 +82,7 @@ export function CompanyDetails({
   onClose, 
   onCompanyUpdated 
 }: CompanyDetailsProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<CompanyData>({...company});
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
@@ -103,10 +105,13 @@ export function CompanyDetails({
 
   // Fetch contacts for this company
   const fetchContacts = async () => {
+    if (!user) return;
+    
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
-      .eq('company_id', company.company_id);
+      .eq('company_id', company.company_id)
+      .eq('user_id', user.id);
       
     if (error) {
       console.error("Error fetching contacts:", error);
@@ -118,10 +123,13 @@ export function CompanyDetails({
   
   // Fetch interactions for this company
   const fetchInteractions = async () => {
+    if (!user) return;
+    
     const { data, error } = await supabase
       .from('interactions')
       .select('*')
       .eq('company_id', company.company_id)
+      .eq('user_id', user.id)
       .order('interaction_date', { ascending: false });
       
     if (error) {
@@ -144,6 +152,11 @@ export function CompanyDetails({
   // Submit company details update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error("You must be logged in to update company details");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -158,7 +171,8 @@ export function CompanyDetails({
           estimated_headcount: formData.estimated_headcount,
           estimated_revenue: formData.estimated_revenue,
           website_url: formData.website_url,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          user_id: user.id
         })
         .eq('company_id', company.company_id);
       
