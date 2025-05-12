@@ -322,10 +322,13 @@ export type Database = {
           current_company: string | null
           cv_content: string | null
           first_name: string | null
+          is_temporary: boolean | null
           job_role: string | null
           last_name: string | null
           linkedin_content: string | null
           location: string | null
+          session_id: string | null
+          temp_created_at: string | null
           updated_at: string
           user_id: string
         }
@@ -335,10 +338,13 @@ export type Database = {
           current_company?: string | null
           cv_content?: string | null
           first_name?: string | null
+          is_temporary?: boolean | null
           job_role?: string | null
           last_name?: string | null
           linkedin_content?: string | null
           location?: string | null
+          session_id?: string | null
+          temp_created_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -348,10 +354,13 @@ export type Database = {
           current_company?: string | null
           cv_content?: string | null
           first_name?: string | null
+          is_temporary?: boolean | null
           job_role?: string | null
           last_name?: string | null
           linkedin_content?: string | null
           location?: string | null
+          session_id?: string | null
+          temp_created_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -369,6 +378,7 @@ export type Database = {
           generated_at: string
           key_skills: Json | null
           overall_blurb: string | null
+          session_id: string | null
           summary_id: string
           technical_expertise: Json | null
           updated_at: string
@@ -386,6 +396,7 @@ export type Database = {
           generated_at?: string
           key_skills?: Json | null
           overall_blurb?: string | null
+          session_id?: string | null
           summary_id?: string
           technical_expertise?: Json | null
           updated_at?: string
@@ -403,6 +414,7 @@ export type Database = {
           generated_at?: string
           key_skills?: Json | null
           overall_blurb?: string | null
+          session_id?: string | null
           summary_id?: string
           technical_expertise?: Json | null
           updated_at?: string
