@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +56,35 @@ const AuthCallback = () => {
         const user = data.session.user;
         console.log("Authentication successful, user data:", user);
         
-        // Check if we need to update the profile with LinkedIn data
+        // Check if there's a temporary profile to link
+        setRedirectStatus("Checking for guest profile to link...");
+        const sessionId = localStorage.getItem('profile-session-id');
+        
+        if (sessionId) {
+          try {
+            console.log("Found session ID, attempting to link guest profile");
+            setRedirectStatus("Linking your guest profile...");
+            
+            const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
+              body: { userId: user.id, sessionId }
+            });
+            
+            if (linkError) {
+              console.error("Error linking guest profile:", linkError);
+              // Non-critical error, continue with auth flow
+            } else if (linkData?.success) {
+              console.log("Guest profile successfully linked");
+              toast.success("Your profile data has been saved to your new account");
+              // Mark this session as linked
+              localStorage.setItem(`linked-profile-${sessionId}`, 'true');
+            }
+          } catch (linkErr) {
+            console.error("Failed to link guest profile:", linkErr);
+            // Non-critical error, continue with auth flow
+          }
+        }
+        
+        // Check for LinkedIn data in user metadata
         if (user.app_metadata.provider === 'linkedin_oidc' && user.user_metadata) {
           console.log("LinkedIn user detected, metadata structure:", JSON.stringify(user.user_metadata, null, 2));
           setRedirectStatus("Processing LinkedIn data...");

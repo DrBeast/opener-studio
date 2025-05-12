@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,11 @@ const Signup = () => {
   const { signUp, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check for redirect param
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirectTo') || '/auth/verification-pending';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -36,7 +41,7 @@ const Signup = () => {
     try {
       await signUp(data.email, data.password);
       // After sign up, user needs to verify email
-      navigate("/auth/verification-pending");
+      navigate(redirectTo);
     } catch (error) {
       // Error is handled in the useAuth hook
     } finally {

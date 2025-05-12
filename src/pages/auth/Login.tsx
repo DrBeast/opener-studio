@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,11 @@ const Login = () => {
   const { signIn, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check for redirect param
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirectTo') || '/profile';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -35,7 +40,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signIn(data.email, data.password);
-      navigate("/profile");
+      navigate(redirectTo);
     } catch (error) {
       // Error is handled in the useAuth hook
     } finally {

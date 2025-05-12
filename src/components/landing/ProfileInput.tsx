@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,10 +7,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const ProfileInput = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("linkedin");
   const [linkedinContent, setLinkedinContent] = useState("");
   const [cvContent, setCvContent] = useState("");
@@ -194,29 +195,16 @@ const ProfileInput = () => {
     }
   };
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = () => {
     if (user) {
       // If user is logged in, we'll save the profile directly
-      try {
-        // The profile is already saved in the database through the edge function
-        // Here we just show a confirmation message
-        toast({
-          title: "Profile saved!",
-          description: "Your profile has been saved successfully."
-        });
-      } catch (error: any) {
-        toast({
-          title: "Error saving profile",
-          description: error.message || "Something went wrong. Please try again.",
-          variant: "destructive"
-        });
-      }
-    } else {
       toast({
-        title: "Please sign up to save",
-        description: "Create an account to save your profile and access all features."
+        title: "Profile saved!",
+        description: "Your profile has been saved successfully."
       });
-      // Here you would redirect to sign up or show a sign-up modal
+    } else {
+      // Redirect to signup page
+      navigate("/auth/signup");
     }
   };
 
