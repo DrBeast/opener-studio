@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import HeroSection from "@/components/landing/HeroSection";
 import PainPointsSection from "@/components/landing/PainPointsSection";
 import SolutionSection from "@/components/landing/SolutionSection";
-import ProfileBuilderSection from "@/components/landing/ProfileBuilderSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import CTASection from "@/components/landing/CTASection";
 
@@ -22,7 +21,6 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <HeroSection />
-      <ProfileBuilderSection />
       <PainPointsSection />
       <SolutionSection />
       <TestimonialsSection />
