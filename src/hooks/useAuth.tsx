@@ -19,6 +19,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Function to link a guest profile
+  const linkGuestProfile = async (userId: string) => {
+    const sessionId = localStorage.getItem('profile-session-id');
+    if (!sessionId) return;
+    
+    // Create a unique key for this specific user and session
+    const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
+    const alreadyLinked = localStorage.getItem(linkStatusKey);
+    
+    if (alreadyLinked) {
+      console.log("This profile has already been linked to the current user");
+      return;
+    }
+
+    console.log("Attempting to link guest profile to authenticated user");
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("link_guest_profile", {
+        body: { userId, sessionId }
+      });
+
+      if (error) {
+        console.error("Error linking guest profile:", error);
+        toast.error("Failed to link your profile data");
+        return;
+      }
+
+      if (data?.success) {
+        // Mark this session as linked for this specific user
+        localStorage.setItem(linkStatusKey, 'true');
+        console.log("Guest profile successfully linked to user account");
+        toast.success("Profile Linked: Your temporary profile has been linked to your account");
+      }
+    } catch (err) {
+      console.error("Failed to link guest profile:", err);
+      toast.error("Failed to link your profile data");
+    }
+  };
+
   useEffect(() => {
     // Check active session
     const getUser = async () => {
@@ -31,30 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(session.user);
           
           // Check if there's a guest profile to link
-          const sessionId = localStorage.getItem('profile-session-id');
-          if (sessionId) {
-            const linkStatusKey = `linked-profile-${sessionId}-${session.user.id}`;
-            const alreadyLinked = localStorage.getItem(linkStatusKey);
-            
-            if (!alreadyLinked) {
-              console.log("Found unlinked guest profile, attempting to link");
-              try {
-                const { data, error } = await supabase.functions.invoke("link_guest_profile", {
-                  body: { userId: session.user.id, sessionId }
-                });
-                
-                if (error) {
-                  console.error("Error linking guest profile:", error);
-                } else if (data?.success) {
-                  console.log("Guest profile successfully linked to user account");
-                  localStorage.setItem(linkStatusKey, 'true');
-                  toast.success("Your profile data has been linked to your account");
-                }
-              } catch (err) {
-                console.error("Failed to link guest profile:", err);
-              }
-            }
-          }
+          await linkGuestProfile(session.user.id);
         }
       } catch (error: any) {
         toast.error("Authentication check failed");
@@ -73,30 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           // Check if there's a guest profile to link on auth change
           if (event === 'SIGNED_IN') {
-            const sessionId = localStorage.getItem('profile-session-id');
-            if (sessionId) {
-              const linkStatusKey = `linked-profile-${sessionId}-${session.user.id}`;
-              const alreadyLinked = localStorage.getItem(linkStatusKey);
-              
-              if (!alreadyLinked) {
-                console.log("Auth state changed: Found unlinked guest profile, attempting to link");
-                try {
-                  const { data, error } = await supabase.functions.invoke("link_guest_profile", {
-                    body: { userId: session.user.id, sessionId }
-                  });
-                  
-                  if (error) {
-                    console.error("Error linking guest profile:", error);
-                  } else if (data?.success) {
-                    console.log("Guest profile successfully linked on auth change");
-                    localStorage.setItem(linkStatusKey, 'true');
-                    toast.success("Your profile data has been linked to your account");
-                  }
-                } catch (err) {
-                  console.error("Failed to link guest profile on auth change:", err);
-                }
-              }
-            }
+            await linkGuestProfile(session.user.id);
           }
         } else {
           setUser(null);
@@ -130,12 +123,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          // Removed email confirmation requirement by removing the data: { email_confirmed: true } option
         }
       });
 
@@ -145,6 +137,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Sign in automatically after sign up since email verification is disabled
       await signIn(email, password);
+      
+      // If we have a user and a guest profile, link them
+      if (data?.user) {
+        await linkGuestProfile(data.user.id);
+      }
       
       toast.success("Account created successfully!");
     } catch (error: any) {

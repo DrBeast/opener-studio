@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Linkedin } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -26,7 +27,7 @@ const Signup = () => {
   
   // Check for redirect param
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/auth/verification-pending';
+  const redirectTo = searchParams.get('redirectTo') || '/profile';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -40,11 +41,19 @@ const Signup = () => {
     setIsLoading(true);
     try {
       await signUp(data.email, data.password);
-      // After sign up, user needs to verify email
-      navigate(redirectTo);
+      
+      // Check if there's a guest profile to link
+      const sessionId = localStorage.getItem('profile-session-id');
+      if (sessionId) {
+        toast.info("Linking your profile data...");
+      }
+
+      // Redirect to profile page after successful signup
+      setTimeout(() => {
+        navigate(redirectTo);
+      }, 1500);
     } catch (error) {
       // Error is handled in the useAuth hook
-    } finally {
       setIsLoading(false);
     }
   };

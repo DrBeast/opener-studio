@@ -58,11 +58,44 @@ serve(async (req) => {
       throw new Error(`Error checking guest profile: ${guestProfileError.message}`);
     }
 
+    // Check if guest profile exists
     if (!guestProfile) {
+      console.log("No guest profile found, checking if user already has a profile");
+      
+      // Check if user already has a profile
+      const { data: existingUserProfile } = await supabaseClient
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+        
+      if (!existingUserProfile) {
+        console.log("No guest profile or user profile found. Creating a new user profile.");
+        
+        // Create an empty profile for the user
+        const { error: createError } = await supabaseClient
+          .from("user_profiles")
+          .insert({
+            user_id: userId,
+            is_temporary: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+          
+        if (createError) {
+          throw new Error(`Failed to create new user profile: ${createError.message}`);
+        }
+        
+        console.log("Created new user profile successfully");
+      }
+      
       return new Response(
-        JSON.stringify({ error: "Guest profile not found for the provided session ID" }),
+        JSON.stringify({ 
+          success: true, 
+          message: "No guest profile found for the provided session ID. User profile status checked." 
+        }),
         {
-          status: 404,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -81,6 +114,8 @@ serve(async (req) => {
 
     // Begin transaction to handle profile linking
     if (existingUserProfile) {
+      console.log("Found existing user profile, will merge data from guest profile");
+      
       // Update existing user profile with guest data
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
@@ -88,6 +123,8 @@ serve(async (req) => {
           linkedin_content: guestProfile.linkedin_content || existingUserProfile.linkedin_content,
           additional_details: guestProfile.additional_details || existingUserProfile.additional_details,
           cv_content: guestProfile.cv_content || existingUserProfile.cv_content,
+          first_name: guestProfile.first_name || existingUserProfile.first_name,
+          last_name: guestProfile.last_name || existingUserProfile.last_name,
           updated_at: new Date().toISOString()
         })
         .eq("user_id", userId);
@@ -95,6 +132,8 @@ serve(async (req) => {
       if (updateError) {
         throw new Error(`Failed to update user profile: ${updateError.message}`);
       }
+      
+      console.log("Successfully merged guest profile data into existing user profile");
       
       // Delete the guest profile
       const { error: deleteError } = await supabaseClient
@@ -105,8 +144,12 @@ serve(async (req) => {
 
       if (deleteError) {
         console.error(`Warning: Failed to delete guest profile: ${deleteError.message}`);
+      } else {
+        console.log("Successfully deleted guest profile after merging");
       }
     } else {
+      console.log("No existing user profile found, converting guest profile to user profile");
+      
       // Convert the guest profile to a user profile
       const { error: updateError } = await supabaseClient
         .from("user_profiles")
@@ -123,6 +166,8 @@ serve(async (req) => {
       if (updateError) {
         throw new Error(`Failed to convert guest profile: ${updateError.message}`);
       }
+      
+      console.log("Successfully converted guest profile to user profile");
     }
 
     // Handle the user summary data
@@ -137,6 +182,8 @@ serve(async (req) => {
     }
 
     if (guestSummary) {
+      console.log("Found guest summary, checking if user already has a summary");
+      
       // Check if user already has a summary
       const { data: userSummary, error: userSummaryError } = await supabaseClient
         .from("user_summaries")
@@ -149,6 +196,8 @@ serve(async (req) => {
       }
 
       if (userSummary) {
+        console.log("Found existing user summary, will update with guest summary data");
+        
         // Update existing user summary with guest data
         const { error: updateSummaryError } = await supabaseClient
           .from("user_summaries")
@@ -171,6 +220,8 @@ serve(async (req) => {
         if (updateSummaryError) {
           throw new Error(`Failed to update user summary: ${updateSummaryError.message}`);
         }
+        
+        console.log("Successfully merged guest summary data into existing user summary");
 
         // Delete the guest summary
         const { error: deleteSummaryError } = await supabaseClient
@@ -180,8 +231,12 @@ serve(async (req) => {
 
         if (deleteSummaryError) {
           console.error(`Warning: Failed to delete guest summary: ${deleteSummaryError.message}`);
+        } else {
+          console.log("Successfully deleted guest summary after merging");
         }
       } else {
+        console.log("No existing user summary found, converting guest summary to user summary");
+        
         // Convert guest summary to user summary
         const { error: updateSummaryError } = await supabaseClient
           .from("user_summaries")
@@ -194,6 +249,39 @@ serve(async (req) => {
 
         if (updateSummaryError) {
           throw new Error(`Failed to convert guest summary to user summary: ${updateSummaryError.message}`);
+        }
+        
+        console.log("Successfully converted guest summary to user summary");
+      }
+    } else {
+      console.log("No guest summary found, checking if we need to generate one for the user");
+      
+      // Check if user already has a summary
+      const { data: existingSummary } = await supabaseClient
+        .from("user_summaries")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+        
+      if (!existingSummary) {
+        console.log("No summary found for user, will trigger profile generation");
+        
+        try {
+          // Make a call to generate_profile function to create a summary for the user
+          const { data: generatedData, error: generateError } = await supabaseClient.functions.invoke("generate_profile", {
+            body: {
+              userId,
+              userEmail: null // We don't have the email here, it's okay
+            }
+          });
+          
+          if (generateError) {
+            console.error("Error generating profile:", generateError);
+          } else {
+            console.log("Successfully triggered profile generation for user");
+          }
+        } catch (genErr) {
+          console.error("Failed to trigger profile generation:", genErr);
         }
       }
     }

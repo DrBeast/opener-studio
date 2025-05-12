@@ -23,6 +23,7 @@ interface ProfileData {
   cvContent?: string;
 }
 
+// Updated interface to match our data structure
 interface GeneratedSummary {
   experience: string;
   education: string;
@@ -55,16 +56,11 @@ serve(async (req) => {
     }
 
     // Parse the request body
-    const { 
-      sessionId, 
-      linkedinContent, 
-      additionalDetails, 
-      cvContent 
-    } = await req.json();
+    const { sessionId, linkedinContent, cvContent, additionalDetails, userId } = await req.json();
 
-    if (!sessionId) {
+    if (!sessionId && !userId) {
       return new Response(
-        JSON.stringify({ error: "Missing required field: sessionId" }),
+        JSON.stringify({ error: "Missing required field: either sessionId or userId must be provided" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,108 +68,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing guest profile data for session: ${sessionId}`);
-
-    // Clean up old temporary profiles (older than 48 hours)
-    try {
-      const cutoffTime = new Date();
-      cutoffTime.setHours(cutoffTime.getHours() - 48);
-      
-      // Delete old temporary profiles
-      await supabaseClient
-        .from("user_profiles")
-        .delete()
-        .eq("is_temporary", true)
-        .lt("temp_created_at", cutoffTime.toISOString());
-        
-      // Delete orphaned summaries
-      const { data: orphanedSummaries } = await supabaseClient
-        .from("user_summaries")
-        .select("summary_id, session_id")
-        .is("user_id", null)
-        .not("session_id", "is", null);
-        
-      if (orphanedSummaries && orphanedSummaries.length > 0) {
-        // Get session IDs that no longer have a corresponding profile
-        const sessionIds = orphanedSummaries.map(summary => summary.session_id);
-        
-        // Check which session IDs don't have profiles
-        const { data: existingProfiles } = await supabaseClient
-          .from("user_profiles")
-          .select("session_id")
-          .in("session_id", sessionIds);
-          
-        const existingSessionIds = new Set(existingProfiles?.map(profile => profile.session_id) || []);
-        const orphanedSessionIds = sessionIds.filter(id => !existingSessionIds.has(id));
-        
-        // Delete summaries with orphaned session IDs
-        if (orphanedSessionIds.length > 0) {
-          await supabaseClient
-            .from("user_summaries")
-            .delete()
-            .is("user_id", null)
-            .in("session_id", orphanedSessionIds);
-        }
-      }
-    } catch (cleanupError) {
-      // Log but don't fail the request if cleanup fails
-      console.error("Error cleaning up old temporary profiles:", cleanupError);
-    }
-
-    // Check if profile with this session ID already exists
-    const { data: existingProfile, error: profileCheckError } = await supabaseClient
-      .from("user_profiles")
-      .select("*")
-      .eq("session_id", sessionId)
-      .maybeSingle();
-      
-    if (profileCheckError && profileCheckError.code !== "PGRST116") {
-      throw new Error(`Error checking for existing profile: ${profileCheckError.message}`);
-    }
-    
-    // Save profile data
-    let userProfileId;
-    
-    if (existingProfile) {
-      // Update existing temporary profile
-      const { error: updateError } = await supabaseClient
-        .from("user_profiles")
-        .update({
-          linkedin_content: linkedinContent || existingProfile.linkedin_content,
-          additional_details: additionalDetails || existingProfile.additional_details,
-          cv_content: cvContent || existingProfile.cv_content,
-          updated_at: new Date().toISOString()
-        })
-        .eq("session_id", sessionId);
-        
-      if (updateError) {
-        throw new Error(`Failed to update profile: ${updateError.message}`);
-      }
-      
-      userProfileId = existingProfile.user_id;
-    } else {
-      // Create new temporary profile
-      const { data: newProfile, error: insertError } = await supabaseClient
-        .from("user_profiles")
-        .insert({
-          session_id: sessionId,
-          is_temporary: true,
-          temp_created_at: new Date().toISOString(),
-          linkedin_content: linkedinContent || null,
-          additional_details: additionalDetails || null,
-          cv_content: cvContent || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-        
-      if (insertError) {
-        throw new Error(`Failed to create profile: ${insertError.message}`);
-      }
-      
-      userProfileId = newProfile.user_id;
-    }
+    console.log(`Processing${userId ? " user" : " guest"} profile data for ${userId ? `user: ${userId}` : `session: ${sessionId}`}`);
 
     // Get the Gemini API Key
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -186,19 +81,163 @@ serve(async (req) => {
       });
     }
 
+    // Determine if we're updating a guest profile or a user profile
+    const isGuestProfile = !userId && sessionId;
+    const identifierField = isGuestProfile ? "session_id" : "user_id";
+    const identifierValue = isGuestProfile ? sessionId : userId;
+
+    // Store the provided content if it was passed directly
+    if ((linkedinContent || cvContent || additionalDetails) && identifierValue) {
+      // Update or insert profile data first
+      const upsertData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      if (linkedinContent) upsertData.linkedin_content = linkedinContent;
+      if (cvContent) upsertData.cv_content = cvContent;
+      if (additionalDetails) upsertData.additional_details = additionalDetails;
+      
+      if (isGuestProfile) {
+        upsertData.session_id = sessionId;
+        upsertData.is_temporary = true;
+        upsertData.temp_created_at = new Date().toISOString();
+      } else {
+        upsertData.user_id = userId;
+        upsertData.is_temporary = false;
+      }
+      
+      // Check if profile exists
+      const { data: existingProfile, error: checkError } = await supabaseClient
+        .from("user_profiles")
+        .select("profile_id")
+        .eq(identifierField, identifierValue)
+        .maybeSingle();
+        
+      if (checkError && checkError.code !== "PGRST116") {
+        console.error("Error checking for existing profile:", checkError);
+      }
+      
+      // Insert or update profile
+      if (existingProfile) {
+        const { error: updateError } = await supabaseClient
+          .from("user_profiles")
+          .update(upsertData)
+          .eq(identifierField, identifierValue);
+          
+        if (updateError) {
+          console.error("Error updating profile:", updateError);
+        } else {
+          console.log(`Profile successfully updated for ${isGuestProfile ? "session" : "user"}: ${identifierValue}`);
+        }
+      } else {
+        const { error: insertError } = await supabaseClient
+          .from("user_profiles")
+          .insert(upsertData);
+          
+        if (insertError) {
+          console.error("Error inserting profile:", insertError);
+        } else {
+          console.log(`New profile successfully created for ${isGuestProfile ? "session" : "user"}: ${identifierValue}`);
+        }
+      }
+    }
+
+    // Fetch the profile data, either from the just-saved data or from existing data
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from("user_profiles")
+      .select("*")
+      .eq(identifierField, identifierValue)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching profile data:", profileError);
+      
+      if (profileError.code === "PGRST116") {
+        // Profile not found - this is not necessarily an error
+        console.log(`No profile data found for ${isGuestProfile ? "session" : "user"}. Creating default summary.`);
+        
+        // Create a default summary
+        const defaultSummary: GeneratedSummary = {
+          experience: "No experience data available yet.",
+          education: "No education data available yet.",
+          expertise: "No expertise data available yet.",
+          achievements: "No achievements data available yet.",
+          overall_blurb: "Please add more information to your profile to generate a complete summary.",
+        };
+        
+        // Insert default summary
+        await createOrUpdateSummary(identifierField, identifierValue, defaultSummary);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Default profile summary created. Please add more information to your profile.",
+            summary: defaultSummary,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      throw new Error(`Failed to fetch profile data: ${profileError.message}`);
+    }
+
+    if (!profileData || (!profileData.linkedin_content && !profileData.additional_details && !profileData.cv_content)) {
+      console.log("Profile data found but empty or incomplete");
+      
+      // Create a basic summary with what we have
+      const basicSummary: GeneratedSummary = {
+        experience: "Your professional experience will appear here once you provide more information.",
+        education: "Your education details will appear here once you provide more information.",
+        expertise: "Your expertise areas will appear here once you provide more information.",
+        achievements: "Your key achievements will appear here once you provide more information.",
+        overall_blurb: "Add your LinkedIn profile, CV, or additional details to generate a comprehensive summary.",
+      };
+      
+      // Insert basic summary
+      await createOrUpdateSummary(identifierField, identifierValue, basicSummary);
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Basic profile summary created. Please add more information to your profile.",
+          summary: basicSummary,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Profile data found:", {
+      hasLinkedinContent: !!profileData.linkedin_content,
+      hasAdditionalDetails: !!profileData.additional_details,
+      hasCvContent: !!profileData.cv_content
+    });
+
+    // Organize the profile data
+    const profileContent: ProfileData = {
+      linkedinContent: profileData.linkedin_content,
+      additionalDetails: profileData.additional_details,
+      cvContent: profileData.cv_content
+    };
+
     // Combine all content into a single text block with labels
     let combinedBackgroundText = '';
     
-    if (linkedinContent) {
-      combinedBackgroundText += `--- linkedin_profile ---\n${linkedinContent}\n\n`;
+    if (profileContent.linkedinContent) {
+      combinedBackgroundText += `--- linkedin_profile ---\n${profileContent.linkedinContent}\n\n`;
     }
     
-    if (additionalDetails) {
-      combinedBackgroundText += `--- additional_details ---\n${additionalDetails}\n\n`;
+    if (profileContent.additionalDetails) {
+      combinedBackgroundText += `--- additional_details ---\n${profileContent.additionalDetails}\n\n`;
     }
     
-    if (cvContent) {
-      combinedBackgroundText += `--- cv_content ---\n${cvContent}\n\n`;
+    if (profileContent.cvContent) {
+      combinedBackgroundText += `--- cv_content ---\n${profileContent.cvContent}\n\n`;
     }
 
     // If we have data, call the Gemini API
@@ -299,69 +338,24 @@ serve(async (req) => {
         }
 
         // Create or update the summary in the user_summaries table
-        const { data: existingSummary, error: summaryCheckError } = await supabaseClient
-          .from("user_summaries")
-          .select("summary_id")
-          .eq("session_id", sessionId)
-          .maybeSingle();
-          
-        if (summaryCheckError && summaryCheckError.code !== "PGRST116") {
-          throw new Error(`Error checking for existing summary: ${summaryCheckError.message}`);
-        }
+        await createOrUpdateSummary(identifierField, identifierValue, generatedSummary);
         
-        if (existingSummary) {
-          // Update the existing summary
-          const { error: updateError } = await supabaseClient
-            .from("user_summaries")
-            .update({
-              experience: generatedSummary.experience,
-              education: generatedSummary.education,
-              expertise: generatedSummary.expertise,
-              achievements: generatedSummary.achievements,
-              overall_blurb: generatedSummary.overall_blurb || null,
-              combined_experience_highlights: generatedSummary.combined_experience_highlights || null,
-              combined_education_highlights: generatedSummary.combined_education_highlights || null,
-              key_skills: generatedSummary.key_skills || null,
-              domain_expertise: generatedSummary.domain_expertise || null,
-              technical_expertise: generatedSummary.technical_expertise || null,
-              value_proposition_summary: generatedSummary.value_proposition_summary || null,
-              updated_at: new Date().toISOString()
-            })
-            .eq("session_id", sessionId);
-            
-          if (updateError) {
-            throw new Error(`Error updating summary: ${updateError.message}`);
-          }
-        } else {
-          // Insert a new summary
-          const { error: insertError } = await supabaseClient
-            .from("user_summaries")
-            .insert({
-              session_id: sessionId,
-              experience: generatedSummary.experience,
-              education: generatedSummary.education,
-              expertise: generatedSummary.expertise,
-              achievements: generatedSummary.achievements,
-              overall_blurb: generatedSummary.overall_blurb || null,
-              combined_experience_highlights: generatedSummary.combined_experience_highlights || null,
-              combined_education_highlights: generatedSummary.combined_education_highlights || null,
-              key_skills: generatedSummary.key_skills || null,
-              domain_expertise: generatedSummary.domain_expertise || null,
-              technical_expertise: generatedSummary.technical_expertise || null,
-              value_proposition_summary: generatedSummary.value_proposition_summary || null,
-              generated_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-            
-          if (insertError) {
-            throw new Error(`Error inserting summary: ${insertError.message}`);
-          }
+        // Update the processed status for the user profile
+        const { error: updateError } = await supabaseClient
+          .from("user_profiles")
+          .update({
+            updated_at: new Date().toISOString(),
+          })
+          .eq(identifierField, identifierValue);
+          
+        if (updateError) {
+          console.error(`Error updating user profile:`, updateError);
         }
 
         return new Response(
           JSON.stringify({
             success: true,
-            message: "Profile data processed successfully",
+            message: "Profile data processed successfully using Gemini AI",
             summary: generatedSummary,
           }),
           {
@@ -370,26 +364,53 @@ serve(async (req) => {
           }
         );
       } catch (aiError) {
-        console.error("Error processing with AI:", aiError);
+        console.error("Error processing with Gemini AI:", aiError);
+        
+        // Fallback to simplified summary generation
+        const fallbackSummary: GeneratedSummary = {
+          experience: "Generated summary of professional experience based on provided content.",
+          education: "Generated summary of education based on provided content.",
+          expertise: "Generated summary of expertise and skills based on provided content.",
+          achievements: "Generated summary of key achievements based on provided content.",
+          overall_blurb: "Error generating detailed AI summary. Basic summary provided instead."
+        };
+        
+        // Create or update with fallback summary
+        await createOrUpdateSummary(identifierField, identifierValue, fallbackSummary);
         
         return new Response(
           JSON.stringify({
-            error: `AI processing failed: ${aiError.message}`,
+            success: true,
+            message: "Generated fallback profile summary due to AI processing error",
+            summary: fallbackSummary,
           }),
           {
-            status: 500,
+            status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
       }
     } else {
-      // If we don't have any content, return an error
+      // If we don't have any content, return a basic response
+      const emptySummary: GeneratedSummary = {
+        experience: "No professional experience data available.",
+        education: "No education data available.",
+        expertise: "No expertise data available.",
+        achievements: "No achievements data available.",
+        overall_blurb: "Please add your professional information to generate a summary."
+      };
+      
+      // Create or update with empty summary
+      await createOrUpdateSummary(identifierField, identifierValue, emptySummary);
+      
       return new Response(
         JSON.stringify({
-          error: "No content provided to process",
+          success: true,
+          message: "No content found to process. Please add professional information to your profile.",
+          summary: emptySummary,
         }),
         {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -408,3 +429,75 @@ serve(async (req) => {
     );
   }
 });
+
+/**
+ * Create or update the summary in the user_summaries table
+ */
+async function createOrUpdateSummary(identifierField: string, identifierValue: string, summary: GeneratedSummary): Promise<void> {
+  try {
+    // Check if a summary already exists
+    const { data: existingSummary, error: checkError } = await supabaseClient
+      .from("user_summaries")
+      .select("summary_id")
+      .eq(identifierField, identifierValue)
+      .maybeSingle();
+      
+    if (checkError && checkError.code !== "PGRST116") {
+      throw new Error(`Error checking for existing summary: ${checkError.message}`);
+    }
+    
+    if (existingSummary) {
+      // Update the existing summary
+      const { error: updateError } = await supabaseClient
+        .from("user_summaries")
+        .update({
+          experience: summary.experience,
+          education: summary.education,
+          expertise: summary.expertise,
+          achievements: summary.achievements,
+          overall_blurb: summary.overall_blurb || null,
+          combined_experience_highlights: summary.combined_experience_highlights || null,
+          combined_education_highlights: summary.combined_education_highlights || null,
+          key_skills: summary.key_skills || null,
+          domain_expertise: summary.domain_expertise || null,
+          technical_expertise: summary.technical_expertise || null,
+          value_proposition_summary: summary.value_proposition_summary || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq(identifierField, identifierValue);
+        
+      if (updateError) {
+        throw new Error(`Error updating summary: ${updateError.message}`);
+      }
+    } else {
+      // Insert a new summary
+      const summaryData: Record<string, any> = {
+        experience: summary.experience,
+        education: summary.education,
+        expertise: summary.expertise,
+        achievements: summary.achievements,
+        overall_blurb: summary.overall_blurb || null,
+        combined_experience_highlights: summary.combined_experience_highlights || null,
+        combined_education_highlights: summary.combined_education_highlights || null,
+        key_skills: summary.key_skills || null,
+        domain_expertise: summary.domain_expertise || null,
+        technical_expertise: summary.technical_expertise || null,
+        value_proposition_summary: summary.value_proposition_summary || null
+      };
+      
+      // Set the appropriate identifier field
+      summaryData[identifierField] = identifierValue;
+      
+      const { error: insertError } = await supabaseClient
+        .from("user_summaries")
+        .insert(summaryData);
+        
+      if (insertError) {
+        throw new Error(`Error inserting summary: ${insertError.message}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error in createOrUpdateSummary:", error);
+    throw error;
+  }
+}
