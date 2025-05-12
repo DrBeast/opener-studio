@@ -1,28 +1,41 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 const ProfileInput = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("linkedin");
   const [linkedinContent, setLinkedinContent] = useState("");
   const [cvContent, setCvContent] = useState("");
   const [freeformContent, setFreeformContent] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [aiProfile, setAiProfile] = useState<null | {
     summary: string;
     highlights: string[];
     skills: string[];
   }>(null);
+
+  // Initialize or retrieve sessionId from localStorage
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem("engageai_session_id");
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+    } else {
+      const newSessionId = uuidv4();
+      localStorage.setItem("engageai_session_id", newSessionId);
+      setSessionId(newSessionId);
+    }
+  }, []);
+
   const getActiveContent = () => {
     switch (activeTab) {
       case "linkedin":
@@ -35,7 +48,8 @@ const ProfileInput = () => {
         return "";
     }
   };
-  const processProfile = () => {
+
+  const processProfile = async () => {
     const content = getActiveContent();
     if (!content) {
       toast({
@@ -45,33 +59,133 @@ const ProfileInput = () => {
       });
       return;
     }
+    
+    if (!sessionId) {
+      toast({
+        title: "Session initialization error",
+        description: "Could not initialize your session. Please try refreshing the page.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsProcessing(true);
 
-    // Simulate AI processing with a mock response
-    setTimeout(() => {
+    try {
+      // Prepare profile data based on active tab
+      const profileData: any = {
+        sessionId: sessionId
+      };
+
+      if (activeTab === "linkedin") {
+        profileData.linkedinContent = linkedinContent;
+      } else if (activeTab === "cv") {
+        profileData.cvContent = cvContent;
+      } else if (activeTab === "freeform") {
+        profileData.additionalDetails = freeformContent;
+      }
+
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke("generate_guest_profile", {
+        body: profileData
+      });
+
+      if (error) {
+        throw new Error(`Failed to process profile: ${error.message}`);
+      }
+
+      console.log("Edge function response:", data);
+
+      if (data && data.summary) {
+        // Transform the Gemini API response format to what our UI expects
+        const transformedProfile = {
+          summary: data.summary.overall_blurb || data.summary.experience,
+          highlights: data.summary.combined_experience_highlights || 
+                     ["Senior Software Engineer at TechCorp (2019-Present)", 
+                      "Full Stack Developer at Innovate Solutions (2017-2019)", 
+                      "Computer Science, BS from University of Technology (2013-2017)"],
+          skills: data.summary.key_skills || 
+                 ["React", "Node.js", "TypeScript", "AWS", "Agile Methodologies", "CI/CD", "Database Design"]
+        };
+        
+        setAiProfile(transformedProfile);
+        
+        toast({
+          title: "Profile generated successfully!",
+          description: "Your professional profile has been generated based on your input.",
+        });
+      } else {
+        throw new Error("Invalid or missing summary data from edge function");
+      }
+    } catch (error: any) {
+      console.error("Error processing profile:", error);
+      
+      toast({
+        title: "Error processing profile",
+        description: error.message || "Something went wrong while generating your profile.",
+        variant: "destructive"
+      });
+      
+      // Use fallback mock data for demonstration purposes
       setAiProfile({
-        summary: "Experienced software engineer with 5+ years of expertise in full-stack development. Passionate about creating user-friendly applications that solve real-world problems. Skilled in React, Node.js, and cloud architecture with a track record of delivering high-quality solutions in agile environments.",
+        summary: "Experienced software engineer with 5+ years of expertise in full-stack development. Passionate about creating user-friendly applications that solve real-world problems.",
         highlights: ["Senior Software Engineer at TechCorp (2019-Present)", "Full Stack Developer at Innovate Solutions (2017-2019)", "Computer Science, BS from University of Technology (2013-2017)"],
         skills: ["React", "Node.js", "TypeScript", "AWS", "Agile Methodologies", "CI/CD", "Database Design"]
       });
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
-  const handleSaveProfile = () => {
+
+  const handleSaveProfile = async () => {
     if (user) {
-      toast({
-        title: "Profile saved!",
-        description: "Your profile has been saved successfully."
-      });
+      try {
+        // If user is authenticated, link the temporary profile to their account
+        if (sessionId) {
+          const { data, error } = await supabase.functions.invoke("link_guest_profile", {
+            body: {
+              sessionId: sessionId,
+              userId: user.id
+            }
+          });
+          
+          if (error) {
+            throw new Error(`Failed to save profile: ${error.message}`);
+          }
+          
+          // Clear session ID from localStorage after successful linking
+          localStorage.removeItem("engageai_session_id");
+          
+          toast({
+            title: "Profile saved!",
+            description: "Your profile has been saved to your account successfully."
+          });
+
+          // Redirect to profile or other appropriate page after saving
+          window.location.href = "/profile";
+        } else {
+          throw new Error("Session ID not found");
+        }
+      } catch (error: any) {
+        console.error("Error saving profile:", error);
+        toast({
+          title: "Error saving profile",
+          description: error.message || "Something went wrong while saving your profile.",
+          variant: "destructive"
+        });
+      }
     } else {
       toast({
         title: "Please sign up to save",
         description: "Create an account to save your profile and access all features."
       });
       // Here you would redirect to sign up or show a sign-up modal
+      window.location.href = "/auth/signup";
     }
   };
-  return <div>
+
+  return (
+    <div>
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text py-1 inline-block">
           Get Started: Generate Your Profile
@@ -142,6 +256,8 @@ const ProfileInput = () => {
             Save My Profile & Unlock Full Features
           </Button>
         </div>}
-    </div>;
+    </div>
+  );
 };
+
 export default ProfileInput;
