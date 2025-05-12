@@ -21,6 +21,7 @@ const ProfileInput = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [profileLinked, setProfileLinked] = useState(false);
   const [profileLinkingAttempted, setProfileLinkingAttempted] = useState(false);
+  const [linkingInProgress, setLinkingInProgress] = useState(false);
   const [aiProfile, setAiProfile] = useState<null | {
     summary: string;
     highlights: string[];
@@ -63,6 +64,8 @@ const ProfileInput = () => {
     const linkGuestProfile = async () => {
       if (user && sessionId && !profileLinked && !profileLinkingAttempted) {
         setProfileLinkingAttempted(true);
+        setLinkingInProgress(true);
+        
         try {
           // Create a unique key for this specific user and session
           const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
@@ -71,6 +74,7 @@ const ProfileInput = () => {
           if (linkStatusData) {
             console.log("ProfileInput: This profile has already been linked to the current user");
             setProfileLinked(true);
+            setLinkingInProgress(false);
             
             try {
               // Verify that the profile actually exists
@@ -85,9 +89,11 @@ const ProfileInput = () => {
                 localStorage.removeItem(linkStatusKey);
                 setProfileLinked(false);
                 setProfileLinkingAttempted(false);
+                setLinkingInProgress(false);
               }
             } catch (err) {
               console.error("ProfileInput: Error verifying linked profile exists:", err);
+              setLinkingInProgress(false);
             }
             
             return;
@@ -95,13 +101,17 @@ const ProfileInput = () => {
 
           console.log("ProfileInput: Attempting to link guest profile to authenticated user");
           
+          // Clear any existing error toasts related to profile linking
+          toast.dismiss("profile-linking-error");
+          
           const { data, error } = await supabase.functions.invoke("link_guest_profile", {
             body: { userId: user.id, sessionId }
           });
 
           if (error) {
             console.error("ProfileInput: Error linking guest profile:", error);
-            toast.error("Failed to link your profile data");
+            // Don't show error toast here - we'll only show it if all attempts fail
+            setLinkingInProgress(false);
             return;
           }
 
@@ -114,17 +124,23 @@ const ProfileInput = () => {
             }));
             console.log("ProfileInput: Guest profile successfully linked to user account");
             setProfileLinked(true);
+            setLinkingInProgress(false);
             
-            toast.success("Profile Linked: Your temporary profile has been linked to your account");
+            toast.success("Profile successfully linked to your account");
             
             // Wait a moment to let the toast show, then redirect
             setTimeout(() => {
               navigate("/profile");
             }, 2000);
+          } else {
+            console.log("ProfileInput: Profile linking attempt failed or returned no data");
+            setLinkingInProgress(false);
           }
         } catch (err) {
           console.error("ProfileInput: Failed to link guest profile:", err);
-          toast.error("Failed to link your profile data");
+          // Only show the error toast on final failed attempt
+          toast.error("Failed to link your profile data", { id: "profile-linking-error" });
+          setLinkingInProgress(false);
         }
       }
     };
@@ -211,23 +227,36 @@ const ProfileInput = () => {
       // If user is already logged in, try linking the profile
       if (user && sessionId) {
         console.log("ProfileInput: User is logged in. Attempting to link newly created guest profile.");
+        setLinkingInProgress(true);
+        
         try {
-          await supabase.functions.invoke("link_guest_profile", {
+          // Clear any existing error toasts related to profile linking
+          toast.dismiss("profile-linking-error");
+          
+          const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
             body: { userId: user.id, sessionId }
           });
           
-          // Mark profile as linked regardless of the response to prevent repeated requests
-          const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-          localStorage.setItem(linkStatusKey, JSON.stringify({
-            linked: true,
-            timestamp: new Date().toISOString(),
-            autoLinked: true
-          }));
-          
-          setProfileLinked(true);
-          console.log("ProfileInput: Auto-linking attempted after profile generation");
+          if (linkError) {
+            console.error("ProfileInput: Error during auto-linking:", linkError);
+            // Don't show error toast here - the useAuth hook manages retries
+          } else if (linkData?.success) {
+            // Mark profile as linked
+            const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
+            localStorage.setItem(linkStatusKey, JSON.stringify({
+              linked: true,
+              timestamp: new Date().toISOString(),
+              autoLinked: true
+            }));
+            
+            setProfileLinked(true);
+            toast.success("Profile successfully linked to your account");
+            console.log("ProfileInput: Auto-linking succeeded after profile generation");
+          }
         } catch (linkErr) {
           console.error("ProfileInput: Error during auto-linking:", linkErr);
+        } finally {
+          setLinkingInProgress(false);
         }
       }
       
@@ -252,19 +281,36 @@ const ProfileInput = () => {
       // If profile isn't linked yet, try to link it once more
       if (!profileLinked && sessionId) {
         console.log("ProfileInput: Attempting to link profile before navigating to profile page");
+        setLinkingInProgress(true);
+        
+        // Clear any existing error toasts related to profile linking
+        toast.dismiss("profile-linking-error");
+        
         supabase.functions.invoke("link_guest_profile", {
           body: { userId: user.id, sessionId }
-        }).then(() => {
+        }).then(({ data, error }) => {
           // Mark as linked to prevent repeated attempts
           const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-          localStorage.setItem(linkStatusKey, JSON.stringify({
-            linked: true,
-            timestamp: new Date().toISOString(),
-            onSave: true
-          }));
+          
+          if (error) {
+            console.error("ProfileInput: Error linking on save:", error);
+            // Only show error on final attempt
+            toast.error("Failed to link your profile data", { id: "profile-linking-error" });
+          } else if (data?.success) {
+            localStorage.setItem(linkStatusKey, JSON.stringify({
+              linked: true,
+              timestamp: new Date().toISOString(),
+              onSave: true
+            }));
+            toast.success("Profile successfully linked to your account");
+          }
+          
+          setLinkingInProgress(false);
           navigate("/profile");
         }).catch(err => {
           console.error("ProfileInput: Error linking on save:", err);
+          toast.error("Failed to link your profile data", { id: "profile-linking-error" });
+          setLinkingInProgress(false);
           navigate("/profile");
         });
       } else {
@@ -324,9 +370,15 @@ const ProfileInput = () => {
               <strong>Note:</strong> You're logged in but your profile data hasn't been linked yet. We'll attempt to link it when you continue.
             </p>
           )}
+          {linkingInProgress && (
+            <p className="text-sm text-blue-700 mt-1 flex items-center">
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <span>Linking your profile data...</span>
+            </p>
+          )}
         </div>
 
-        <Button onClick={processProfile} disabled={isProcessing || !getActiveContent() || !sessionId} className="w-full mt-4">
+        <Button onClick={processProfile} disabled={isProcessing || !getActiveContent() || !sessionId || linkingInProgress} className="w-full mt-4">
           {isProcessing ? <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
@@ -358,8 +410,17 @@ const ProfileInput = () => {
             </div>
           </div>
           
-          <Button onClick={handleSaveProfile} className="w-full">
-            {user ? "Save My Profile" : "Sign Up to Save Profile & Unlock Features"}
+          <Button 
+            onClick={handleSaveProfile} 
+            className="w-full" 
+            disabled={linkingInProgress}
+          >
+            {linkingInProgress ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Linking Profile...
+              </>
+            ) : user ? "Save My Profile" : "Sign Up to Save Profile & Unlock Features"}
           </Button>
         </div>}
     </div>;

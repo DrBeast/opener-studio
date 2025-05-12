@@ -63,6 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLinkingInProgress(true);
     
     try {
+      // Clear any existing error toasts related to profile linking
+      toast.dismiss("profile-linking-error");
+      
       // First, check if the user already has a profile
       const { data: existingProfile } = await supabase
         .from('user_profiles')
@@ -94,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error("Error linking guest profile:", error);
-        toast.error("Failed to link your profile data");
+        // Don't show the error toast here - we'll only show it if all attempts fail
         setLinkingInProgress(false);
         return false;
       }
@@ -107,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           success: true
         }));
         console.log("Guest profile successfully linked to user account:", data);
-        toast.success("Profile Linked: Your temporary profile has been linked to your account");
+        toast.success("Profile successfully linked to your account", { id: "profile-linking-success" });
         
         // Verify the linking was successful
         setTimeout(async () => {
@@ -140,7 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     } catch (err) {
       console.error("Failed to link guest profile:", err);
-      toast.error("Failed to link your profile data");
+      // Only show error on final failed attempt (handled by the retries in signUp method)
       setLinkingInProgress(false);
       return false;
     }
@@ -225,6 +228,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
+      // Clear any existing error toasts related to profile linking
+      toast.dismiss("profile-linking-error");
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -259,8 +265,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // If second attempt fails, try one more time
               if (!linked2) {
                 console.log("useAuth: Second profile linking attempt failed, trying final attempt in 2 seconds");
-                setTimeout(() => {
-                  linkGuestProfile(data.user!.id);
+                setTimeout(async () => {
+                  const linked3 = await linkGuestProfile(data.user!.id);
+                  
+                  // Only show error toast if all attempts have failed
+                  if (!linked3) {
+                    console.log("useAuth: All profile linking attempts failed");
+                    toast.error("Failed to link your profile data", { id: "profile-linking-error" });
+                  }
                 }, 2000);
               }
             }, 1500);
