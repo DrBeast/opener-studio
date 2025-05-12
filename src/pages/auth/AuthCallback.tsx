@@ -12,6 +12,7 @@ const AuthCallback = () => {
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
   const [redirectStatus, setRedirectStatus] = useState<string>("Checking authentication...");
+  const [linkAttempts, setLinkAttempts] = useState(0);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -63,7 +64,7 @@ const AuthCallback = () => {
         
         if (sessionId && user) {
           try {
-            console.log("Found session ID, attempting to link guest profile");
+            console.log(`AuthCallback: Found session ID ${sessionId}, attempting to link guest profile to user ${user.id}`);
             setRedirectStatus("Linking your guest profile...");
             
             // Important: Create a linkStatusKey unique to this user and session
@@ -71,21 +72,26 @@ const AuthCallback = () => {
             const alreadyLinked = localStorage.getItem(linkStatusKey);
             
             if (!alreadyLinked) {
-              const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
-                body: { userId: user.id, sessionId }
-              });
+              // First link attempt
+              await linkGuestProfile(user.id, sessionId);
               
-              if (linkError) {
-                console.error("Error linking guest profile:", linkError);
-                toast.error("There was an issue linking your profile data");
-              } else if (linkData?.success) {
-                console.log("Guest profile successfully linked to user account:", linkData);
-                toast.success("Your profile data has been saved to your account");
-                // Mark this session as linked for this specific user
-                localStorage.setItem(linkStatusKey, 'true');
-              }
+              // If first attempt appears to fail (we'll check again below), try a few more times
+              setTimeout(async () => {
+                // Check if the profile was linked
+                const { data: profileCheck } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .maybeSingle();
+                  
+                if (!profileCheck && linkAttempts < 3) {
+                  console.log(`AuthCallback: Profile may not be linked after first attempt. Retry #${linkAttempts + 1}`);
+                  setLinkAttempts(prev => prev + 1);
+                  await linkGuestProfile(user.id, sessionId);
+                }
+              }, 1500);
             } else {
-              console.log("Guest profile was already linked for this session and user");
+              console.log("AuthCallback: Guest profile was already linked for this session and user");
             }
           } catch (linkErr) {
             console.error("Failed to link guest profile:", linkErr);
@@ -297,7 +303,43 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, linkAttempts]);
+
+  // Define the guest profile linking function within the component
+  const linkGuestProfile = async (userId: string, sessionId: string) => {
+    try {
+      console.log(`AuthCallback: Attempting to link guest profile for session ${sessionId} to user ${userId}`);
+      setRedirectStatus(`Linking guest profile... (Attempt ${linkAttempts + 1})`);
+      
+      const { data, error } = await supabase.functions.invoke("link_guest_profile", {
+        body: { userId, sessionId }
+      });
+
+      if (error) {
+        console.error("Error linking guest profile:", error);
+        toast.error("Failed to link your profile data");
+        return false;
+      }
+
+      if (data?.success) {
+        // Mark this session as linked for this specific user
+        const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
+        localStorage.setItem(linkStatusKey, JSON.stringify({
+          linked: true,
+          timestamp: new Date().toISOString(),
+          success: true
+        }));
+        console.log("AuthCallback: Guest profile successfully linked to user account");
+        toast.success("Your profile data has been saved to your account");
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Failed to link guest profile:", err);
+      toast.error("Failed to link your profile data");
+      return false;
+    }
+  };
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
@@ -336,7 +378,7 @@ const AuthCallback = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               <h2 className="text-xl font-medium">Logging you in...</h2>
               <p className="text-center text-muted-foreground">
-                {redirectStatus}
+                {redirectStatus} {linkAttempts > 0 && `(Attempt ${linkAttempts})`}
               </p>
             </>
           )}

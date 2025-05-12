@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Linkedin } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -22,12 +23,24 @@ type FormValues = z.infer<typeof formSchema>;
 const Signup = () => {
   const { signUp, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Check for redirect param
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get('redirectTo') || '/profile';
+
+  // Get session ID when component mounts
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem('profile-session-id');
+    if (storedSessionId) {
+      console.log("Signup: Found existing session ID:", storedSessionId);
+      setSessionId(storedSessionId);
+    } else {
+      console.log("Signup: No session ID found in localStorage");
+    }
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -40,16 +53,49 @@ const Signup = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
+      // Log that we're starting signup with session ID (if any)
+      console.log(`Signup: Starting signup process with session ID: ${sessionId || "none"}`);
+      
       await signUp(data.email, data.password);
       
       // Check if there's a guest profile to link and show appropriate message
-      const sessionId = localStorage.getItem('profile-session-id');
       if (sessionId) {
         toast.info("Linking your profile data...");
-        // Add a slight delay to ensure profile linking has time to complete
+        console.log("Signup: User signed up, waiting to ensure profile linking has time to complete");
+        
+        // Add a more substantial delay to ensure profile linking has time to complete
         setTimeout(() => {
-          navigate(redirectTo);
-        }, 2000);
+          // Verify if the profile was actually linked
+          const verifyLinking = async () => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              if (session?.user) {
+                // Check if a proper user profile exists
+                const { data: profileData } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('user_id', session.user.id)
+                  .single();
+                  
+                if (profileData) {
+                  console.log("Signup: Profile successfully linked:", profileData);
+                  toast.success("Your profile data was successfully linked to your account");
+                } else {
+                  console.log("Signup: Profile linking may have failed, no profile found");
+                  toast.warning("Profile linking may have failed. Please contact support if you don't see your profile data.");
+                }
+              }
+            } catch (err) {
+              console.error("Signup: Error verifying profile linking:", err);
+            }
+            
+            // Redirect regardless of verification result
+            navigate(redirectTo);
+          };
+          
+          verifyLinking();
+        }, 3000); // Longer delay to ensure linking completes
       } else {
         // Redirect to profile page after successful signup
         navigate(redirectTo);
@@ -85,6 +131,7 @@ const Signup = () => {
               className="w-full" 
               type="button" 
               onClick={handleLinkedInSignIn}
+              disabled={isLoading}
             >
               <Linkedin className="mr-2 h-4 w-4" />
               Continue with LinkedIn
@@ -100,6 +147,12 @@ const Signup = () => {
                 </span>
               </div>
             </div>
+
+            {sessionId && (
+              <div className="text-sm text-blue-600 mb-2">
+                A temporary profile was detected and will be linked to your new account.
+              </div>
+            )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

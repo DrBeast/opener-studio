@@ -20,27 +20,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [linkingInProgress, setLinkingInProgress] = useState(false);
 
-  // Function to link a guest profile
+  // Function to link a guest profile with improved error handling and retry logic
   const linkGuestProfile = async (userId: string) => {
     const sessionId = localStorage.getItem('profile-session-id');
     if (!sessionId) {
       console.log("No session ID found, skipping profile linking");
-      return;
+      return false;
     }
     
     // Create a unique key for this specific user and session
     const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
-    const alreadyLinked = localStorage.getItem(linkStatusKey);
+    const alreadyLinkedData = localStorage.getItem(linkStatusKey);
     
-    if (alreadyLinked) {
-      console.log("This profile has already been linked to the current user");
-      return;
+    // Check if already linked, but verify in database too
+    if (alreadyLinkedData) {
+      try {
+        const linked = JSON.parse(alreadyLinkedData);
+        if (linked.linked && linked.success) {
+          console.log("This profile was previously linked to the current user according to localStorage");
+          
+          // Double-check in database that the profile was actually linked
+          const { data: profileCheck } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle();
+            
+          if (profileCheck) {
+            console.log("Confirmed: User profile exists in database");
+            return true;
+          } else {
+            console.log("Profile marked as linked in localStorage but not found in database - will attempt linking again");
+            // Continue with linking process
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing linked status data:", e);
+      }
     }
 
-    console.log("Attempting to link guest profile to authenticated user");
+    console.log(`useAuth: Attempting to link guest profile (session: ${sessionId}) to user: ${userId}`);
     setLinkingInProgress(true);
     
     try {
+      // First, check if the user already has a profile
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingProfile) {
+        console.log("User already has a profile:", existingProfile);
+        
+        // Check if it's empty or just has basic info
+        const hasContent = existingProfile.linkedin_content || 
+                         existingProfile.additional_details || 
+                         existingProfile.cv_content;
+        
+        if (!hasContent) {
+          console.log("Existing profile has no content, will proceed with linking guest data");
+        } else {
+          console.log("Existing profile has content, not overwriting with guest data");
+          setLinkingInProgress(false);
+          return true;
+        }
+      }
+      
+      // Call the edge function to link the profile
       const { data, error } = await supabase.functions.invoke("link_guest_profile", {
         body: { userId, sessionId }
       });
@@ -48,7 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         console.error("Error linking guest profile:", error);
         toast.error("Failed to link your profile data");
-        return;
+        setLinkingInProgress(false);
+        return false;
       }
 
       if (data?.success) {
@@ -58,14 +106,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           timestamp: new Date().toISOString(),
           success: true
         }));
-        console.log("Guest profile successfully linked to user account");
+        console.log("Guest profile successfully linked to user account:", data);
         toast.success("Profile Linked: Your temporary profile has been linked to your account");
+        
+        // Verify the linking was successful
+        setTimeout(async () => {
+          try {
+            const { data: profileCheck } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', userId)
+              .maybeSingle();
+              
+            if (!profileCheck) {
+              console.log("WARNING: Profile linking may have failed - no profile found after linking");
+              // Try one more time
+              await supabase.functions.invoke("link_guest_profile", {
+                body: { userId, sessionId }
+              });
+            } else {
+              console.log("Profile linking verified - profile exists:", profileCheck);
+            }
+          } catch (e) {
+            console.error("Error verifying profile linking:", e);
+          }
+        }, 1000);
+        
+        setLinkingInProgress(false);
+        return true;
       }
+      
+      setLinkingInProgress(false);
+      return false;
     } catch (err) {
       console.error("Failed to link guest profile:", err);
       toast.error("Failed to link your profile data");
-    } finally {
       setLinkingInProgress(false);
+      return false;
     }
   };
 
@@ -102,6 +179,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           // Check if there's a guest profile to link on auth change
           if (event === 'SIGNED_IN') {
+            console.log("useAuth: Auth state changed to SIGNED_IN, will attempt to link profile");
             // Add a small delay to ensure database is ready
             setTimeout(async () => {
               await linkGuestProfile(session.user.id);
@@ -132,6 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Try to link guest profile immediately after successful sign-in
       if (data.user) {
+        console.log("useAuth: Successfully signed in, attempting to link guest profile");
         setTimeout(async () => {
           await linkGuestProfile(data.user.id);
         }, 500);
@@ -158,8 +237,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
+      console.log("useAuth: Successfully signed up, user data:", data.user);
+      
       // Sign in automatically after sign up since email verification is disabled
       await signIn(email, password);
+      
+      // After automatic sign-in, try to link profile with multiple attempts
+      if (data.user) {
+        console.log("useAuth: After signup and auto-signin, attempting to link guest profile multiple times");
+        
+        // First attempt
+        setTimeout(async () => {
+          const linked = await linkGuestProfile(data.user!.id);
+          
+          // If first attempt fails, try again after a delay
+          if (!linked) {
+            console.log("useAuth: First profile linking attempt failed, trying again in 1.5 seconds");
+            setTimeout(async () => {
+              const linked2 = await linkGuestProfile(data.user!.id);
+              
+              // If second attempt fails, try one more time
+              if (!linked2) {
+                console.log("useAuth: Second profile linking attempt failed, trying final attempt in 2 seconds");
+                setTimeout(() => {
+                  linkGuestProfile(data.user!.id);
+                }, 2000);
+              }
+            }, 1500);
+          }
+        }, 1000);
+      }
       
       toast.success("Account created successfully!");
     } catch (error: any) {
