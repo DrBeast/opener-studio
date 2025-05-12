@@ -327,10 +327,11 @@ export type Database = {
           last_name: string | null
           linkedin_content: string | null
           location: string | null
+          profile_id: string
           session_id: string | null
           temp_created_at: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           additional_details?: string | null
@@ -343,10 +344,11 @@ export type Database = {
           last_name?: string | null
           linkedin_content?: string | null
           location?: string | null
+          profile_id?: string
           session_id?: string | null
           temp_created_at?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           additional_details?: string | null
@@ -359,10 +361,11 @@ export type Database = {
           last_name?: string | null
           linkedin_content?: string | null
           location?: string | null
+          profile_id?: string
           session_id?: string | null
           temp_created_at?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
