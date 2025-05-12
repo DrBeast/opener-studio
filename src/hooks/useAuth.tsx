@@ -81,9 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            email_confirmed: true
-          }
+          // Removed email confirmation requirement by removing the data: { email_confirmed: true } option
         }
       });
 
@@ -91,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
+      // Sign in automatically after sign up since email verification is disabled
       await signIn(email, password);
       
       toast.success("Account created successfully!");
