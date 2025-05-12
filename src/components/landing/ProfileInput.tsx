@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,10 +81,7 @@ const ProfileInput = () => {
             localStorage.setItem(linkStatusKey, 'true');
             console.log("Guest profile successfully linked to user account");
             
-            toast({
-              title: "Profile Linked",
-              description: "Your temporary profile has been linked to your account",
-            });
+            toast.success("Profile Linked: Your temporary profile has been linked to your account");
             
             // Redirect to profile page after successful linking
             navigate("/profile");
@@ -96,7 +94,7 @@ const ProfileInput = () => {
     };
 
     linkGuestProfile();
-  }, [user, sessionId, toast, navigate]);
+  }, [user, sessionId, navigate]);
 
   const getActiveContent = () => {
     switch (activeTab) {
@@ -114,20 +112,12 @@ const ProfileInput = () => {
   const processProfile = async () => {
     const content = getActiveContent();
     if (!content) {
-      toast({
-        title: "Please add your details",
-        description: "We need some information about your professional background to generate a profile.",
-        variant: "destructive"
-      });
+      toast.error("Please add your details: We need some information about your professional background to generate a profile.");
       return;
     }
 
     if (!sessionId) {
-      toast({
-        title: "Session error",
-        description: "Unable to create a temporary session. Please try refreshing the page.",
-        variant: "destructive"
-      });
+      toast.error("Session error: Unable to create a temporary session. Please try refreshing the page.");
       return;
     }
 
@@ -175,18 +165,11 @@ const ProfileInput = () => {
         skills: data.summary.key_skills || []
       });
 
-      toast({
-        title: "Profile generated!",
-        description: "Your professional profile has been generated successfully."
-      });
+      toast.success("Profile generated! Your professional profile has been generated successfully.");
       
     } catch (error: any) {
       console.error("Profile generation error:", error);
-      toast({
-        title: "Error generating profile",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
+      toast.error(`Error generating profile: ${error.message || "Something went wrong. Please try again."}`);
       
       // Set fallback profile for better user experience
       setAiProfile({
