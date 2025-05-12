@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
+import { Badge } from "@/components/ui/badge";
 
 interface ContactData {
   contact_id: string;
@@ -86,6 +88,9 @@ export function CompanyDetails({
   const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
+  const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState<InteractionData | null>(null);
+  const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
   
   // Fetch contacts and interactions when component mounts or company changes
   useEffect(() => {
@@ -184,7 +189,37 @@ export function CompanyDetails({
   const handleInteractionCreated = () => {
     fetchInteractions();
     setIsAddInteractionOpen(false);
+    setIsEditInteractionOpen(false);
+    setSelectedInteraction(null);
     onCompanyUpdated(); // Refresh parent component data as well
+  };
+  
+  // Handle opening the interaction form for editing
+  const handleEditInteraction = (interaction: InteractionData) => {
+    setSelectedInteraction(interaction);
+    setIsEditInteractionOpen(true);
+  };
+  
+  // Handle marking a follow-up as complete
+  const handleCompleteFollowUp = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .update({
+          follow_up_completed: true,
+          follow_up_completed_date: new Date().toISOString()
+        })
+        .eq('interaction_id', interactionId);
+        
+      if (error) throw error;
+      
+      toast.success("Follow-up marked as completed");
+      fetchInteractions();
+      onCompanyUpdated();
+    } catch (error) {
+      console.error("Error completing follow-up:", error);
+      toast.error("Failed to update follow-up status");
+    }
   };
 
   // Format a date nicely
@@ -195,7 +230,7 @@ export function CompanyDetails({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {company.name}
@@ -380,14 +415,30 @@ export function CompanyDetails({
           {/* Interactions Tab */}
           <TabsContent value="interactions" className="space-y-4 pt-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Interaction History</h3>
-              <Button 
-                size="sm"
-                onClick={() => setIsAddInteractionOpen(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Log Interaction
-              </Button>
+              <h3 className="text-lg font-medium">Interaction History & Planned Actions</h3>
+              <div className="space-x-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsPlanningMode(true);
+                    setIsAddInteractionOpen(true);
+                  }}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Plan Action
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => {
+                    setIsPlanningMode(false);
+                    setIsAddInteractionOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Log Interaction
+                </Button>
+              </div>
             </div>
             
             {interactions.length > 0 ? (
@@ -399,35 +450,80 @@ export function CompanyDetails({
                       <th className="text-left p-3 font-medium text-muted-foreground">Type</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Description</th>
                       <th className="text-left p-3 font-medium text-muted-foreground">Follow-up</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {interactions.map(interaction => (
                       <tr key={interaction.interaction_id} className="border-b">
                         <td className="p-3">
-                          {formatDate(interaction.interaction_date)}
+                          {interaction.interaction_date ? formatDate(interaction.interaction_date) : 'Planned'}
                         </td>
                         <td className="p-3">
-                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">
+                          <Badge className={`
+                            ${interaction.interaction_type === 'Planned Action' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 
+                              interaction.interaction_type === 'Cold Outreach' ? 'bg-purple-100 text-purple-800 hover:bg-purple-100' : 
+                              interaction.interaction_type === 'Follow-up' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' : 
+                              interaction.interaction_type === 'Job Application' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
+                              interaction.interaction_type === 'Interview' ? 'bg-pink-100 text-pink-800 hover:bg-pink-100' : 
+                              'bg-blue-100 text-blue-800 hover:bg-blue-100'}
+                          `}>
                             {interaction.interaction_type}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="p-3">
-                          <div className="line-clamp-2">{interaction.description}</div>
+                          <div>{interaction.description}</div>
+                          {interaction.medium && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              via {interaction.medium}
+                            </div>
+                          )}
                         </td>
                         <td className="p-3">
                           {interaction.follow_up_due_date ? (
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              <span className={`text-sm ${
-                                interaction.follow_up_completed ? 'line-through text-muted-foreground' : 
-                                new Date(interaction.follow_up_due_date) < new Date() ? 'text-red-600 font-medium' : ''
-                              }`}>
-                                {formatDate(interaction.follow_up_due_date)}
-                                {interaction.follow_up_completed ? ' (Completed)' : ''}
-                              </span>
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                <span className={`text-sm ${
+                                  interaction.follow_up_completed ? 'line-through text-muted-foreground' : 
+                                  new Date(interaction.follow_up_due_date) < new Date() ? 'text-red-600 font-medium' : ''
+                                }`}>
+                                  {formatDate(interaction.follow_up_due_date)}
+                                </span>
+                              </div>
+                              {interaction.follow_up_completed ? (
+                                <span className="text-xs text-muted-foreground mt-0.5">Completed</span>
+                              ) : (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="justify-start px-0 py-0 h-6 text-xs hover:bg-transparent hover:text-primary"
+                                  onClick={() => handleCompleteFollowUp(interaction.interaction_id)}
+                                >
+                                  Mark as complete
+                                </Button>
+                              )}
                             </div>
                           ) : 'None'}
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end space-x-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEditInteraction(interaction)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -442,7 +538,10 @@ export function CompanyDetails({
                 </p>
                 <Button 
                   size="sm"
-                  onClick={() => setIsAddInteractionOpen(true)}
+                  onClick={() => {
+                    setIsPlanningMode(false);
+                    setIsAddInteractionOpen(true);
+                  }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Log Interaction
@@ -471,7 +570,29 @@ export function CompanyDetails({
         isOpen={isAddInteractionOpen}
         onClose={() => setIsAddInteractionOpen(false)}
         onInteractionCreated={handleInteractionCreated}
+        isPlanningMode={isPlanningMode}
       />
+      
+      {/* Edit Interaction Dialog */}
+      {selectedInteraction && (
+        <InteractionForm
+          companyId={company.company_id}
+          companyName={company.name}
+          contacts={contacts}
+          isOpen={isEditInteractionOpen}
+          onClose={() => setIsEditInteractionOpen(false)}
+          onInteractionCreated={handleInteractionCreated}
+          existingInteraction={{
+            interaction_id: selectedInteraction.interaction_id,
+            interaction_type: selectedInteraction.interaction_type,
+            description: selectedInteraction.description,
+            interaction_date: selectedInteraction.interaction_date,
+            contact_id: selectedInteraction.contact_id,
+            follow_up_due_date: selectedInteraction.follow_up_due_date,
+            medium: selectedInteraction.medium
+          }}
+        />
+      )}
     </Dialog>
   );
 }

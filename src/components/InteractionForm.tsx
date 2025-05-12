@@ -45,6 +45,7 @@ interface InteractionFormProps {
     follow_up_due_date?: string;
     medium?: string;
   };
+  isPlanningMode?: boolean;
 }
 
 export function InteractionForm({ 
@@ -54,12 +55,13 @@ export function InteractionForm({
   isOpen, 
   onClose,
   onInteractionCreated,
-  existingInteraction
+  existingInteraction,
+  isPlanningMode = false
 }: InteractionFormProps) {
   const [formData, setFormData] = useState({
-    interaction_type: existingInteraction?.interaction_type || 'Email',
+    interaction_type: existingInteraction?.interaction_type || (isPlanningMode ? 'Planned Action' : 'Email'),
     description: existingInteraction?.description || '',
-    interaction_date: existingInteraction?.interaction_date || new Date().toISOString(),
+    interaction_date: existingInteraction?.interaction_date || (isPlanningMode ? null : new Date().toISOString()),
     contact_id: existingInteraction?.contact_id || '',
     medium: existingInteraction?.medium || '',
     follow_up_due_date: existingInteraction?.follow_up_due_date || null,
@@ -67,7 +69,9 @@ export function InteractionForm({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    existingInteraction?.interaction_date ? new Date(existingInteraction.interaction_date) : new Date()
+    existingInteraction?.interaction_date ? 
+    new Date(existingInteraction.interaction_date) : 
+    isPlanningMode ? undefined : new Date()
   );
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
     existingInteraction?.follow_up_due_date ? new Date(existingInteraction.follow_up_due_date) : undefined
@@ -89,6 +93,11 @@ export function InteractionForm({
       setFormData(prev => ({
         ...prev,
         interaction_date: date.toISOString()
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        interaction_date: null
       }));
     }
   };
@@ -119,12 +128,14 @@ export function InteractionForm({
         company_id: companyId,
         interaction_type: formData.interaction_type,
         description: formData.description,
-        interaction_date: formData.interaction_date,
+        interaction_date: formData.interaction_date || null,
         contact_id: formData.contact_id || null,
         medium: formData.medium || null,
         follow_up_due_date: formData.follow_up_due_date,
         follow_up_completed: false
       };
+      
+      console.log("Saving interaction:", interactionData);
       
       if (existingInteraction) {
         // Update existing interaction
@@ -133,24 +144,60 @@ export function InteractionForm({
           .update(interactionData)
           .eq('interaction_id', existingInteraction.interaction_id);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating interaction:", error);
+          throw error;
+        }
+        
         toast.success("Interaction updated successfully");
       } else {
         // Create new interaction
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('interactions')
-          .insert(interactionData);
+          .insert([interactionData])
+          .select();
           
-        if (error) throw error;
-        toast.success("Interaction logged successfully");
+        if (error) {
+          console.error("Error creating interaction:", error);
+          throw error;
+        }
+        
+        console.log("Created interaction:", data);
+        toast.success(isPlanningMode ? "Action scheduled successfully" : "Interaction logged successfully");
       }
       
       onInteractionCreated();
     } catch (error: any) {
       console.error("Error saving interaction:", error);
-      toast.error("Failed to save interaction");
+      toast.error(`Failed to save: ${error.message || error}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Get interaction type options based on mode
+  const getInteractionTypeOptions = () => {
+    if (isPlanningMode) {
+      return [
+        { value: "Planned Action", label: "Planned Action" },
+        { value: "Cold Outreach", label: "Cold Outreach" },
+        { value: "Follow-up", label: "Follow-up" },
+        { value: "Job Application", label: "Job Application" },
+        { value: "Interview", label: "Interview" },
+        { value: "Call", label: "Call" },
+        { value: "Meeting", label: "Meeting" },
+        { value: "Other", label: "Other" }
+      ];
+    } else {
+      return [
+        { value: "Email", label: "Email" },
+        { value: "LinkedIn Message", label: "LinkedIn Message" },
+        { value: "Call", label: "Call" },
+        { value: "Meeting", label: "Meeting" },
+        { value: "Coffee Chat", label: "Coffee Chat" },
+        { value: "Interview", label: "Interview" },
+        { value: "Other", label: "Other" }
+      ];
     }
   };
 
@@ -159,7 +206,7 @@ export function InteractionForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {existingInteraction ? "Edit Interaction" : "Log New Interaction"}
+            {existingInteraction ? "Edit Interaction" : isPlanningMode ? "Plan New Action" : "Log New Interaction"}
           </DialogTitle>
         </DialogHeader>
         
@@ -174,7 +221,9 @@ export function InteractionForm({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="interaction_type">Interaction Type</Label>
+            <Label htmlFor="interaction_type">
+              {isPlanningMode ? "Action Type" : "Interaction Type"}
+            </Label>
             <select
               id="interaction_type"
               name="interaction_type"
@@ -182,13 +231,11 @@ export function InteractionForm({
               onChange={handleChange}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="Email">Email</option>
-              <option value="LinkedIn Message">LinkedIn Message</option>
-              <option value="Call">Call</option>
-              <option value="Meeting">Meeting</option>
-              <option value="Coffee Chat">Coffee Chat</option>
-              <option value="Interview">Interview</option>
-              <option value="Other">Other</option>
+              {getInteractionTypeOptions().map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           
@@ -211,7 +258,9 @@ export function InteractionForm({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="interaction_date">Interaction Date</Label>
+            <Label htmlFor="interaction_date">
+              {isPlanningMode ? "Scheduled Date" : "Interaction Date"}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -222,7 +271,7 @@ export function InteractionForm({
                   {selectedDate ? (
                     format(selectedDate, "PPP")
                   ) : (
-                    <span>Pick a date</span>
+                    <span>{isPlanningMode ? "Select a date" : "Pick a date"}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -244,69 +293,73 @@ export function InteractionForm({
               name="medium"
               value={formData.medium}
               onChange={handleChange}
-              placeholder="e.g., Zoom, Phone, In-person"
+              placeholder={isPlanningMode ? "e.g., Email, LinkedIn, Phone" : "e.g., Zoom, Phone, In-person"}
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">
+              {isPlanningMode ? "Action Details" : "Description"}
+            </Label>
             <Textarea
               id="description"
               name="description"
               rows={3}
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe the interaction..."
+              placeholder={isPlanningMode ? "Describe what you plan to do..." : "Describe the interaction..."}
               required
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="follow_up_date">Follow-up Date (Optional)</Label>
-            <div className="flex items-start space-x-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !followUpDate && "text-muted-foreground"
-                    )}
+          {!isPlanningMode && (
+            <div className="space-y-2">
+              <Label htmlFor="follow_up_date">Follow-up Date (Optional)</Label>
+              <div className="flex items-start space-x-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !followUpDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {followUpDate ? (
+                        format(followUpDate, "PPP")
+                      ) : (
+                        <span>Set follow-up</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={followUpDate}
+                      onSelect={handleFollowUpDateSelect}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                {followUpDate && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleFollowUpDateSelect(undefined)}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {followUpDate ? (
-                      format(followUpDate, "PPP")
-                    ) : (
-                      <span>Set follow-up</span>
-                    )}
+                    Clear
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={followUpDate}
-                    onSelect={handleFollowUpDateSelect}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              {followUpDate && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleFollowUpDateSelect(undefined)}
-                >
-                  Clear
-                </Button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
           
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : existingInteraction ? "Update" : "Save"}
+              {isLoading ? "Saving..." : isPlanningMode ? "Schedule" : existingInteraction ? "Update" : "Save"}
             </Button>
           </DialogFooter>
         </form>
