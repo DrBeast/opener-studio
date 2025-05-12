@@ -21,7 +21,6 @@ import ProfileEnrichment from "@/pages/ProfileEnrichment";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import CompaniesDashboard from "@/pages/CompaniesDashboard";
-import TrackingDashboard from "@/pages/TrackingDashboard";
 import PipelineDashboard from "@/pages/PipelineDashboard";
 
 // Components
@@ -52,7 +51,6 @@ const App = () => (
                 <Route path="/profile/enrichment" element={<ProfileEnrichment />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/companies" element={<CompaniesDashboard />} />
-                <Route path="/tracking" element={<TrackingDashboard />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
               </Route>
               

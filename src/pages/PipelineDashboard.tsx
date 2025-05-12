@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Pencil,
   Check,
-  MessageCircle
+  MessageCircle,
+  Search
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
@@ -40,6 +41,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { InteractionForm } from "@/components/InteractionForm";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ContactDetails } from "@/components/ContactDetails";
+import { MessageGeneration } from "@/components/MessageGeneration";
 
 interface CompanyData {
   company_id: string;
@@ -65,7 +69,27 @@ interface CompanyData {
   };
 }
 
+interface ContactData {
+  contact_id: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  company_id?: string;
+  location?: string;
+  email?: string;
+  linkedin_url?: string;
+  user_notes?: string;
+  bio_summary?: string;
+  how_i_can_help?: string;
+  companies?: {
+    name: string;
+  };
+}
+
 const PipelineDashboard = () => {
+  const [activeTab, setActiveTab] = useState("pipeline");
+  
+  // Pipeline tab state
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("updated_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -75,6 +99,12 @@ const PipelineDashboard = () => {
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [editData, setEditData] = useState<{[key: string]: string}>({});
   const [filterPriority, setFilterPriority] = useState<string | null>(null);
+  
+  // Contacts tab state
+  const [contactSearchQuery, setContactSearchQuery] = useState("");
+  const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
+  const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
   
   // Fetch companies from Supabase with related data
   const { data: companies, isLoading, error, refetch } = useQuery({
@@ -138,6 +168,25 @@ const PipelineDashboard = () => {
     }
   });
   
+  // Fetch contacts from Supabase
+  const { data: contacts, isLoading: contactsLoading, error: contactsError, refetch: refetchContacts } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select(`
+          *,
+          companies (
+            name
+          )
+        `)
+        .order('updated_at', { ascending: false });
+        
+      if (error) throw error;
+      return data as ContactData[];
+    }
+  });
+  
   // Filter companies based on search query
   const filteredCompanies = companies?.filter(company => {
     if (!searchQuery) return true;
@@ -154,6 +203,20 @@ const PipelineDashboard = () => {
       (company.user_priority || "").toLowerCase().includes(query) ||
       contactNames.includes(query)
     );
+  });
+  
+  // Filter contacts based on search query
+  const filteredContacts = contacts?.filter(contact => {
+    if (!contactSearchQuery) return true;
+    
+    const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
+    const companyName = contact.companies?.name?.toLowerCase() || '';
+    const role = contact.role?.toLowerCase() || '';
+    const query = contactSearchQuery.toLowerCase();
+    
+    return fullName.includes(query) || 
+           companyName.includes(query) || 
+           role.includes(query);
   });
   
   // Handle sorting
@@ -210,6 +273,22 @@ const PipelineDashboard = () => {
     setEditingCompanyId(null);
     setEditData({});
   };
+  
+  // Contact tab functions
+  const handleViewDetails = (contact: ContactData) => {
+    setSelectedContact(contact);
+    setIsContactDetailsOpen(true);
+  };
+  
+  const handleGenerateMessage = (contact: ContactData) => {
+    setSelectedContact(contact);
+    setIsMessageOpen(true);
+  };
+  
+  const handleContactUpdated = () => {
+    refetchContacts();
+    setIsContactDetailsOpen(false);
+  };
 
   // Format a date nicely
   const formatDate = (dateString: string | undefined) => {
@@ -234,6 +313,10 @@ const PipelineDashboard = () => {
   if (error) {
     toast.error("Failed to load pipeline data");
   }
+  
+  if (contactsError) {
+    toast.error("Failed to load contacts");
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-full">
@@ -243,352 +326,435 @@ const PipelineDashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle className="text-2xl font-bold">Pipeline Overview</CardTitle>
+              <CardTitle className="text-2xl font-bold">Pipeline & Tracking</CardTitle>
               <CardDescription>
-                Track your job search progress across companies
+                Track your job search progress and manage contacts
               </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters {filterPriority && <Badge className="ml-1">{filterPriority}</Badge>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Priority</h4>
-                    <Select
-                      value={filterPriority || ""}
-                      onValueChange={(value) => setFilterPriority(value || null)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All priorities" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All priorities</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Maybe">Maybe</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex justify-end mt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setFilterPriority(null)}
-                      className="text-xs"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Clear Filters
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Company
-              </Button>
             </div>
           </CardHeader>
           
           <CardContent>
-            <div className="mb-6 flex items-center justify-between">
-              <div className="relative w-full max-w-sm">
-                <Input
-                  placeholder="Search companies..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-4"
-                />
-              </div>
-            </div>
-            
-            {isLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-              </div>
-            ) : filteredCompanies && filteredCompanies.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]" onClick={() => handleSort('name')} role="button">
-                        Company Name
-                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                      </TableHead>
-                      <TableHead onClick={() => handleSort('industry')} role="button">
-                        Industry
-                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                      </TableHead>
-                      <TableHead onClick={() => handleSort('hq_location')} role="button">
-                        Location
-                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                      </TableHead>
-                      <TableHead onClick={() => handleSort('user_priority')} role="button">
-                        Priority
-                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                      </TableHead>
-                      <TableHead>Contacts</TableHead>
-                      <TableHead className="w-[220px]">Latest Update</TableHead>
-                      <TableHead className="w-[220px]">Next Action</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCompanies.map((company) => (
-                      <TableRow key={company.company_id}>
-                        <TableCell>
-                          {editingCompanyId === company.company_id && editData.hasOwnProperty('name') ? (
-                            <div className="flex items-center space-x-1">
-                              <Input 
-                                value={editData.name} 
-                                onChange={(e) => setEditData({...editData, name: e.target.value})}
-                                className="h-8 py-1"
-                              />
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={() => saveEditing(company.company_id, 'name')}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={cancelEditing}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1 group">
-                              <div className="font-medium">{company.name}</div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                onClick={() => startEditing(company.company_id, 'name', company.name)}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          {editingCompanyId === company.company_id && editData.hasOwnProperty('industry') ? (
-                            <div className="flex items-center space-x-1">
-                              <Input 
-                                value={editData.industry} 
-                                onChange={(e) => setEditData({...editData, industry: e.target.value})}
-                                className="h-8 py-1"
-                              />
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={() => saveEditing(company.company_id, 'industry')}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={cancelEditing}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1 group">
-                              <div>{company.industry || 'N/A'}</div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                onClick={() => startEditing(company.company_id, 'industry', company.industry || '')}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          {editingCompanyId === company.company_id && editData.hasOwnProperty('hq_location') ? (
-                            <div className="flex items-center space-x-1">
-                              <Input 
-                                value={editData.hq_location} 
-                                onChange={(e) => setEditData({...editData, hq_location: e.target.value})}
-                                className="h-8 py-1"
-                              />
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={() => saveEditing(company.company_id, 'hq_location')}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0" 
-                                onClick={cancelEditing}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1 group">
-                              <div>{company.hq_location || 'N/A'}</div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                onClick={() => startEditing(company.company_id, 'hq_location', company.hq_location || '')}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          {editingCompanyId === company.company_id && editData.hasOwnProperty('user_priority') ? (
-                            <div className="flex items-center space-x-1">
-                              <Select 
-                                value={editData.user_priority} 
-                                onValueChange={(value) => {
-                                  setEditData({...editData, user_priority: value});
-                                  saveEditing(company.company_id, 'user_priority');
-                                }}
-                              >
-                                <SelectTrigger className="w-24 h-8">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="High">High</SelectItem>
-                                  <SelectItem value="Medium">Medium</SelectItem>
-                                  <SelectItem value="Low">Low</SelectItem>
-                                  <SelectItem value="Maybe">Maybe</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1 group">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                ${company.user_priority === 'High' ? 'bg-red-100 text-red-800' : 
-                                  company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                  company.user_priority === 'Low' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'}`}
-                                onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}
-                              >
-                                {company.user_priority || 'Maybe'}
-                              </span>
-                            </div>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          {company.contacts && company.contacts.length > 0 ? (
-                            <div className="flex flex-col space-y-1">
-                              {company.contacts.slice(0, 3).map((contact) => (
-                                <div key={contact.contact_id} className="text-sm hover:underline cursor-pointer" onClick={() => handleViewCompany(company)}>
-                                  {formatContactName(contact)}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid grid-cols-2 w-[400px] mb-6">
+                <TabsTrigger value="pipeline">Companies</TabsTrigger>
+                <TabsTrigger value="contacts">Contacts</TabsTrigger>
+              </TabsList>
+              
+              {/* Pipeline Tab */}
+              <TabsContent value="pipeline" className="w-full">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="relative w-full max-w-sm">
+                    <Input
+                      placeholder="Search companies..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-4"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Filter className="h-4 w-4 mr-2" />
+                          Filters {filterPriority && <Badge className="ml-1">{filterPriority}</Badge>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56">
+                        <div className="space-y-2">
+                          <h4 className="font-medium">Priority</h4>
+                          <Select
+                            value={filterPriority || ""}
+                            onValueChange={(value) => setFilterPriority(value || null)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="All priorities" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">All priorities</SelectItem>
+                              <SelectItem value="High">High</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Low">Low</SelectItem>
+                              <SelectItem value="Maybe">Maybe</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex justify-end mt-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setFilterPriority(null)}
+                            className="text-xs"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Clear Filters
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Company
+                    </Button>
+                  </div>
+                </div>
+                
+                {isLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : filteredCompanies && filteredCompanies.length > 0 ? (
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[180px]" onClick={() => handleSort('name')} role="button">
+                            Company Name
+                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => handleSort('industry')} role="button">
+                            Industry
+                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => handleSort('hq_location')} role="button">
+                            Location
+                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                          </TableHead>
+                          <TableHead onClick={() => handleSort('user_priority')} role="button">
+                            Priority
+                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                          </TableHead>
+                          <TableHead>Contacts</TableHead>
+                          <TableHead className="w-[220px]">Latest Update</TableHead>
+                          <TableHead className="w-[220px]">Next Action</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredCompanies.map((company) => (
+                          <TableRow key={company.company_id}>
+                            <TableCell>
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('name') ? (
+                                <div className="flex items-center space-x-1">
+                                  <Input 
+                                    value={editData.name} 
+                                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                                    className="h-8 py-1"
+                                  />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={() => saveEditing(company.company_id, 'name')}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={cancelEditing}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                              ))}
-                              {company.contacts.length > 3 && (
-                                <div className="text-xs text-muted-foreground">
-                                  +{company.contacts.length - 3} more
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <div className="font-medium">{company.name}</div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
+                                    onClick={() => startEditing(company.company_id, 'name', company.name)}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No contacts</span>
-                          )}
-                        </TableCell>
+                            </TableCell>
 
-                        <TableCell>
-                          {company.last_interaction ? (
-                            <div className="flex flex-col">
-                              <div className="text-xs text-muted-foreground flex items-center">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(company.last_interaction.interaction_date)}
-                              </div>
-                              <div className="text-sm">
-                                {company.last_interaction.description}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-muted-foreground text-sm">No interactions</div>
-                          )}
-                        </TableCell>
+                            <TableCell>
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('industry') ? (
+                                <div className="flex items-center space-x-1">
+                                  <Input 
+                                    value={editData.industry} 
+                                    onChange={(e) => setEditData({...editData, industry: e.target.value})}
+                                    className="h-8 py-1"
+                                  />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={() => saveEditing(company.company_id, 'industry')}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={cancelEditing}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <div>{company.industry || 'N/A'}</div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
+                                    onClick={() => startEditing(company.company_id, 'industry', company.industry || '')}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
 
-                        <TableCell>
-                          {company.next_action ? (
-                            <div className="flex flex-col">
-                              <div className="text-xs flex items-center font-medium">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(company.next_action.follow_up_due_date)}
-                              </div>
-                              <div className="text-sm">
-                                {company.next_action.description}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-muted-foreground text-sm">No follow-ups</div>
-                          )}
-                        </TableCell>
+                            <TableCell>
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('hq_location') ? (
+                                <div className="flex items-center space-x-1">
+                                  <Input 
+                                    value={editData.hq_location} 
+                                    onChange={(e) => setEditData({...editData, hq_location: e.target.value})}
+                                    className="h-8 py-1"
+                                  />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={() => saveEditing(company.company_id, 'hq_location')}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0" 
+                                    onClick={cancelEditing}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <div>{company.hq_location || 'N/A'}</div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
+                                    onClick={() => startEditing(company.company_id, 'hq_location', company.hq_location || '')}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
 
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePlanInteraction(company)}
-                            >
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              Plan
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewCompany(company)}
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              Details
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-lg p-8 text-center">
-                <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <h3 className="text-lg font-medium mb-1">No companies found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchQuery ? "No companies match your search criteria" : "You haven't added any companies to your pipeline yet"}
-                </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Company
-                </Button>
-              </div>
-            )}
+                            <TableCell>
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('user_priority') ? (
+                                <div className="flex items-center space-x-1">
+                                  <Select 
+                                    value={editData.user_priority} 
+                                    onValueChange={(value) => {
+                                      setEditData({...editData, user_priority: value});
+                                      saveEditing(company.company_id, 'user_priority');
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-24 h-8">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="High">High</SelectItem>
+                                      <SelectItem value="Medium">Medium</SelectItem>
+                                      <SelectItem value="Low">Low</SelectItem>
+                                      <SelectItem value="Maybe">Maybe</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 group">
+                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                    ${company.user_priority === 'High' ? 'bg-red-100 text-red-800' : 
+                                      company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                      company.user_priority === 'Low' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'}`}
+                                    onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}
+                                  >
+                                    {company.user_priority || 'Maybe'}
+                                  </span>
+                                </div>
+                              )}
+                            </TableCell>
+
+                            <TableCell>
+                              {company.contacts && company.contacts.length > 0 ? (
+                                <div className="flex flex-col space-y-1">
+                                  {company.contacts.slice(0, 3).map((contact) => (
+                                    <div key={contact.contact_id} className="text-sm hover:underline cursor-pointer" onClick={() => handleViewCompany(company)}>
+                                      {formatContactName(contact)}
+                                    </div>
+                                  ))}
+                                  {company.contacts.length > 3 && (
+                                    <div className="text-xs text-muted-foreground">
+                                      +{company.contacts.length - 3} more
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">No contacts</span>
+                              )}
+                            </TableCell>
+
+                            <TableCell>
+                              {company.last_interaction ? (
+                                <div className="flex flex-col">
+                                  <div className="text-xs text-muted-foreground flex items-center">
+                                    <Calendar className="h-3 w-3 mr-1" />
+                                    {formatDate(company.last_interaction.interaction_date)}
+                                  </div>
+                                  <div className="text-sm">
+                                    {company.last_interaction.description}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm">No interactions</div>
+                              )}
+                            </TableCell>
+
+                            <TableCell>
+                              {company.next_action ? (
+                                <div className="flex flex-col">
+                                  <div className="text-xs flex items-center font-medium">
+                                    <Calendar className="h-3 w-3 mr-1" />
+                                    {formatDate(company.next_action.follow_up_due_date)}
+                                  </div>
+                                  <div className="text-sm">
+                                    {company.next_action.description}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground text-sm">No follow-ups</div>
+                              )}
+                            </TableCell>
+
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePlanInteraction(company)}
+                                >
+                                  <MessageCircle className="h-4 w-4 mr-1" />
+                                  Plan
+                                </Button>
+                                <Button 
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewCompany(company)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  Details
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 rounded-lg p-8 text-center">
+                    <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <h3 className="text-lg font-medium mb-1">No companies found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchQuery ? "No companies match your search criteria" : "You haven't added any companies to your pipeline yet"}
+                    </p>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Company
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+              
+              {/* Contacts Tab */}
+              <TabsContent value="contacts" className="w-full">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="relative w-full max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search contacts..."
+                      className="pl-8"
+                      value={contactSearchQuery}
+                      onChange={(e) => setContactSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                {contactsLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <p className="text-muted-foreground">Loading contacts...</p>
+                  </div>
+                ) : filteredContacts && filteredContacts.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Company</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredContacts.map((contact) => (
+                          <TableRow key={contact.contact_id}>
+                            <TableCell className="font-medium">
+                              {contact.first_name || ''} {contact.last_name || ''}
+                            </TableCell>
+                            <TableCell>{contact.companies?.name || 'N/A'}</TableCell>
+                            <TableCell>{contact.role || 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewDetails(contact)}
+                                >
+                                  <Pencil className="h-4 w-4 mr-1" />
+                                  Details
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleGenerateMessage(contact)}
+                                >
+                                  <MessageCircle className="h-4 w-4 mr-1" />
+                                  Message
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 rounded-lg p-8 text-center">
+                    <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                    <h3 className="text-lg font-medium mb-1">No contacts found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {contactSearchQuery ? "No contacts match your search criteria" : "You haven't saved any contacts yet"}
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
@@ -616,6 +782,26 @@ const PipelineDashboard = () => {
             setIsAddInteractionOpen(false);
           }}
           isPlanningMode={true}
+        />
+      )}
+      
+      {/* Contact Details Dialog */}
+      {selectedContact && (
+        <ContactDetails 
+          contact={selectedContact}
+          isOpen={isContactDetailsOpen}
+          onClose={() => setIsContactDetailsOpen(false)}
+          onContactUpdated={handleContactUpdated}
+        />
+      )}
+      
+      {/* Message Generation Dialog */}
+      {selectedContact && selectedContact.companies && (
+        <MessageGeneration
+          contact={selectedContact}
+          companyName={selectedContact.companies.name || ''}
+          isOpen={isMessageOpen}
+          onClose={() => setIsMessageOpen(false)}
         />
       )}
     </div>

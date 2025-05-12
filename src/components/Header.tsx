@@ -51,17 +51,7 @@ const Header = () => {
                       : "hover:text-primary hover:underline"
                   }`}
                 >
-                  Companies & Contacts
-                </Link>
-                <Link 
-                  to="/tracking" 
-                  className={`text-sm transition-colors ${
-                    isActive("/tracking") 
-                      ? "text-primary font-medium underline underline-offset-4" 
-                      : "hover:text-primary hover:underline"
-                  }`}
-                >
-                  Tracking
+                  Companies
                 </Link>
                 <Link 
                   to="/pipeline" 
@@ -71,7 +61,7 @@ const Header = () => {
                       : "hover:text-primary hover:underline"
                   }`}
                 >
-                  Pipeline
+                  Pipeline & Tracking
                 </Link>
               </>
             )}
