@@ -63,8 +63,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLinkingInProgress(true);
     
     try {
-      // Clear any existing error toasts related to profile linking
+      // Clear any existing error toasts related to profile linking - this ensures we don't have duplicates
       toast.dismiss("profile-linking-error");
+      toast.dismiss("profile-linking-success");
+      
+      // Show linking in progress toast
+      toast.info("Linking your profile data...", { id: "profile-linking-progress" });
       
       // First, check if the user already has a profile
       const { data: existingProfile } = await supabase
@@ -85,6 +89,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log("Existing profile has no content, will proceed with linking guest data");
         } else {
           console.log("Existing profile has content, not overwriting with guest data");
+          // Dismiss linking progress toast and show success
+          toast.dismiss("profile-linking-progress");
+          toast.success("Profile data already exists for your account", { id: "profile-linking-success" });
           setLinkingInProgress(false);
           return true;
         }
@@ -98,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         console.error("Error linking guest profile:", error);
         // Don't show the error toast here - we'll only show it if all attempts fail
+        toast.dismiss("profile-linking-progress");
         setLinkingInProgress(false);
         return false;
       }
@@ -110,6 +118,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           success: true
         }));
         console.log("Guest profile successfully linked to user account:", data);
+        
+        // Dismiss linking progress toast and show success
+        toast.dismiss("profile-linking-progress");
+        toast.dismiss("profile-linking-error"); // Clear any error toast
         toast.success("Profile successfully linked to your account", { id: "profile-linking-success" });
         
         // Verify the linking was successful
@@ -123,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               
             if (!profileCheck) {
               console.log("WARNING: Profile linking may have failed - no profile found after linking");
-              // Try one more time
+              // Try one more time but don't show errors to the user
               await supabase.functions.invoke("link_guest_profile", {
                 body: { userId, sessionId }
               });
@@ -139,11 +151,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       }
       
+      toast.dismiss("profile-linking-progress");
       setLinkingInProgress(false);
       return false;
     } catch (err) {
       console.error("Failed to link guest profile:", err);
-      // Only show error on final failed attempt (handled by the retries in signUp method)
+      toast.dismiss("profile-linking-progress");
       setLinkingInProgress(false);
       return false;
     }
@@ -202,6 +215,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Clear any existing toasts for clean UX
+      toast.dismiss("profile-linking-error");
+      toast.dismiss("profile-linking-success");
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -230,6 +247,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Clear any existing error toasts related to profile linking
       toast.dismiss("profile-linking-error");
+      toast.dismiss("profile-linking-success");
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -268,9 +286,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setTimeout(async () => {
                   const linked3 = await linkGuestProfile(data.user!.id);
                   
-                  // Only show error toast if all attempts have failed
+                  // Only show error toast if all attempts have failed and no success toast is visible
                   if (!linked3) {
                     console.log("useAuth: All profile linking attempts failed");
+                    
+                    // Check if success toast is already shown - we don't want to show error if success is already visible
+                    toast.dismiss("profile-linking-progress");
                     toast.error("Failed to link your profile data", { id: "profile-linking-error" });
                   }
                 }, 2000);

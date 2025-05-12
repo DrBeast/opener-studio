@@ -53,8 +53,9 @@ const Signup = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      // Clear any previous linking error messages
+      // Dismiss any existing toast messages for clean UX
       toast.dismiss("profile-linking-error");
+      toast.dismiss("profile-linking-success");
       
       // Log that we're starting signup with session ID (if any)
       console.log(`Signup: Starting signup process with session ID: ${sessionId || "none"}`);
@@ -63,7 +64,7 @@ const Signup = () => {
       
       // Check if there's a guest profile to link and show appropriate message
       if (sessionId) {
-        toast.info("Linking your profile data...");
+        toast.info("Linking your profile data...", { id: "profile-linking-progress" });
         console.log("Signup: User signed up, waiting to ensure profile linking has time to complete");
         
         // Add a more substantial delay to ensure profile linking has time to complete
@@ -83,38 +84,50 @@ const Signup = () => {
                   
                 if (profileData) {
                   console.log("Signup: Profile successfully linked:", profileData);
-                  toast.success("Your profile data was successfully linked to your account");
+                  toast.dismiss("profile-linking-progress");
+                  toast.success("Your profile data was successfully linked to your account", { 
+                    id: "profile-linking-success"
+                  });
                 } else {
                   console.log("Signup: Profile linking verification check - no profile found");
                   
                   // One last attempt to ensure profile is linked
                   try {
                     console.log("Signup: Making final attempt to link profile");
-                    const { error: linkError } = await supabase.functions.invoke("link_guest_profile", {
+                    const { data: linkData, error: linkError } = await supabase.functions.invoke("link_guest_profile", {
                       body: { userId: session.user.id, sessionId }
                     });
                     
                     if (linkError) {
                       console.error("Signup: Final linking attempt failed:", linkError);
-                      // Only show error on final attempt
-                      toast.warning("Profile linking may have experienced issues. Your account was created successfully, but you may need to enter your profile information again.", { 
+                      toast.dismiss("profile-linking-progress"); 
+                      // Only show error on final attempt failure and if no success message is visible
+                      toast.error("Profile linking experienced an issue. Your account was created successfully, but you may need to enter your profile information again.", { 
                         duration: 6000,
                         id: "profile-linking-error" 
                       });
-                    } else {
-                      toast.success("Your profile data was successfully linked to your account");
+                    } else if (linkData?.success) {
+                      toast.dismiss("profile-linking-progress");
+                      toast.dismiss("profile-linking-error"); // Clear any error message
+                      toast.success("Your profile data was successfully linked to your account", {
+                        id: "profile-linking-success"
+                      });
                     }
                   } catch (err) {
                     console.error("Signup: Error in final linking attempt:", err);
+                    toast.dismiss("profile-linking-progress");
                   }
                 }
               }
             } catch (err) {
               console.error("Signup: Error verifying profile linking:", err);
+              toast.dismiss("profile-linking-progress");
             }
             
-            // Redirect regardless of verification result
-            navigate(redirectTo);
+            // Redirect regardless of verification result, but with a delay to ensure toast is visible
+            setTimeout(() => {
+              navigate(redirectTo);
+            }, 1500);
           };
           
           verifyLinking();
@@ -126,6 +139,7 @@ const Signup = () => {
     } catch (error) {
       // Error is handled in the useAuth hook
       setIsLoading(false);
+      toast.dismiss("profile-linking-progress");
     }
   };
 
