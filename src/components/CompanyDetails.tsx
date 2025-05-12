@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,8 @@ import {
   Plus,
   Trash,
   ArrowUpDown,
-  FileText
+  FileText,
+  Pencil
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -42,6 +42,7 @@ interface InteractionData {
   follow_up_due_date?: string;
   follow_up_completed?: boolean;
   medium?: string;
+  contact_id?: string;
 }
 
 interface CompanyData {
