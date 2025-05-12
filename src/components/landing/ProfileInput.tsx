@@ -19,6 +19,7 @@ const ProfileInput = () => {
   const [freeformContent, setFreeformContent] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [profileLinked, setProfileLinked] = useState(false);
   const [aiProfile, setAiProfile] = useState<null | {
     summary: string;
     highlights: string[];
@@ -40,27 +41,34 @@ const ProfileInput = () => {
   
   // Generate or retrieve session ID on component mount
   useEffect(() => {
-    const storedSessionId = localStorage.getItem('profile-session-id');
-    if (storedSessionId) {
-      setSessionId(storedSessionId);
-    } else {
-      const newSessionId = uuidv4();
-      localStorage.setItem('profile-session-id', newSessionId);
-      setSessionId(newSessionId);
-    }
+    const getOrCreateSessionId = () => {
+      const storedSessionId = localStorage.getItem('profile-session-id');
+      if (storedSessionId) {
+        console.log("Using existing session ID:", storedSessionId);
+        setSessionId(storedSessionId);
+      } else {
+        const newSessionId = uuidv4();
+        console.log("Created new session ID:", newSessionId);
+        localStorage.setItem('profile-session-id', newSessionId);
+        setSessionId(newSessionId);
+      }
+    };
+    
+    getOrCreateSessionId();
   }, []);
 
   // Check if user is logged in and has a temporary profile that needs to be linked
   useEffect(() => {
     const linkGuestProfile = async () => {
-      if (user && sessionId) {
+      if (user && sessionId && !profileLinked) {
         try {
           // Create a unique key for this specific user and session
           const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-          const alreadyLinked = localStorage.getItem(linkStatusKey);
+          const linkStatusData = localStorage.getItem(linkStatusKey);
           
-          if (alreadyLinked) {
+          if (linkStatusData) {
             console.log("This profile has already been linked to the current user");
+            setProfileLinked(true);
             return;
           }
 
@@ -78,8 +86,12 @@ const ProfileInput = () => {
 
           if (data?.success) {
             // Mark this session as linked for this specific user
-            localStorage.setItem(linkStatusKey, 'true');
+            localStorage.setItem(linkStatusKey, JSON.stringify({
+              linked: true,
+              timestamp: new Date().toISOString()
+            }));
             console.log("Guest profile successfully linked to user account");
+            setProfileLinked(true);
             
             toast.success("Profile Linked: Your temporary profile has been linked to your account");
             
@@ -94,7 +106,7 @@ const ProfileInput = () => {
     };
 
     linkGuestProfile();
-  }, [user, sessionId, navigate]);
+  }, [user, sessionId, navigate, profileLinked]);
 
   const getActiveContent = () => {
     switch (activeTab) {
@@ -117,8 +129,11 @@ const ProfileInput = () => {
     }
 
     if (!sessionId) {
-      toast.error("Session error: Unable to create a temporary session. Please try refreshing the page.");
-      return;
+      // If somehow we don't have a session ID, create one
+      const newSessionId = uuidv4();
+      localStorage.setItem('profile-session-id', newSessionId);
+      setSessionId(newSessionId);
+      toast.info("Created a new session for your profile");
     }
 
     setIsProcessing(true);
@@ -140,6 +155,8 @@ const ProfileInput = () => {
           payload.additionalDetails = content;
           break;
       }
+
+      console.log("Sending profile data for processing with session ID:", sessionId);
 
       // Call the edge function
       const { data, error } = await supabase.functions.invoke("generate_guest_profile", {
@@ -232,9 +249,12 @@ const ProfileInput = () => {
             <strong>Privacy Note:</strong> Your information is securely processed to generate your professional profile. 
             {!user && " Sign up to save your profile and access all features."}
           </p>
+          <p className="text-sm text-blue-700 mt-1">
+            <strong>Session ID:</strong> {sessionId ? `Your data is associated with session: ${sessionId.substring(0, 8)}...` : "Creating your session..."}
+          </p>
         </div>
 
-        <Button onClick={processProfile} disabled={isProcessing || !getActiveContent()} className="w-full mt-4">
+        <Button onClick={processProfile} disabled={isProcessing || !getActiveContent() || !sessionId} className="w-full mt-4">
           {isProcessing ? <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...

@@ -42,16 +42,18 @@ const Signup = () => {
     try {
       await signUp(data.email, data.password);
       
-      // Check if there's a guest profile to link
+      // Check if there's a guest profile to link and show appropriate message
       const sessionId = localStorage.getItem('profile-session-id');
       if (sessionId) {
         toast.info("Linking your profile data...");
-      }
-
-      // Redirect to profile page after successful signup
-      setTimeout(() => {
+        // Add a slight delay to ensure profile linking has time to complete
+        setTimeout(() => {
+          navigate(redirectTo);
+        }, 2000);
+      } else {
+        // Redirect to profile page after successful signup
         navigate(redirectTo);
-      }, 1500);
+      }
     } catch (error) {
       // Error is handled in the useAuth hook
       setIsLoading(false);

@@ -18,11 +18,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [linkingInProgress, setLinkingInProgress] = useState(false);
 
   // Function to link a guest profile
   const linkGuestProfile = async (userId: string) => {
     const sessionId = localStorage.getItem('profile-session-id');
-    if (!sessionId) return;
+    if (!sessionId) {
+      console.log("No session ID found, skipping profile linking");
+      return;
+    }
     
     // Create a unique key for this specific user and session
     const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
@@ -34,6 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     console.log("Attempting to link guest profile to authenticated user");
+    setLinkingInProgress(true);
     
     try {
       const { data, error } = await supabase.functions.invoke("link_guest_profile", {
@@ -48,13 +53,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data?.success) {
         // Mark this session as linked for this specific user
-        localStorage.setItem(linkStatusKey, 'true');
+        localStorage.setItem(linkStatusKey, JSON.stringify({
+          linked: true,
+          timestamp: new Date().toISOString(),
+          success: true
+        }));
         console.log("Guest profile successfully linked to user account");
         toast.success("Profile Linked: Your temporary profile has been linked to your account");
       }
     } catch (err) {
       console.error("Failed to link guest profile:", err);
       toast.error("Failed to link your profile data");
+    } finally {
+      setLinkingInProgress(false);
     }
   };
 
@@ -73,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           await linkGuestProfile(session.user.id);
         }
       } catch (error: any) {
+        console.error("Authentication check failed:", error);
         toast.error("Authentication check failed");
       } finally {
         setIsLoading(false);
@@ -84,12 +96,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Handle auth state changes
         if (session?.user) {
           setUser(session.user);
           
           // Check if there's a guest profile to link on auth change
           if (event === 'SIGNED_IN') {
-            await linkGuestProfile(session.user.id);
+            // Add a small delay to ensure database is ready
+            setTimeout(async () => {
+              await linkGuestProfile(session.user.id);
+            }, 500);
           }
         } else {
           setUser(null);
@@ -105,13 +121,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         throw error;
+      }
+
+      // Try to link guest profile immediately after successful sign-in
+      if (data.user) {
+        setTimeout(async () => {
+          await linkGuestProfile(data.user.id);
+        }, 500);
       }
 
       toast.success("Successfully logged in");
@@ -137,11 +160,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Sign in automatically after sign up since email verification is disabled
       await signIn(email, password);
-      
-      // If we have a user and a guest profile, link them
-      if (data?.user) {
-        await linkGuestProfile(data.user.id);
-      }
       
       toast.success("Account created successfully!");
     } catch (error: any) {
