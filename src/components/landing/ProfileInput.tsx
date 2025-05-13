@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
 const ProfileInput = () => {
   const {
     user
@@ -327,7 +328,7 @@ const ProfileInput = () => {
         
         <TabsContent value="freeform" className="space-y-4">
           <p className="text-sm text-muted-foreground">Paste any information you have about your professional background here.</p>
-          <Textarea placeholder="Describe your professional background..." className="min-h-[200px]" value={freeformContent} onChange={e => setFreeformContent(e.target.value)} />
+          <Textarea placeholder="Bio, education, key skills, success cases, STAR-stories for interviews, blurbs, cover letters - everything works!" className="min-h-[200px]" value={freeformContent} onChange={e => setFreeformContent(e.target.value)} />
         </TabsContent>
 
         <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
