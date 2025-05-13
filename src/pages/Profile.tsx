@@ -9,6 +9,7 @@ import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
+
 interface UserProfile {
   user_id: string;
   first_name?: string;
@@ -222,7 +223,7 @@ const Profile = () => {
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
       }
-      toast.success("Profile information updated successfully!");
+      toast.success("Profile information updated and summary regenerated!");
       setEditMode(false);
       setHasChanges(false);
 
@@ -400,7 +401,7 @@ const Profile = () => {
                           Processing... 
                           <span className="ml-2 animate-spin">⟳</span>
                         </> : <>
-                          Save Changes
+                          Save and Regenerate
                           <Save className="h-4 w-4" />
                         </>}
                     </Button>
