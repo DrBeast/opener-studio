@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
+
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -26,6 +28,7 @@ const formSchema = z.object({
   similar_companies: z.array(z.string()).optional(),
   visa_sponsorship_required: z.boolean().default(false)
 });
+
 type FormValues = z.infer<typeof formSchema>;
 
 // Sample options for each select field
@@ -60,6 +63,7 @@ const functionOptions = [{
   value: "data_science",
   label: "Data Science"
 }];
+
 const locationOptions = [{
   value: "san_francisco",
   label: "San Francisco"
@@ -88,6 +92,7 @@ const locationOptions = [{
   value: "remote_global",
   label: "Remote (Global)"
 }];
+
 const wfhOptions = [{
   value: "remote",
   label: "Remote"
@@ -98,6 +103,7 @@ const wfhOptions = [{
   value: "onsite",
   label: "On-site"
 }];
+
 const industryOptions = [{
   value: "tech",
   label: "Tech"
@@ -126,6 +132,7 @@ const industryOptions = [{
   value: "non_profit",
   label: "Non-profit"
 }];
+
 const sizeOptions = [{
   value: "startup",
   label: "Startup (<50)"
@@ -139,6 +146,7 @@ const sizeOptions = [{
   value: "large",
   label: "Large (1000+)"
 }];
+
 const publicPrivateOptions = [{
   value: "public",
   label: "Public"
@@ -153,15 +161,15 @@ const ensureStringArray = (value: any): string[] => {
   if (Array.isArray(value)) return value.map(String);
   return [];
 };
+
 const JobTargets = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -176,16 +184,20 @@ const JobTargets = () => {
       visa_sponsorship_required: false
     }
   });
+  
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!user) return;
       setIsLoading(true);
       try {
-        const {
-          data,
-          error
-        } = await supabase.from("target_criteria").select("*").eq("user_id", user.id).maybeSingle();
+        const { data, error } = await supabase
+          .from("target_criteria")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+          
         if (error) throw error;
+        
         if (data) {
           setExistingData(data);
           setIsEditing(true);
@@ -208,8 +220,10 @@ const JobTargets = () => {
         setIsLoading(false);
       }
     };
+    
     fetchExistingData();
   }, [user, form]);
+  
   const onSubmit = async (values: FormValues) => {
     if (!user) return;
     setIsSubmitting(true);
@@ -218,11 +232,21 @@ const JobTargets = () => {
         user_id: user.id,
         ...values
       };
-      const {
-        error
-      } = existingData ? await supabase.from("target_criteria").update(submissionData).eq("criteria_id", existingData.criteria_id) : await supabase.from("target_criteria").insert([submissionData]);
+      
+      const { error } = existingData 
+        ? await supabase
+            .from("target_criteria")
+            .update(submissionData)
+            .eq("criteria_id", existingData.criteria_id)
+        : await supabase
+            .from("target_criteria")
+            .insert([submissionData]);
+            
       if (error) throw error;
-      toast.success(isEditing ? "Job and company targets updated successfully!" : "Job and company targets saved successfully!");
+      
+      toast.success(isEditing 
+        ? "Job and company targets updated successfully!" 
+        : "Job and company targets saved successfully!");
 
       // Navigate to companies after saving job targets
       navigate("/companies");
@@ -233,40 +257,67 @@ const JobTargets = () => {
       setIsSubmitting(false);
     }
   };
-  const renderMultiSelect = (name: keyof FormValues, options: {
-    value: string;
-    label: string;
-  }[], label: string, description: string) => {
+  
+  const renderMultiSelect = (
+    name: keyof FormValues, 
+    options: { value: string; label: string; }[], 
+    label: string, 
+    description: string
+  ) => {
     if (typeof form.watch(name) !== 'object') return null;
-    return <FormField control={form.control} name={name as any} render={({
-      field
-    }) => <FormItem className="space-y-2">
+    
+    return (
+      <FormField
+        control={form.control}
+        name={name as any}
+        render={({ field }) => (
+          <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
             
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {options.map(option => <FormField key={option.value} control={form.control} name={name as any} render={({
-          field
-        }) => {
-          const values = field.value as string[] || [];
-          return <FormItem key={option.value} className="flex flex-row items-start space-x-3 space-y-0">
+              {options.map(option => (
+                <FormField
+                  key={option.value}
+                  control={form.control}
+                  name={name as any}
+                  render={({ field }) => {
+                    const values = field.value as string[] || [];
+                    return (
+                      <FormItem key={option.value} className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
-                          <Checkbox checked={values.includes(option.value)} onCheckedChange={checked => {
-                const updatedValues = checked ? [...values, option.value] : values.filter(val => val !== option.value);
-                field.onChange(updatedValues);
-              }} />
+                          <Checkbox
+                            checked={values.includes(option.value)}
+                            onCheckedChange={(checked) => {
+                              const updatedValues = checked
+                                ? [...values, option.value]
+                                : values.filter(val => val !== option.value);
+                              field.onChange(updatedValues);
+                            }}
+                          />
                         </FormControl>
                         <FormLabel className="font-normal">{option.label}</FormLabel>
-                      </FormItem>;
-        }} />)}
+                      </FormItem>
+                    );
+                  }}
+                />
+              ))}
             </div>
-          </FormItem>} />;
+          </FormItem>
+        )}
+      />
+    );
   };
+  
   if (isLoading) {
-    return <div className="flex min-h-[80vh] items-center justify-center">
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="container mx-auto py-8 max-w-4xl">
+  
+  return (
+    <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -276,62 +327,120 @@ const JobTargets = () => {
               <CardTitle className="text-2xl font-bold">
                 {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
               </CardTitle>
-              
             </CardHeader>
-            <CardContent className="Button Caption: Generate Companies">
+            <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  {isEditing && <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                  {isEditing && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
                       <h3 className="font-medium text-blue-800">Why This Matters</h3>
-                      <p className="text-sm text-blue-700 mt-1">The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-Your preferences aren't set in stone - you can always come back and update them as your job search evolves.</p>
-                    </div>}
+                      <p className="text-sm text-blue-700 mt-1">
+                        The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+                        Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+                      </p>
+                    </div>
+                  )}
                   
-                  {/* Moved to the top: Describe Your Ideal Role and Company */}
-                  <FormField control={form.control} name="free_form_role_and_company_description" render={({
-                  field
-                }) => <FormItem>
+                  {/* Describe Your Ideal Role and Company */}
+                  <FormField
+                    control={form.control}
+                    name="free_form_role_and_company_description"
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>Tell us what matters to you about your next job - in your own words or using the criteria below.</FormDescription>
+                        <FormDescription>
+                          Tell us what matters to you about your next job - in your own words or using the criteria below.
+                        </FormDescription>
                         <FormControl>
-                          <Textarea placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." className="min-h-[150px]" {...field} />
+                          <Textarea
+                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
+                            className="min-h-[150px]"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>} />
+                      </FormItem>
+                    )}
+                  />
                 
-                  {renderMultiSelect("target_functions", functionOptions, "Target Job Functions", "What job functions are you interested in?")}
+                  {renderMultiSelect(
+                    "target_functions",
+                    functionOptions,
+                    "Target Job Functions",
+                    "What job functions are you interested in?"
+                  )}
                   
-                  {renderMultiSelect("target_locations", locationOptions, "Preferred Locations", "Where would you like to work?")}
+                  {renderMultiSelect(
+                    "target_locations",
+                    locationOptions,
+                    "Preferred Locations",
+                    "Where would you like to work?"
+                  )}
                   
-                  {renderMultiSelect("target_wfh_preference", wfhOptions, "Work From Home Preference", "What is your preferred working arrangement?")}
+                  {renderMultiSelect(
+                    "target_wfh_preference",
+                    wfhOptions,
+                    "Work From Home Preference",
+                    "What is your preferred working arrangement?"
+                  )}
                   
-                  {renderMultiSelect("target_industries", industryOptions, "Target Industries", "What industries are you interested in?")}
+                  {renderMultiSelect(
+                    "target_industries",
+                    industryOptions,
+                    "Target Industries",
+                    "What industries are you interested in?"
+                  )}
                   
-                  {renderMultiSelect("target_sizes", sizeOptions, "Company Size Preference", "What size of company would you prefer?")}
+                  {renderMultiSelect(
+                    "target_sizes",
+                    sizeOptions,
+                    "Company Size Preference",
+                    "What size of company would you prefer?"
+                  )}
                   
-                  {renderMultiSelect("target_public_private", publicPrivateOptions, "Public/Private Company Preference", "Do you prefer public or private companies?")}
+                  {renderMultiSelect(
+                    "target_public_private",
+                    publicPrivateOptions,
+                    "Public/Private Company Preference",
+                    "Do you prefer public or private companies?"
+                  )}
                   
-                  <FormField control={form.control} name="similar_companies" render={({
-                  field
-                }) => <FormItem>
+                  <FormField
+                    control={form.control}
+                    name="similar_companies"
+                    render={({ field }) => (
+                      <FormItem>
                         <FormLabel>Company Examples</FormLabel>
                         <FormDescription>We will use this to generate more examples</FormDescription>
                         <FormControl>
-                          <Input placeholder="Google, Apple, Microsoft, etc." onChange={e => {
-                      const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
-                      field.onChange(companies);
-                    }} value={Array.isArray(field.value) ? field.value.join(", ") : ""} />
+                          <Input
+                            placeholder="Google, Apple, Microsoft, etc."
+                            onChange={(e) => {
+                              const companies = e.target.value
+                                .split(",")
+                                .map(company => company.trim())
+                                .filter(company => company);
+                              field.onChange(companies);
+                            }}
+                            value={Array.isArray(field.value) ? field.value.join(", ") : ""}
+                          />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>} />
+                      </FormItem>
+                    )}
+                  />
                   
-                  <FormField control={form.control} name="visa_sponsorship_required" render={({
-                  field
-                }) => {}} />
+                  <FormField
+                    control={form.control}
+                    name="visa_sponsorship_required"
+                    render={() => (<></>)}
+                  />
                   
                   <div className="flex justify-end space-x-4">
-                    
-                    <Button type="submit" disabled={isSubmitting} className="Change button caption to \"Generate Companies\", generate the companies using the edge function, and take the user to see the generated companies list.">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                    >
                       {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
                     </Button>
                   </div>
@@ -340,9 +449,9 @@ Your preferences aren't set in stone - you can always come back and update them 
             </CardContent>
           </Card>
         </div>
-        
-        
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default JobTargets;
