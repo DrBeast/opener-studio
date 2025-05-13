@@ -102,6 +102,7 @@ const wfhOptions = [{
   label: "On-site"
 }];
 
+// Updated industry options with the new chips
 const industryOptions = [{
   value: "tech",
   label: "Tech"
@@ -129,6 +130,21 @@ const industryOptions = [{
 }, {
   value: "non_profit",
   label: "Non-profit"
+}, {
+  value: "energy",
+  label: "Energy"
+}, {
+  value: "biotech",
+  label: "Biotech"
+}, {
+  value: "crypto",
+  label: "Crypto"
+}, {
+  value: "ai_llm",
+  label: "AI / LLM"
+}, {
+  value: "automotive",
+  label: "Automotive"
 }];
 
 const sizeOptions = [{
