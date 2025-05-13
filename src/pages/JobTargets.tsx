@@ -25,9 +25,7 @@ const formSchema = z.object({
   target_sizes: z.array(z.string()).optional(),
   target_public_private: z.array(z.string()).optional(),
   similar_companies: z.array(z.string()).optional(),
-  visa_sponsorship_required: z.boolean().default(false),
-  custom_functions: z.array(z.string()).optional(),
-  custom_industries: z.array(z.string()).optional()
+  visa_sponsorship_required: z.boolean().default(false)
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -184,9 +182,7 @@ const JobTargets = () => {
       target_sizes: [],
       target_public_private: [],
       similar_companies: [],
-      visa_sponsorship_required: false,
-      custom_functions: [],
-      custom_industries: []
+      visa_sponsorship_required: false
     }
   });
   
@@ -215,9 +211,7 @@ const JobTargets = () => {
             target_sizes: ensureStringArray(data.target_sizes),
             target_public_private: ensureStringArray(data.target_public_private),
             similar_companies: ensureStringArray(data.similar_companies),
-            visa_sponsorship_required: data.visa_sponsorship_required || false,
-            custom_functions: ensureStringArray(data.custom_functions || []),
-            custom_industries: ensureStringArray(data.custom_industries || [])
+            visa_sponsorship_required: data.visa_sponsorship_required || false
           });
         }
       } catch (error: any) {
@@ -268,31 +262,31 @@ const JobTargets = () => {
   const addCustomFunction = () => {
     if (!newFunction.trim()) return;
     
-    const currentCustomFunctions = form.getValues("custom_functions") || [];
-    if (!currentCustomFunctions.includes(newFunction.trim())) {
-      form.setValue("custom_functions", [...currentCustomFunctions, newFunction.trim()]);
+    const currentFunctions = form.getValues("target_functions") || [];
+    if (!currentFunctions.includes(newFunction.trim())) {
+      form.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
       setNewFunction("");
     }
   };
   
-  const removeCustomFunction = (func: string) => {
-    const currentCustomFunctions = form.getValues("custom_functions") || [];
-    form.setValue("custom_functions", currentCustomFunctions.filter(f => f !== func));
+  const removeFunction = (func: string) => {
+    const currentFunctions = form.getValues("target_functions") || [];
+    form.setValue("target_functions", currentFunctions.filter(f => f !== func));
   };
   
   const addCustomIndustry = () => {
     if (!newIndustry.trim()) return;
     
-    const currentCustomIndustries = form.getValues("custom_industries") || [];
-    if (!currentCustomIndustries.includes(newIndustry.trim())) {
-      form.setValue("custom_industries", [...currentCustomIndustries, newIndustry.trim()]);
+    const currentIndustries = form.getValues("target_industries") || [];
+    if (!currentIndustries.includes(newIndustry.trim())) {
+      form.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
       setNewIndustry("");
     }
   };
   
-  const removeCustomIndustry = (industry: string) => {
-    const currentCustomIndustries = form.getValues("custom_industries") || [];
-    form.setValue("custom_industries", currentCustomIndustries.filter(i => i !== industry));
+  const removeIndustry = (industry: string) => {
+    const currentIndustries = form.getValues("target_industries") || [];
+    form.setValue("target_industries", currentIndustries.filter(i => i !== industry));
   };
   
   // Chip component for selections
@@ -368,7 +362,19 @@ const JobTargets = () => {
                       );
                     }} 
                   />
-                ) : null;
+                ) : (
+                  // This will display custom values that aren't in the predefined options
+                  <SelectionChip 
+                    key={value} 
+                    label={value} 
+                    onRemove={() => {
+                      form.setValue(
+                        name as any, 
+                        values.filter(v => v !== value)
+                      );
+                    }} 
+                  />
+                );
               })}
             </div>
           </FormItem>
@@ -405,16 +411,6 @@ const JobTargets = () => {
             Add
           </Button>
         </div>
-        
-        <div className="flex flex-wrap mt-3">
-          {(form.watch("custom_functions") || []).map((func, index) => (
-            <SelectionChip 
-              key={index} 
-              label={func} 
-              onRemove={() => removeCustomFunction(func)} 
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -446,16 +442,6 @@ const JobTargets = () => {
           >
             Add
           </Button>
-        </div>
-        
-        <div className="flex flex-wrap mt-3">
-          {(form.watch("custom_industries") || []).map((industry, index) => (
-            <SelectionChip 
-              key={index} 
-              label={industry} 
-              onRemove={() => removeCustomIndustry(industry)} 
-            />
-          ))}
         </div>
       </div>
     </div>
