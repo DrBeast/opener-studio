@@ -314,6 +314,7 @@ const Profile = () => {
         {items.map((item, index) => <li key={index}>{item}</li>)}
       </ul>;
   };
+  
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
@@ -323,7 +324,6 @@ const Profile = () => {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-2xl font-bold">Professional Profile</CardTitle>
-                
               </div>
               {!editMode && <Button variant="outline" size="sm" onClick={() => setEditMode(true)} className="flex items-center gap-2">
                   <Edit className="h-4 w-4" />
@@ -332,62 +332,8 @@ const Profile = () => {
             </CardHeader>
             
             <CardContent className="space-y-6">
-              {/* Professional Summary - Always Visible */}
-              {backgroundSummary && <div className="mb-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">AI Summary</h3>
-                    
-                  </div>
-                  <div className="space-y-4">
-                    {/* Show overall blurb if available */}
-                    {backgroundSummary.overall_blurb && <div className="bg-primary/10 p-4 rounded-lg">
-                        <h4 className="font-semibold">Overall</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.overall_blurb}</p>
-                      </div>}
-                    
-                    {/* Show value proposition if available */}
-                    {backgroundSummary.value_proposition_summary && <div className="bg-primary/10 p-4 rounded-lg">
-                        <h4 className="font-semibold">Value Proposition</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.value_proposition_summary}</p>
-                      </div>}
-                  
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="bg-primary/5 p-4 rounded-lg">
-                        <h4 className="font-semibold">Experience</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.experience}</p>
-                        {renderArrayItems(backgroundSummary.combined_experience_highlights)}
-                      </div>
-                      <div className="bg-primary/5 p-4 rounded-lg">
-                        <h4 className="font-semibold">Education</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.education}</p>
-                        {renderArrayItems(backgroundSummary.combined_education_highlights)}
-                      </div>
-                      <div className="bg-primary/5 p-4 rounded-lg">
-                        <h4 className="font-semibold">Expertise</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
-                        {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && <div className="mt-2">
-                            <h5 className="text-sm font-medium">Key Skills:</h5>
-                            {renderArrayItems(backgroundSummary.key_skills)}
-                          </div>}
-                        {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && <div className="mt-2">
-                            <h5 className="text-sm font-medium">Domain Expertise:</h5>
-                            {renderArrayItems(backgroundSummary.domain_expertise)}
-                          </div>}
-                        {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && <div className="mt-2">
-                            <h5 className="text-sm font-medium">Technical Expertise:</h5>
-                            {renderArrayItems(backgroundSummary.technical_expertise)}
-                          </div>}
-                      </div>
-                      <div className="bg-primary/5 p-4 rounded-lg">
-                        <h4 className="font-semibold">Key Achievements</h4>
-                        <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>}
-              
-              {/* Edit Form - Only visible when in edit mode */}
-              {editMode && <div className="border-t pt-6 mt-6">
+              {/* Edit Form - Moved to the top when in edit mode */}
+              {editMode && <div className="border-t pt-6">
                   <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
                   
                   <ProfessionalBackground linkedinContent={linkedinContent} setLinkedinContent={setLinkedinContent} additionalDetails={additionalDetails} setAdditionalDetails={setAdditionalDetails} cvContent={cvContent} setCvContent={setCvContent} isSubmitting={isSubmitting} isEditing={Object.keys(existingData).length > 0} existingData={existingData} />
@@ -408,6 +354,58 @@ const Profile = () => {
                   </div>
                 </div>}
               
+              {/* Professional Summary - Only visible when not in edit mode or below edit form when in edit mode */}
+              {backgroundSummary && <div className="mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">AI Summary</h3>
+                  </div>
+                  
+                  {/* Show overall blurb if available */}
+                  {backgroundSummary.overall_blurb && <div className="bg-primary/10 p-4 rounded-lg">
+                      <h4 className="font-semibold">Overall</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.overall_blurb}</p>
+                    </div>}
+                    
+                  {/* Show value proposition if available */}
+                  {backgroundSummary.value_proposition_summary && <div className="bg-primary/10 p-4 rounded-lg">
+                      <h4 className="font-semibold">Value Proposition</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.value_proposition_summary}</p>
+                    </div>}
+                  
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <h4 className="font-semibold">Experience</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.experience}</p>
+                      {renderArrayItems(backgroundSummary.combined_experience_highlights)}
+                    </div>
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <h4 className="font-semibold">Education</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.education}</p>
+                      {renderArrayItems(backgroundSummary.combined_education_highlights)}
+                    </div>
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <h4 className="font-semibold">Expertise</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
+                      {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && <div className="mt-2">
+                          <h5 className="text-sm font-medium">Key Skills:</h5>
+                          {renderArrayItems(backgroundSummary.key_skills)}
+                        </div>}
+                      {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && <div className="mt-2">
+                          <h5 className="text-sm font-medium">Domain Expertise:</h5>
+                          {renderArrayItems(backgroundSummary.domain_expertise)}
+                        </div>}
+                      {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && <div className="mt-2">
+                          <h5 className="text-sm font-medium">Technical Expertise:</h5>
+                          {renderArrayItems(backgroundSummary.technical_expertise)}
+                        </div>}
+                    </div>
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <h4 className="font-semibold">Key Achievements</h4>
+                      <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
+                    </div>
+                  </div>
+                </div>}
+              
               {/* Show empty state if no summary and not in edit mode */}
               {!backgroundSummary && !editMode && <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
                   <p>You haven't provided any professional background information yet. Click 'Edit Profile' to get started.</p>
@@ -417,7 +415,7 @@ const Profile = () => {
           
           {/* Development Tools Card */}
           <Card>
-            
+            {/* ... keep existing code (development tools section) */}
             {showDevOptions && <CardContent>
                 <div className="space-y-4">
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -442,8 +440,8 @@ const Profile = () => {
           </Card>
         </div>
         
-        
       </div>
     </div>;
 };
+
 export default Profile;
