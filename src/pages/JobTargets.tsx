@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -380,25 +381,21 @@ const JobTargets = () => {
         "What job functions are you interested in?"
       )}
       
-      <div className="border-t pt-3">
-        <FormLabel>Add Custom Job Functions</FormLabel>
-        <FormDescription>Add job functions that aren't in the list above</FormDescription>
-        
-        <div className="flex mt-2">
-          <Input 
-            value={newFunction} 
-            onChange={(e) => setNewFunction(e.target.value)} 
-            placeholder="E.g. Business Development"
-            className="mr-2"
-          />
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={addCustomFunction}
-          >
-            Add
-          </Button>
-        </div>
+      <div className="flex mt-2 items-center">
+        <Input 
+          value={newFunction} 
+          onChange={(e) => setNewFunction(e.target.value)} 
+          placeholder="Add custom function"
+          className="mr-2 h-9 w-48"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={addCustomFunction}
+          size="sm"
+        >
+          Add
+        </Button>
       </div>
     </div>
   );
@@ -412,25 +409,21 @@ const JobTargets = () => {
         "What industries are you interested in?"
       )}
       
-      <div className="border-t pt-3">
-        <FormLabel>Add Custom Industries</FormLabel>
-        <FormDescription>Add industries that aren't in the list above</FormDescription>
-        
-        <div className="flex mt-2">
-          <Input 
-            value={newIndustry} 
-            onChange={(e) => setNewIndustry(e.target.value)} 
-            placeholder="E.g. Renewable Energy"
-            className="mr-2"
-          />
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={addCustomIndustry}
-          >
-            Add
-          </Button>
-        </div>
+      <div className="flex mt-2 items-center">
+        <Input 
+          value={newIndustry} 
+          onChange={(e) => setNewIndustry(e.target.value)} 
+          placeholder="Add custom industry"
+          className="mr-2 h-9 w-48"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={addCustomIndustry}
+          size="sm"
+        >
+          Add
+        </Button>
       </div>
     </div>
   );
@@ -493,6 +486,9 @@ const JobTargets = () => {
                   {/* Target Job Functions with Custom Options */}
                   {renderFunctionsWithCustom()}
                   
+                  {/* Target Industries with Custom Options - Moved up under Functions */}
+                  {renderIndustriesWithCustom()}
+                  
                   {/* Preferred Locations */}
                   {renderMultiSelectChips(
                     "target_locations",
@@ -508,9 +504,6 @@ const JobTargets = () => {
                     "Work From Home Preference",
                     "What is your preferred working arrangement?"
                   )}
-                  
-                  {/* Target Industries with Custom Options */}
-                  {renderIndustriesWithCustom()}
                   
                   {/* Company Size Preference */}
                   {renderMultiSelectChips(
