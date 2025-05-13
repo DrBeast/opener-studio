@@ -52,7 +52,7 @@ interface CompanyData {
   ai_description?: string;
   match_quality_score?: number;
   ai_match_reasoning?: string;
-  user_priority?: 'Top' | 'Medium' | 'Maybe'; // Make sure this matches the database values
+  user_priority?: 'Top' | 'Medium' | 'Maybe'; // This aligns with the database values
   latest_update: {
     interaction_id: string;
     description: string;
