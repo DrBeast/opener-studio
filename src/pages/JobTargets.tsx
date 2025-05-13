@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +22,6 @@ const formSchema = z.object({
   free_form_role_and_company_description: z.string().optional(),
   target_industries: z.array(z.string()).optional(),
   target_sizes: z.array(z.string()).optional(),
-  target_public_private: z.array(z.string()).optional(),
   similar_companies: z.array(z.string()).optional(),
   visa_sponsorship_required: z.boolean().default(false)
 });
@@ -146,14 +144,6 @@ const sizeOptions = [{
   label: "Large (1000+)"
 }];
 
-const publicPrivateOptions = [{
-  value: "public",
-  label: "Public"
-}, {
-  value: "private",
-  label: "Private"
-}];
-
 // Helper function to safely cast JSON data to string arrays
 const ensureStringArray = (value: any): string[] => {
   if (!value) return [];
@@ -180,7 +170,6 @@ const JobTargets = () => {
       free_form_role_and_company_description: "",
       target_industries: [],
       target_sizes: [],
-      target_public_private: [],
       similar_companies: [],
       visa_sponsorship_required: false
     }
@@ -209,7 +198,6 @@ const JobTargets = () => {
             free_form_role_and_company_description: data.free_form_role_and_company_description || "",
             target_industries: ensureStringArray(data.target_industries),
             target_sizes: ensureStringArray(data.target_sizes),
-            target_public_private: ensureStringArray(data.target_public_private),
             similar_companies: ensureStringArray(data.similar_companies),
             visa_sponsorship_required: data.visa_sponsorship_required || false
           });
@@ -530,14 +518,6 @@ const JobTargets = () => {
                     sizeOptions,
                     "Company Size Preference",
                     "What size of company would you prefer?"
-                  )}
-                  
-                  {/* Public/Private Company Preference */}
-                  {renderMultiSelectChips(
-                    "target_public_private",
-                    publicPrivateOptions,
-                    "Public/Private Company Preference",
-                    "Do you prefer public or private companies?"
                   )}
                   
                   {/* Similar Companies */}
