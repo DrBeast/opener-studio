@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +9,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { X } from "lucide-react";
+import { X, Plus, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -161,6 +162,11 @@ const JobTargets = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [newFunction, setNewFunction] = useState("");
   const [newIndustry, setNewIndustry] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [filteredLocations, setFilteredLocations] = useState(locationOptions);
+  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -181,6 +187,17 @@ const JobTargets = () => {
       if (!user) return;
       setIsLoading(true);
       try {
+        // Fetch user profile to get location data
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("location")
+          .eq("id", user.id)
+          .single();
+          
+        if (profileData && !profileError) {
+          setUserProfile(profileData);
+        }
+        
         const { data, error } = await supabase
           .from("target_criteria")
           .select("*")
@@ -192,9 +209,18 @@ const JobTargets = () => {
         if (data) {
           setExistingData(data);
           setIsEditing(true);
+          
+          const targetLocations = ensureStringArray(data.target_locations);
+          
+          // If user has no locations set but we have their profile location, use that
+          const userLocation = profileData?.location;
+          const locations = targetLocations.length > 0 
+            ? targetLocations 
+            : (userLocation ? [userLocation] : []);
+          
           form.reset({
             target_functions: ensureStringArray(data.target_functions),
-            target_locations: ensureStringArray(data.target_locations),
+            target_locations: locations,
             target_wfh_preference: ensureStringArray(data.target_wfh_preference),
             free_form_role_and_company_description: data.free_form_role_and_company_description || "",
             target_industries: ensureStringArray(data.target_industries),
@@ -202,10 +228,17 @@ const JobTargets = () => {
             similar_companies: ensureStringArray(data.similar_companies),
             visa_sponsorship_required: data.visa_sponsorship_required || false
           });
+        } else if (profileData?.location) {
+          // No existing data but we have user location
+          form.setValue("target_locations", [profileData.location]);
         }
       } catch (error: any) {
         console.error("Error fetching target criteria:", error.message);
-        toast.error("Failed to load your job target preferences");
+        toast({
+          title: "Error",
+          description: "Failed to load your job target preferences",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
@@ -234,48 +267,25 @@ const JobTargets = () => {
             
       if (error) throw error;
       
-      toast.success(isEditing 
-        ? "Job and company targets updated successfully!" 
-        : "Job and company targets saved successfully!");
+      toast({
+        title: "Success",
+        description: isEditing 
+          ? "Job and company targets updated successfully!" 
+          : "Job and company targets saved successfully!",
+      });
 
       // Navigate to companies after saving job targets
       navigate("/companies");
     } catch (error: any) {
       console.error("Error saving target criteria:", error.message);
-      toast.error("Failed to save your preferences. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to save your preferences. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
-  };
-  
-  const addCustomFunction = () => {
-    if (!newFunction.trim()) return;
-    
-    const currentFunctions = form.getValues("target_functions") || [];
-    if (!currentFunctions.includes(newFunction.trim())) {
-      form.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
-      setNewFunction("");
-    }
-  };
-  
-  const removeFunction = (func: string) => {
-    const currentFunctions = form.getValues("target_functions") || [];
-    form.setValue("target_functions", currentFunctions.filter(f => f !== func));
-  };
-  
-  const addCustomIndustry = () => {
-    if (!newIndustry.trim()) return;
-    
-    const currentIndustries = form.getValues("target_industries") || [];
-    if (!currentIndustries.includes(newIndustry.trim())) {
-      form.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
-      setNewIndustry("");
-    }
-  };
-  
-  const removeIndustry = (industry: string) => {
-    const currentIndustries = form.getValues("target_industries") || [];
-    form.setValue("target_industries", currentIndustries.filter(i => i !== industry));
   };
   
   // Chip component for selections
@@ -292,73 +302,201 @@ const JobTargets = () => {
     </div>
   );
   
-  const renderMultiSelectChips = (
-    name: keyof FormValues, 
-    options: { value: string; label: string; }[],
+  // Common function to handle chip selections for both functions and industries
+  const renderChipSelector = (
+    name: "target_functions" | "target_industries", 
+    options: { value: string; label: string }[],
     label: string,
-    description?: string
+    description: string,
+    placeholder: string,
+    newValue: string,
+    setNewValue: React.Dispatch<React.SetStateAction<string>>,
+    addCustomValue: () => void
   ) => {
-    const values = form.watch(name) as string[] || [];
+    const values = form.watch(name) || [];
+    
+    const handleOptionClick = (option: string) => {
+      const currentValues = form.getValues(name) || [];
+      if (currentValues.includes(option)) {
+        form.setValue(name, currentValues.filter(v => v !== option));
+      } else {
+        form.setValue(name, [...currentValues, option]);
+      }
+    };
     
     return (
       <FormField
         control={form.control}
-        name={name as any}
+        name={name}
         render={() => (
           <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
-            {description && <FormDescription>{description}</FormDescription>}
+            <FormDescription>{description}</FormDescription>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              {options.map(option => (
-                <FormField
+            <div className="relative">
+              <div className="flex flex-wrap p-2 border rounded-md min-h-[80px] bg-background">
+                {values.map(value => {
+                  const option = options.find(o => o.value === value);
+                  const displayLabel = option ? option.label : value;
+                  
+                  return (
+                    <SelectionChip 
+                      key={value} 
+                      label={displayLabel} 
+                      onRemove={() => handleOptionClick(value)} 
+                    />
+                  );
+                })}
+                
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    placeholder={placeholder}
+                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent w-32"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newValue.trim()) {
+                        e.preventDefault();
+                        addCustomValue();
+                      }
+                    }}
+                  />
+                  {newValue.trim() && (
+                    <button 
+                      type="button"
+                      onClick={addCustomValue}
+                      className="p-1 ml-1 text-primary"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {options.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleOptionClick(option.value)}
+                    className={cn(
+                      "text-left px-3 py-1.5 rounded-md text-sm",
+                      values.includes(option.value) 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
+  
+  const addCustomFunction = () => {
+    if (!newFunction.trim()) return;
+    
+    const currentFunctions = form.getValues("target_functions") || [];
+    if (!currentFunctions.includes(newFunction.trim())) {
+      form.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
+      setNewFunction("");
+    }
+  };
+  
+  const addCustomIndustry = () => {
+    if (!newIndustry.trim()) return;
+    
+    const currentIndustries = form.getValues("target_industries") || [];
+    if (!currentIndustries.includes(newIndustry.trim())) {
+      form.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
+      setNewIndustry("");
+    }
+  };
+  
+  const addCustomLocation = () => {
+    if (!newLocation.trim()) return;
+    
+    const currentLocations = form.getValues("target_locations") || [];
+    if (!currentLocations.includes(newLocation.trim())) {
+      form.setValue("target_locations", [...currentLocations, newLocation.trim()]);
+      setNewLocation("");
+      setLocationSearchOpen(false);
+    }
+  };
+  
+  // Filter locations based on search input
+  useEffect(() => {
+    if (newLocation.trim() === "") {
+      setFilteredLocations(locationOptions);
+    } else {
+      const filtered = locationOptions.filter(location => 
+        location.label.toLowerCase().includes(newLocation.toLowerCase())
+      );
+      setFilteredLocations(filtered);
+    }
+  }, [newLocation]);
+  
+  const handleLocationSelect = (location: string) => {
+    const currentLocations = form.getValues("target_locations") || [];
+    if (!currentLocations.includes(location)) {
+      form.setValue("target_locations", [...currentLocations, location]);
+    }
+    setNewLocation("");
+    setLocationSearchOpen(false);
+  };
+  
+  const renderWFHPreference = () => {
+    const values = form.watch("target_wfh_preference") || [];
+    
+    return (
+      <FormField
+        control={form.control}
+        name="target_wfh_preference"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Work From Home Preference</FormLabel>
+            <FormDescription>What is your preferred working arrangement?</FormDescription>
+            
+            <div className="flex flex-wrap gap-2">
+              {wfhOptions.map(option => (
+                <button
                   key={option.value}
-                  control={form.control}
-                  name={name as any}
-                  render={() => {
-                    return (
-                      <FormItem key={option.value} className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={values.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              const updatedValues = checked
-                                ? [...values, option.value]
-                                : values.filter(val => val !== option.value);
-                              form.setValue(name as any, updatedValues);
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">{option.label}</FormLabel>
-                      </FormItem>
-                    );
+                  type="button"
+                  onClick={() => {
+                    const currentValues = form.getValues("target_wfh_preference") || [];
+                    if (currentValues.includes(option.value)) {
+                      form.setValue("target_wfh_preference", currentValues.filter(v => v !== option.value));
+                    } else {
+                      form.setValue("target_wfh_preference", [...currentValues, option.value]);
+                    }
                   }}
-                />
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-sm",
+                    values.includes(option.value)
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  {option.label}
+                </button>
               ))}
             </div>
             
             <div className="flex flex-wrap mt-2">
               {values.map(value => {
-                const option = options.find(o => o.value === value);
-                return option ? (
+                const option = wfhOptions.find(o => o.value === value);
+                return option && (
                   <SelectionChip 
                     key={value} 
                     label={option.label} 
                     onRemove={() => {
                       form.setValue(
-                        name as any, 
-                        values.filter(v => v !== value)
-                      );
-                    }} 
-                  />
-                ) : (
-                  // This will display custom values that aren't in the predefined options
-                  <SelectionChip 
-                    key={value} 
-                    label={value} 
-                    onRemove={() => {
-                      form.setValue(
-                        name as any, 
+                        "target_wfh_preference", 
                         values.filter(v => v !== value)
                       );
                     }} 
@@ -372,61 +510,173 @@ const JobTargets = () => {
     );
   };
   
-  const renderFunctionsWithCustom = () => (
-    <div className="space-y-4">
-      {renderMultiSelectChips(
-        "target_functions",
-        functionOptions,
-        "Target Job Functions",
-        "What job functions are you interested in?"
-      )}
-      
-      <div className="flex mt-2 items-center">
-        <Input 
-          value={newFunction} 
-          onChange={(e) => setNewFunction(e.target.value)} 
-          placeholder="Add custom function"
-          className="mr-2 h-9 w-48"
-        />
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={addCustomFunction}
-          size="sm"
-        >
-          Add
-        </Button>
-      </div>
-    </div>
-  );
+  const renderSizePreference = () => {
+    const values = form.watch("target_sizes") || [];
+    
+    return (
+      <FormField
+        control={form.control}
+        name="target_sizes"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Company Size Preference</FormLabel>
+            <FormDescription>What size of company would you prefer?</FormDescription>
+            
+            <div className="flex flex-wrap gap-2">
+              {sizeOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    const currentValues = form.getValues("target_sizes") || [];
+                    if (currentValues.includes(option.value)) {
+                      form.setValue("target_sizes", currentValues.filter(v => v !== option.value));
+                    } else {
+                      form.setValue("target_sizes", [...currentValues, option.value]);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-sm",
+                    values.includes(option.value)
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex flex-wrap mt-2">
+              {values.map(value => {
+                const option = sizeOptions.find(o => o.value === value);
+                return option && (
+                  <SelectionChip 
+                    key={value} 
+                    label={option.label} 
+                    onRemove={() => {
+                      form.setValue(
+                        "target_sizes", 
+                        values.filter(v => v !== value)
+                      );
+                    }} 
+                  />
+                );
+              })}
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
   
-  const renderIndustriesWithCustom = () => (
-    <div className="space-y-4">
-      {renderMultiSelectChips(
-        "target_industries",
-        industryOptions,
-        "Target Industries",
-        "What industries are you interested in?"
-      )}
-      
-      <div className="flex mt-2 items-center">
-        <Input 
-          value={newIndustry} 
-          onChange={(e) => setNewIndustry(e.target.value)} 
-          placeholder="Add custom industry"
-          className="mr-2 h-9 w-48"
-        />
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={addCustomIndustry}
-          size="sm"
-        >
-          Add
-        </Button>
-      </div>
-    </div>
-  );
+  const renderLocationSelector = () => {
+    const locations = form.watch("target_locations") || [];
+    
+    return (
+      <FormField
+        control={form.control}
+        name="target_locations"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Preferred Locations</FormLabel>
+            <FormDescription>Where would you like to work?</FormDescription>
+            
+            <div className="relative">
+              <div 
+                className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background"
+                onClick={() => {
+                  setLocationSearchOpen(true);
+                  setTimeout(() => {
+                    locationInputRef.current?.focus();
+                  }, 100);
+                }}
+              >
+                {locations.map(location => {
+                  const option = locationOptions.find(o => o.value === location);
+                  const displayLabel = option ? option.label : location;
+                  
+                  return (
+                    <SelectionChip 
+                      key={location} 
+                      label={displayLabel} 
+                      onRemove={() => {
+                        form.setValue(
+                          "target_locations", 
+                          locations.filter(l => l !== location)
+                        );
+                      }} 
+                    />
+                  );
+                })}
+                
+                <div className="flex items-center flex-grow">
+                  <input
+                    ref={locationInputRef}
+                    type="text"
+                    value={newLocation}
+                    onChange={(e) => {
+                      setNewLocation(e.target.value);
+                      setLocationSearchOpen(true);
+                    }}
+                    placeholder={locations.length ? "Add another location..." : "Search locations..."}
+                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent flex-grow"
+                    onFocus={() => setLocationSearchOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newLocation.trim()) {
+                        e.preventDefault();
+                        addCustomLocation();
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button"
+                    className="p-1 text-muted-foreground"
+                    onClick={() => setLocationSearchOpen(!locationSearchOpen)}
+                  >
+                    <ChevronsUpDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              
+              {locationSearchOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
+                  {filteredLocations.length > 0 ? (
+                    filteredLocations.map(location => (
+                      <button
+                        key={location.value}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                        onClick={() => handleLocationSelect(location.value)}
+                      >
+                        {location.label}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-3 text-sm text-muted-foreground">
+                      <div className="flex justify-between items-center">
+                        <span>No locations found</span>
+                        {newLocation.trim() && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={addCustomLocation}
+                          >
+                            Add "{newLocation}"
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
   
   if (isLoading) {
     return (
@@ -484,34 +734,37 @@ const JobTargets = () => {
                   />
                 
                   {/* Target Job Functions with Custom Options */}
-                  {renderFunctionsWithCustom()}
+                  {renderChipSelector(
+                    "target_functions",
+                    functionOptions,
+                    "Target Job Functions",
+                    "What job functions are you interested in?",
+                    "Add function...",
+                    newFunction,
+                    setNewFunction,
+                    addCustomFunction
+                  )}
                   
-                  {/* Target Industries with Custom Options - Moved up under Functions */}
-                  {renderIndustriesWithCustom()}
+                  {/* Target Industries with Custom Options */}
+                  {renderChipSelector(
+                    "target_industries",
+                    industryOptions,
+                    "Target Industries",
+                    "What industries are you interested in?",
+                    "Add industry...",
+                    newIndustry,
+                    setNewIndustry,
+                    addCustomIndustry
+                  )}
                   
                   {/* Preferred Locations */}
-                  {renderMultiSelectChips(
-                    "target_locations",
-                    locationOptions,
-                    "Preferred Locations",
-                    "Where would you like to work?"
-                  )}
+                  {renderLocationSelector()}
                   
                   {/* Work From Home Preference */}
-                  {renderMultiSelectChips(
-                    "target_wfh_preference",
-                    wfhOptions,
-                    "Work From Home Preference",
-                    "What is your preferred working arrangement?"
-                  )}
+                  {renderWFHPreference()}
                   
                   {/* Company Size Preference */}
-                  {renderMultiSelectChips(
-                    "target_sizes",
-                    sizeOptions,
-                    "Company Size Preference",
-                    "What size of company would you prefer?"
-                  )}
+                  {renderSizePreference()}
                   
                   {/* Similar Companies */}
                   <FormField
