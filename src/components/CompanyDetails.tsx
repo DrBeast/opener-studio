@@ -51,7 +51,7 @@ interface CompanyData {
   name: string;
   industry?: string;
   hq_location?: string;
-  user_priority?: 'High' | 'Medium' | 'Low' | 'Maybe';
+  user_priority?: 'Top' | 'Medium' | 'Maybe';
   user_notes?: string;
   ai_description?: string;
   estimated_headcount?: string;
@@ -303,9 +303,8 @@ export function CompanyDetails({
                     onChange={handleChange}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="High">High</option>
+                    <option value="Top">Top</option>
                     <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
                     <option value="Maybe">Maybe</option>
                   </select>
                 </div>
