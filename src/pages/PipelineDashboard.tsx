@@ -371,9 +371,8 @@ const PipelineDashboard = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="">All priorities</SelectItem>
-                              <SelectItem value="High">High</SelectItem>
+                              <SelectItem value="Top">Top</SelectItem>
                               <SelectItem value="Medium">Medium</SelectItem>
-                              <SelectItem value="Low">Low</SelectItem>
                               <SelectItem value="Maybe">Maybe</SelectItem>
                             </SelectContent>
                           </Select>
@@ -569,9 +568,8 @@ const PipelineDashboard = () => {
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="High">High</SelectItem>
+                                      <SelectItem value="Top">Top</SelectItem>
                                       <SelectItem value="Medium">Medium</SelectItem>
-                                      <SelectItem value="Low">Low</SelectItem>
                                       <SelectItem value="Maybe">Maybe</SelectItem>
                                     </SelectContent>
                                   </Select>
@@ -579,9 +577,8 @@ const PipelineDashboard = () => {
                               ) : (
                                 <div className="flex items-center space-x-1 group">
                                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                    ${company.user_priority === 'High' ? 'bg-red-100 text-red-800' : 
+                                    ${company.user_priority === 'Top' ? 'bg-red-100 text-red-800' : 
                                       company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                      company.user_priority === 'Low' ? 'bg-green-100 text-green-800' :
                                       'bg-gray-100 text-gray-800'}`}
                                     onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}
                                   >
@@ -809,3 +806,4 @@ const PipelineDashboard = () => {
 };
 
 export default PipelineDashboard;
+
