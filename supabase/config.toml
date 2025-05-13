@@ -18,3 +18,6 @@ verify_jwt = false
 
 [functions.link_guest_profile]
 verify_jwt = false
+
+[functions.get_companies_overview]
+verify_jwt = true

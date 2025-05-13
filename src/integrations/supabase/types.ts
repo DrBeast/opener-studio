@@ -20,6 +20,7 @@ export type Database = {
           generated_criteria_highlights: Json | null
           hq_location: string | null
           industry: string | null
+          is_blacklisted: boolean | null
           match_quality_score: number | null
           name: string
           public_private: string | null
@@ -40,6 +41,7 @@ export type Database = {
           generated_criteria_highlights?: Json | null
           hq_location?: string | null
           industry?: string | null
+          is_blacklisted?: boolean | null
           match_quality_score?: number | null
           name: string
           public_private?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           generated_criteria_highlights?: Json | null
           hq_location?: string | null
           industry?: string | null
+          is_blacklisted?: boolean | null
           match_quality_score?: number | null
           name?: string
           public_private?: string | null
