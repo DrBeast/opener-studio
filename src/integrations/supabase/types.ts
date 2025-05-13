@@ -434,7 +434,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_companies_overview: {
+        Args: { user_id_param: string }
+        Returns: {
+          company_id: string
+          name: string
+          industry: string
+          ai_description: string
+          hq_location: string
+          wfh_policy: string
+          match_quality_score: number
+          ai_match_reasoning: string
+          user_priority: string
+          latest_update: Json
+          next_followup: Json
+          contacts: Json
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

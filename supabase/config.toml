@@ -21,3 +21,9 @@ verify_jwt = false
 
 [functions.get_companies_overview]
 verify_jwt = true
+
+[functions.add_company_by_name]
+verify_jwt = true
+
+[functions.remove_companies]
+verify_jwt = true

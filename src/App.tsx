@@ -21,6 +21,7 @@ import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import CompaniesDashboard from "@/pages/CompaniesDashboard";
 import PipelineDashboard from "@/pages/PipelineDashboard";
+import ConsolidatedJobSearch from "@/pages/ConsolidatedJobSearch";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -51,6 +52,7 @@ const App = () => (
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/companies" element={<CompaniesDashboard />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
+                <Route path="/job-search" element={<ConsolidatedJobSearch />} />
               </Route>
               
               {/* 404 Route */}

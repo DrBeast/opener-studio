@@ -41,24 +41,21 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Call the get_companies_overview function with the user's ID
+    const { data, error: fnError } = await supabase
+      .rpc('get_companies_overview', { user_id_param: user.id });
     
-    // This is a placeholder that fetches companies from the database
-    const { data: companies, error: companiesError } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('name', { ascending: true });
-    
-    if (companiesError) {
-      console.error('Error fetching companies:', companiesError);
-      return new Response(JSON.stringify({ error: companiesError.message }), {
+    if (fnError) {
+      console.error('Error fetching companies overview:', fnError);
+      return new Response(JSON.stringify({ error: fnError.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
     // Return the companies data
-    return new Response(JSON.stringify({ companies }), {
+    return new Response(JSON.stringify({ companies: data }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
