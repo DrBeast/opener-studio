@@ -441,9 +441,7 @@ const Profile = () => {
           </Card>
         </div>
         
-        <div className="md:col-span-1 space-y-6">
-          <ProgressTracker />
-        </div>
+        
       </div>
     </div>;
 };
