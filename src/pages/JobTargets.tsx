@@ -282,8 +282,9 @@ const JobTargets = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {isEditing && <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-                      <h3 className="font-medium text-blue-800">Updating Your Preferences</h3>
-                      <p className="text-sm text-blue-700 mt-1">Review and refine what roles and companies you're interested in to keep your recommendations relevant. Your current preferences are already loaded. Make any changes you'd like to update your job targets.</p>
+                      <h3 className="font-medium text-blue-800">Why This Matters</h3>
+                      <p className="text-sm text-blue-700 mt-1">The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+Your preferences aren't set in stone - you can always come back and update them as your job search evolves.</p>
                     </div>}
                   
                   {/* Moved to the top: Describe Your Ideal Role and Company */}
@@ -291,7 +292,7 @@ const JobTargets = () => {
                   field
                 }) => <FormItem>
                         <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>Provide any details in free form about your dream job or the companies you'd like to work for.</FormDescription>
+                        <FormDescription>Tell us what matters to you about your next job - in your own words or using the criteria below.</FormDescription>
                         <FormControl>
                           <Textarea placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." className="min-h-[150px]" {...field} />
                         </FormControl>
@@ -352,23 +353,7 @@ const JobTargets = () => {
           </Card>
         </div>
         
-        <div className="md:col-span-1">
-          <ProgressTracker />
-          
-          <Card className="mt-6 bg-blue-50 border border-blue-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-md text-blue-800">Why This Matters</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-blue-700">
-              <p className="mb-3">
-                The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-              </p>
-              <p>
-                Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        
       </div>
     </div>;
 };
