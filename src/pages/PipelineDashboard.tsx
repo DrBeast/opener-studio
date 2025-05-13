@@ -50,7 +50,7 @@ interface CompanyData {
   name: string;
   industry?: string;
   hq_location?: string;
-  user_priority?: 'High' | 'Medium' | 'Low' | 'Maybe';
+  user_priority?: 'Top' | 'Medium' | 'Maybe';
   user_notes?: string;
   ai_description?: string;
   updated_at?: string;
