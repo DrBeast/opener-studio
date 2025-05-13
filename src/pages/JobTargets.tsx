@@ -278,7 +278,7 @@ const JobTargets = () => {
               </CardTitle>
               
             </CardHeader>
-            <CardContent>
+            <CardContent className="Button Caption: Generate Companies">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {isEditing && <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
@@ -327,23 +327,11 @@ Your preferences aren't set in stone - you can always come back and update them 
                   
                   <FormField control={form.control} name="visa_sponsorship_required" render={({
                   field
-                }) => <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel>Visa Sponsorship Required</FormLabel>
-                          <FormDescription>
-                            Do you require visa sponsorship from employers?
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>} />
+                }) => {}} />
                   
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => navigate("/profile")}>
-                      Back to Profile
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    
+                    <Button type="submit" disabled={isSubmitting} className="Change button caption to \"Generate Companies\", generate the companies using the edge function, and take the user to see the generated companies list.">
                       {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
                     </Button>
                   </div>
