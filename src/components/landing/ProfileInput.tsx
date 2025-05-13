@@ -321,15 +321,12 @@ const ProfileInput = () => {
         </TabsContent>
         
         <TabsContent value="cv" className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Copy and paste the content of your CV or resume into the text box below.
-            This helps us extract your key skills and experience.
-          </p>
+          <p className="text-sm text-muted-foreground">Copy and paste the content of your CV or resume into the text box below. This helps us extract your key skills and experience. Don't worry about formatting - the AI will sort it out.</p>
           <Textarea placeholder="Paste your CV content here..." className="min-h-[200px]" value={cvContent} onChange={e => setCvContent(e.target.value)} />
         </TabsContent>
         
         <TabsContent value="freeform" className="space-y-4">
-          <p className="text-sm text-muted-foreground">Tell us about your professional background, bio, education, key skills, and experience in your own words.</p>
+          <p className="text-sm text-muted-foreground">Paste any information you have about your professional background here.</p>
           <Textarea placeholder="Describe your professional background..." className="min-h-[200px]" value={freeformContent} onChange={e => setFreeformContent(e.target.value)} />
         </TabsContent>
 
