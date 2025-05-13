@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -187,12 +186,12 @@ const JobTargets = () => {
       if (!user) return;
       setIsLoading(true);
       try {
-        // Fetch user profile to get location data
+        // Fetch user profile to get location data - using the correct table name "user_profiles"
         const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
+          .from("user_profiles")
           .select("location")
-          .eq("id", user.id)
-          .single();
+          .eq("user_id", user.id)
+          .maybeSingle();
           
         if (profileData && !profileError) {
           setUserProfile(profileData);
