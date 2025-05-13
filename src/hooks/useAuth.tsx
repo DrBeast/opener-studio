@@ -2,7 +2,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { toast } from "@/components/ui/sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -63,39 +62,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLinkingInProgress(true);
     
     try {
-      // Clear any existing success toasts related to profile linking
-      toast.dismiss("profile-linking-success");
-      
-      // Show linking in progress toast
-      toast.info("Linking your profile data...", { id: "profile-linking-progress" });
-      
-      // First, check if the user already has a profile
-      const { data: existingProfile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (existingProfile) {
-        console.log("User already has a profile:", existingProfile);
-        
-        // Check if it's empty or just has basic info
-        const hasContent = existingProfile.linkedin_content || 
-                         existingProfile.additional_details || 
-                         existingProfile.cv_content;
-        
-        if (!hasContent) {
-          console.log("Existing profile has no content, will proceed with linking guest data");
-        } else {
-          console.log("Existing profile has content, not overwriting with guest data");
-          // Dismiss linking progress toast and show success
-          toast.dismiss("profile-linking-progress");
-          toast.success("Profile data already exists for your account", { id: "profile-linking-success" });
-          setLinkingInProgress(false);
-          return true;
-        }
-      }
-      
       // Call the edge function to link the profile
       const { data, error } = await supabase.functions.invoke("link_guest_profile", {
         body: { userId, sessionId }
@@ -103,8 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error("Error linking guest profile:", error);
-        // Don't show error toast anymore
-        toast.dismiss("profile-linking-progress");
         setLinkingInProgress(false);
         return false;
       }
@@ -117,10 +81,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           success: true
         }));
         console.log("Guest profile successfully linked to user account:", data);
-        
-        // Dismiss linking progress toast and show success
-        toast.dismiss("profile-linking-progress");
-        toast.success("Profile successfully linked to your account", { id: "profile-linking-success" });
         
         // Verify the linking was successful
         setTimeout(async () => {
@@ -149,12 +109,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       }
       
-      toast.dismiss("profile-linking-progress");
       setLinkingInProgress(false);
       return false;
     } catch (err) {
       console.error("Failed to link guest profile:", err);
-      toast.dismiss("profile-linking-progress");
       setLinkingInProgress(false);
       return false;
     }
@@ -212,9 +170,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Clear any existing success toasts
-      toast.dismiss("profile-linking-success");
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -231,19 +186,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           await linkGuestProfile(data.user.id);
         }, 500);
       }
-
-      toast.success("Successfully logged in");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in");
       throw error;
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Clear any existing success toasts related to profile linking
-      toast.dismiss("profile-linking-success");
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -287,10 +236,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }, 1000);
       }
-      
-      toast.success("Account created successfully!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign up");
       throw error;
     }
   };
@@ -298,9 +244,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      toast.success("Successfully logged out");
     } catch (error: any) {
-      toast.error("Failed to sign out");
+      console.error("Failed to sign out:", error);
     }
   };
 
@@ -317,11 +262,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        toast.error(`LinkedIn login failed`);
         throw error;
       }
     } catch (error: any) {
-      toast.error(`Failed to sign in with LinkedIn`);
+      console.error("Failed to sign in with LinkedIn:", error);
       throw error;
     }
   };

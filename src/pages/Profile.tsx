@@ -315,11 +315,12 @@ const Profile = () => {
       </ul>;
   };
   
-  return <div className="container mx-auto py-8 max-w-4xl">
+  return (
+    <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid gap-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
@@ -415,7 +416,12 @@ const Profile = () => {
           
           {/* Development Tools Card */}
           <Card>
-            {/* ... keep existing code (development tools section) */}
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-2xl font-bold">Development Tools</CardTitle>
+              <Button variant="outline" size="sm" onClick={() => setShowDevOptions(!showDevOptions)}>
+                {showDevOptions ? "Hide Dev Options" : "Show Dev Options"}
+              </Button>
+            </CardHeader>
             {showDevOptions && <CardContent>
                 <div className="space-y-4">
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -439,9 +445,9 @@ const Profile = () => {
               </CardContent>}
           </Card>
         </div>
-        
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Profile;

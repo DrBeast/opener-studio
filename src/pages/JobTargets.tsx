@@ -4,18 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import ProgressTracker from "@/components/ProgressTracker";
+import { X } from "lucide-react";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -26,7 +25,9 @@ const formSchema = z.object({
   target_sizes: z.array(z.string()).optional(),
   target_public_private: z.array(z.string()).optional(),
   similar_companies: z.array(z.string()).optional(),
-  visa_sponsorship_required: z.boolean().default(false)
+  visa_sponsorship_required: z.boolean().default(false),
+  custom_functions: z.array(z.string()).optional(),
+  custom_industries: z.array(z.string()).optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -169,6 +170,8 @@ const JobTargets = () => {
   const [existingData, setExistingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [newFunction, setNewFunction] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -181,7 +184,9 @@ const JobTargets = () => {
       target_sizes: [],
       target_public_private: [],
       similar_companies: [],
-      visa_sponsorship_required: false
+      visa_sponsorship_required: false,
+      custom_functions: [],
+      custom_industries: []
     }
   });
   
@@ -210,7 +215,9 @@ const JobTargets = () => {
             target_sizes: ensureStringArray(data.target_sizes),
             target_public_private: ensureStringArray(data.target_public_private),
             similar_companies: ensureStringArray(data.similar_companies),
-            visa_sponsorship_required: data.visa_sponsorship_required || false
+            visa_sponsorship_required: data.visa_sponsorship_required || false,
+            custom_functions: ensureStringArray(data.custom_functions || []),
+            custom_industries: ensureStringArray(data.custom_industries || [])
           });
         }
       } catch (error: any) {
@@ -258,30 +265,74 @@ const JobTargets = () => {
     }
   };
   
-  const renderMultiSelect = (
+  const addCustomFunction = () => {
+    if (!newFunction.trim()) return;
+    
+    const currentCustomFunctions = form.getValues("custom_functions") || [];
+    if (!currentCustomFunctions.includes(newFunction.trim())) {
+      form.setValue("custom_functions", [...currentCustomFunctions, newFunction.trim()]);
+      setNewFunction("");
+    }
+  };
+  
+  const removeCustomFunction = (func: string) => {
+    const currentCustomFunctions = form.getValues("custom_functions") || [];
+    form.setValue("custom_functions", currentCustomFunctions.filter(f => f !== func));
+  };
+  
+  const addCustomIndustry = () => {
+    if (!newIndustry.trim()) return;
+    
+    const currentCustomIndustries = form.getValues("custom_industries") || [];
+    if (!currentCustomIndustries.includes(newIndustry.trim())) {
+      form.setValue("custom_industries", [...currentCustomIndustries, newIndustry.trim()]);
+      setNewIndustry("");
+    }
+  };
+  
+  const removeCustomIndustry = (industry: string) => {
+    const currentCustomIndustries = form.getValues("custom_industries") || [];
+    form.setValue("custom_industries", currentCustomIndustries.filter(i => i !== industry));
+  };
+  
+  // Chip component for selections
+  const SelectionChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
+    <div className="inline-flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 text-sm mr-2 mb-2">
+      <span>{label}</span>
+      <button 
+        type="button"
+        onClick={onRemove} 
+        className="ml-2 rounded-full hover:bg-primary/20 p-0.5"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+  
+  const renderMultiSelectChips = (
     name: keyof FormValues, 
-    options: { value: string; label: string; }[], 
-    label: string, 
-    description: string
+    options: { value: string; label: string; }[],
+    label: string,
+    description?: string
   ) => {
-    if (typeof form.watch(name) !== 'object') return null;
+    const values = form.watch(name) as string[] || [];
     
     return (
       <FormField
         control={form.control}
         name={name as any}
-        render={({ field }) => (
+        render={() => (
           <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
+            {description && <FormDescription>{description}</FormDescription>}
             
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {options.map(option => (
                 <FormField
                   key={option.value}
                   control={form.control}
                   name={name as any}
-                  render={({ field }) => {
-                    const values = field.value as string[] || [];
+                  render={() => {
                     return (
                       <FormItem key={option.value} className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
@@ -291,7 +342,7 @@ const JobTargets = () => {
                               const updatedValues = checked
                                 ? [...values, option.value]
                                 : values.filter(val => val !== option.value);
-                              field.onChange(updatedValues);
+                              form.setValue(name as any, updatedValues);
                             }}
                           />
                         </FormControl>
@@ -302,11 +353,113 @@ const JobTargets = () => {
                 />
               ))}
             </div>
+            
+            <div className="flex flex-wrap mt-2">
+              {values.map(value => {
+                const option = options.find(o => o.value === value);
+                return option ? (
+                  <SelectionChip 
+                    key={value} 
+                    label={option.label} 
+                    onRemove={() => {
+                      form.setValue(
+                        name as any, 
+                        values.filter(v => v !== value)
+                      );
+                    }} 
+                  />
+                ) : null;
+              })}
+            </div>
           </FormItem>
         )}
       />
     );
   };
+  
+  const renderFunctionsWithCustom = () => (
+    <div className="space-y-4">
+      {renderMultiSelectChips(
+        "target_functions",
+        functionOptions,
+        "Target Job Functions",
+        "What job functions are you interested in?"
+      )}
+      
+      <div className="border-t pt-3">
+        <FormLabel>Add Custom Job Functions</FormLabel>
+        <FormDescription>Add job functions that aren't in the list above</FormDescription>
+        
+        <div className="flex mt-2">
+          <Input 
+            value={newFunction} 
+            onChange={(e) => setNewFunction(e.target.value)} 
+            placeholder="E.g. Business Development"
+            className="mr-2"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={addCustomFunction}
+          >
+            Add
+          </Button>
+        </div>
+        
+        <div className="flex flex-wrap mt-3">
+          {(form.watch("custom_functions") || []).map((func, index) => (
+            <SelectionChip 
+              key={index} 
+              label={func} 
+              onRemove={() => removeCustomFunction(func)} 
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+  
+  const renderIndustriesWithCustom = () => (
+    <div className="space-y-4">
+      {renderMultiSelectChips(
+        "target_industries",
+        industryOptions,
+        "Target Industries",
+        "What industries are you interested in?"
+      )}
+      
+      <div className="border-t pt-3">
+        <FormLabel>Add Custom Industries</FormLabel>
+        <FormDescription>Add industries that aren't in the list above</FormDescription>
+        
+        <div className="flex mt-2">
+          <Input 
+            value={newIndustry} 
+            onChange={(e) => setNewIndustry(e.target.value)} 
+            placeholder="E.g. Renewable Energy"
+            className="mr-2"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={addCustomIndustry}
+          >
+            Add
+          </Button>
+        </div>
+        
+        <div className="flex flex-wrap mt-3">
+          {(form.watch("custom_industries") || []).map((industry, index) => (
+            <SelectionChip 
+              key={index} 
+              label={industry} 
+              onRemove={() => removeCustomIndustry(industry)} 
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   
   if (isLoading) {
     return (
@@ -320,8 +473,8 @@ const JobTargets = () => {
     <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 gap-8">
+        <div className="space-y-8">
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl font-bold">
@@ -363,48 +516,45 @@ const JobTargets = () => {
                     )}
                   />
                 
-                  {renderMultiSelect(
-                    "target_functions",
-                    functionOptions,
-                    "Target Job Functions",
-                    "What job functions are you interested in?"
-                  )}
+                  {/* Target Job Functions with Custom Options */}
+                  {renderFunctionsWithCustom()}
                   
-                  {renderMultiSelect(
+                  {/* Preferred Locations */}
+                  {renderMultiSelectChips(
                     "target_locations",
                     locationOptions,
                     "Preferred Locations",
                     "Where would you like to work?"
                   )}
                   
-                  {renderMultiSelect(
+                  {/* Work From Home Preference */}
+                  {renderMultiSelectChips(
                     "target_wfh_preference",
                     wfhOptions,
                     "Work From Home Preference",
                     "What is your preferred working arrangement?"
                   )}
                   
-                  {renderMultiSelect(
-                    "target_industries",
-                    industryOptions,
-                    "Target Industries",
-                    "What industries are you interested in?"
-                  )}
+                  {/* Target Industries with Custom Options */}
+                  {renderIndustriesWithCustom()}
                   
-                  {renderMultiSelect(
+                  {/* Company Size Preference */}
+                  {renderMultiSelectChips(
                     "target_sizes",
                     sizeOptions,
                     "Company Size Preference",
                     "What size of company would you prefer?"
                   )}
                   
-                  {renderMultiSelect(
+                  {/* Public/Private Company Preference */}
+                  {renderMultiSelectChips(
                     "target_public_private",
                     publicPrivateOptions,
                     "Public/Private Company Preference",
                     "Do you prefer public or private companies?"
                   )}
                   
+                  {/* Similar Companies */}
                   <FormField
                     control={form.control}
                     name="similar_companies"
@@ -428,12 +578,6 @@ const JobTargets = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="visa_sponsorship_required"
-                    render={() => (<></>)}
                   />
                   
                   <div className="flex justify-end space-x-4">
