@@ -318,6 +318,14 @@ const Profile = () => {
       
       <div className="grid gap-6">
         <div className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Your Profile</h1>
+            <Button asChild variant="outline">
+              <Link to="/job-search">
+                View Companies & Contacts
+              </Link>
+            </Button>
+          </div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>

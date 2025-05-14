@@ -17,7 +17,7 @@ const Header = () => {
   const isLandingPage = location.pathname === "/";
   
   // Determine where the logo should link to
-  const logoLinkPath = user ? "/profile" : "/";
+  const logoLinkPath = user ? "/job-search" : "/";
 
   return (
     <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
@@ -39,11 +39,11 @@ const Header = () => {
                 <Link to="/profile" className={`text-sm transition-colors ${isActive("/profile") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Profile
                 </Link>
+                <Link to="/job-search" className={`text-sm transition-colors ${isActive("/job-search") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
+                  Companies & Contacts
+                </Link>
                 <Link to="/job-targets" className={`text-sm transition-colors ${isActive("/job-targets") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Targets
-                </Link>
-                <Link to="/companies" className={`text-sm transition-colors ${isActive("/companies") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Companies
                 </Link>
                 <Link to="/pipeline" className={`text-sm transition-colors ${isActive("/pipeline") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Pipeline

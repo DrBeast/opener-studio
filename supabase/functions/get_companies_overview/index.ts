@@ -42,20 +42,78 @@ serve(async (req) => {
       });
     }
 
-    // Call the get_companies_overview function with the user's ID
-    const { data, error: fnError } = await supabase
-      .rpc('get_companies_overview', { user_id_param: user.id });
+    // Get companies for the user
+    // Using direct SQL query to avoid GROUP BY issues
+    const { data, error } = await supabase.from('companies')
+      .select(`
+        company_id,
+        name,
+        industry,
+        hq_location,
+        wfh_policy,
+        ai_description,
+        match_quality_score,
+        ai_match_reasoning,
+        user_priority,
+        contacts (
+          contact_id,
+          first_name,
+          last_name,
+          role
+        )
+      `)
+      .eq('user_id', user.id);
     
-    if (fnError) {
-      console.error('Error fetching companies overview:', fnError);
-      return new Response(JSON.stringify({ error: fnError.message }), {
+    if (error) {
+      console.error('Error fetching companies:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // For each company, get the latest interaction and next follow-up
+    const companies = await Promise.all(data.map(async (company) => {
+      // Get the latest interaction
+      const { data: latestInteraction, error: latestError } = await supabase
+        .from('interactions')
+        .select('interaction_id, description, interaction_date, interaction_type')
+        .eq('company_id', company.company_id)
+        .order('interaction_date', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Get the next follow-up
+      const { data: nextFollowup, error: followupError } = await supabase
+        .from('interactions')
+        .select('interaction_id, description, follow_up_due_date, interaction_type')
+        .eq('company_id', company.company_id)
+        .not('follow_up_due_date', 'is', null)
+        .gte('follow_up_due_date', new Date().toISOString())
+        .order('follow_up_due_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      // Add these to the company object
+      return {
+        ...company,
+        latest_update: latestInteraction || { 
+          interaction_id: null, 
+          description: null, 
+          interaction_date: null, 
+          interaction_type: null 
+        },
+        next_followup: nextFollowup || { 
+          interaction_id: null, 
+          description: null, 
+          follow_up_due_date: null, 
+          interaction_type: null 
+        }
+      };
+    }));
     
     // Return the companies data
-    return new Response(JSON.stringify({ companies: data }), {
+    return new Response(JSON.stringify({ companies }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
