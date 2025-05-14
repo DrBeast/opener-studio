@@ -9,7 +9,6 @@ import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
-
 interface UserProfile {
   user_id: string;
   first_name?: string;
@@ -314,9 +313,7 @@ const Profile = () => {
         {items.map((item, index) => <li key={index}>{item}</li>)}
       </ul>;
   };
-  
-  return (
-    <div className="container mx-auto py-8 max-w-4xl">
+  return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="grid gap-6">
@@ -416,12 +413,7 @@ const Profile = () => {
           
           {/* Development Tools Card */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-2xl font-bold">Development Tools</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => setShowDevOptions(!showDevOptions)}>
-                {showDevOptions ? "Hide Dev Options" : "Show Dev Options"}
-              </Button>
-            </CardHeader>
+            
             {showDevOptions && <CardContent>
                 <div className="space-y-4">
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -446,8 +438,6 @@ const Profile = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Profile;
