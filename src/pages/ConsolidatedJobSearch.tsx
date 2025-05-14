@@ -5,6 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { cn } from "@/lib/utils";
 
 // UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 // Icons
 import { 
@@ -33,7 +39,8 @@ import {
   AlertCircle,
   MessageCircle,
   CheckCircle,
-  X
+  X,
+  ChevronsUpDown
 } from "lucide-react";
 
 // Job Target Components
@@ -41,6 +48,158 @@ import { CompanyDetails } from "@/components/CompanyDetails";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { MessageGeneration } from "@/components/MessageGeneration";
+
+// Target Criteria Form Schema
+const targetCriteriaSchema = z.object({
+  target_functions: z.array(z.string()).optional(),
+  target_locations: z.array(z.string()).optional(),
+  target_wfh_preference: z.array(z.string()).optional(),
+  free_form_role_and_company_description: z.string().optional(),
+  target_industries: z.array(z.string()).optional(),
+  target_sizes: z.array(z.string()).optional(),
+  similar_companies: z.array(z.string()).optional(),
+  visa_sponsorship_required: z.boolean().default(false)
+});
+
+type TargetCriteriaValues = z.infer<typeof targetCriteriaSchema>;
+
+// Sample options for each select field (copied from JobTargets.tsx)
+const functionOptions = [{
+  value: "engineering",
+  label: "Engineering"
+}, {
+  value: "product_management",
+  label: "Product Management"
+}, {
+  value: "design",
+  label: "Design"
+}, {
+  value: "sales",
+  label: "Sales"
+}, {
+  value: "marketing",
+  label: "Marketing"
+}, {
+  value: "finance",
+  label: "Finance"
+}, {
+  value: "hr",
+  label: "Human Resources"
+}, {
+  value: "operations",
+  label: "Operations"
+}, {
+  value: "customer_support",
+  label: "Customer Support"
+}, {
+  value: "data_science",
+  label: "Data Science"
+}];
+
+const locationOptions = [{
+  value: "san_francisco",
+  label: "San Francisco"
+}, {
+  value: "new_york",
+  label: "New York"
+}, {
+  value: "boston",
+  label: "Boston"
+}, {
+  value: "seattle",
+  label: "Seattle"
+}, {
+  value: "los_angeles",
+  label: "Los Angeles"
+}, {
+  value: "chicago",
+  label: "Chicago"
+}, {
+  value: "austin",
+  label: "Austin"
+}, {
+  value: "remote_us",
+  label: "Remote (US)"
+}, {
+  value: "remote_global",
+  label: "Remote (Global)"
+}];
+
+const wfhOptions = [{
+  value: "remote",
+  label: "Remote"
+}, {
+  value: "hybrid",
+  label: "Hybrid"
+}, {
+  value: "onsite",
+  label: "On-site"
+}];
+
+const industryOptions = [{
+  value: "tech",
+  label: "Tech"
+}, {
+  value: "healthcare",
+  label: "Healthcare"
+}, {
+  value: "finance",
+  label: "Finance"
+}, {
+  value: "education",
+  label: "Education"
+}, {
+  value: "retail",
+  label: "Retail"
+}, {
+  value: "manufacturing",
+  label: "Manufacturing"
+}, {
+  value: "media",
+  label: "Media & Entertainment"
+}, {
+  value: "government",
+  label: "Government"
+}, {
+  value: "non_profit",
+  label: "Non-profit"
+}, {
+  value: "energy",
+  label: "Energy"
+}, {
+  value: "biotech",
+  label: "Biotech"
+}, {
+  value: "crypto",
+  label: "Crypto"
+}, {
+  value: "ai_llm",
+  label: "AI / LLM"
+}, {
+  value: "automotive",
+  label: "Automotive"
+}];
+
+const sizeOptions = [{
+  value: "startup",
+  label: "Startup (<50)"
+}, {
+  value: "small",
+  label: "Small (50-200)"
+}, {
+  value: "mid",
+  label: "Mid-sized (201-1000)"
+}, {
+  value: "large",
+  label: "Large (1000+)"
+}];
+
+// Helper function to safely cast JSON data to string arrays
+const ensureStringArray = (value: any): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(String);
+  return [];
+};
 
 // Interfaces
 interface CompanyData {
@@ -130,7 +289,28 @@ const ConsolidatedJobSearch = () => {
 
   // Target criteria Form state
   const [showTargetForm, setShowTargetForm] = useState(false);
-  
+  const [newFunction, setNewFunction] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [filteredLocations, setFilteredLocations] = useState(locationOptions);
+  const [locationSearchOpen, setLocationSearchOpen] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize the form
+  const criteriaForm = useForm<TargetCriteriaValues>({
+    resolver: zodResolver(targetCriteriaSchema),
+    defaultValues: {
+      target_functions: [],
+      target_locations: [],
+      target_wfh_preference: [],
+      free_form_role_and_company_description: "",
+      target_industries: [],
+      target_sizes: [],
+      similar_companies: [],
+      visa_sponsorship_required: false
+    }
+  });
+
   // Fetch companies overview
   const { data: companiesData, isLoading, error, refetch } = useQuery({
     queryKey: ['companies-overview', filterPriority, sortField, sortDirection],
@@ -165,6 +345,22 @@ const ConsolidatedJobSearch = () => {
     },
     enabled: !!user
   });
+
+  // Effect to set form values when target criteria data is loaded
+  useEffect(() => {
+    if (targetCriteria) {
+      criteriaForm.reset({
+        target_functions: ensureStringArray(targetCriteria.target_functions),
+        target_locations: ensureStringArray(targetCriteria.target_locations),
+        target_wfh_preference: ensureStringArray(targetCriteria.target_wfh_preference),
+        free_form_role_and_company_description: targetCriteria.free_form_role_and_company_description || "",
+        target_industries: ensureStringArray(targetCriteria.target_industries),
+        target_sizes: ensureStringArray(targetCriteria.target_sizes),
+        similar_companies: ensureStringArray(targetCriteria.similar_companies),
+        visa_sponsorship_required: false // Default value
+      });
+    }
+  }, [targetCriteria, criteriaForm]);
 
   // Remove companies mutation
   const removeCompaniesMutation = useMutation({
@@ -314,6 +510,72 @@ const ConsolidatedJobSearch = () => {
     setIsAddInteractionOpen(true);
   };
 
+  // Target criteria submission handler
+  const onTargetCriteriaSubmit = async (values: TargetCriteriaValues) => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save criteria",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingCompanies(true);
+    
+    try {
+      // Convert arrays to objects for storage
+      const formatArrayToObject = (arr: string[] | undefined) => {
+        if (!arr) return {};
+        return arr.reduce((obj, item) => ({ ...obj, [item]: true }), {});
+      };
+      
+      const criteriaData = {
+        criteria_id: targetCriteria?.criteria_id || crypto.randomUUID(),
+        user_id: user.id,
+        free_form_role_and_company_description: values.free_form_role_and_company_description,
+        similar_companies: formatArrayToObject(values.similar_companies),
+        target_industries: formatArrayToObject(values.target_industries),
+        target_locations: formatArrayToObject(values.target_locations),
+        target_sizes: formatArrayToObject(values.target_sizes),
+        target_functions: formatArrayToObject(values.target_functions),
+        target_wfh_preference: formatArrayToObject(values.target_wfh_preference),
+        updated_at: new Date().toISOString(),
+        created_at: targetCriteria?.created_at || new Date().toISOString(),
+      };
+      
+      const { error } = targetCriteria
+        ? await supabase
+            .from('target_criteria')
+            .update(criteriaData)
+            .eq('criteria_id', criteriaData.criteria_id)
+        : await supabase
+            .from('target_criteria')
+            .insert([criteriaData]);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Target criteria saved successfully"
+      });
+      
+      // After saving, generate more companies and refresh criteria data
+      queryClient.invalidateQueries({ queryKey: ['target-criteria'] });
+      handleGenerateMoreCompanies();
+      setShowTargetForm(false);
+    } catch (error: any) {
+      console.error("Error saving target criteria:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save target criteria",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingCompanies(false);
+    }
+  };
+
   // Handle generate more companies
   const handleGenerateMoreCompanies = async (useDifferentCriteria = false) => {
     // This is a placeholder - in a real implementation, you would call 
@@ -363,6 +625,396 @@ const ConsolidatedJobSearch = () => {
     return firstName + (lastInitial ? ` ${lastInitial}.` : '');
   };
 
+  // Chip component for selections
+  const SelectionChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
+    <div className="inline-flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 text-sm mr-2 mb-2">
+      <span>{label}</span>
+      <button 
+        type="button"
+        onClick={onRemove} 
+        className="ml-2 rounded-full hover:bg-primary/20 p-0.5"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+  
+  // Common function to handle chip selections for both functions and industries
+  const renderChipSelector = (
+    name: "target_functions" | "target_industries", 
+    options: { value: string; label: string }[],
+    label: string,
+    description: string,
+    placeholder: string,
+    newValue: string,
+    setNewValue: React.Dispatch<React.SetStateAction<string>>,
+    addCustomValue: () => void
+  ) => {
+    const values = criteriaForm.watch(name) || [];
+    
+    const handleOptionClick = (option: string) => {
+      const currentValues = criteriaForm.getValues(name) || [];
+      if (currentValues.includes(option)) {
+        criteriaForm.setValue(name, currentValues.filter(v => v !== option));
+      } else {
+        criteriaForm.setValue(name, [...currentValues, option]);
+      }
+    };
+    
+    return (
+      <FormField
+        control={criteriaForm.control}
+        name={name}
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>{label}</FormLabel>
+            <FormDescription>{description}</FormDescription>
+            
+            <div className="relative">
+              <div className="flex flex-wrap p-2 border rounded-md min-h-[80px] bg-background">
+                {values.map(value => {
+                  const option = options.find(o => o.value === value);
+                  const displayLabel = option ? option.label : value;
+                  
+                  return (
+                    <SelectionChip 
+                      key={value} 
+                      label={displayLabel} 
+                      onRemove={() => handleOptionClick(value)} 
+                    />
+                  );
+                })}
+                
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    placeholder={placeholder}
+                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent w-32"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newValue.trim()) {
+                        e.preventDefault();
+                        addCustomValue();
+                      }
+                    }}
+                  />
+                  {newValue.trim() && (
+                    <button 
+                      type="button"
+                      onClick={addCustomValue}
+                      className="p-1 ml-1 text-primary"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {options.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleOptionClick(option.value)}
+                    className={cn(
+                      "text-left px-3 py-1.5 rounded-md text-sm",
+                      values.includes(option.value) 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
+  
+  const addCustomFunction = () => {
+    if (!newFunction.trim()) return;
+    
+    const currentFunctions = criteriaForm.getValues("target_functions") || [];
+    if (!currentFunctions.includes(newFunction.trim())) {
+      criteriaForm.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
+      setNewFunction("");
+    }
+  };
+  
+  const addCustomIndustry = () => {
+    if (!newIndustry.trim()) return;
+    
+    const currentIndustries = criteriaForm.getValues("target_industries") || [];
+    if (!currentIndustries.includes(newIndustry.trim())) {
+      criteriaForm.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
+      setNewIndustry("");
+    }
+  };
+  
+  const addCustomLocation = () => {
+    if (!newLocation.trim()) return;
+    
+    const currentLocations = criteriaForm.getValues("target_locations") || [];
+    if (!currentLocations.includes(newLocation.trim())) {
+      criteriaForm.setValue("target_locations", [...currentLocations, newLocation.trim()]);
+      setNewLocation("");
+      setLocationSearchOpen(false);
+    }
+  };
+  
+  // Filter locations based on search input
+  useEffect(() => {
+    if (newLocation.trim() === "") {
+      setFilteredLocations(locationOptions);
+    } else {
+      const filtered = locationOptions.filter(location => 
+        location.label.toLowerCase().includes(newLocation.toLowerCase())
+      );
+      setFilteredLocations(filtered);
+    }
+  }, [newLocation]);
+  
+  const handleLocationSelect = (location: string) => {
+    const currentLocations = criteriaForm.getValues("target_locations") || [];
+    if (!currentLocations.includes(location)) {
+      criteriaForm.setValue("target_locations", [...currentLocations, location]);
+    }
+    setNewLocation("");
+    setLocationSearchOpen(false);
+  };
+  
+  const renderWFHPreference = () => {
+    const values = criteriaForm.watch("target_wfh_preference") || [];
+    
+    return (
+      <FormField
+        control={criteriaForm.control}
+        name="target_wfh_preference"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Work From Home Preference</FormLabel>
+            <FormDescription>What is your preferred working arrangement?</FormDescription>
+            
+            <div className="flex flex-wrap gap-2">
+              {wfhOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    const currentValues = criteriaForm.getValues("target_wfh_preference") || [];
+                    if (currentValues.includes(option.value)) {
+                      criteriaForm.setValue("target_wfh_preference", currentValues.filter(v => v !== option.value));
+                    } else {
+                      criteriaForm.setValue("target_wfh_preference", [...currentValues, option.value]);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-sm",
+                    values.includes(option.value)
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex flex-wrap mt-2">
+              {values.map(value => {
+                const option = wfhOptions.find(o => o.value === value);
+                return option && (
+                  <SelectionChip 
+                    key={value} 
+                    label={option.label} 
+                    onRemove={() => {
+                      criteriaForm.setValue(
+                        "target_wfh_preference", 
+                        values.filter(v => v !== value)
+                      );
+                    }} 
+                  />
+                );
+              })}
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
+  
+  const renderSizePreference = () => {
+    const values = criteriaForm.watch("target_sizes") || [];
+    
+    return (
+      <FormField
+        control={criteriaForm.control}
+        name="target_sizes"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Company Size Preference</FormLabel>
+            <FormDescription>What size of company would you prefer?</FormDescription>
+            
+            <div className="flex flex-wrap gap-2">
+              {sizeOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    const currentValues = criteriaForm.getValues("target_sizes") || [];
+                    if (currentValues.includes(option.value)) {
+                      criteriaForm.setValue("target_sizes", currentValues.filter(v => v !== option.value));
+                    } else {
+                      criteriaForm.setValue("target_sizes", [...currentValues, option.value]);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-sm",
+                    values.includes(option.value)
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex flex-wrap mt-2">
+              {values.map(value => {
+                const option = sizeOptions.find(o => o.value === value);
+                return option && (
+                  <SelectionChip 
+                    key={value} 
+                    label={option.label} 
+                    onRemove={() => {
+                      criteriaForm.setValue(
+                        "target_sizes", 
+                        values.filter(v => v !== value)
+                      );
+                    }} 
+                  />
+                );
+              })}
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
+  
+  const renderLocationSelector = () => {
+    const locations = criteriaForm.watch("target_locations") || [];
+    
+    return (
+      <FormField
+        control={criteriaForm.control}
+        name="target_locations"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel>Preferred Locations</FormLabel>
+            <FormDescription>Where would you like to work?</FormDescription>
+            
+            <div className="relative">
+              <div 
+                className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background"
+                onClick={() => {
+                  setLocationSearchOpen(true);
+                  setTimeout(() => {
+                    locationInputRef.current?.focus();
+                  }, 100);
+                }}
+              >
+                {locations.map(location => {
+                  const option = locationOptions.find(o => o.value === location);
+                  const displayLabel = option ? option.label : location;
+                  
+                  return (
+                    <SelectionChip 
+                      key={location} 
+                      label={displayLabel} 
+                      onRemove={() => {
+                        criteriaForm.setValue(
+                          "target_locations", 
+                          locations.filter(l => l !== location)
+                        );
+                      }} 
+                    />
+                  );
+                })}
+                
+                <div className="flex items-center flex-grow">
+                  <input
+                    ref={locationInputRef}
+                    type="text"
+                    value={newLocation}
+                    onChange={(e) => {
+                      setNewLocation(e.target.value);
+                      setLocationSearchOpen(true);
+                    }}
+                    placeholder={locations.length ? "Add another location..." : "Search locations..."}
+                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent flex-grow"
+                    onFocus={() => setLocationSearchOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newLocation.trim()) {
+                        e.preventDefault();
+                        addCustomLocation();
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button"
+                    className="p-1 text-muted-foreground"
+                    onClick={() => setLocationSearchOpen(!locationSearchOpen)}
+                  >
+                    <ChevronsUpDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              
+              {locationSearchOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
+                  {filteredLocations.length > 0 ? (
+                    filteredLocations.map(location => (
+                      <button
+                        key={location.value}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                        onClick={() => handleLocationSelect(location.value)}
+                      >
+                        {location.label}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-3 text-sm text-muted-foreground">
+                      <div className="flex justify-between items-center">
+                        <span>No locations found</span>
+                        {newLocation.trim() && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={addCustomLocation}
+                          >
+                            Add "{newLocation}"
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </FormItem>
+        )}
+      />
+    );
+  };
+
   if (error) {
     toast({
       title: "Error",
@@ -377,7 +1029,7 @@ const ConsolidatedJobSearch = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
-        {/* Target Criteria Section - Always expanded */}
+        {/* Target Criteria Section - Styles from JobTargets.tsx */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
@@ -401,7 +1053,7 @@ const ConsolidatedJobSearch = () => {
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {targetCriteria.target_industries && (
                           <div>
                             <h4 className="font-medium">Industries</h4>
@@ -422,6 +1074,32 @@ const ConsolidatedJobSearch = () => {
                               {Object.keys(targetCriteria.target_locations).map((location) => (
                                 <Badge key={location} variant="secondary">
                                   {location}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {targetCriteria.target_functions && (
+                          <div>
+                            <h4 className="font-medium">Functions</h4>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {Object.keys(targetCriteria.target_functions).map((func) => (
+                                <Badge key={func} variant="secondary">
+                                  {func}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {targetCriteria.target_sizes && (
+                          <div>
+                            <h4 className="font-medium">Company Sizes</h4>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {Object.keys(targetCriteria.target_sizes).map((size) => (
+                                <Badge key={size} variant="secondary">
+                                  {size}
                                 </Badge>
                               ))}
                             </div>
@@ -448,16 +1126,115 @@ const ConsolidatedJobSearch = () => {
                 )}
               </div>
             ) : (
-              <TargetCriteriaForm 
-                onCancel={() => setShowTargetForm(false)}
-                onSaved={() => {
-                  setShowTargetForm(false);
-                  queryClient.invalidateQueries({ queryKey: ['target-criteria'] });
-                  // After saving criteria, try to generate companies
-                  handleGenerateMoreCompanies();
-                }}
-                initialData={targetCriteria}
-              />
+              <Form {...criteriaForm}>
+                <form onSubmit={criteriaForm.handleSubmit(onTargetCriteriaSubmit)} className="space-y-8">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                    <h3 className="font-medium text-blue-800">Why This Matters</h3>
+                    <p className="text-sm text-blue-700 mt-1">
+                      The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+                      Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+                    </p>
+                  </div>
+                  
+                  {/* Describe Your Ideal Role and Company */}
+                  <FormField
+                    control={criteriaForm.control}
+                    name="free_form_role_and_company_description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
+                        <FormDescription>
+                          Tell us what matters to you about your next job - in your own words or using the criteria below.
+                        </FormDescription>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
+                            className="min-h-[150px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                
+                  {/* Target Job Functions with Custom Options */}
+                  {renderChipSelector(
+                    "target_functions",
+                    functionOptions,
+                    "Target Job Functions",
+                    "What job functions are you interested in?",
+                    "Add function...",
+                    newFunction,
+                    setNewFunction,
+                    addCustomFunction
+                  )}
+                  
+                  {/* Target Industries with Custom Options */}
+                  {renderChipSelector(
+                    "target_industries",
+                    industryOptions,
+                    "Target Industries",
+                    "What industries are you interested in?",
+                    "Add industry...",
+                    newIndustry,
+                    setNewIndustry,
+                    addCustomIndustry
+                  )}
+                  
+                  {/* Preferred Locations */}
+                  {renderLocationSelector()}
+                  
+                  {/* Work From Home Preference */}
+                  {renderWFHPreference()}
+                  
+                  {/* Company Size Preference */}
+                  {renderSizePreference()}
+                  
+                  {/* Similar Companies */}
+                  <FormField
+                    control={criteriaForm.control}
+                    name="similar_companies"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Examples</FormLabel>
+                        <FormDescription>We will use this to generate more examples</FormDescription>
+                        <FormControl>
+                          <Input
+                            placeholder="Google, Apple, Microsoft, etc."
+                            onChange={(e) => {
+                              const companies = e.target.value
+                                .split(",")
+                                .map(company => company.trim())
+                                .filter(company => company);
+                              field.onChange(companies);
+                            }}
+                            value={Array.isArray(field.value) ? field.value.join(", ") : ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-end space-x-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowTargetForm(false)}
+                      disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
+                    >
+                      {criteriaForm.formState.isSubmitting || isGeneratingCompanies ? "Saving..." : "Update and Generate More"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             )}
           </CardContent>
         </Card>

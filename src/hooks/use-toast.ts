@@ -4,12 +4,11 @@ const useToast = () => {
   return {
     toast: (props: any) => {
       console.log("Toast:", props.title, props.description);
-      return { id: "1", dismiss: () => {} };
-    },
-    dismiss: (toastId?: string) => {
-      console.log("Dismissing toast:", toastId);
-    },
-    toasts: [],
+      return {
+        id: "1",
+        dismiss: () => {}
+      };
+    }
   };
 };
 
