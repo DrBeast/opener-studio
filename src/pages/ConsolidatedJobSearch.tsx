@@ -259,6 +259,10 @@ interface TargetCriteriaData {
   target_wfh_preference?: any;
   target_functions?: any;
   similar_companies?: any;
+  criteria_id?: string; // Adding the missing criteria_id property
+  created_at?: string; // Adding the missing created_at property
+  updated_at?: string; // Also adding updated_at for consistency
+  user_id?: string; // Adding user_id as it's likely needed
 }
 
 // Modals
@@ -1096,7 +1100,7 @@ const ConsolidatedJobSearch = () => {
                         {targetCriteria.target_sizes && (
                           <div>
                             <h4 className="font-medium">Company Sizes</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
+                            <div className="flex flex-wrap gap-1 mt-2">
                               {Object.keys(targetCriteria.target_sizes).map((size) => (
                                 <Badge key={size} variant="secondary">
                                   {size}
