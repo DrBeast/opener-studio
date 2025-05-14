@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/use-toast";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -178,13 +177,20 @@ const ConsolidatedJobSearch = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success('Selected companies removed');
+      toast({
+        title: "Success",
+        description: 'Selected companies removed'
+      });
       setSelectedCompanyIds([]);
       queryClient.invalidateQueries({ queryKey: ['companies-overview'] });
     },
     onError: (error) => {
       console.error('Error removing companies:', error);
-      toast.error('Failed to remove companies');
+      toast({
+        title: "Error",
+        description: 'Failed to remove companies',
+        variant: "destructive"
+      });
     }
   });
 
@@ -199,15 +205,26 @@ const ConsolidatedJobSearch = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(`Company ${data.company.name} added successfully`);
+      toast({
+        title: "Success",
+        description: `Company ${data.company.name} added successfully`
+      });
       queryClient.invalidateQueries({ queryKey: ['companies-overview'] });
     },
     onError: (error: any) => {
       console.error('Error adding company:', error);
       if (error.message === 'Company already exists') {
-        toast.error('This company already exists in your list');
+        toast({
+          title: "Error",
+          description: 'This company already exists in your list',
+          variant: "destructive"
+        });
       } else {
-        toast.error('Failed to add company');
+        toast({
+          title: "Error",
+          description: 'Failed to add company',
+          variant: "destructive"
+        });
       }
     }
   });
@@ -233,7 +250,7 @@ const ConsolidatedJobSearch = () => {
     );
   });
 
-  // Handle sorting
+  // Handle sort
   const handleSort = (field: string) => {
     if (sortField === field) {
       // Toggle direction
@@ -268,7 +285,11 @@ const ConsolidatedJobSearch = () => {
   // Handle removing selected companies
   const handleRemoveSelected = () => {
     if (selectedCompanyIds.length === 0) {
-      toast.error('No companies selected');
+      toast({
+        title: "Error",
+        description: 'No companies selected',
+        variant: "destructive"
+      });
       return;
     }
     
@@ -298,7 +319,10 @@ const ConsolidatedJobSearch = () => {
     // This is a placeholder - in a real implementation, you would call 
     // the generate_companies edge function with the current criteria
     setIsGeneratingCompanies(true);
-    toast.info('Generating more companies...');
+    toast({
+      title: "Info", 
+      description: 'Generating more companies...'
+    });
     
     try {
       // Mock delay to simulate API call
@@ -308,12 +332,19 @@ const ConsolidatedJobSearch = () => {
         setShowTargetForm(true);
       } else {
         // In real implementation, call generate_companies
-        toast.success('10 more companies generated');
+        toast({
+          title: "Success",
+          description: '10 more companies generated'
+        });
         refetch();
       }
     } catch (error) {
       console.error('Error generating companies:', error);
-      toast.error('Failed to generate companies');
+      toast({
+        title: "Error",
+        description: 'Failed to generate companies',
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingCompanies(false);
     }
@@ -333,7 +364,11 @@ const ConsolidatedJobSearch = () => {
   };
 
   if (error) {
-    toast.error("Failed to load companies");
+    toast({
+      title: "Error",
+      description: "Failed to load companies",
+      variant: "destructive"
+    });
     console.error(error);
   }
 
@@ -459,8 +494,8 @@ const ConsolidatedJobSearch = () => {
               
               <div className="flex gap-2">
                 <Select
-                  value={filterPriority || ""}
-                  onValueChange={(value) => setFilterPriority(value || null)}
+                  value={filterPriority || "none"}
+                  onValueChange={(value) => setFilterPriority(value === "none" ? null : value)}
                 >
                   <SelectTrigger className="w-full">
                     <div className="flex items-center">
@@ -469,7 +504,7 @@ const ConsolidatedJobSearch = () => {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All priorities</SelectItem>
+                    <SelectItem value="none">All priorities</SelectItem>
                     <SelectItem value="Top">Top</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
                     <SelectItem value="Maybe">Maybe</SelectItem>
