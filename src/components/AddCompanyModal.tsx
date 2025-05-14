@@ -1,66 +1,101 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface AddCompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddCompany: (companyName: string) => void;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
-export function AddCompanyModal({ 
-  isOpen, 
-  onClose, 
-  onAddCompany, 
-  isLoading = false 
-}: AddCompanyModalProps) {
-  const [companyName, setCompanyName] = useState("");
-  
+export const AddCompanyModal = ({
+  isOpen,
+  onClose,
+  onAddCompany,
+  isLoading = false,
+}: AddCompanyModalProps) => {
+  const [companyName, setCompanyName] = useState('');
+  const [inputError, setInputError] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (companyName.trim()) {
-      onAddCompany(companyName.trim());
-      setCompanyName("");
+    
+    if (!companyName.trim()) {
+      setInputError('Please enter a company name');
+      return;
     }
+    
+    setInputError('');
+    onAddCompany(companyName.trim());
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Company</DialogTitle>
+          <DialogDescription>
+            Enter a company name to add it to your target list.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input
-                id="companyName"
-                placeholder="Enter company name"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                disabled={isLoading}
-                autoComplete="off"
-              />
-              <p className="text-sm text-muted-foreground">
-                Enter the name of the company you want to add. We'll generate additional details for you.
-              </p>
-            </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => {
+                setCompanyName(e.target.value);
+                if (inputError) setInputError('');
+              }}
+              placeholder="Enter company name"
+              className={inputError ? "border-destructive" : ""}
+              disabled={isLoading}
+            />
+            {inputError && (
+              <div className="flex items-center text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                {inputError}
+              </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!companyName.trim() || isLoading}>
-              {isLoading ? "Adding..." : "Add Company"}
+            <Button
+              type="submit"
+              disabled={isLoading || !companyName.trim()}
+              className="relative"
+            >
+              {isLoading ? (
+                <>
+                  <span className="opacity-0">Add Company</span>
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  </span>
+                </>
+              ) : (
+                <>
+                  Add Company
+                </>
+              )}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
   );
-}
+};
