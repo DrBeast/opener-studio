@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
 import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
@@ -144,7 +143,7 @@ const Profile = () => {
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error.message);
-        toast.error("Failed to load your profile. Please try again.");
+        // Toast disabled
       } finally {
         setIsLoading(false);
       }
@@ -196,7 +195,7 @@ const Profile = () => {
       if (upsertError) throw upsertError;
     } catch (error: any) {
       console.error(`Error saving profile data:`, error.message);
-      toast.error(`Failed to save profile data: ${error.message}`);
+      // Toast disabled
       throw error;
     }
   };
@@ -223,7 +222,8 @@ const Profile = () => {
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
       }
-      toast.success("Profile information updated and summary regenerated!");
+      
+      console.log("Profile information updated and summary regenerated!");
       setEditMode(false);
       setHasChanges(false);
 
@@ -231,14 +231,14 @@ const Profile = () => {
       window.location.reload();
     } catch (error: any) {
       console.error("Error submitting profile data:", error.message);
-      toast.error(`Failed to process profile information: ${error.message}`);
+      // Toast disabled
     } finally {
       setIsSubmitting(false);
     }
   };
   const handleRegenerateAISummary = async () => {
     if (!user) return;
-    toast.info("Regenerating your professional summary...");
+    console.log("Regenerating your professional summary...");
     try {
       // Call the edge function to regenerate the summary
       const {
@@ -255,13 +255,13 @@ const Profile = () => {
       }
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
-        toast.success("Your professional summary has been updated!");
+        console.log("Your professional summary has been updated!");
       } else {
-        toast.error("Failed to generate a new summary");
+        console.error("Failed to generate a new summary");
       }
     } catch (error: any) {
       console.error("Error regenerating summary:", error.message);
-      toast.error(`Failed to regenerate summary: ${error.message}`);
+      // Toast disabled
     }
   };
 
@@ -288,7 +288,7 @@ const Profile = () => {
         error: targetError
       } = await supabase.from("target_criteria").delete().eq("user_id", user.id);
       if (targetError) throw targetError;
-      toast.success("User data has been reset successfully");
+      console.log("User data has been reset successfully");
 
       // Refresh the page after a brief delay
       setTimeout(() => {
@@ -296,7 +296,7 @@ const Profile = () => {
       }, 1000);
     } catch (error: any) {
       console.error("Error resetting user data:", error.message);
-      toast.error(`Failed to reset user data: ${error.message}`);
+      // Toast disabled
     } finally {
       setIsResetting(false);
     }
