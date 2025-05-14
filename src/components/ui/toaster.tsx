@@ -1,6 +1,6 @@
 
-// This component is a no-op implementation of the Toaster
+// No-op Toaster component
 export function Toaster() {
-  // Return null to prevent rendering any toast UI
+  // Return empty fragment since we're not showing toasts
   return null;
 }

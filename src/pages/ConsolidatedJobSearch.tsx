@@ -112,7 +112,7 @@ const ConsolidatedJobSearch = () => {
   
   // State
   const [searchQuery, setSearchQuery] = useState("");
-  const [openCriteria, setOpenCriteria] = useState(false);
+  const [openCriteria, setOpenCriteria] = useState(true); // Always start expanded
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
   const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
@@ -377,97 +377,90 @@ const ConsolidatedJobSearch = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
-        {/* Target Criteria Section */}
-        <Collapsible open={openCriteria} onOpenChange={setOpenCriteria}>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle className="text-2xl font-bold">Target Criteria</CardTitle>
-                <CardDescription>
-                  Define your target role and company criteria
-                </CardDescription>
-              </div>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  {openCriteria ? <ChevronUp /> : <ChevronDown />}
-                </Button>
-              </CollapsibleTrigger>
-            </CardHeader>
-            
-            <CollapsibleContent>
-              <CardContent>
-                {!showTargetForm ? (
-                  <div className="space-y-4">
-                    {targetCriteria ? (
+        {/* Target Criteria Section - Always expanded */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="text-2xl font-bold">Target Criteria</CardTitle>
+              <CardDescription>
+                Define your target role and company criteria
+              </CardDescription>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {!showTargetForm ? (
+              <div className="space-y-4">
+                {targetCriteria ? (
+                  <div>
+                    <div className="space-y-4">
                       <div>
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-medium text-lg">Role & Company Description</h3>
-                            <p className="text-muted-foreground">
-                              {targetCriteria.free_form_role_and_company_description || 'No description provided'}
-                            </p>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
-                            {targetCriteria.target_industries && (
-                              <div>
-                                <h4 className="font-medium">Industries</h4>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(targetCriteria.target_industries).map((industry) => (
-                                    <Badge key={industry} variant="secondary">
-                                      {industry}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {targetCriteria.target_locations && (
-                              <div>
-                                <h4 className="font-medium">Locations</h4>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(targetCriteria.target_locations).map((location) => (
-                                    <Badge key={location} variant="secondary">
-                                      {location}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex justify-end space-x-2">
-                            <Button onClick={() => setShowTargetForm(true)}>
-                              Edit Criteria
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                        <h3 className="font-medium text-lg">Role & Company Description</h3>
                         <p className="text-muted-foreground">
-                          No target criteria defined yet. Define your job search criteria to get started.
+                          {targetCriteria.free_form_role_and_company_description || 'No description provided'}
                         </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        {targetCriteria.target_industries && (
+                          <div>
+                            <h4 className="font-medium">Industries</h4>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {Object.keys(targetCriteria.target_industries).map((industry) => (
+                                <Badge key={industry} variant="secondary">
+                                  {industry}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {targetCriteria.target_locations && (
+                          <div>
+                            <h4 className="font-medium">Locations</h4>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {Object.keys(targetCriteria.target_locations).map((location) => (
+                                <Badge key={location} variant="secondary">
+                                  {location}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2">
                         <Button onClick={() => setShowTargetForm(true)}>
-                          Define Target Criteria
+                          Update and Generate More
                         </Button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ) : (
-                  <TargetCriteriaForm 
-                    onCancel={() => setShowTargetForm(false)}
-                    onSaved={() => {
-                      setShowTargetForm(false);
-                      queryClient.invalidateQueries({ queryKey: ['target-criteria'] });
-                    }}
-                    initialData={targetCriteria}
-                  />
+                  <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                    <p className="text-muted-foreground">
+                      No target criteria defined yet. Define your job search criteria to get started.
+                    </p>
+                    <Button onClick={() => setShowTargetForm(true)}>
+                      Define Target Criteria
+                    </Button>
+                  </div>
                 )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+              </div>
+            ) : (
+              <TargetCriteriaForm 
+                onCancel={() => setShowTargetForm(false)}
+                onSaved={() => {
+                  setShowTargetForm(false);
+                  queryClient.invalidateQueries({ queryKey: ['target-criteria'] });
+                  // After saving criteria, try to generate companies
+                  handleGenerateMoreCompanies();
+                }}
+                initialData={targetCriteria}
+              />
+            )}
+          </CardContent>
+        </Card>
         
         {/* Companies Table */}
         <Card>

@@ -1,49 +1,24 @@
 
-// Create a no-op toast implementation
+import { Console } from "console";
 
-type ToastProps = {
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  variant?: "default" | "destructive";
-};
-
-// This is a no-op implementation that doesn't display any toasts
-export function toast({
-  title,
-  description,
-  variant = "default",
-  action,
-  ...props
-}: ToastProps) {
-  // Log to console instead of showing a toast
-  console.log('[Toast disabled]', { title, description, variant });
-  return 0; // Return a dummy ID
-}
-
-// Add standard toast methods as no-ops
-toast.success = (message: string, options?: any) => {
-  console.log('[Toast success disabled]', message, options);
-  return 0;
-};
-
-toast.error = (message: string, options?: any) => {
-  console.log('[Toast error disabled]', message, options);
-  return 0;
-};
-
-toast.info = (message: string, options?: any) => {
-  console.log('[Toast info disabled]', message, options);
-  return 0;
-};
-
-toast.warning = (message: string, options?: any) => {
-  console.log('[Toast warning disabled]', message, options);
-  return 0;
-};
-
-export const useToast = () => {
+// No-op toast implementation that just logs to the console
+const useToast = () => {
   return {
-    toast,
+    toast: (props: any) => {
+      console.log("Toast:", props.title, props.description);
+      return { id: "1", dismiss: () => {} };
+    },
+    dismiss: (toastId?: string) => {
+      console.log("Dismissing toast:", toastId);
+    },
+    toasts: [],
   };
 };
+
+// Simplified toast function
+const toast = (props: any) => {
+  console.log("Toast:", props.title, props.description);
+  return { id: "1", dismiss: () => {} };
+};
+
+export { useToast, toast };
