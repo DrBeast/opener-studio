@@ -3,30 +3,53 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { X, Plus, ChevronsUpDown, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  X, 
+  Plus, 
+  ChevronsUpDown, 
+  ChevronDown, 
+  ChevronUp,
+  ArrowUpDown,
+  Filter,
+  FileText,
+  UserRound,
+  Calendar,
+  AlertCircle,
+  Pencil,
+  Check,
+  MessageCircle,
+  Search
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-const formSchema = z.object({
-  target_functions: z.array(z.string()).optional(),
-  target_locations: z.array(z.string()).optional(),
-  target_wfh_preference: z.array(z.string()).optional(),
-  free_form_role_and_company_description: z.string().optional(),
-  target_industries: z.array(z.string()).optional(),
-  target_sizes: z.array(z.string()).optional(),
-  similar_companies: z.array(z.string()).optional(),
-  visa_sponsorship_required: z.boolean().default(false)
-});
-type FormValues = z.infer<typeof formSchema>;
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CompanyDetails } from "@/components/CompanyDetails";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InteractionForm } from "@/components/InteractionForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ContactDetails } from "@/components/ContactDetails";
+import { MessageGeneration } from "@/components/MessageGeneration";
+import { useQuery } from "@tanstack/react-query";
 
 // Sample options for each select field
 const functionOptions = [{
@@ -163,6 +186,62 @@ const ensureStringArray = (value: any): string[] => {
   if (Array.isArray(value)) return value.map(String);
   return [];
 };
+
+// Updated form schema
+const formSchema = z.object({
+  target_functions: z.array(z.string()).optional(),
+  target_locations: z.array(z.string()).optional(),
+  target_wfh_preference: z.array(z.string()).optional(),
+  free_form_role_and_company_description: z.string().optional(),
+  target_industries: z.array(z.string()).optional(),
+  target_sizes: z.array(z.string()).optional(),
+  similar_companies: z.array(z.string()).optional(),
+  visa_sponsorship_required: z.boolean().default(false)
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface CompanyData {
+  company_id: string;
+  name: string;
+  industry?: string;
+  hq_location?: string;
+  user_priority?: 'Top' | 'Medium' | 'Maybe';
+  user_notes?: string;
+  ai_description?: string;
+  updated_at?: string;
+  contacts?: {
+    contact_id: string;
+    first_name?: string;
+    last_name?: string;
+  }[];
+  last_interaction?: {
+    interaction_date: string;
+    description: string;
+  };
+  next_action?: {
+    follow_up_due_date: string;
+    description: string;
+  };
+}
+
+interface ContactData {
+  contact_id: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  company_id?: string;
+  location?: string;
+  email?: string;
+  linkedin_url?: string;
+  user_notes?: string;
+  bio_summary?: string;
+  how_i_can_help?: string;
+  companies?: {
+    name: string;
+  };
+}
+
 const JobTargets = () => {
   const {
     user
