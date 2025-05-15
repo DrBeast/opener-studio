@@ -275,7 +275,7 @@ const ConsolidatedJobSearch = () => {
   
   // State
   const [searchQuery, setSearchQuery] = useState("");
-  const [openCriteria, setOpenCriteria] = useState(true); // Always start expanded
+  const [openCriteria, setOpenCriteria] = useState(false); // Initially collapsed
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
   const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
@@ -1033,214 +1033,225 @@ const ConsolidatedJobSearch = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
-        {/* Target Criteria Section - Styles from JobTargets.tsx */}
+        {/* Target Criteria Section - Collapsible Styling */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-2xl font-bold">Target Criteria</CardTitle>
-              <CardDescription>
-                Define your target role and company criteria
-              </CardDescription>
+          <Collapsible
+            open={openCriteria}
+            onOpenChange={setOpenCriteria}
+            className="w-full"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Target Criteria</h2>
+                <p className="text-muted-foreground">
+                  Define your target role and company criteria
+                </p>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-0 h-9 w-9">
+                  {openCriteria ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
             </div>
-          </CardHeader>
-          
-          <CardContent>
-            {!showTargetForm ? (
-              <div className="space-y-4">
-                {targetCriteria ? (
-                  <div>
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-medium text-lg">Role & Company Description</h3>
-                        <p className="text-muted-foreground">
-                          {targetCriteria.free_form_role_and_company_description || 'No description provided'}
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {targetCriteria.target_industries && (
-                          <div>
-                            <h4 className="font-medium">Industries</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {Object.keys(targetCriteria.target_industries).map((industry) => (
-                                <Badge key={industry} variant="secondary">
-                                  {industry}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+            
+            <CollapsibleContent className="pt-4">
+              {!showTargetForm ? (
+                <div className="space-y-4">
+                  {targetCriteria ? (
+                    <div>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-medium text-lg">Role & Company Description</h3>
+                          <p className="text-muted-foreground">
+                            {targetCriteria.free_form_role_and_company_description || 'No description provided'}
+                          </p>
+                        </div>
                         
-                        {targetCriteria.target_locations && (
-                          <div>
-                            <h4 className="font-medium">Locations</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {Object.keys(targetCriteria.target_locations).map((location) => (
-                                <Badge key={location} variant="secondary">
-                                  {location}
-                                </Badge>
-                              ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {targetCriteria.target_industries && (
+                            <div>
+                              <h4 className="font-medium">Industries</h4>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {Object.keys(targetCriteria.target_industries).map((industry) => (
+                                  <Badge key={industry} variant="secondary">
+                                    {industry}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                          
+                          {targetCriteria.target_locations && (
+                            <div>
+                              <h4 className="font-medium">Locations</h4>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {Object.keys(targetCriteria.target_locations).map((location) => (
+                                  <Badge key={location} variant="secondary">
+                                    {location}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
-                        {targetCriteria.target_functions && (
-                          <div>
-                            <h4 className="font-medium">Functions</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {Object.keys(targetCriteria.target_functions).map((func) => (
-                                <Badge key={func} variant="secondary">
-                                  {func}
-                                </Badge>
-                              ))}
+                          {targetCriteria.target_functions && (
+                            <div>
+                              <h4 className="font-medium">Functions</h4>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {Object.keys(targetCriteria.target_functions).map((func) => (
+                                  <Badge key={func} variant="secondary">
+                                    {func}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {targetCriteria.target_sizes && (
-                          <div>
-                            <h4 className="font-medium">Company Sizes</h4>
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {Object.keys(targetCriteria.target_sizes).map((size) => (
-                                <Badge key={size} variant="secondary">
-                                  {size}
-                                </Badge>
-                              ))}
+                          {targetCriteria.target_sizes && (
+                            <div>
+                              <h4 className="font-medium">Company Sizes</h4>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {Object.keys(targetCriteria.target_sizes).map((size) => (
+                                  <Badge key={size} variant="secondary">
+                                    {size}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex justify-end space-x-2">
-                        <Button onClick={() => setShowTargetForm(true)}>
-                          Update and Generate More
-                        </Button>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2">
+                          <Button onClick={() => setShowTargetForm(true)}>
+                            Update and Generate More
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-10 space-y-4">
-                    <p className="text-muted-foreground">
-                      No target criteria defined yet. Define your job search criteria to get started.
-                    </p>
-                    <Button onClick={() => setShowTargetForm(true)}>
-                      Define Target Criteria
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Form {...criteriaForm}>
-                <form onSubmit={criteriaForm.handleSubmit(onTargetCriteriaSubmit)} className="space-y-8">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-                    <h3 className="font-medium text-blue-800">Why This Matters</h3>
-                    <p className="text-sm text-blue-700 mt-1">
-                      The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-                      Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
-                    </p>
-                  </div>
-                  
-                  {/* Describe Your Ideal Role and Company */}
-                  <FormField
-                    control={criteriaForm.control}
-                    name="free_form_role_and_company_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>
-                          Tell us what matters to you about your next job - in your own words or using the criteria below.
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
-                            className="min-h-[150px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                
-                  {/* Target Job Functions with Custom Options */}
-                  {renderChipSelector(
-                    "target_functions",
-                    functionOptions,
-                    "Target Job Functions",
-                    "What job functions are you interested in?",
-                    "Add function...",
-                    newFunction,
-                    setNewFunction,
-                    addCustomFunction
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                      <p className="text-muted-foreground">
+                        No target criteria defined yet. Define your job search criteria to get started.
+                      </p>
+                      <Button onClick={() => setShowTargetForm(true)}>
+                        Define Target Criteria
+                      </Button>
+                    </div>
                   )}
+                </div>
+              ) : (
+                <Form {...criteriaForm}>
+                  <form onSubmit={criteriaForm.handleSubmit(onTargetCriteriaSubmit)} className="space-y-8">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                      <h3 className="font-medium text-blue-800">Why This Matters</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+                        Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+                      </p>
+                    </div>
+                    
+                    {/* Describe Your Ideal Role and Company */}
+                    <FormField
+                      control={criteriaForm.control}
+                      name="free_form_role_and_company_description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Describe Your Ideal Role and Company</FormLabel>
+                          <FormDescription>
+                            Tell us what matters to you about your next job - in your own words or using the criteria below.
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
+                              className="min-h-[150px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   
-                  {/* Target Industries with Custom Options */}
-                  {renderChipSelector(
-                    "target_industries",
-                    industryOptions,
-                    "Target Industries",
-                    "What industries are you interested in?",
-                    "Add industry...",
-                    newIndustry,
-                    setNewIndustry,
-                    addCustomIndustry
-                  )}
-                  
-                  {/* Preferred Locations */}
-                  {renderLocationSelector()}
-                  
-                  {/* Work From Home Preference */}
-                  {renderWFHPreference()}
-                  
-                  {/* Company Size Preference */}
-                  {renderSizePreference()}
-                  
-                  {/* Similar Companies */}
-                  <FormField
-                    control={criteriaForm.control}
-                    name="similar_companies"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company Examples</FormLabel>
-                        <FormDescription>We will use this to generate more examples</FormDescription>
-                        <FormControl>
-                          <Input
-                            placeholder="Google, Apple, Microsoft, etc."
-                            onChange={(e) => {
-                              const companies = e.target.value
-                                .split(",")
-                                .map(company => company.trim())
-                                .filter(company => company);
-                              field.onChange(companies);
-                            }}
-                            value={Array.isArray(field.value) ? field.value.join(", ") : ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {/* Target Job Functions with Custom Options */}
+                    {renderChipSelector(
+                      "target_functions",
+                      functionOptions,
+                      "Target Job Functions",
+                      "What job functions are you interested in?",
+                      "Add function...",
+                      newFunction,
+                      setNewFunction,
+                      addCustomFunction
                     )}
-                  />
-                  
-                  <div className="flex justify-end space-x-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowTargetForm(false)}
-                      disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
-                    >
-                      {criteriaForm.formState.isSubmitting || isGeneratingCompanies ? "Saving..." : "Update and Generate More"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            )}
-          </CardContent>
+                    
+                    {/* Target Industries with Custom Options */}
+                    {renderChipSelector(
+                      "target_industries",
+                      industryOptions,
+                      "Target Industries",
+                      "What industries are you interested in?",
+                      "Add industry...",
+                      newIndustry,
+                      setNewIndustry,
+                      addCustomIndustry
+                    )}
+                    
+                    {/* Preferred Locations */}
+                    {renderLocationSelector()}
+                    
+                    {/* Work From Home Preference */}
+                    {renderWFHPreference()}
+                    
+                    {/* Company Size Preference */}
+                    {renderSizePreference()}
+                    
+                    {/* Similar Companies */}
+                    <FormField
+                      control={criteriaForm.control}
+                      name="similar_companies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Examples</FormLabel>
+                          <FormDescription>We will use this to generate more examples</FormDescription>
+                          <FormControl>
+                            <Input
+                              placeholder="Google, Apple, Microsoft, etc."
+                              onChange={(e) => {
+                                const companies = e.target.value
+                                  .split(",")
+                                  .map(company => company.trim())
+                                  .filter(company => company);
+                                field.onChange(companies);
+                              }}
+                              value={Array.isArray(field.value) ? field.value.join(", ") : ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="flex justify-end space-x-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowTargetForm(false)}
+                        disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
+                      >
+                        {criteriaForm.formState.isSubmitting || isGeneratingCompanies ? "Saving..." : "Update and Generate More"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
         
         {/* Companies Table */}
