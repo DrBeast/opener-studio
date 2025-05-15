@@ -1028,33 +1028,94 @@ const ConsolidatedJobSearch = () => {
     console.error(error);
   }
 
+  // Render display summary of target criteria for collapsed view
+  const renderTargetCriteriaSummary = () => {
+    if (!targetCriteria) {
+      return "No criteria defined yet";
+    }
+
+    const description = targetCriteria.free_form_role_and_company_description || "";
+    
+    // Get first industry and count
+    const industries = targetCriteria.target_industries ? Object.keys(targetCriteria.target_industries) : [];
+    const industryDisplay = industries.length > 0 
+      ? `${industries[0]}${industries.length > 1 ? ` +${industries.length - 1}` : ''}` 
+      : "";
+      
+    // Get first function and count  
+    const functions = targetCriteria.target_functions ? Object.keys(targetCriteria.target_functions) : [];
+    const functionDisplay = functions.length > 0
+      ? `${functions[0]}${functions.length > 1 ? ` +${functions.length - 1}` : ''}` 
+      : "";
+    
+    return (
+      <div className="flex flex-1 items-center">
+        <div className="flex-1 truncate">
+          <span className="font-medium">Role & Company: </span>
+          <span className="text-muted-foreground">{description.slice(0, 30)}{description.length > 30 ? '...' : ''}</span>
+        </div>
+        
+        {industryDisplay && (
+          <div className="mx-4 hidden md:block">
+            <span className="font-medium">Industries: </span>
+            <span className="text-muted-foreground">{industryDisplay}</span>
+          </div>
+        )}
+        
+        {functionDisplay && (
+          <div className="mx-4 hidden md:block">
+            <span className="font-medium">Functions: </span>
+            <span className="text-muted-foreground">{functionDisplay}</span>
+          </div>
+        )}
+        
+        <Button 
+          className="ml-4 bg-primary/20 text-primary hover:bg-primary/30" 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowTargetForm(true);
+            setOpenCriteria(true);
+          }}
+        >
+          Update
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-full">
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
         {/* Target Criteria Section - Collapsible Styling */}
-        <Card>
+        <Card className="border-2 border-primary/20 shadow-md">
           <Collapsible
             open={openCriteria}
             onOpenChange={setOpenCriteria}
             className="w-full"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Target Criteria</h2>
-                <p className="text-muted-foreground">
+            <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setOpenCriteria(!openCriteria)}>
+              <div className="flex items-center space-x-2">
+                <h2 className="text-xl font-bold text-primary">Target Criteria</h2>
+                <p className="text-muted-foreground hidden sm:inline-block">
                   Define your target role and company criteria
                 </p>
               </div>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-0 h-9 w-9">
-                  {openCriteria ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              
+              {!openCriteria && renderTargetCriteriaSummary()}
+              
+              <CollapsibleTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" size="sm" className="p-0 h-9 w-9 rounded-full border-2 border-primary/40 bg-background hover:bg-primary/10">
+                  {openCriteria ? 
+                    <ChevronDown className="h-5 w-5 text-primary" /> : 
+                    <ChevronDown className="h-5 w-5 text-primary" />
+                  }
                 </Button>
               </CollapsibleTrigger>
             </div>
             
-            <CollapsibleContent className="pt-4">
+            <CollapsibleContent className="p-4 pt-0 border-t">
               {!showTargetForm ? (
                 <div className="space-y-4">
                   {targetCriteria ? (
@@ -1068,7 +1129,7 @@ const ConsolidatedJobSearch = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {targetCriteria.target_industries && (
+                          {targetCriteria.target_industries && Object.keys(targetCriteria.target_industries).length > 0 && (
                             <div>
                               <h4 className="font-medium">Industries</h4>
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -1081,7 +1142,7 @@ const ConsolidatedJobSearch = () => {
                             </div>
                           )}
                           
-                          {targetCriteria.target_locations && (
+                          {targetCriteria.target_locations && Object.keys(targetCriteria.target_locations).length > 0 && (
                             <div>
                               <h4 className="font-medium">Locations</h4>
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -1094,7 +1155,7 @@ const ConsolidatedJobSearch = () => {
                             </div>
                           )}
 
-                          {targetCriteria.target_functions && (
+                          {targetCriteria.target_functions && Object.keys(targetCriteria.target_functions).length > 0 && (
                             <div>
                               <h4 className="font-medium">Functions</h4>
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -1107,7 +1168,7 @@ const ConsolidatedJobSearch = () => {
                             </div>
                           )}
 
-                          {targetCriteria.target_sizes && (
+                          {targetCriteria.target_sizes && Object.keys(targetCriteria.target_sizes).length > 0 && (
                             <div>
                               <h4 className="font-medium">Company Sizes</h4>
                               <div className="flex flex-wrap gap-1 mt-2">
@@ -1122,7 +1183,10 @@ const ConsolidatedJobSearch = () => {
                         </div>
                         
                         <div className="flex justify-end space-x-2">
-                          <Button onClick={() => setShowTargetForm(true)}>
+                          <Button 
+                            onClick={() => setShowTargetForm(true)}
+                            className="bg-primary hover:bg-primary/90"
+                          >
                             Update and Generate More
                           </Button>
                         </div>
@@ -1242,6 +1306,7 @@ const ConsolidatedJobSearch = () => {
                       </Button>
                       <Button
                         type="submit"
+                        className="bg-primary hover:bg-primary/90"
                         disabled={criteriaForm.formState.isSubmitting || isGeneratingCompanies}
                       >
                         {criteriaForm.formState.isSubmitting || isGeneratingCompanies ? "Saving..." : "Update and Generate More"}
