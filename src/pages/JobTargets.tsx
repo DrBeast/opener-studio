@@ -498,7 +498,7 @@ const JobTargets = () => {
     const industries = form.watch("target_industries") || [];
     const functions = form.watch("target_functions") || [];
     return <div className="flex flex-col">
-        <div className="text-sm line-clamp-1">{description}</div>
+        
         {(industries.length > 0 || functions.length > 0) && <div className="text-xs text-muted-foreground mt-1">
             {industries.length > 0 && <span className="mr-2">
                 Industries: {industries.slice(0, 3).join(", ")}
