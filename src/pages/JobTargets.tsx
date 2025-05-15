@@ -516,29 +516,34 @@ const JobTargets = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>;
   }
+  
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="grid grid-cols-1 gap-8">
         <Collapsible open={!isCollapsed} onOpenChange={open => setIsCollapsed(!open)} className="space-y-2">
-          <div className="flex items-center justify-between px-4 py-3 bg-card rounded-lg border border-border shadow-sm">
-            <div className="flex items-center gap-4 flex-1">
-              <h3 className="text-lg font-semibold text-primary">Role & Company Targets</h3>
-              {isCollapsed && <div className="flex-1">{getCriteriaSummary()}</div>}
-            </div>
-            
-            {isCollapsed && <div className="flex items-center gap-2">
-                
-              </div>}
-            
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
+          <CollapsibleTrigger asChild>
+            <div 
+              className="flex items-center justify-between px-4 py-3 bg-card rounded-lg border border-border shadow-sm cursor-pointer hover:bg-accent/50 transition-colors"
+              aria-expanded={!isCollapsed} 
+              aria-controls="job-targets-content"
+            >
+              <div className="flex items-center gap-4 flex-1">
+                <h3 className="text-lg font-semibold text-primary">Role & Company Targets</h3>
+                {isCollapsed && <div className="flex-1">{getCriteriaSummary()}</div>}
+              </div>
+              
+              {isCollapsed && <div className="flex items-center gap-2">
+                  
+                </div>}
+              
+              <div className="p-0 h-8 w-8 flex items-center justify-center">
                 {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-          </div>
+              </div>
+            </div>
+          </CollapsibleTrigger>
           
-          <CollapsibleContent>
+          <CollapsibleContent id="job-targets-content">
             <Card>
               
               <CardContent>
@@ -613,4 +618,5 @@ const JobTargets = () => {
       </div>
     </div>;
 };
+
 export default JobTargets;
