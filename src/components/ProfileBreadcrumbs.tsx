@@ -1,9 +1,7 @@
-
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-
 export function ProfileBreadcrumbs() {
   const location = useLocation();
   const path = location.pathname;
@@ -76,33 +74,21 @@ export function ProfileBreadcrumbs() {
     return items;
   };
   const breadcrumbs = getBreadcrumbsForPath();
-  
   return <Breadcrumb className="mb-6">
       <BreadcrumbList>
-        {breadcrumbs.map((item, index) => (
-          <React.Fragment key={item.path}>
+        {breadcrumbs.map((item, index) => <React.Fragment key={item.path}>
             <BreadcrumbItem>
-              {item.isCurrentPage ? (
-                <BreadcrumbPage className="flex items-center gap-1">
+              {item.isCurrentPage ? <BreadcrumbPage className="flex items-center gap-1">
                   {item.icon && item.icon}
                   {item.name}
-                </BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link to={item.path} className="flex items-center gap-1">
-                    {item.icon && item.icon}
-                    {item.name}
-                  </Link>
-                </BreadcrumbLink>
-              )}
+                </BreadcrumbPage> : <BreadcrumbLink asChild>
+                  
+                </BreadcrumbLink>}
             </BreadcrumbItem>
-            {index < breadcrumbs.length - 1 && (
-              <BreadcrumbSeparator>
+            {index < breadcrumbs.length - 1 && <BreadcrumbSeparator>
                 <ChevronRight className="h-4 w-4" />
-              </BreadcrumbSeparator>
-            )}
-          </React.Fragment>
-        ))}
+              </BreadcrumbSeparator>}
+          </React.Fragment>)}
       </BreadcrumbList>
     </Breadcrumb>;
 }
