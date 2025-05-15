@@ -13,8 +13,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { X, Plus, ChevronsUpDown } from "lucide-react";
+import { X, Plus, ChevronsUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -182,6 +183,7 @@ const JobTargets = () => {
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -693,6 +695,35 @@ const JobTargets = () => {
     );
   };
   
+  // Function to generate a summary of the current criteria
+  const getCriteriaSummary = () => {
+    const description = form.watch("free_form_role_and_company_description") || "No role description";
+    const industries = form.watch("target_industries") || [];
+    const functions = form.watch("target_functions") || [];
+    
+    return (
+      <div className="flex flex-col">
+        <div className="text-sm line-clamp-1">{description}</div>
+        {(industries.length > 0 || functions.length > 0) && (
+          <div className="text-xs text-muted-foreground mt-1">
+            {industries.length > 0 && (
+              <span className="mr-2">
+                Industries: {industries.slice(0, 3).join(", ")}
+                {industries.length > 3 && "..."}
+              </span>
+            )}
+            {functions.length > 0 && (
+              <span>
+                Functions: {functions.slice(0, 3).join(", ")}
+                {functions.length > 3 && "..."}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
@@ -706,120 +737,165 @@ const JobTargets = () => {
       <ProfileBreadcrumbs />
       
       <div className="grid grid-cols-1 gap-8">
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">
-                {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  {isEditing && (
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-                      <h3 className="font-medium text-blue-800">Why This Matters</h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-                        Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Describe Your Ideal Role and Company */}
-                  <FormField
-                    control={form.control}
-                    name="free_form_role_and_company_description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>
-                          Tell us what matters to you about your next job - in your own words or using the criteria below.
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
-                            className="min-h-[150px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+        <Collapsible
+          open={!isCollapsed}
+          onOpenChange={(open) => setIsCollapsed(!open)}
+          className="space-y-2"
+        >
+          <div className="flex items-center justify-between px-4 py-3 bg-card rounded-lg border border-border shadow-sm">
+            <div className="flex items-center gap-4 flex-1">
+              <h3 className="text-lg font-semibold text-primary">
+                Target Criteria
+              </h3>
+              {isCollapsed && (
+                <div className="flex-1">{getCriteriaSummary()}</div>
+              )}
+            </div>
+            
+            {isCollapsed && (
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCollapsed(false);
+                  }}
+                >
+                  Update
+                </Button>
+              </div>
+            )}
+            
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
+                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          
+          <CollapsibleContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">
+                  {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    {isEditing && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                        <h3 className="font-medium text-blue-800">Why This Matters</h3>
+                        <p className="text-sm text-blue-700 mt-1">
+                          The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+                          Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+                        </p>
+                      </div>
                     )}
-                  />
+                    
+                    {/* Describe Your Ideal Role and Company */}
+                    <FormField
+                      control={form.control}
+                      name="free_form_role_and_company_description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Describe Your Ideal Role and Company</FormLabel>
+                          <FormDescription>
+                            Tell us what matters to you about your next job - in your own words or using the criteria below.
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
+                              className="min-h-[150px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 
-                  {/* Target Job Functions with Custom Options */}
-                  {renderChipSelector(
-                    "target_functions",
-                    functionOptions,
-                    "Target Job Functions",
-                    "What job functions are you interested in?",
-                    "Add function...",
-                    newFunction,
-                    setNewFunction,
-                    addCustomFunction
-                  )}
-                  
-                  {/* Target Industries with Custom Options */}
-                  {renderChipSelector(
-                    "target_industries",
-                    industryOptions,
-                    "Target Industries",
-                    "What industries are you interested in?",
-                    "Add industry...",
-                    newIndustry,
-                    setNewIndustry,
-                    addCustomIndustry
-                  )}
-                  
-                  {/* Preferred Locations */}
-                  {renderLocationSelector()}
-                  
-                  {/* Work From Home Preference */}
-                  {renderWFHPreference()}
-                  
-                  {/* Company Size Preference */}
-                  {renderSizePreference()}
-                  
-                  {/* Similar Companies */}
-                  <FormField
-                    control={form.control}
-                    name="similar_companies"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company Examples</FormLabel>
-                        <FormDescription>We will use this to generate more examples</FormDescription>
-                        <FormControl>
-                          <Input
-                            placeholder="Google, Apple, Microsoft, etc."
-                            onChange={(e) => {
-                              const companies = e.target.value
-                                .split(",")
-                                .map(company => company.trim())
-                                .filter(company => company);
-                              field.onChange(companies);
-                            }}
-                            value={Array.isArray(field.value) ? field.value.join(", ") : ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {/* Target Job Functions with Custom Options */}
+                    {renderChipSelector(
+                      "target_functions",
+                      functionOptions,
+                      "Target Job Functions",
+                      "What job functions are you interested in?",
+                      "Add function...",
+                      newFunction,
+                      setNewFunction,
+                      addCustomFunction
                     )}
-                  />
-                  
-                  <div className="flex justify-end space-x-4">
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                    
+                    {/* Target Industries with Custom Options */}
+                    {renderChipSelector(
+                      "target_industries",
+                      industryOptions,
+                      "Target Industries",
+                      "What industries are you interested in?",
+                      "Add industry...",
+                      newIndustry,
+                      setNewIndustry,
+                      addCustomIndustry
+                    )}
+                    
+                    {/* Preferred Locations */}
+                    {renderLocationSelector()}
+                    
+                    {/* Work From Home Preference */}
+                    {renderWFHPreference()}
+                    
+                    {/* Company Size Preference */}
+                    {renderSizePreference()}
+                    
+                    {/* Similar Companies */}
+                    <FormField
+                      control={form.control}
+                      name="similar_companies"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Examples</FormLabel>
+                          <FormDescription>We will use this to generate more examples</FormDescription>
+                          <FormControl>
+                            <Input
+                              placeholder="Google, Apple, Microsoft, etc."
+                              onChange={(e) => {
+                                const companies = e.target.value
+                                  .split(",")
+                                  .map(company => company.trim())
+                                  .filter(company => company);
+                                field.onChange(companies);
+                              }}
+                              value={Array.isArray(field.value) ? field.value.join(", ") : ""}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="flex justify-between space-x-4">
+                      <Button
+                        type="button" 
+                        variant="outline"
+                        onClick={() => setIsCollapsed(true)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );
