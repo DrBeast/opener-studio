@@ -528,12 +528,7 @@ const JobTargets = () => {
             </div>
             
             {isCollapsed && <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={e => {
-              e.stopPropagation();
-              setIsCollapsed(false);
-            }}>
-                  Update
-                </Button>
+                
               </div>}
             
             <CollapsibleTrigger asChild>
