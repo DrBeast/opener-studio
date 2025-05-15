@@ -75,20 +75,6 @@ export function ProfileBreadcrumbs() {
   };
   const breadcrumbs = getBreadcrumbsForPath();
   return <Breadcrumb className="mb-6">
-      <BreadcrumbList>
-        {breadcrumbs.map((item, index) => <React.Fragment key={item.path}>
-            <BreadcrumbItem>
-              {item.isCurrentPage ? <BreadcrumbPage className="flex items-center gap-1">
-                  {item.icon && item.icon}
-                  {item.name}
-                </BreadcrumbPage> : <BreadcrumbLink asChild>
-                  
-                </BreadcrumbLink>}
-            </BreadcrumbItem>
-            {index < breadcrumbs.length - 1 && <BreadcrumbSeparator>
-                <ChevronRight className="h-4 w-4" />
-              </BreadcrumbSeparator>}
-          </React.Fragment>)}
-      </BreadcrumbList>
+      
     </Breadcrumb>;
 }
