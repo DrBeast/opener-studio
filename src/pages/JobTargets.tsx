@@ -16,7 +16,6 @@ import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -27,7 +26,6 @@ const formSchema = z.object({
   similar_companies: z.array(z.string()).optional(),
   visa_sponsorship_required: z.boolean().default(false)
 });
-
 type FormValues = z.infer<typeof formSchema>;
 
 // Sample options for each select field
@@ -62,7 +60,6 @@ const functionOptions = [{
   value: "data_science",
   label: "Data Science"
 }];
-
 const locationOptions = [{
   value: "san_francisco",
   label: "San Francisco"
@@ -91,7 +88,6 @@ const locationOptions = [{
   value: "remote_global",
   label: "Remote (Global)"
 }];
-
 const wfhOptions = [{
   value: "remote",
   label: "Remote"
@@ -147,7 +143,6 @@ const industryOptions = [{
   value: "automotive",
   label: "Automotive"
 }];
-
 const sizeOptions = [{
   value: "startup",
   label: "Startup (<50)"
@@ -168,9 +163,10 @@ const ensureStringArray = (value: any): string[] => {
   if (Array.isArray(value)) return value.map(String);
   return [];
 };
-
 const JobTargets = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
@@ -184,7 +180,6 @@ const JobTargets = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(true);
-  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -198,43 +193,32 @@ const JobTargets = () => {
       visa_sponsorship_required: false
     }
   });
-  
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!user) return;
       setIsLoading(true);
       try {
         // Fetch user profile to get location data - using the correct table name "user_profiles"
-        const { data: profileData, error: profileError } = await supabase
-          .from("user_profiles")
-          .select("location")
-          .eq("user_id", user.id)
-          .maybeSingle();
-          
+        const {
+          data: profileData,
+          error: profileError
+        } = await supabase.from("user_profiles").select("location").eq("user_id", user.id).maybeSingle();
         if (profileData && !profileError) {
           setUserProfile(profileData);
         }
-        
-        const { data, error } = await supabase
-          .from("target_criteria")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
-          
+        const {
+          data,
+          error
+        } = await supabase.from("target_criteria").select("*").eq("user_id", user.id).maybeSingle();
         if (error) throw error;
-        
         if (data) {
           setExistingData(data);
           setIsEditing(true);
-          
           const targetLocations = ensureStringArray(data.target_locations);
-          
+
           // If user has no locations set but we have their profile location, use that
           const userLocation = profileData?.location;
-          const locations = targetLocations.length > 0 
-            ? targetLocations 
-            : (userLocation ? [userLocation] : []);
-          
+          const locations = targetLocations.length > 0 ? targetLocations : userLocation ? [userLocation] : [];
           form.reset({
             target_functions: ensureStringArray(data.target_functions),
             target_locations: locations,
@@ -260,10 +244,8 @@ const JobTargets = () => {
         setIsLoading(false);
       }
     };
-    
     fetchExistingData();
   }, [user, form]);
-  
   const onSubmit = async (values: FormValues) => {
     if (!user) return;
     setIsSubmitting(true);
@@ -272,23 +254,13 @@ const JobTargets = () => {
         user_id: user.id,
         ...values
       };
-      
-      const { error } = existingData 
-        ? await supabase
-            .from("target_criteria")
-            .update(submissionData)
-            .eq("criteria_id", existingData.criteria_id)
-        : await supabase
-            .from("target_criteria")
-            .insert([submissionData]);
-            
+      const {
+        error
+      } = existingData ? await supabase.from("target_criteria").update(submissionData).eq("criteria_id", existingData.criteria_id) : await supabase.from("target_criteria").insert([submissionData]);
       if (error) throw error;
-      
       toast({
         title: "Success",
-        description: isEditing 
-          ? "Job and company targets updated successfully!" 
-          : "Job and company targets saved successfully!",
+        description: isEditing ? "Job and company targets updated successfully!" : "Job and company targets saved successfully!"
       });
 
       // Navigate to companies after saving job targets
@@ -304,34 +276,27 @@ const JobTargets = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   // Chip component for selections
-  const SelectionChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
-    <div className="inline-flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 text-sm mr-2 mb-2">
+  const SelectionChip = ({
+    label,
+    onRemove
+  }: {
+    label: string;
+    onRemove: () => void;
+  }) => <div className="inline-flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 text-sm mr-2 mb-2">
       <span>{label}</span>
-      <button 
-        type="button"
-        onClick={onRemove} 
-        className="ml-2 rounded-full hover:bg-primary/20 p-0.5"
-      >
+      <button type="button" onClick={onRemove} className="ml-2 rounded-full hover:bg-primary/20 p-0.5">
         <X className="h-3 w-3" />
       </button>
-    </div>
-  );
-  
+    </div>;
+
   // Common function to handle chip selections for both functions and industries
-  const renderChipSelector = (
-    name: "target_functions" | "target_industries", 
-    options: { value: string; label: string }[],
-    label: string,
-    description: string,
-    placeholder: string,
-    newValue: string,
-    setNewValue: React.Dispatch<React.SetStateAction<string>>,
-    addCustomValue: () => void
-  ) => {
+  const renderChipSelector = (name: "target_functions" | "target_industries", options: {
+    value: string;
+    label: string;
+  }[], label: string, description: string, placeholder: string, newValue: string, setNewValue: React.Dispatch<React.SetStateAction<string>>, addCustomValue: () => void) => {
     const values = form.watch(name) || [];
-    
     const handleOptionClick = (option: string) => {
       const currentValues = form.getValues(name) || [];
       if (currentValues.includes(option)) {
@@ -340,104 +305,57 @@ const JobTargets = () => {
         form.setValue(name, [...currentValues, option]);
       }
     };
-    
-    return (
-      <FormField
-        control={form.control}
-        name={name}
-        render={() => (
-          <FormItem className="space-y-2">
+    return <FormField control={form.control} name={name} render={() => <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
             <FormDescription>{description}</FormDescription>
             
             <div className="relative">
               <div className="flex flex-wrap p-2 border rounded-md min-h-[80px] bg-background">
                 {values.map(value => {
-                  const option = options.find(o => o.value === value);
-                  const displayLabel = option ? option.label : value;
-                  
-                  return (
-                    <SelectionChip 
-                      key={value} 
-                      label={displayLabel} 
-                      onRemove={() => handleOptionClick(value)} 
-                    />
-                  );
-                })}
+            const option = options.find(o => o.value === value);
+            const displayLabel = option ? option.label : value;
+            return <SelectionChip key={value} label={displayLabel} onRemove={() => handleOptionClick(value)} />;
+          })}
                 
                 <div className="flex items-center">
-                  <input
-                    type="text"
-                    value={newValue}
-                    onChange={(e) => setNewValue(e.target.value)}
-                    placeholder={placeholder}
-                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent w-32"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newValue.trim()) {
-                        e.preventDefault();
-                        addCustomValue();
-                      }
-                    }}
-                  />
-                  {newValue.trim() && (
-                    <button 
-                      type="button"
-                      onClick={addCustomValue}
-                      className="p-1 ml-1 text-primary"
-                    >
+                  <input type="text" value={newValue} onChange={e => setNewValue(e.target.value)} placeholder={placeholder} className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent w-32" onKeyDown={e => {
+              if (e.key === 'Enter' && newValue.trim()) {
+                e.preventDefault();
+                addCustomValue();
+              }
+            }} />
+                  {newValue.trim() && <button type="button" onClick={addCustomValue} className="p-1 ml-1 text-primary">
                       <Plus className="h-4 w-4" />
-                    </button>
-                  )}
+                    </button>}
                 </div>
               </div>
               
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {options.map(option => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleOptionClick(option.value)}
-                    className={cn(
-                      "text-left px-3 py-1.5 rounded-md text-sm",
-                      values.includes(option.value) 
-                        ? "bg-primary text-primary-foreground" 
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    )}
-                  >
+                {options.map(option => <button key={option.value} type="button" onClick={() => handleOptionClick(option.value)} className={cn("text-left px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
                     {option.label}
-                  </button>
-                ))}
+                  </button>)}
               </div>
             </div>
-          </FormItem>
-        )}
-      />
-    );
+          </FormItem>} />;
   };
-  
   const addCustomFunction = () => {
     if (!newFunction.trim()) return;
-    
     const currentFunctions = form.getValues("target_functions") || [];
     if (!currentFunctions.includes(newFunction.trim())) {
       form.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
       setNewFunction("");
     }
   };
-  
   const addCustomIndustry = () => {
     if (!newIndustry.trim()) return;
-    
     const currentIndustries = form.getValues("target_industries") || [];
     if (!currentIndustries.includes(newIndustry.trim())) {
       form.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
       setNewIndustry("");
     }
   };
-  
   const addCustomLocation = () => {
     if (!newLocation.trim()) return;
-    
     const currentLocations = form.getValues("target_locations") || [];
     if (!currentLocations.includes(newLocation.trim())) {
       form.setValue("target_locations", [...currentLocations, newLocation.trim()]);
@@ -445,19 +363,16 @@ const JobTargets = () => {
       setLocationSearchOpen(false);
     }
   };
-  
+
   // Filter locations based on search input
   useEffect(() => {
     if (newLocation.trim() === "") {
       setFilteredLocations(locationOptions);
     } else {
-      const filtered = locationOptions.filter(location => 
-        location.label.toLowerCase().includes(newLocation.toLowerCase())
-      );
+      const filtered = locationOptions.filter(location => location.label.toLowerCase().includes(newLocation.toLowerCase()));
       setFilteredLocations(filtered);
     }
   }, [newLocation]);
-  
   const handleLocationSelect = (location: string) => {
     const currentLocations = form.getValues("target_locations") || [];
     if (!currentLocations.includes(location)) {
@@ -466,306 +381,160 @@ const JobTargets = () => {
     setNewLocation("");
     setLocationSearchOpen(false);
   };
-  
   const renderWFHPreference = () => {
     const values = form.watch("target_wfh_preference") || [];
-    
-    return (
-      <FormField
-        control={form.control}
-        name="target_wfh_preference"
-        render={() => (
-          <FormItem className="space-y-2">
+    return <FormField control={form.control} name="target_wfh_preference" render={() => <FormItem className="space-y-2">
             <FormLabel>Work From Home Preference</FormLabel>
             <FormDescription>What is your preferred working arrangement?</FormDescription>
             
             <div className="flex flex-wrap gap-2">
-              {wfhOptions.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    const currentValues = form.getValues("target_wfh_preference") || [];
-                    if (currentValues.includes(option.value)) {
-                      form.setValue("target_wfh_preference", currentValues.filter(v => v !== option.value));
-                    } else {
-                      form.setValue("target_wfh_preference", [...currentValues, option.value]);
-                    }
-                  }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm",
-                    values.includes(option.value)
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  )}
-                >
+              {wfhOptions.map(option => <button key={option.value} type="button" onClick={() => {
+          const currentValues = form.getValues("target_wfh_preference") || [];
+          if (currentValues.includes(option.value)) {
+            form.setValue("target_wfh_preference", currentValues.filter(v => v !== option.value));
+          } else {
+            form.setValue("target_wfh_preference", [...currentValues, option.value]);
+          }
+        }} className={cn("px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
                   {option.label}
-                </button>
-              ))}
+                </button>)}
             </div>
             
             <div className="flex flex-wrap mt-2">
               {values.map(value => {
-                const option = wfhOptions.find(o => o.value === value);
-                return option && (
-                  <SelectionChip 
-                    key={value} 
-                    label={option.label} 
-                    onRemove={() => {
-                      form.setValue(
-                        "target_wfh_preference", 
-                        values.filter(v => v !== value)
-                      );
-                    }} 
-                  />
-                );
-              })}
+          const option = wfhOptions.find(o => o.value === value);
+          return option && <SelectionChip key={value} label={option.label} onRemove={() => {
+            form.setValue("target_wfh_preference", values.filter(v => v !== value));
+          }} />;
+        })}
             </div>
-          </FormItem>
-        )}
-      />
-    );
+          </FormItem>} />;
   };
-  
   const renderSizePreference = () => {
     const values = form.watch("target_sizes") || [];
-    
-    return (
-      <FormField
-        control={form.control}
-        name="target_sizes"
-        render={() => (
-          <FormItem className="space-y-2">
+    return <FormField control={form.control} name="target_sizes" render={() => <FormItem className="space-y-2">
             <FormLabel>Company Size Preference</FormLabel>
             <FormDescription>What size of company would you prefer?</FormDescription>
             
             <div className="flex flex-wrap gap-2">
-              {sizeOptions.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    const currentValues = form.getValues("target_sizes") || [];
-                    if (currentValues.includes(option.value)) {
-                      form.setValue("target_sizes", currentValues.filter(v => v !== option.value));
-                    } else {
-                      form.setValue("target_sizes", [...currentValues, option.value]);
-                    }
-                  }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm",
-                    values.includes(option.value)
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  )}
-                >
+              {sizeOptions.map(option => <button key={option.value} type="button" onClick={() => {
+          const currentValues = form.getValues("target_sizes") || [];
+          if (currentValues.includes(option.value)) {
+            form.setValue("target_sizes", currentValues.filter(v => v !== option.value));
+          } else {
+            form.setValue("target_sizes", [...currentValues, option.value]);
+          }
+        }} className={cn("px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
                   {option.label}
-                </button>
-              ))}
+                </button>)}
             </div>
             
             <div className="flex flex-wrap mt-2">
               {values.map(value => {
-                const option = sizeOptions.find(o => o.value === value);
-                return option && (
-                  <SelectionChip 
-                    key={value} 
-                    label={option.label} 
-                    onRemove={() => {
-                      form.setValue(
-                        "target_sizes", 
-                        values.filter(v => v !== value)
-                      );
-                    }} 
-                  />
-                );
-              })}
+          const option = sizeOptions.find(o => o.value === value);
+          return option && <SelectionChip key={value} label={option.label} onRemove={() => {
+            form.setValue("target_sizes", values.filter(v => v !== value));
+          }} />;
+        })}
             </div>
-          </FormItem>
-        )}
-      />
-    );
+          </FormItem>} />;
   };
-  
   const renderLocationSelector = () => {
     const locations = form.watch("target_locations") || [];
-    
-    return (
-      <FormField
-        control={form.control}
-        name="target_locations"
-        render={() => (
-          <FormItem className="space-y-2">
+    return <FormField control={form.control} name="target_locations" render={() => <FormItem className="space-y-2">
             <FormLabel>Preferred Locations</FormLabel>
             <FormDescription>Where would you like to work?</FormDescription>
             
             <div className="relative">
-              <div 
-                className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background"
-                onClick={() => {
-                  setLocationSearchOpen(true);
-                  setTimeout(() => {
-                    locationInputRef.current?.focus();
-                  }, 100);
-                }}
-              >
+              <div className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background" onClick={() => {
+          setLocationSearchOpen(true);
+          setTimeout(() => {
+            locationInputRef.current?.focus();
+          }, 100);
+        }}>
                 {locations.map(location => {
-                  const option = locationOptions.find(o => o.value === location);
-                  const displayLabel = option ? option.label : location;
-                  
-                  return (
-                    <SelectionChip 
-                      key={location} 
-                      label={displayLabel} 
-                      onRemove={() => {
-                        form.setValue(
-                          "target_locations", 
-                          locations.filter(l => l !== location)
-                        );
-                      }} 
-                    />
-                  );
-                })}
+            const option = locationOptions.find(o => o.value === location);
+            const displayLabel = option ? option.label : location;
+            return <SelectionChip key={location} label={displayLabel} onRemove={() => {
+              form.setValue("target_locations", locations.filter(l => l !== location));
+            }} />;
+          })}
                 
                 <div className="flex items-center flex-grow">
-                  <input
-                    ref={locationInputRef}
-                    type="text"
-                    value={newLocation}
-                    onChange={(e) => {
-                      setNewLocation(e.target.value);
-                      setLocationSearchOpen(true);
-                    }}
-                    placeholder={locations.length ? "Add another location..." : "Search locations..."}
-                    className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent flex-grow"
-                    onFocus={() => setLocationSearchOpen(true)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newLocation.trim()) {
-                        e.preventDefault();
-                        addCustomLocation();
-                      }
-                    }}
-                  />
-                  <button 
-                    type="button"
-                    className="p-1 text-muted-foreground"
-                    onClick={() => setLocationSearchOpen(!locationSearchOpen)}
-                  >
+                  <input ref={locationInputRef} type="text" value={newLocation} onChange={e => {
+              setNewLocation(e.target.value);
+              setLocationSearchOpen(true);
+            }} placeholder={locations.length ? "Add another location..." : "Search locations..."} className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent flex-grow" onFocus={() => setLocationSearchOpen(true)} onKeyDown={e => {
+              if (e.key === 'Enter' && newLocation.trim()) {
+                e.preventDefault();
+                addCustomLocation();
+              }
+            }} />
+                  <button type="button" className="p-1 text-muted-foreground" onClick={() => setLocationSearchOpen(!locationSearchOpen)}>
                     <ChevronsUpDown className="h-4 w-4" />
                   </button>
                 </div>
               </div>
               
-              {locationSearchOpen && (
-                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
-                  {filteredLocations.length > 0 ? (
-                    filteredLocations.map(location => (
-                      <button
-                        key={location.value}
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
-                        onClick={() => handleLocationSelect(location.value)}
-                      >
+              {locationSearchOpen && <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
+                  {filteredLocations.length > 0 ? filteredLocations.map(location => <button key={location.value} type="button" className="w-full text-left px-3 py-2 hover:bg-accent text-sm" onClick={() => handleLocationSelect(location.value)}>
                         {location.label}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="p-3 text-sm text-muted-foreground">
+                      </button>) : <div className="p-3 text-sm text-muted-foreground">
                       <div className="flex justify-between items-center">
                         <span>No locations found</span>
-                        {newLocation.trim() && (
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={addCustomLocation}
-                          >
+                        {newLocation.trim() && <Button type="button" variant="ghost" size="sm" onClick={addCustomLocation}>
                             Add "{newLocation}"
-                          </Button>
-                        )}
+                          </Button>}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    </div>}
+                </div>}
             </div>
-          </FormItem>
-        )}
-      />
-    );
+          </FormItem>} />;
   };
-  
+
   // Function to generate a summary of the current criteria
   const getCriteriaSummary = () => {
     const description = form.watch("free_form_role_and_company_description") || "No role description";
     const industries = form.watch("target_industries") || [];
     const functions = form.watch("target_functions") || [];
-    
-    return (
-      <div className="flex flex-col">
+    return <div className="flex flex-col">
         <div className="text-sm line-clamp-1">{description}</div>
-        {(industries.length > 0 || functions.length > 0) && (
-          <div className="text-xs text-muted-foreground mt-1">
-            {industries.length > 0 && (
-              <span className="mr-2">
+        {(industries.length > 0 || functions.length > 0) && <div className="text-xs text-muted-foreground mt-1">
+            {industries.length > 0 && <span className="mr-2">
                 Industries: {industries.slice(0, 3).join(", ")}
                 {industries.length > 3 && "..."}
-              </span>
-            )}
-            {functions.length > 0 && (
-              <span>
+              </span>}
+            {functions.length > 0 && <span>
                 Functions: {functions.slice(0, 3).join(", ")}
                 {functions.length > 3 && "..."}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    );
+              </span>}
+          </div>}
+      </div>;
   };
-
   if (isLoading) {
-    return (
-      <div className="flex min-h-[80vh] items-center justify-center">
+    return <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-  
-  return (
-    <div className="container mx-auto py-8 max-w-4xl">
+  return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="grid grid-cols-1 gap-8">
-        <Collapsible
-          open={!isCollapsed}
-          onOpenChange={(open) => setIsCollapsed(!open)}
-          className="space-y-2"
-        >
+        <Collapsible open={!isCollapsed} onOpenChange={open => setIsCollapsed(!open)} className="space-y-2">
           <div className="flex items-center justify-between px-4 py-3 bg-card rounded-lg border border-border shadow-sm">
             <div className="flex items-center gap-4 flex-1">
-              <h3 className="text-lg font-semibold text-primary">
-                Target Criteria
-              </h3>
-              {isCollapsed && (
-                <div className="flex-1">{getCriteriaSummary()}</div>
-              )}
+              <h3 className="text-lg font-semibold text-primary">Role & Company Targets</h3>
+              {isCollapsed && <div className="flex-1">{getCriteriaSummary()}</div>}
             </div>
             
-            {isCollapsed && (
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsCollapsed(false);
-                  }}
-                >
+            {isCollapsed && <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={e => {
+              e.stopPropagation();
+              setIsCollapsed(false);
+            }}>
                   Update
                 </Button>
-              </div>
-            )}
+              </div>}
             
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
@@ -776,69 +545,37 @@ const JobTargets = () => {
           
           <CollapsibleContent>
             <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold">
-                  {isEditing ? "Update Your Job & Company Targets" : "Define Your Job & Company Targets"}
-                </CardTitle>
-              </CardHeader>
+              
               <CardContent>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {isEditing && (
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+                    {isEditing && <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
                         <h3 className="font-medium text-blue-800">Why This Matters</h3>
                         <p className="text-sm text-blue-700 mt-1">
                           The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
                           Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
                         </p>
-                      </div>
-                    )}
+                      </div>}
                     
                     {/* Describe Your Ideal Role and Company */}
-                    <FormField
-                      control={form.control}
-                      name="free_form_role_and_company_description"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="free_form_role_and_company_description" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Describe Your Ideal Role and Company</FormLabel>
                           <FormDescription>
                             Tell us what matters to you about your next job - in your own words or using the criteria below.
                           </FormDescription>
                           <FormControl>
-                            <Textarea
-                              placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..."
-                              className="min-h-[150px]"
-                              {...field}
-                            />
+                            <Textarea placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." className="min-h-[150px]" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                 
                     {/* Target Job Functions with Custom Options */}
-                    {renderChipSelector(
-                      "target_functions",
-                      functionOptions,
-                      "Target Job Functions",
-                      "What job functions are you interested in?",
-                      "Add function...",
-                      newFunction,
-                      setNewFunction,
-                      addCustomFunction
-                    )}
+                    {renderChipSelector("target_functions", functionOptions, "Target Job Functions", "What job functions are you interested in?", "Add function...", newFunction, setNewFunction, addCustomFunction)}
                     
                     {/* Target Industries with Custom Options */}
-                    {renderChipSelector(
-                      "target_industries",
-                      industryOptions,
-                      "Target Industries",
-                      "What industries are you interested in?",
-                      "Add industry...",
-                      newIndustry,
-                      setNewIndustry,
-                      addCustomIndustry
-                    )}
+                    {renderChipSelector("target_industries", industryOptions, "Target Industries", "What industries are you interested in?", "Add industry...", newIndustry, setNewIndustry, addCustomIndustry)}
                     
                     {/* Preferred Locations */}
                     {renderLocationSelector()}
@@ -850,43 +587,25 @@ const JobTargets = () => {
                     {renderSizePreference()}
                     
                     {/* Similar Companies */}
-                    <FormField
-                      control={form.control}
-                      name="similar_companies"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="similar_companies" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Company Examples</FormLabel>
                           <FormDescription>We will use this to generate more examples</FormDescription>
                           <FormControl>
-                            <Input
-                              placeholder="Google, Apple, Microsoft, etc."
-                              onChange={(e) => {
-                                const companies = e.target.value
-                                  .split(",")
-                                  .map(company => company.trim())
-                                  .filter(company => company);
-                                field.onChange(companies);
-                              }}
-                              value={Array.isArray(field.value) ? field.value.join(", ") : ""}
-                            />
+                            <Input placeholder="Google, Apple, Microsoft, etc." onChange={e => {
+                        const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
+                        field.onChange(companies);
+                      }} value={Array.isArray(field.value) ? field.value.join(", ") : ""} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
                     <div className="flex justify-between space-x-4">
-                      <Button
-                        type="button" 
-                        variant="outline"
-                        onClick={() => setIsCollapsed(true)}
-                      >
+                      <Button type="button" variant="outline" onClick={() => setIsCollapsed(true)}>
                         Cancel
                       </Button>
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                      >
+                      <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
                       </Button>
                     </div>
@@ -897,8 +616,6 @@ const JobTargets = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default JobTargets;
