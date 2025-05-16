@@ -289,8 +289,8 @@ const JobTargets = () => {
           : "Job and company targets saved successfully!",
       });
 
-      // Navigate to companies after saving job targets
-      navigate("/companies");
+      // Navigate to pipeline after saving job targets
+      navigate("/pipeline");
     } catch (error: any) {
       console.error("Error saving target criteria:", error.message);
       toast({
@@ -701,9 +701,24 @@ const JobTargets = () => {
     );
   }
   
+  const handleSaveAndContinue = () => {
+    form.handleSubmit(onSubmit)();
+  };
+  
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
+      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Define Your Job & Company Targets</h1>
+        <Button 
+          onClick={handleSaveAndContinue}
+          disabled={isSubmitting}
+          className="bg-primary"
+        >
+          {isSubmitting ? "Saving..." : "Next: Companies"}
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 gap-8">
         <div className="space-y-8">
@@ -812,7 +827,7 @@ const JobTargets = () => {
                       type="submit"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Saving..." : isEditing ? "Update Preferences" : "Save Preferences"}
+                      {isSubmitting ? "Saving..." : "Next: Companies"}
                     </Button>
                   </div>
                 </form>
