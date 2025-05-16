@@ -1,7 +1,7 @@
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -54,6 +54,9 @@ const App = () => (
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/job-search" element={<ConsolidatedJobSearch />} />
               </Route>
+              
+              {/* Redirect for the current request to navigate to profile */}
+              <Route path="/navigate-to-profile" element={<Navigate to="/profile" replace />} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

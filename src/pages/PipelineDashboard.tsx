@@ -114,7 +114,7 @@ const PipelineDashboard = () => {
   
   // Navigation handlers
   const handleEditProfile = () => {
-    navigate("/profile/edit");
+    navigate("/profile"); // Updated to navigate to main profile page
   };
 
   const handleEditTargets = () => {
@@ -361,7 +361,7 @@ const PipelineDashboard = () => {
         <div className="flex flex-wrap gap-3 mb-4">
           <Button variant="outline" onClick={handleEditProfile}>
             <Edit className="h-4 w-4 mr-1" />
-            Edit Profile
+            View Profile
           </Button>
           <Button variant="outline" onClick={handleEditTargets}>
             <Target className="h-4 w-4 mr-1" />
