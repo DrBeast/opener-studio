@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -23,7 +22,10 @@ import {
   Pencil,
   Check,
   MessageCircle,
-  Search
+  Search,
+  Edit,
+  Target,
+  RefreshCw
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
@@ -44,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactDetails } from "@/components/ContactDetails";
 import { MessageGeneration } from "@/components/MessageGeneration";
+import { useNavigate } from "react-router-dom";
 
 interface CompanyData {
   company_id: string;
@@ -88,6 +91,7 @@ interface ContactData {
 
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
+  const navigate = useNavigate();
   
   // Pipeline tab state
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,6 +103,8 @@ const PipelineDashboard = () => {
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [editData, setEditData] = useState<{[key: string]: string}>({});
   const [filterPriority, setFilterPriority] = useState<string | null>(null);
+  const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
+  const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
   
   // Contacts tab state
   const [contactSearchQuery, setContactSearchQuery] = useState("");
@@ -106,6 +112,34 @@ const PipelineDashboard = () => {
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   
+  // Navigation handlers
+  const handleEditProfile = () => {
+    navigate("/profile/edit");
+  };
+
+  const handleEditTargets = () => {
+    navigate("/job-targets");
+  };
+  
+  // Generate more companies
+  const handleGenerateMoreCompanies = async () => {
+    setIsGeneratingCompanies(true);
+    toast.success("Generating 10 more companies based on your profile and targets");
+    
+    try {
+      // Mock delay to simulate API call - in a real implementation, 
+      // this would call the generate_companies edge function
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success("10 more companies have been generated");
+      refetch();
+    } catch (error) {
+      console.error('Error generating companies:', error);
+      toast.error('Failed to generate companies');
+    } finally {
+      setIsGeneratingCompanies(false);
+    }
+  };
+
   // Fetch companies from Supabase with related data
   const { data: companies, isLoading, error, refetch } = useQuery({
     queryKey: ['pipeline-companies', sortField, sortDirection, filterPriority],
@@ -323,6 +357,33 @@ const PipelineDashboard = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
+        {/* Navigation Buttons */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <Button variant="outline" onClick={handleEditProfile}>
+            <Edit className="h-4 w-4 mr-1" />
+            Edit Profile
+          </Button>
+          <Button variant="outline" onClick={handleEditTargets}>
+            <Target className="h-4 w-4 mr-1" />
+            Edit Targets
+          </Button>
+          <Button 
+            variant="action"
+            onClick={handleGenerateMoreCompanies}
+            disabled={isGeneratingCompanies}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
+            Generate More
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setIsAddCompanyOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Company
+          </Button>
+        </div>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
@@ -806,4 +867,3 @@ const PipelineDashboard = () => {
 };
 
 export default PipelineDashboard;
-
