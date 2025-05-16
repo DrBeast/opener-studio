@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useNavigate } from "react-router-dom";
 
 // UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,9 @@ import {
   AlertCircle,
   MessageCircle,
   CheckCircle,
-  X
+  X,
+  Edit,
+  Target
 } from "lucide-react";
 
 // Job Target Components
@@ -109,6 +112,7 @@ import { TargetCriteriaForm } from "@/components/TargetCriteriaForm";
 const ConsolidatedJobSearch = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // State
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,6 +135,15 @@ const ConsolidatedJobSearch = () => {
   // Target criteria Form state
   const [showTargetForm, setShowTargetForm] = useState(false);
   
+  // Navigation handlers
+  const handleEditProfile = () => {
+    navigate("/profile/edit");
+  };
+
+  const handleEditTargets = () => {
+    navigate("/job-targets");
+  };
+
   // Fetch companies overview
   const { data: companiesData, isLoading, error, refetch } = useQuery({
     queryKey: ['companies-overview', filterPriority, sortField, sortDirection],
@@ -377,6 +390,18 @@ const ConsolidatedJobSearch = () => {
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
+        {/* Navigation Buttons */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <Button variant="outline" onClick={handleEditProfile}>
+            <Edit className="h-4 w-4 mr-1" />
+            Edit Profile
+          </Button>
+          <Button variant="outline" onClick={handleEditTargets}>
+            <Target className="h-4 w-4 mr-1" />
+            Edit Targets
+          </Button>
+        </div>
+
         {/* Target Criteria Section */}
         <Collapsible open={openCriteria} onOpenChange={setOpenCriteria}>
           <Card>
@@ -521,7 +546,7 @@ const ConsolidatedJobSearch = () => {
                   Add Company
                 </Button>
                 <Button 
-                  variant="secondary"
+                  variant="action"
                   onClick={() => handleGenerateMoreCompanies()}
                   disabled={isGeneratingCompanies || !targetCriteria}
                 >
@@ -733,7 +758,7 @@ const ConsolidatedJobSearch = () => {
                     Add Company
                   </Button>
                   {targetCriteria && (
-                    <Button onClick={() => handleGenerateMoreCompanies()}>
+                    <Button variant="action" onClick={() => handleGenerateMoreCompanies()}>
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Generate Companies
                     </Button>
@@ -750,6 +775,14 @@ const ConsolidatedJobSearch = () => {
                 <div className="flex gap-2">
                   <Button 
                     variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddCompanyOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Company
+                  </Button>
+                  <Button 
+                    variant="action"
                     size="sm"
                     onClick={() => handleGenerateMoreCompanies()}
                     disabled={isGeneratingCompanies || !targetCriteria}
