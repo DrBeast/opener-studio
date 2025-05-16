@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/components/ui/sonner";
 import { RefreshCcw, Save, Edit } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
-
 interface UserProfile {
   user_id: string;
   first_name?: string;
@@ -143,7 +143,7 @@ const Profile = () => {
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error.message);
-        // Toast disabled
+        toast.error("Failed to load your profile. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -195,7 +195,7 @@ const Profile = () => {
       if (upsertError) throw upsertError;
     } catch (error: any) {
       console.error(`Error saving profile data:`, error.message);
-      // Toast disabled
+      toast.error(`Failed to save profile data: ${error.message}`);
       throw error;
     }
   };
@@ -222,8 +222,7 @@ const Profile = () => {
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
       }
-      
-      console.log("Profile information updated and summary regenerated!");
+      toast.success("Profile information updated and summary regenerated!");
       setEditMode(false);
       setHasChanges(false);
 
@@ -231,14 +230,14 @@ const Profile = () => {
       window.location.reload();
     } catch (error: any) {
       console.error("Error submitting profile data:", error.message);
-      // Toast disabled
+      toast.error(`Failed to process profile information: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
   const handleRegenerateAISummary = async () => {
     if (!user) return;
-    console.log("Regenerating your professional summary...");
+    toast.info("Regenerating your professional summary...");
     try {
       // Call the edge function to regenerate the summary
       const {
@@ -255,13 +254,13 @@ const Profile = () => {
       }
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
-        console.log("Your professional summary has been updated!");
+        toast.success("Your professional summary has been updated!");
       } else {
-        console.error("Failed to generate a new summary");
+        toast.error("Failed to generate a new summary");
       }
     } catch (error: any) {
       console.error("Error regenerating summary:", error.message);
-      // Toast disabled
+      toast.error(`Failed to regenerate summary: ${error.message}`);
     }
   };
 
@@ -288,7 +287,7 @@ const Profile = () => {
         error: targetError
       } = await supabase.from("target_criteria").delete().eq("user_id", user.id);
       if (targetError) throw targetError;
-      console.log("User data has been reset successfully");
+      toast.success("User data has been reset successfully");
 
       // Refresh the page after a brief delay
       setTimeout(() => {
@@ -296,7 +295,7 @@ const Profile = () => {
       }, 1000);
     } catch (error: any) {
       console.error("Error resetting user data:", error.message);
-      // Toast disabled
+      toast.error(`Failed to reset user data: ${error.message}`);
     } finally {
       setIsResetting(false);
     }
@@ -319,14 +318,6 @@ const Profile = () => {
       
       <div className="grid gap-6">
         <div className="space-y-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Your Profile</h1>
-            <Button asChild variant="outline">
-              <Link to="/job-search">
-                View Companies & Contacts
-              </Link>
-            </Button>
-          </div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>

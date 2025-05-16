@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { v4 as uuidv4 } from "uuid";
 
 interface TargetCriteriaProps {
@@ -238,7 +238,7 @@ export function TargetCriteriaForm({ onCancel, onSaved, initialData }: TargetCri
           type="submit" 
           disabled={isLoading || isSubmitting}
         >
-          {isLoading || isSubmitting ? "Saving..." : initialData ? "Update and Generate More" : "Save Criteria"}
+          {isLoading || isSubmitting ? "Saving..." : "Save Criteria"}
         </Button>
       </div>
     </form>
