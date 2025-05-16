@@ -4,8 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
-import { RefreshCcw, Save, Edit } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { RefreshCcw, Save, Edit, ArrowRight } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
@@ -67,6 +67,13 @@ const Profile = () => {
   // Dev mode - user data reset
   const [showDevOptions, setShowDevOptions] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Navigate to job targets page
+  const handleNavigateToTargets = () => {
+    navigate("/job-targets");
+  };
+
+  // ... keep existing code (fetchUserProfile useEffect)
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -143,13 +150,19 @@ const Profile = () => {
         }
       } catch (error: any) {
         console.error("Error fetching user profile:", error.message);
-        toast.error("Failed to load your profile. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to load your profile. Please try again.",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
     fetchUserProfile();
   }, [user, navigate]);
+
+  // ... keep existing code (check for changes useEffect)
   useEffect(() => {
     // Check if any changes were made compared to existing data
     const hasLinkedinChanges = linkedinContent !== (existingData.linkedin || "");
@@ -157,6 +170,8 @@ const Profile = () => {
     const hasCvChanges = cvContent !== (existingData.cv || "");
     setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges);
   }, [linkedinContent, additionalDetails, cvContent, existingData]);
+
+  // ... keep existing code (saveUserProfile function and handlers)
   const saveUserProfile = async () => {
     if (!user) return;
     try {
@@ -195,7 +210,11 @@ const Profile = () => {
       if (upsertError) throw upsertError;
     } catch (error: any) {
       console.error(`Error saving profile data:`, error.message);
-      toast.error(`Failed to save profile data: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to save profile data: ${error.message}`,
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -222,7 +241,10 @@ const Profile = () => {
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
       }
-      toast.success("Profile information updated and summary regenerated!");
+      toast({
+        title: "Success",
+        description: "Profile information updated and summary regenerated!"
+      });
       setEditMode(false);
       setHasChanges(false);
 
@@ -230,14 +252,21 @@ const Profile = () => {
       window.location.reload();
     } catch (error: any) {
       console.error("Error submitting profile data:", error.message);
-      toast.error(`Failed to process profile information: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to process profile information: ${error.message}`,
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
   const handleRegenerateAISummary = async () => {
     if (!user) return;
-    toast.info("Regenerating your professional summary...");
+    toast({
+      title: "Info",
+      description: "Regenerating your professional summary..."
+    });
     try {
       // Call the edge function to regenerate the summary
       const {
@@ -254,13 +283,24 @@ const Profile = () => {
       }
       if (data && data.summary) {
         setBackgroundSummary(data.summary);
-        toast.success("Your professional summary has been updated!");
+        toast({
+          title: "Success",
+          description: "Your professional summary has been updated!"
+        });
       } else {
-        toast.error("Failed to generate a new summary");
+        toast({
+          title: "Error",
+          description: "Failed to generate a new summary",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
       console.error("Error regenerating summary:", error.message);
-      toast.error(`Failed to regenerate summary: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to regenerate summary: ${error.message}`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -287,7 +327,10 @@ const Profile = () => {
         error: targetError
       } = await supabase.from("target_criteria").delete().eq("user_id", user.id);
       if (targetError) throw targetError;
-      toast.success("User data has been reset successfully");
+      toast({
+        title: "Success",
+        description: "User data has been reset successfully"
+      });
 
       // Refresh the page after a brief delay
       setTimeout(() => {
@@ -295,7 +338,11 @@ const Profile = () => {
       }, 1000);
     } catch (error: any) {
       console.error("Error resetting user data:", error.message);
-      toast.error(`Failed to reset user data: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to reset user data: ${error.message}`,
+        variant: "destructive"
+      });
     } finally {
       setIsResetting(false);
     }
@@ -323,10 +370,16 @@ const Profile = () => {
               <div>
                 <CardTitle className="text-2xl font-bold">Professional Profile</CardTitle>
               </div>
-              {!editMode && <Button variant="outline" size="sm" onClick={() => setEditMode(true)} className="flex items-center gap-2">
+              <div className="flex gap-2">
+                {!editMode && <Button variant="outline" size="sm" onClick={() => setEditMode(true)} className="flex items-center gap-2">
                   <Edit className="h-4 w-4" />
                   Edit Profile
                 </Button>}
+                <Button size="sm" onClick={handleNavigateToTargets} className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90">
+                  Next: Define Targets
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
             
             <CardContent className="space-y-6">
@@ -409,6 +462,14 @@ const Profile = () => {
                   <p>You haven't provided any professional background information yet. Click 'Edit Profile' to get started.</p>
                 </div>}
             </CardContent>
+            
+            {/* Bottom navigation button */}
+            <CardFooter className="flex justify-end pt-4 border-t">
+              <Button onClick={handleNavigateToTargets} className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90">
+                Next: Define Targets
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
           </Card>
           
           {/* Development Tools Card */}
