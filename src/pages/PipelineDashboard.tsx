@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactDetails } from "@/components/ContactDetails";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { useNavigate } from "react-router-dom";
+
 interface CompanyData {
   company_id: string;
   name: string;
@@ -57,6 +58,7 @@ interface ContactData {
     name: string;
   };
 }
+
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
   const navigate = useNavigate();
@@ -318,7 +320,7 @@ const PipelineDashboard = () => {
         <div className="flex flex-wrap gap-3 mb-4">
           <Button variant="outline" onClick={handleEditProfile}>
             <Edit className="h-4 w-4 mr-1" />
-            View Profile
+            Edit Profile
           </Button>
           <Button variant="outline" onClick={handleEditTargets}>
             <Target className="h-4 w-4 mr-1" />
@@ -632,7 +634,7 @@ const PipelineDashboard = () => {
       
       {/* Company Details Dialog */}
       {selectedCompany && <CompanyDetails company={selectedCompany} isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} onCompanyUpdated={handleCompanyUpdated} />}
-
+      
       {/* Interaction Form Dialog for Planning */}
       {selectedCompany && <InteractionForm companyId={selectedCompany.company_id} companyName={selectedCompany.name} contacts={selectedCompany.contacts || []} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={() => {
       refetch();
