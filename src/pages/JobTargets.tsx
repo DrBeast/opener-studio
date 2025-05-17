@@ -288,9 +288,6 @@ const JobTargets = () => {
           ? "Job and company targets updated successfully!" 
           : "Job and company targets saved successfully!",
       });
-
-      // Navigate to pipeline after saving job targets
-      navigate("/pipeline");
     } catch (error: any) {
       console.error("Error saving target criteria:", error.message);
       toast({
@@ -702,7 +699,12 @@ const JobTargets = () => {
   }
   
   const handleSaveAndContinue = () => {
-    form.handleSubmit(onSubmit)();
+    form.handleSubmit((values) => {
+      onSubmit(values).then(() => {
+        // Navigate to pipeline after saving
+        navigate("/pipeline");
+      });
+    })();
   };
   
   return (

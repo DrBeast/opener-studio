@@ -18,7 +18,6 @@ import Profile from "@/pages/Profile";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/PipelineDashboard";
-import ConsolidatedJobSearch from "@/pages/ConsolidatedJobSearch";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -46,7 +45,6 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
-                <Route path="/job-search" element={<ConsolidatedJobSearch />} />
               </Route>
               
               {/* Redirect /profile/edit to /profile */}
@@ -57,6 +55,9 @@ const App = () => (
               
               {/* Redirect /profile/enrichment to /profile */}
               <Route path="/profile/enrichment" element={<Navigate to="/profile" replace />} />
+              
+              {/* Redirect /job-search to /job-targets */}
+              <Route path="/job-search" element={<Navigate to="/job-targets" replace />} />
               
               {/* Redirect for the current request to navigate to profile */}
               <Route path="/navigate-to-profile" element={<Navigate to="/profile" replace />} />
