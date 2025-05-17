@@ -42,9 +42,6 @@ const Header = () => {
                 <Link to="/job-targets" className={`text-sm transition-colors ${isActive("/job-targets") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Targets
                 </Link>
-                <Link to="/companies" className={`text-sm transition-colors ${isActive("/companies") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Companies
-                </Link>
                 <Link to="/pipeline" className={`text-sm transition-colors ${isActive("/pipeline") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Pipeline
                 </Link>

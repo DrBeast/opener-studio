@@ -40,14 +40,6 @@ export function ProfileBreadcrumbs() {
         icon: null
       });
     }
-    if (path === "/companies") {
-      items.push({
-        name: "Companies & Contacts",
-        path: "/companies",
-        isCurrentPage: true,
-        icon: null
-      });
-    }
     if (path === "/tracking") {
       items.push({
         name: "Tracking",

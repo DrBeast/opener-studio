@@ -55,7 +55,10 @@ serve(async (req) => {
     }
     
     // Return the companies data
-    return new Response(JSON.stringify({ companies: data }), {
+    return new Response(JSON.stringify({ 
+      companies: data,
+      message: "Note: The Companies page has been merged with Pipeline. Please use the Pipeline page going forward." 
+    }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

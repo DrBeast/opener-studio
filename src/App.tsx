@@ -18,7 +18,6 @@ import Profile from "@/pages/Profile";
 import ProfileEnrichment from "@/pages/ProfileEnrichment";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
-import CompaniesDashboard from "@/pages/CompaniesDashboard";
 import PipelineDashboard from "@/pages/PipelineDashboard";
 import ConsolidatedJobSearch from "@/pages/ConsolidatedJobSearch";
 
@@ -48,13 +47,15 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/enrichment" element={<ProfileEnrichment />} />
                 <Route path="/job-targets" element={<JobTargets />} />
-                <Route path="/companies" element={<CompaniesDashboard />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/job-search" element={<ConsolidatedJobSearch />} />
               </Route>
               
               {/* Redirect /profile/edit to /profile */}
               <Route path="/profile/edit" element={<Navigate to="/profile" replace />} />
+              
+              {/* Redirect /companies to /pipeline */}
+              <Route path="/companies" element={<Navigate to="/pipeline" replace />} />
               
               {/* Redirect for the current request to navigate to profile */}
               <Route path="/navigate-to-profile" element={<Navigate to="/profile" replace />} />
