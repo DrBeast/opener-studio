@@ -347,13 +347,11 @@ const Profile = () => {
       setIsResetting(false);
     }
   };
-
   const handleEnrichProfile = () => {
     // Navigate to profile/enrichment which will be redirected to /profile
     // We keep the logic separate for future improvements
     navigate("/profile/enrichment");
   };
-
   if (isLoading) {
     return <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -416,14 +414,7 @@ const Profile = () => {
               {backgroundSummary && <div className="mb-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium">AI Summary</h3>
-                    {!editMode && <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleEnrichProfile}
-                      className="flex items-center gap-1">
-                      <RefreshCcw className="h-3 w-3" />
-                      Refresh Profile
-                    </Button>}
+                    {!editMode}
                   </div>
                   
                   {/* Show overall blurb if available */}
