@@ -15,7 +15,6 @@ import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
-import ProfileEdit from "@/pages/ProfileEdit";
 import ProfileEnrichment from "@/pages/ProfileEnrichment";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
@@ -47,13 +46,15 @@ const App = () => (
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/edit" element={<ProfileEdit />} />
                 <Route path="/profile/enrichment" element={<ProfileEnrichment />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/companies" element={<CompaniesDashboard />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/job-search" element={<ConsolidatedJobSearch />} />
               </Route>
+              
+              {/* Redirect /profile/edit to /profile */}
+              <Route path="/profile/edit" element={<Navigate to="/profile" replace />} />
               
               {/* Redirect for the current request to navigate to profile */}
               <Route path="/navigate-to-profile" element={<Navigate to="/profile" replace />} />
