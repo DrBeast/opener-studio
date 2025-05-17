@@ -1,41 +1,12 @@
 import { useState, useEffect } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { 
-  ArrowUpDown, 
-  Filter, 
-  Plus, 
-  X, 
-  FileText,
-  UserRound,
-  Calendar,
-  AlertCircle,
-  Pencil,
-  Check,
-  MessageCircle,
-  Search,
-  Edit,
-  Target,
-  RefreshCw
-} from "lucide-react";
+import { ArrowUpDown, Filter, Plus, X, FileText, UserRound, Calendar, AlertCircle, Pencil, Check, MessageCircle, Search, Edit, Target, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyDetails } from "@/components/CompanyDetails";
@@ -47,7 +18,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactDetails } from "@/components/ContactDetails";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { useNavigate } from "react-router-dom";
-
 interface CompanyData {
   company_id: string;
   name: string;
@@ -71,7 +41,6 @@ interface CompanyData {
     description: string;
   };
 }
-
 interface ContactData {
   contact_id: string;
   first_name?: string;
@@ -88,11 +57,10 @@ interface ContactData {
     name: string;
   };
 }
-
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
   const navigate = useNavigate();
-  
+
   // Pipeline tab state
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("updated_at");
@@ -101,31 +69,31 @@ const PipelineDashboard = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<{[key: string]: string}>({});
+  const [editData, setEditData] = useState<{
+    [key: string]: string;
+  }>({});
   const [filterPriority, setFilterPriority] = useState<string | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
   const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
-  
+
   // Contacts tab state
   const [contactSearchQuery, setContactSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
-  
+
   // Navigation handlers
   const handleEditProfile = () => {
     navigate("/profile"); // Updated to navigate to main profile page
   };
-
   const handleEditTargets = () => {
     navigate("/job-targets");
   };
-  
+
   // Generate more companies
   const handleGenerateMoreCompanies = async () => {
     setIsGeneratingCompanies(true);
     toast.success("Generating 10 more companies based on your profile and targets");
-    
     try {
       // Mock delay to simulate API call - in a real implementation, 
       // this would call the generate_companies edge function
@@ -141,13 +109,16 @@ const PipelineDashboard = () => {
   };
 
   // Fetch companies from Supabase with related data
-  const { data: companies, isLoading, error, refetch } = useQuery({
+  const {
+    data: companies,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
     queryKey: ['pipeline-companies', sortField, sortDirection, filterPriority],
     queryFn: async () => {
       // Create query
-      let query = supabase
-        .from('companies')
-        .select(`
+      let query = supabase.from('companies').select(`
           *,
           contacts(
             contact_id,
@@ -155,104 +126,89 @@ const PipelineDashboard = () => {
             last_name
           )
         `);
-      
+
       // Apply priority filter if set
       if (filterPriority) {
         query = query.eq('user_priority', filterPriority);
       }
-      
+
       // Apply sorting
-      const { data: companiesData, error: companiesError } = await query
-        .order(sortField, { ascending: sortDirection === 'asc' });
-        
+      const {
+        data: companiesData,
+        error: companiesError
+      } = await query.order(sortField, {
+        ascending: sortDirection === 'asc'
+      });
       if (companiesError) throw companiesError;
-      
+
       // Fetch the latest interaction for each company
-      const companiesWithInteractions = await Promise.all(
-        companiesData.map(async (company) => {
-          // Get latest interaction
-          const { data: latestInteraction } = await supabase
-            .from('interactions')
-            .select('interaction_date, description')
-            .eq('company_id', company.company_id)
-            .order('interaction_date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          
-          // Get next follow-up action
-          const { data: nextAction } = await supabase
-            .from('interactions')
-            .select('follow_up_due_date, description')
-            .eq('company_id', company.company_id)
-            .eq('follow_up_completed', false)
-            .not('follow_up_due_date', 'is', null)
-            .order('follow_up_due_date', { ascending: true })
-            .limit(1)
-            .maybeSingle();
-          
-          return {
-            ...company,
-            last_interaction: latestInteraction || null,
-            next_action: nextAction || null
-          };
-        })
-      );
-      
+      const companiesWithInteractions = await Promise.all(companiesData.map(async company => {
+        // Get latest interaction
+        const {
+          data: latestInteraction
+        } = await supabase.from('interactions').select('interaction_date, description').eq('company_id', company.company_id).order('interaction_date', {
+          ascending: false
+        }).limit(1).maybeSingle();
+
+        // Get next follow-up action
+        const {
+          data: nextAction
+        } = await supabase.from('interactions').select('follow_up_due_date, description').eq('company_id', company.company_id).eq('follow_up_completed', false).not('follow_up_due_date', 'is', null).order('follow_up_due_date', {
+          ascending: true
+        }).limit(1).maybeSingle();
+        return {
+          ...company,
+          last_interaction: latestInteraction || null,
+          next_action: nextAction || null
+        };
+      }));
       return companiesWithInteractions as CompanyData[];
     }
   });
-  
+
   // Fetch contacts from Supabase
-  const { data: contacts, isLoading: contactsLoading, error: contactsError, refetch: refetchContacts } = useQuery({
+  const {
+    data: contacts,
+    isLoading: contactsLoading,
+    error: contactsError,
+    refetch: refetchContacts
+  } = useQuery({
     queryKey: ['contacts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select(`
+      const {
+        data,
+        error
+      } = await supabase.from('contacts').select(`
           *,
           companies (
             name
           )
-        `)
-        .order('updated_at', { ascending: false });
-        
+        `).order('updated_at', {
+        ascending: false
+      });
       if (error) throw error;
       return data as ContactData[];
     }
   });
-  
+
   // Filter companies based on search query
   const filteredCompanies = companies?.filter(company => {
     if (!searchQuery) return true;
-    
     const query = searchQuery.toLowerCase();
-    const contactNames = company.contacts?.map(c => 
-      `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase()
-    ).join(' ') || '';
-    
-    return (
-      company.name.toLowerCase().includes(query) ||
-      (company.industry || "").toLowerCase().includes(query) ||
-      (company.hq_location || "").toLowerCase().includes(query) ||
-      (company.user_priority || "").toLowerCase().includes(query) ||
-      contactNames.includes(query)
-    );
+    const contactNames = company.contacts?.map(c => `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase()).join(' ') || '';
+    return company.name.toLowerCase().includes(query) || (company.industry || "").toLowerCase().includes(query) || (company.hq_location || "").toLowerCase().includes(query) || (company.user_priority || "").toLowerCase().includes(query) || contactNames.includes(query);
   });
-  
+
   // Filter contacts based on search query
   const filteredContacts = contacts?.filter(contact => {
     if (!contactSearchQuery) return true;
-    
     const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
     const companyName = contact.companies?.name?.toLowerCase() || '';
     const role = contact.role?.toLowerCase() || '';
     const query = contactSearchQuery.toLowerCase();
-    
-    return fullName.includes(query) || 
-           companyName.includes(query) || 
-           role.includes(query);
+    return fullName.includes(query) || companyName.includes(query) || role.includes(query);
   });
-  
+
   // Handle sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -269,7 +225,7 @@ const PipelineDashboard = () => {
     setSelectedCompany(company);
     setIsDetailsOpen(true);
   };
-  
+
   // Handle company updates
   const handleCompanyUpdated = () => {
     refetch();
@@ -279,19 +235,22 @@ const PipelineDashboard = () => {
   // Start editing a company field inline
   const startEditing = (companyId: string, field: string, value: string) => {
     setEditingCompanyId(companyId);
-    setEditData({ ...editData, [field]: value || '' });
+    setEditData({
+      ...editData,
+      [field]: value || ''
+    });
   };
 
   // Save edited company field
   const saveEditing = async (companyId: string, field: string) => {
     try {
-      const { error } = await supabase
-        .from('companies')
-        .update({ [field]: editData[field], updated_at: new Date().toISOString() })
-        .eq('company_id', companyId);
-      
+      const {
+        error
+      } = await supabase.from('companies').update({
+        [field]: editData[field],
+        updated_at: new Date().toISOString()
+      }).eq('company_id', companyId);
       if (error) throw error;
-      
       setEditingCompanyId(null);
       setEditData({});
       refetch();
@@ -307,18 +266,16 @@ const PipelineDashboard = () => {
     setEditingCompanyId(null);
     setEditData({});
   };
-  
+
   // Contact tab functions
   const handleViewDetails = (contact: ContactData) => {
     setSelectedContact(contact);
     setIsContactDetailsOpen(true);
   };
-  
   const handleGenerateMessage = (contact: ContactData) => {
     setSelectedContact(contact);
     setIsMessageOpen(true);
   };
-  
   const handleContactUpdated = () => {
     refetchContacts();
     setIsContactDetailsOpen(false);
@@ -331,7 +288,10 @@ const PipelineDashboard = () => {
   };
 
   // Format contact name with initial
-  const formatContactName = (contact: { first_name?: string, last_name?: string }) => {
+  const formatContactName = (contact: {
+    first_name?: string;
+    last_name?: string;
+  }) => {
     const firstName = contact.first_name || '';
     const lastInitial = contact.last_name ? `${contact.last_name.charAt(0)}` : '';
     return firstName + (lastInitial ? ` ${lastInitial}` : '');
@@ -347,13 +307,10 @@ const PipelineDashboard = () => {
   if (error) {
     toast.error("Failed to load pipeline data");
   }
-  
   if (contactsError) {
     toast.error("Failed to load contacts");
   }
-
-  return (
-    <div className="container mx-auto py-8 max-w-full">
+  return <div className="container mx-auto py-8 max-w-full">
       <ProfileBreadcrumbs />
       
       <div className="space-y-6">
@@ -367,21 +324,11 @@ const PipelineDashboard = () => {
             <Target className="h-4 w-4 mr-1" />
             Edit Targets
           </Button>
-          <Button 
-            variant="action"
-            onClick={handleGenerateMoreCompanies}
-            disabled={isGeneratingCompanies}
-          >
+          <Button variant="action" onClick={handleGenerateMoreCompanies} disabled={isGeneratingCompanies}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
             Generate More
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => setIsAddCompanyOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Company
-          </Button>
+          
         </div>
 
         <Card>
@@ -405,12 +352,7 @@ const PipelineDashboard = () => {
               <TabsContent value="pipeline" className="w-full">
                 <div className="mb-6 flex items-center justify-between">
                   <div className="relative w-full max-w-sm">
-                    <Input
-                      placeholder="Search companies..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-4"
-                    />
+                    <Input placeholder="Search companies..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-4" />
                   </div>
                   <div className="flex gap-2">
                     <Popover>
@@ -423,10 +365,7 @@ const PipelineDashboard = () => {
                       <PopoverContent className="w-56">
                         <div className="space-y-2">
                           <h4 className="font-medium">Priority</h4>
-                          <Select
-                            value={filterPriority || ""}
-                            onValueChange={(value) => setFilterPriority(value || null)}
-                          >
+                          <Select value={filterPriority || ""} onValueChange={value => setFilterPriority(value || null)}>
                             <SelectTrigger>
                               <SelectValue placeholder="All priorities" />
                             </SelectTrigger>
@@ -439,12 +378,7 @@ const PipelineDashboard = () => {
                           </Select>
                         </div>
                         <div className="flex justify-end mt-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setFilterPriority(null)}
-                            className="text-xs"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => setFilterPriority(null)} className="text-xs">
                             <X className="h-3 w-3 mr-1" />
                             Clear Filters
                           </Button>
@@ -458,15 +392,12 @@ const PipelineDashboard = () => {
                   </div>
                 </div>
                 
-                {isLoading ? (
-                  <div className="space-y-2">
+                {isLoading ? <div className="space-y-2">
                     <Skeleton className="h-8 w-full" />
                     <Skeleton className="h-12 w-full" />
                     <Skeleton className="h-12 w-full" />
                     <Skeleton className="h-12 w-full" />
-                  </div>
-                ) : filteredCompanies && filteredCompanies.length > 0 ? (
-                  <div className="rounded-md border overflow-x-auto">
+                  </div> : filteredCompanies && filteredCompanies.length > 0 ? <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -493,138 +424,76 @@ const PipelineDashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredCompanies.map((company) => (
-                          <TableRow key={company.company_id}>
+                        {filteredCompanies.map(company => <TableRow key={company.company_id}>
                             <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('name') ? (
-                                <div className="flex items-center space-x-1">
-                                  <Input 
-                                    value={editData.name} 
-                                    onChange={(e) => setEditData({...editData, name: e.target.value})}
-                                    className="h-8 py-1"
-                                  />
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={() => saveEditing(company.company_id, 'name')}
-                                  >
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('name') ? <div className="flex items-center space-x-1">
+                                  <Input value={editData.name} onChange={e => setEditData({
+                            ...editData,
+                            name: e.target.value
+                          })} className="h-8 py-1" />
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'name')}>
                                     <Check className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={cancelEditing}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
                                     <X className="h-4 w-4" />
                                   </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center space-x-1 group">
+                                </div> : <div className="flex items-center space-x-1 group">
                                   <div className="font-medium">{company.name}</div>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                    onClick={() => startEditing(company.company_id, 'name', company.name)}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'name', company.name)}>
                                     <Pencil className="h-3 w-3" />
                                   </Button>
-                                </div>
-                              )}
+                                </div>}
                             </TableCell>
 
                             <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('industry') ? (
-                                <div className="flex items-center space-x-1">
-                                  <Input 
-                                    value={editData.industry} 
-                                    onChange={(e) => setEditData({...editData, industry: e.target.value})}
-                                    className="h-8 py-1"
-                                  />
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={() => saveEditing(company.company_id, 'industry')}
-                                  >
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('industry') ? <div className="flex items-center space-x-1">
+                                  <Input value={editData.industry} onChange={e => setEditData({
+                            ...editData,
+                            industry: e.target.value
+                          })} className="h-8 py-1" />
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'industry')}>
                                     <Check className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={cancelEditing}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
                                     <X className="h-4 w-4" />
                                   </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center space-x-1 group">
+                                </div> : <div className="flex items-center space-x-1 group">
                                   <div>{company.industry || 'N/A'}</div>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                    onClick={() => startEditing(company.company_id, 'industry', company.industry || '')}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'industry', company.industry || '')}>
                                     <Pencil className="h-3 w-3" />
                                   </Button>
-                                </div>
-                              )}
+                                </div>}
                             </TableCell>
 
                             <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('hq_location') ? (
-                                <div className="flex items-center space-x-1">
-                                  <Input 
-                                    value={editData.hq_location} 
-                                    onChange={(e) => setEditData({...editData, hq_location: e.target.value})}
-                                    className="h-8 py-1"
-                                  />
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={() => saveEditing(company.company_id, 'hq_location')}
-                                  >
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('hq_location') ? <div className="flex items-center space-x-1">
+                                  <Input value={editData.hq_location} onChange={e => setEditData({
+                            ...editData,
+                            hq_location: e.target.value
+                          })} className="h-8 py-1" />
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'hq_location')}>
                                     <Check className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0" 
-                                    onClick={cancelEditing}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
                                     <X className="h-4 w-4" />
                                   </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center space-x-1 group">
+                                </div> : <div className="flex items-center space-x-1 group">
                                   <div>{company.hq_location || 'N/A'}</div>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" 
-                                    onClick={() => startEditing(company.company_id, 'hq_location', company.hq_location || '')}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'hq_location', company.hq_location || '')}>
                                     <Pencil className="h-3 w-3" />
                                   </Button>
-                                </div>
-                              )}
+                                </div>}
                             </TableCell>
 
                             <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('user_priority') ? (
-                                <div className="flex items-center space-x-1">
-                                  <Select 
-                                    value={editData.user_priority} 
-                                    onValueChange={(value) => {
-                                      setEditData({...editData, user_priority: value});
-                                      saveEditing(company.company_id, 'user_priority');
-                                    }}
-                                  >
+                              {editingCompanyId === company.company_id && editData.hasOwnProperty('user_priority') ? <div className="flex items-center space-x-1">
+                                  <Select value={editData.user_priority} onValueChange={value => {
+                            setEditData({
+                              ...editData,
+                              user_priority: value
+                            });
+                            saveEditing(company.company_id, 'user_priority');
+                          }}>
                                     <SelectTrigger className="w-24 h-8">
                                       <SelectValue />
                                     </SelectTrigger>
@@ -634,43 +503,27 @@ const PipelineDashboard = () => {
                                       <SelectItem value="Maybe">Maybe</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                </div>
-                              ) : (
-                                <div className="flex items-center space-x-1 group">
+                                </div> : <div className="flex items-center space-x-1 group">
                                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                    ${company.user_priority === 'Top' ? 'bg-red-100 text-red-800' : 
-                                      company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-gray-100 text-gray-800'}`}
-                                    onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}
-                                  >
+                                    ${company.user_priority === 'Top' ? 'bg-red-100 text-red-800' : company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`} onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}>
                                     {company.user_priority || 'Maybe'}
                                   </span>
-                                </div>
-                              )}
+                                </div>}
                             </TableCell>
 
                             <TableCell>
-                              {company.contacts && company.contacts.length > 0 ? (
-                                <div className="flex flex-col space-y-1">
-                                  {company.contacts.slice(0, 3).map((contact) => (
-                                    <div key={contact.contact_id} className="text-sm hover:underline cursor-pointer" onClick={() => handleViewCompany(company)}>
+                              {company.contacts && company.contacts.length > 0 ? <div className="flex flex-col space-y-1">
+                                  {company.contacts.slice(0, 3).map(contact => <div key={contact.contact_id} className="text-sm hover:underline cursor-pointer" onClick={() => handleViewCompany(company)}>
                                       {formatContactName(contact)}
-                                    </div>
-                                  ))}
-                                  {company.contacts.length > 3 && (
-                                    <div className="text-xs text-muted-foreground">
+                                    </div>)}
+                                  {company.contacts.length > 3 && <div className="text-xs text-muted-foreground">
                                       +{company.contacts.length - 3} more
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">No contacts</span>
-                              )}
+                                    </div>}
+                                </div> : <span className="text-muted-foreground text-sm">No contacts</span>}
                             </TableCell>
 
                             <TableCell>
-                              {company.last_interaction ? (
-                                <div className="flex flex-col">
+                              {company.last_interaction ? <div className="flex flex-col">
                                   <div className="text-xs text-muted-foreground flex items-center">
                                     <Calendar className="h-3 w-3 mr-1" />
                                     {formatDate(company.last_interaction.interaction_date)}
@@ -678,15 +531,11 @@ const PipelineDashboard = () => {
                                   <div className="text-sm">
                                     {company.last_interaction.description}
                                   </div>
-                                </div>
-                              ) : (
-                                <div className="text-muted-foreground text-sm">No interactions</div>
-                              )}
+                                </div> : <div className="text-muted-foreground text-sm">No interactions</div>}
                             </TableCell>
 
                             <TableCell>
-                              {company.next_action ? (
-                                <div className="flex flex-col">
+                              {company.next_action ? <div className="flex flex-col">
                                   <div className="text-xs flex items-center font-medium">
                                     <Calendar className="h-3 w-3 mr-1" />
                                     {formatDate(company.next_action.follow_up_due_date)}
@@ -694,39 +543,25 @@ const PipelineDashboard = () => {
                                   <div className="text-sm">
                                     {company.next_action.description}
                                   </div>
-                                </div>
-                              ) : (
-                                <div className="text-muted-foreground text-sm">No follow-ups</div>
-                              )}
+                                </div> : <div className="text-muted-foreground text-sm">No follow-ups</div>}
                             </TableCell>
 
                             <TableCell className="text-right">
                               <div className="flex justify-end space-x-2">
-                                <Button 
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handlePlanInteraction(company)}
-                                >
+                                <Button variant="outline" size="sm" onClick={() => handlePlanInteraction(company)}>
                                   <MessageCircle className="h-4 w-4 mr-1" />
                                   Plan
                                 </Button>
-                                <Button 
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleViewCompany(company)}
-                                >
+                                <Button variant="outline" size="sm" onClick={() => handleViewCompany(company)}>
                                   <FileText className="h-4 w-4 mr-1" />
                                   Details
                                 </Button>
                               </div>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow>)}
                       </TableBody>
                     </Table>
-                  </div>
-                ) : (
-                  <div className="bg-muted/30 rounded-lg p-8 text-center">
+                  </div> : <div className="bg-muted/30 rounded-lg p-8 text-center">
                     <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                     <h3 className="text-lg font-medium mb-1">No companies found</h3>
                     <p className="text-muted-foreground mb-4">
@@ -736,8 +571,7 @@ const PipelineDashboard = () => {
                       <Plus className="h-4 w-4 mr-2" />
                       Add Company
                     </Button>
-                  </div>
-                )}
+                  </div>}
               </TabsContent>
               
               {/* Contacts Tab */}
@@ -745,21 +579,13 @@ const PipelineDashboard = () => {
                 <div className="mb-6 flex items-center justify-between">
                   <div className="relative w-full max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search contacts..."
-                      className="pl-8"
-                      value={contactSearchQuery}
-                      onChange={(e) => setContactSearchQuery(e.target.value)}
-                    />
+                    <Input placeholder="Search contacts..." className="pl-8" value={contactSearchQuery} onChange={e => setContactSearchQuery(e.target.value)} />
                   </div>
                 </div>
                 
-                {contactsLoading ? (
-                  <div className="flex items-center justify-center p-8">
+                {contactsLoading ? <div className="flex items-center justify-center p-8">
                     <p className="text-muted-foreground">Loading contacts...</p>
-                  </div>
-                ) : filteredContacts && filteredContacts.length > 0 ? (
-                  <div className="rounded-md border">
+                  </div> : filteredContacts && filteredContacts.length > 0 ? <div className="rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -770,8 +596,7 @@ const PipelineDashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredContacts.map((contact) => (
-                          <TableRow key={contact.contact_id}>
+                        {filteredContacts.map(contact => <TableRow key={contact.contact_id}>
                             <TableCell className="font-medium">
                               {contact.first_name || ''} {contact.last_name || ''}
                             </TableCell>
@@ -779,38 +604,26 @@ const PipelineDashboard = () => {
                             <TableCell>{contact.role || 'N/A'}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewDetails(contact)}
-                                >
+                                <Button size="sm" variant="outline" onClick={() => handleViewDetails(contact)}>
                                   <Pencil className="h-4 w-4 mr-1" />
                                   Details
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleGenerateMessage(contact)}
-                                >
+                                <Button size="sm" variant="outline" onClick={() => handleGenerateMessage(contact)}>
                                   <MessageCircle className="h-4 w-4 mr-1" />
                                   Message
                                 </Button>
                               </div>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow>)}
                       </TableBody>
                     </Table>
-                  </div>
-                ) : (
-                  <div className="bg-muted/30 rounded-lg p-8 text-center">
+                  </div> : <div className="bg-muted/30 rounded-lg p-8 text-center">
                     <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                     <h3 className="text-lg font-medium mb-1">No contacts found</h3>
                     <p className="text-muted-foreground mb-4">
                       {contactSearchQuery ? "No contacts match your search criteria" : "You haven't saved any contacts yet"}
                     </p>
-                  </div>
-                )}
+                  </div>}
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -818,52 +631,19 @@ const PipelineDashboard = () => {
       </div>
       
       {/* Company Details Dialog */}
-      {selectedCompany && (
-        <CompanyDetails 
-          company={selectedCompany}
-          isOpen={isDetailsOpen}
-          onClose={() => setIsDetailsOpen(false)}
-          onCompanyUpdated={handleCompanyUpdated}
-        />
-      )}
+      {selectedCompany && <CompanyDetails company={selectedCompany} isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} onCompanyUpdated={handleCompanyUpdated} />}
 
       {/* Interaction Form Dialog for Planning */}
-      {selectedCompany && (
-        <InteractionForm
-          companyId={selectedCompany.company_id}
-          companyName={selectedCompany.name}
-          contacts={selectedCompany.contacts || []}
-          isOpen={isAddInteractionOpen}
-          onClose={() => setIsAddInteractionOpen(false)}
-          onInteractionCreated={() => {
-            refetch();
-            setIsAddInteractionOpen(false);
-          }}
-          isPlanningMode={true}
-        />
-      )}
+      {selectedCompany && <InteractionForm companyId={selectedCompany.company_id} companyName={selectedCompany.name} contacts={selectedCompany.contacts || []} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={() => {
+      refetch();
+      setIsAddInteractionOpen(false);
+    }} isPlanningMode={true} />}
       
       {/* Contact Details Dialog */}
-      {selectedContact && (
-        <ContactDetails 
-          contact={selectedContact}
-          isOpen={isContactDetailsOpen}
-          onClose={() => setIsContactDetailsOpen(false)}
-          onContactUpdated={handleContactUpdated}
-        />
-      )}
+      {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
       
       {/* Message Generation Dialog */}
-      {selectedContact && selectedContact.companies && (
-        <MessageGeneration
-          contact={selectedContact}
-          companyName={selectedContact.companies.name || ''}
-          isOpen={isMessageOpen}
-          onClose={() => setIsMessageOpen(false)}
-        />
-      )}
-    </div>
-  );
+      {selectedContact && selectedContact.companies && <MessageGeneration contact={selectedContact} companyName={selectedContact.companies.name || ''} isOpen={isMessageOpen} onClose={() => setIsMessageOpen(false)} />}
+    </div>;
 };
-
 export default PipelineDashboard;
