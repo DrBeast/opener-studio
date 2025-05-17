@@ -1,10 +1,8 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "react-router-dom";
-
 export function ProfileBreadcrumbs() {
   const location = useLocation();
   const path = location.pathname;
@@ -56,36 +54,10 @@ export function ProfileBreadcrumbs() {
         icon: null
       });
     }
-
     return items;
   };
-  
   const breadcrumbs = getBreadcrumbsForPath();
-  
-  return (
-    <Breadcrumb className="mb-6">
-      <BreadcrumbList>
-        {breadcrumbs.map((item, index) => (
-          <React.Fragment key={item.path}>
-            <BreadcrumbItem>
-              {item.isCurrentPage ? (
-                <BreadcrumbPage className="flex items-center">
-                  {item.icon && <span className="mr-1">{item.icon}</span>}
-                  {item.name}
-                </BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link to={item.path} className="flex items-center">
-                    {item.icon && <span className="mr-1">{item.icon}</span>}
-                    {item.name}
-                  </Link>
-                </BreadcrumbLink>
-              )}
-            </BreadcrumbItem>
-            {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-          </React.Fragment>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
+  return <Breadcrumb className="mb-6">
+      
+    </Breadcrumb>;
 }
