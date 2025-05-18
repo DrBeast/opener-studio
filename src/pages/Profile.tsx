@@ -1,61 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCcw, Save, Edit, ArrowRight } from "lucide-react";
+import { Edit, ArrowRight, Save } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Background } from "@/types/profile";
+import { useProfileData } from "@/hooks/useProfileData";
 
-interface UserProfile {
-  user_id: string;
-  first_name?: string;
-  last_name?: string;
-  job_role?: string;
-  current_company?: string;
-  location?: string;
-  linkedin_content?: string;
-  additional_details?: string;
-  cv_content?: string;
-}
-
-// Helper function to ensure we have a string array from Json type
-const ensureStringArray = (value: any): string[] => {
-  if (!value) return [];
-  if (Array.isArray(value)) {
-    return value.map(item => String(item));
-  }
-  return [];
-};
-
-interface Background {
-  experience: string;
-  education: string;
-  expertise: string;
-  achievements: string;
-  overall_blurb?: string;
-  combined_experience_highlights?: string[];
-  combined_education_highlights?: string[];
-  key_skills?: string[];
-  domain_expertise?: string[];
-  technical_expertise?: string[];
-  value_proposition_summary?: string;
-}
+// Import new components
+import ProfileSummary from "@/components/profile/ProfileSummary";
+import EditableSummary from "@/components/profile/EditableSummary";
+import DevOptions from "@/components/profile/DevOptions";
 
 const Profile = () => {
-  const {
-    user
-  } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
+  
+  const {
+    profile,
+    backgroundSummary,
+    isLoading,
+    saveUserProfile,
+    saveSummaryData,
+    regenerateAISummary,
+    resetUserData,
+    setBackgroundSummary
+  } = useProfileData(user?.id);
 
   // Form state
   const [linkedinContent, setLinkedinContent] = useState("");
@@ -83,92 +56,42 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) {
-        navigate("/auth/login");
-        return;
-      }
-      try {
-        setIsLoading(true);
+    if (!user) {
+      navigate("/auth/login");
+      return;
+    }
+    
+    // If no profile is loaded yet, return
+    if (!profile) return;
+    
+    // Process retrieved data for form
+    const existingBackgrounds: {
+      linkedin?: string;
+      additional?: string;
+      cv?: string;
+    } = {};
+    
+    if (profile.linkedin_content) {
+      existingBackgrounds.linkedin = profile.linkedin_content;
+      setLinkedinContent(profile.linkedin_content);
+    }
+    if (profile.additional_details) {
+      existingBackgrounds.additional = profile.additional_details;
+      setAdditionalDetails(profile.additional_details);
+    }
+    if (profile.cv_content) {
+      existingBackgrounds.cv = profile.cv_content;
+      setCvContent(profile.cv_content);
+    }
+    setExistingData(existingBackgrounds);
+  }, [profile, user, navigate]);
 
-        // Fetch profile from user_profiles
-        const {
-          data,
-          error
-        } = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
-        if (error && error.code !== "PGRST116") {
-          throw error;
-        }
-        if (data) {
-          setProfile(data);
-
-          // Prepare form data from existing entries
-          const existingBackgrounds: {
-            linkedin?: string;
-            additional?: string;
-            cv?: string;
-          } = {};
-
-          // Process retrieved data for form
-          if (data.linkedin_content) {
-            existingBackgrounds.linkedin = data.linkedin_content;
-            setLinkedinContent(data.linkedin_content);
-          }
-          if (data.additional_details) {
-            existingBackgrounds.additional = data.additional_details;
-            setAdditionalDetails(data.additional_details);
-          }
-          if (data.cv_content) {
-            existingBackgrounds.cv = data.cv_content;
-            setCvContent(data.cv_content);
-          }
-          setExistingData(existingBackgrounds);
-        }
-
-        // Fetch summary data from the user_summaries table
-        const {
-          data: summaryData,
-          error: summaryError
-        } = await supabase.from("user_summaries").select("*").eq("user_id", user.id).maybeSingle();
-        if (summaryError && summaryError.code !== "PGRST116") {
-          console.error("Error fetching summary data:", summaryError);
-        }
-        if (summaryData) {
-          setBackgroundSummary({
-            experience: summaryData.experience,
-            education: summaryData.education,
-            expertise: summaryData.expertise,
-            achievements: summaryData.achievements,
-            overall_blurb: summaryData.overall_blurb,
-            combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
-            combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
-            key_skills: ensureStringArray(summaryData.key_skills),
-            domain_expertise: ensureStringArray(summaryData.domain_expertise),
-            technical_expertise: ensureStringArray(summaryData.technical_expertise),
-            value_proposition_summary: summaryData.value_proposition_summary
-          });
-        } else {
-          // Set dummy data if no summary was found
-          setBackgroundSummary({
-            experience: "Product leader with expertise in SaaS and technology companies.",
-            education: "MBA from a top business school with undergraduate degree in Computer Science.",
-            expertise: "Product strategy, cross-functional leadership, and go-to-market execution.",
-            achievements: "Successfully launched multiple products driving significant revenue growth."
-          });
-        }
-      } catch (error: any) {
-        console.error("Error fetching user profile:", error.message);
-        toast({
-          title: "Error",
-          description: "Failed to load your profile. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserProfile();
-  }, [user, navigate]);
+  // Initialize editable summary when backgroundSummary changes or edit mode is activated
+  useEffect(() => {
+    if (backgroundSummary && editMode) {
+      setEditableSummary({ ...backgroundSummary });
+    }
+  }, [backgroundSummary, editMode]);
 
   useEffect(() => {
     // Check if any changes were made compared to existing data
@@ -196,111 +119,29 @@ const Profile = () => {
     setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges || hasSummaryChanges);
   }, [linkedinContent, additionalDetails, cvContent, editableSummary, backgroundSummary, existingData]);
 
-  // Initialize editable summary when backgroundSummary changes or edit mode is activated
-  useEffect(() => {
-    if (backgroundSummary && editMode) {
-      setEditableSummary({ ...backgroundSummary });
-    }
-  }, [backgroundSummary, editMode]);
-
-  const saveUserProfile = async () => {
-    if (!user) return;
-    try {
-      // Check if profile already exists
-      const {
-        data: existingProfile,
-        error: checkError
-      } = await supabase.from("user_profiles").select("user_id").eq("user_id", user.id).maybeSingle();
-      if (checkError && checkError.code !== "PGRST116") {
-        throw checkError;
-      }
-      let upsertError;
-      if (existingProfile) {
-        // Update existing profile
-        const {
-          error
-        } = await supabase.from("user_profiles").update({
-          linkedin_content: linkedinContent || null,
-          additional_details: additionalDetails || null,
-          cv_content: cvContent || null,
-          updated_at: new Date().toISOString()
-        }).eq("user_id", user.id);
-        upsertError = error;
-      } else {
-        // Insert new profile
-        const {
-          error
-        } = await supabase.from("user_profiles").insert({
-          user_id: user.id,
-          linkedin_content: linkedinContent || null,
-          additional_details: additionalDetails || null,
-          cv_content: cvContent || null
-        });
-        upsertError = error;
-      }
-      if (upsertError) throw upsertError;
-    } catch (error: any) {
-      console.error(`Error saving profile data:`, error.message);
-      toast({
-        title: "Error",
-        description: `Failed to save profile data: ${error.message}`,
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
-
   const handleSaveProfile = async () => {
     if (!user) return;
+    
     setIsSubmitting(true);
     try {
       // Save profile data to user_profiles table
-      await saveUserProfile();
+      await saveUserProfile(user.id, {
+        linkedin_content: linkedinContent,
+        additional_details: additionalDetails,
+        cv_content: cvContent
+      });
 
       // Save the updated summary data if in edit mode
       if (editMode && editableSummary) {
-        const { error: summaryError } = await supabase
-          .from("user_summaries")
-          .upsert({
-            user_id: user.id,
-            experience: editableSummary.experience,
-            education: editableSummary.education,
-            expertise: editableSummary.expertise,
-            achievements: editableSummary.achievements,
-            overall_blurb: editableSummary.overall_blurb,
-            combined_experience_highlights: editableSummary.combined_experience_highlights,
-            combined_education_highlights: editableSummary.combined_education_highlights,
-            key_skills: editableSummary.key_skills,
-            domain_expertise: editableSummary.domain_expertise,
-            technical_expertise: editableSummary.technical_expertise,
-            value_proposition_summary: editableSummary.value_proposition_summary,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: "user_id"
-          });
-          
-        if (summaryError) {
-          throw new Error(`Error updating summary: ${summaryError.message}`);
-        }
+        await saveSummaryData(user.id, editableSummary);
         
         // Update the backgroundSummary state with the edited values
         setBackgroundSummary(editableSummary);
       } else {
         // If not in edit mode, call the edge function to regenerate the summary
-        const {
-          data,
-          error
-        } = await supabase.functions.invoke("generate_profile", {
-          body: {
-            userId: user.id,
-            userEmail: user.email
-          }
-        });
-        if (error) {
-          throw new Error(`Edge function error: ${error.message}`);
-        }
-        if (data && data.summary) {
-          setBackgroundSummary(data.summary);
+        const summary = await regenerateAISummary(user.id, user.email || '');
+        if (summary) {
+          setBackgroundSummary(summary);
         }
       }
 
@@ -308,6 +149,7 @@ const Profile = () => {
         title: "Success",
         description: "Profile information updated successfully!"
       });
+      
       setEditMode(false);
       setHasChanges(false);
     } catch (error: any) {
@@ -324,26 +166,15 @@ const Profile = () => {
 
   const handleRegenerateAISummary = async () => {
     if (!user) return;
+    
     toast({
       title: "Info",
       description: "Regenerating your professional summary..."
     });
+    
     try {
-      // Call the edge function to regenerate the summary
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("generate_profile", {
-        body: {
-          userId: user.id,
-          userEmail: user.email
-        }
-      });
-      if (error) {
-        throw error;
-      }
-      if (data && data.summary) {
-        setBackgroundSummary(data.summary);
+      const summary = await regenerateAISummary(user.id, user.email || '');
+      if (summary) {
         toast({
           title: "Success",
           description: "Your professional summary has been updated!"
@@ -355,39 +186,23 @@ const Profile = () => {
           variant: "destructive"
         });
       }
-    } catch (error: any) {
-      console.error("Error regenerating summary:", error.message);
-      toast({
-        title: "Error",
-        description: `Failed to regenerate summary: ${error.message}`,
-        variant: "destructive"
-      });
+    } catch (error) {
+      // Error is already handled in the hook
     }
   };
 
   // Development mode - Reset user data
   const handleResetUserData = async () => {
     if (!user) return;
-    if (!window.confirm("Are you sure you want to reset all user data? This will delete your background data.")) return;
+    
+    if (!window.confirm("Are you sure you want to reset all user data? This will delete your background data.")) {
+      return;
+    }
+    
     setIsResetting(true);
     try {
-      // Delete user profile data
-      const {
-        error: profileError
-      } = await supabase.from("user_profiles").delete().eq("user_id", user.id);
-      if (profileError) throw profileError;
-
-      // Delete user summary data
-      const {
-        error: summaryError
-      } = await supabase.from("user_summaries").delete().eq("user_id", user.id);
-      if (summaryError) throw summaryError;
-
-      // Delete user target criteria
-      const {
-        error: targetError
-      } = await supabase.from("target_criteria").delete().eq("user_id", user.id);
-      if (targetError) throw targetError;
+      await resetUserData(user.id);
+      
       toast({
         title: "Success",
         description: "User data has been reset successfully"
@@ -397,26 +212,25 @@ const Profile = () => {
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-    } catch (error: any) {
-      console.error("Error resetting user data:", error.message);
-      toast({
-        title: "Error",
-        description: `Failed to reset user data: ${error.message}`,
-        variant: "destructive"
-      });
+    } catch (error) {
+      // Error is already handled in the hook
     } finally {
       setIsResetting(false);
     }
   };
+  
   const handleEnrichProfile = () => {
     // Navigate to profile/enrichment which will be redirected to /profile
     // We keep the logic separate for future improvements
     navigate("/profile/enrichment");
   };
+  
   if (isLoading) {
-    return <div className="flex min-h-[80vh] items-center justify-center">
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>;
+      </div>
+    );
   }
 
   // Helper function to handle changes to editable summary fields
@@ -428,78 +242,9 @@ const Profile = () => {
       });
     }
   };
-
-  // Helper function to handle changes to array fields in summary
-  const handleArrayFieldChange = (field: keyof Background, index: number, value: string) => {
-    if (editableSummary && Array.isArray(editableSummary[field])) {
-      const newArray = [...(editableSummary[field] as string[])];
-      newArray[index] = value;
-      handleSummaryChange(field, newArray);
-    }
-  };
-
-  // Helper function to add a new item to an array field
-  const handleAddArrayItem = (field: keyof Background) => {
-    if (editableSummary && Array.isArray(editableSummary[field])) {
-      const newArray = [...(editableSummary[field] as string[]), ""];
-      handleSummaryChange(field, newArray);
-    }
-  };
-
-  // Helper function to remove an item from an array field
-  const handleRemoveArrayItem = (field: keyof Background, index: number) => {
-    if (editableSummary && Array.isArray(editableSummary[field])) {
-      const newArray = (editableSummary[field] as string[]).filter((_, i) => i !== index);
-      handleSummaryChange(field, newArray);
-    }
-  };
   
-  // Helper function to render arrays safely
-  const renderArrayItems = (items?: string[]) => {
-    if (!items || !Array.isArray(items) || items.length === 0) return null;
-    return <ul className="list-disc list-inside text-sm space-y-1 pl-2">
-        {items.map((item, index) => <li key={index}>{item}</li>)}
-      </ul>;
-  };
-  
-  // Helper function to render editable arrays
-  const renderEditableArrayItems = (field: keyof Background, items?: string[]) => {
-    if (!items || !Array.isArray(items)) return null;
-    
-    return (
-      <div className="space-y-2">
-        {items.map((item, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              value={item}
-              onChange={(e) => handleArrayFieldChange(field, index, e.target.value)}
-              className="flex-grow"
-            />
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => handleRemoveArrayItem(field, index)}
-              className="text-red-500 hover:text-red-700"
-            >
-              Remove
-            </Button>
-          </div>
-        ))}
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={() => handleAddArrayItem(field)}
-          className="mt-2"
-        >
-          Add Item
-        </Button>
-      </div>
-    );
-  };
-  
-  return <div className="container mx-auto py-8 max-w-4xl">
+  return (
+    <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="grid gap-6">
@@ -510,11 +255,22 @@ const Profile = () => {
                 <CardTitle className="text-2xl font-bold">Professional Profile</CardTitle>
               </div>
               <div className="flex gap-2">
-                {!editMode && <Button variant="outline" size="sm" onClick={() => setEditMode(true)} className="flex items-center gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit Profile
-                </Button>}
-                <Button size="sm" onClick={handleNavigateToTargets} className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90">
+                {!editMode && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditMode(true)} 
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                )}
+                <Button 
+                  size="sm" 
+                  onClick={handleNavigateToTargets} 
+                  className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+                >
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -523,189 +279,70 @@ const Profile = () => {
             
             <CardContent className="space-y-6">
               {/* Edit Form - Moved to the top when in edit mode */}
-              {editMode && <div className="border-t pt-6">
+              {editMode && (
+                <div className="border-t pt-6">
                   <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
                   
-                  <ProfessionalBackground linkedinContent={linkedinContent} setLinkedinContent={setLinkedinContent} additionalDetails={additionalDetails} setAdditionalDetails={setAdditionalDetails} cvContent={cvContent} setCvContent={setCvContent} isSubmitting={isSubmitting} isEditing={Object.keys(existingData).length > 0} existingData={existingData} />
+                  <ProfessionalBackground 
+                    linkedinContent={linkedinContent} 
+                    setLinkedinContent={setLinkedinContent} 
+                    additionalDetails={additionalDetails} 
+                    setAdditionalDetails={setAdditionalDetails} 
+                    cvContent={cvContent} 
+                    setCvContent={setCvContent} 
+                    isSubmitting={isSubmitting} 
+                    isEditing={Object.keys(existingData).length > 0} 
+                    existingData={existingData} 
+                  />
                   
                   {/* Editable AI Summary Section */}
                   {editableSummary && (
-                    <div className="mt-8 border-t pt-6">
-                      <h3 className="text-lg font-medium mb-4">Edit AI Summary</h3>
-                      
-                      {/* Overall Blurb Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Overall Summary</label>
-                        <Textarea
-                          value={editableSummary.overall_blurb || ""}
-                          onChange={(e) => handleSummaryChange('overall_blurb', e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-                      
-                      {/* Value Proposition Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Value Proposition</label>
-                        <Textarea
-                          value={editableSummary.value_proposition_summary || ""}
-                          onChange={(e) => handleSummaryChange('value_proposition_summary', e.target.value)}
-                          rows={4}
-                        />
-                      </div>
-                      
-                      {/* Experience Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Experience</label>
-                        <Textarea
-                          value={editableSummary.experience}
-                          onChange={(e) => handleSummaryChange('experience', e.target.value)}
-                          rows={3}
-                        />
-                        
-                        <div className="mt-4">
-                          <label className="text-sm font-medium block mb-2">Experience Highlights</label>
-                          {renderEditableArrayItems('combined_experience_highlights', editableSummary.combined_experience_highlights)}
-                        </div>
-                      </div>
-                      
-                      {/* Education Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Education</label>
-                        <Textarea
-                          value={editableSummary.education}
-                          onChange={(e) => handleSummaryChange('education', e.target.value)}
-                          rows={3}
-                        />
-                        
-                        <div className="mt-4">
-                          <label className="text-sm font-medium block mb-2">Education Highlights</label>
-                          {renderEditableArrayItems('combined_education_highlights', editableSummary.combined_education_highlights)}
-                        </div>
-                      </div>
-                      
-                      {/* Expertise Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Expertise</label>
-                        <Textarea
-                          value={editableSummary.expertise}
-                          onChange={(e) => handleSummaryChange('expertise', e.target.value)}
-                          rows={3}
-                        />
-                        
-                        <div className="mt-4">
-                          <label className="text-sm font-medium block mb-2">Key Skills</label>
-                          {renderEditableArrayItems('key_skills', editableSummary.key_skills)}
-                        </div>
-                        
-                        <div className="mt-4">
-                          <label className="text-sm font-medium block mb-2">Domain Expertise</label>
-                          {renderEditableArrayItems('domain_expertise', editableSummary.domain_expertise)}
-                        </div>
-                        
-                        <div className="mt-4">
-                          <label className="text-sm font-medium block mb-2">Technical Expertise</label>
-                          {renderEditableArrayItems('technical_expertise', editableSummary.technical_expertise)}
-                        </div>
-                      </div>
-                      
-                      {/* Achievements Section */}
-                      <div className="mb-6">
-                        <label className="text-base font-medium block mb-2">Key Achievements</label>
-                        <Textarea
-                          value={editableSummary.achievements}
-                          onChange={(e) => handleSummaryChange('achievements', e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-                    </div>
+                    <EditableSummary 
+                      editableSummary={editableSummary} 
+                      onSummaryChange={handleSummaryChange} 
+                    />
                   )}
                   
                   <div className="flex justify-end gap-4 mt-6">
                     <Button variant="outline" onClick={() => setEditMode(false)} disabled={isSubmitting}>
                       Cancel
                     </Button>
-                    <Button onClick={handleSaveProfile} disabled={!hasChanges || isSubmitting} className="flex items-center gap-2">
-                      {isSubmitting ? <>
-                          Processing... 
-                          <span className="ml-2 animate-spin">⟳</span>
-                        </> : <>
-                          Save Changes
-                          <Save className="h-4 w-4" />
-                        </>}
-                    </Button>
-                  </div>
-                </div>}
-              
-              {/* Professional Summary - Only visible when not in edit mode */}
-              {backgroundSummary && !editMode && <div className="mb-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">AI Summary</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRegenerateAISummary}
+                    <Button 
+                      onClick={handleSaveProfile} 
+                      disabled={!hasChanges || isSubmitting} 
                       className="flex items-center gap-2"
                     >
-                      <RefreshCcw className="h-4 w-4" />
-                      Regenerate
+                      {isSubmitting ? (
+                        <>
+                          Processing... 
+                          <span className="ml-2 animate-spin">⟳</span>
+                        </>
+                      ) : (
+                        <>
+                          Save Changes
+                          <Save className="h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   </div>
-                  
-                  {/* Show overall blurb if available */}
-                  {backgroundSummary.overall_blurb && <div className="bg-primary/10 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold">Overall</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.overall_blurb}</p>
-                    </div>}
-                    
-                  {/* Show value proposition if available */}
-                  {backgroundSummary.value_proposition_summary && <div className="bg-primary/10 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold">Value Proposition</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.value_proposition_summary}</p>
-                    </div>}
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Experience</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.experience}</p>
-                      {renderArrayItems(backgroundSummary.combined_experience_highlights)}
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Education</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.education}</p>
-                      {renderArrayItems(backgroundSummary.combined_education_highlights)}
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Expertise</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
-                      {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && <div className="mt-2">
-                          <h5 className="text-sm font-medium">Key Skills:</h5>
-                          {renderArrayItems(backgroundSummary.key_skills)}
-                        </div>}
-                      {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && <div className="mt-2">
-                          <h5 className="text-sm font-medium">Domain Expertise:</h5>
-                          {renderArrayItems(backgroundSummary.domain_expertise)}
-                        </div>}
-                      {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && <div className="mt-2">
-                          <h5 className="text-sm font-medium">Technical Expertise:</h5>
-                          {renderArrayItems(backgroundSummary.technical_expertise)}
-                        </div>}
-                    </div>
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h4 className="font-semibold">Key Achievements</h4>
-                      <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
-                    </div>
-                  </div>
-                </div>}
+                </div>
+              )}
               
-              {/* Show empty state if no summary and not in edit mode */}
-              {!backgroundSummary && !editMode && <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
-                  <p>You haven't provided any professional background information yet. Click 'Edit Profile' to get started.</p>
-                </div>}
+              {/* Professional Summary - Only visible when not in edit mode */}
+              {!editMode && (
+                <ProfileSummary 
+                  backgroundSummary={backgroundSummary} 
+                  onRegenerateAISummary={handleRegenerateAISummary} 
+                />
+              )}
             </CardContent>
             
             {/* Bottom navigation button */}
             <CardFooter className="flex justify-end pt-4 border-t">
-              <Button onClick={handleNavigateToTargets} className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90">
+              <Button 
+                onClick={handleNavigateToTargets} 
+                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+              >
                 Next: Define Targets
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -714,31 +351,16 @@ const Profile = () => {
           
           {/* Development Tools Card */}
           <Card>
-            {showDevOptions && <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-red-800 mb-2">Reset User Data</h3>
-                    <p className="text-xs text-red-700 mb-4">
-                      Warning: This will delete all your profile data, background information, and job target criteria.
-                      Use this option to test the new user onboarding flow.
-                    </p>
-                    <Button variant="destructive" size="sm" onClick={handleResetUserData} disabled={isResetting}>
-                      {isResetting ? "Resetting..." : "Reset All User Data"}
-                    </Button>
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-blue-800 mb-2">Email Verification</h3>
-                    <p className="text-xs text-blue-700 mb-2">
-                      Email verification is required by default. For testing purposes, you can disable it in the Supabase dashboard.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>}
+            <DevOptions 
+              showDevOptions={showDevOptions}
+              isResetting={isResetting}
+              onResetUserData={handleResetUserData}
+            />
           </Card>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Profile;
