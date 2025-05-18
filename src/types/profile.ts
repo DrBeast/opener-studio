@@ -59,6 +59,15 @@ export interface CompanyData {
     follow_up_due_date: string;
     interaction_type: string;
   };
+  // Additional properties for pipeline view
+  last_interaction?: {
+    interaction_date: string;
+    description: string;
+  };
+  next_action?: {
+    follow_up_due_date: string;
+    description: string;
+  };
 }
 
 export interface ContactData {

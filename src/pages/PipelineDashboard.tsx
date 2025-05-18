@@ -20,6 +20,19 @@ import { MessageGeneration } from "@/components/MessageGeneration";
 import { useNavigate } from "react-router-dom";
 import { CompanyData, ContactData } from "@/types/profile";
 
+// Function to determine the CSS class for priority badges
+const getPriorityBadgeClass = (priority?: string) => {
+  switch (priority) {
+    case 'Top':
+      return 'bg-purple-100 text-purple-800';
+    case 'Medium':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'Maybe':
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
   const navigate = useNavigate();
