@@ -9,6 +9,10 @@ import { RefreshCcw, Save, Edit, ArrowRight } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProgressTracker from "@/components/ProgressTracker";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+
 interface UserProfile {
   user_id: string;
   first_name?: string;
@@ -29,6 +33,7 @@ const ensureStringArray = (value: any): string[] => {
   }
   return [];
 };
+
 interface Background {
   experience: string;
   education: string;
@@ -42,6 +47,7 @@ interface Background {
   technical_expertise?: string[];
   value_proposition_summary?: string;
 }
+
 const Profile = () => {
   const {
     user
@@ -64,6 +70,9 @@ const Profile = () => {
     cv?: string;
   }>({});
 
+  // State for editable summary fields
+  const [editableSummary, setEditableSummary] = useState<Background | null>(null);
+
   // Dev mode - user data reset
   const [showDevOptions, setShowDevOptions] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -73,7 +82,6 @@ const Profile = () => {
     navigate("/job-targets");
   };
 
-  // ... keep existing code (fetchUserProfile useEffect)
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -162,16 +170,39 @@ const Profile = () => {
     fetchUserProfile();
   }, [user, navigate]);
 
-  // ... keep existing code (check for changes useEffect)
   useEffect(() => {
     // Check if any changes were made compared to existing data
     const hasLinkedinChanges = linkedinContent !== (existingData.linkedin || "");
     const hasAdditionalChanges = additionalDetails !== (existingData.additional || "");
     const hasCvChanges = cvContent !== (existingData.cv || "");
-    setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges);
-  }, [linkedinContent, additionalDetails, cvContent, existingData]);
+    
+    // Check if any summary fields have changed
+    let hasSummaryChanges = false;
+    if (editableSummary && backgroundSummary) {
+      hasSummaryChanges = 
+        editableSummary.experience !== backgroundSummary.experience ||
+        editableSummary.education !== backgroundSummary.education ||
+        editableSummary.expertise !== backgroundSummary.expertise ||
+        editableSummary.achievements !== backgroundSummary.achievements ||
+        editableSummary.overall_blurb !== backgroundSummary.overall_blurb ||
+        editableSummary.value_proposition_summary !== backgroundSummary.value_proposition_summary ||
+        JSON.stringify(editableSummary.key_skills) !== JSON.stringify(backgroundSummary.key_skills) ||
+        JSON.stringify(editableSummary.domain_expertise) !== JSON.stringify(backgroundSummary.domain_expertise) ||
+        JSON.stringify(editableSummary.technical_expertise) !== JSON.stringify(backgroundSummary.technical_expertise) ||
+        JSON.stringify(editableSummary.combined_experience_highlights) !== JSON.stringify(backgroundSummary.combined_experience_highlights) ||
+        JSON.stringify(editableSummary.combined_education_highlights) !== JSON.stringify(backgroundSummary.combined_education_highlights);
+    }
+    
+    setHasChanges(hasLinkedinChanges || hasAdditionalChanges || hasCvChanges || hasSummaryChanges);
+  }, [linkedinContent, additionalDetails, cvContent, editableSummary, backgroundSummary, existingData]);
 
-  // ... keep existing code (saveUserProfile function and handlers)
+  // Initialize editable summary when backgroundSummary changes or edit mode is activated
+  useEffect(() => {
+    if (backgroundSummary && editMode) {
+      setEditableSummary({ ...backgroundSummary });
+    }
+  }, [backgroundSummary, editMode]);
+
   const saveUserProfile = async () => {
     if (!user) return;
     try {
@@ -218,6 +249,7 @@ const Profile = () => {
       throw error;
     }
   };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setIsSubmitting(true);
@@ -225,31 +257,59 @@ const Profile = () => {
       // Save profile data to user_profiles table
       await saveUserProfile();
 
-      // Call the edge function to regenerate the summary
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("generate_profile", {
-        body: {
-          userId: user.id,
-          userEmail: user.email
+      // Save the updated summary data if in edit mode
+      if (editMode && editableSummary) {
+        const { error: summaryError } = await supabase
+          .from("user_summaries")
+          .upsert({
+            user_id: user.id,
+            experience: editableSummary.experience,
+            education: editableSummary.education,
+            expertise: editableSummary.expertise,
+            achievements: editableSummary.achievements,
+            overall_blurb: editableSummary.overall_blurb,
+            combined_experience_highlights: editableSummary.combined_experience_highlights,
+            combined_education_highlights: editableSummary.combined_education_highlights,
+            key_skills: editableSummary.key_skills,
+            domain_expertise: editableSummary.domain_expertise,
+            technical_expertise: editableSummary.technical_expertise,
+            value_proposition_summary: editableSummary.value_proposition_summary,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: "user_id"
+          });
+          
+        if (summaryError) {
+          throw new Error(`Error updating summary: ${summaryError.message}`);
         }
-      });
-      if (error) {
-        throw new Error(`Edge function error: ${error.message}`);
+        
+        // Update the backgroundSummary state with the edited values
+        setBackgroundSummary(editableSummary);
+      } else {
+        // If not in edit mode, call the edge function to regenerate the summary
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke("generate_profile", {
+          body: {
+            userId: user.id,
+            userEmail: user.email
+          }
+        });
+        if (error) {
+          throw new Error(`Edge function error: ${error.message}`);
+        }
+        if (data && data.summary) {
+          setBackgroundSummary(data.summary);
+        }
       }
-      if (data && data.summary) {
-        setBackgroundSummary(data.summary);
-      }
+
       toast({
         title: "Success",
-        description: "Profile information updated and summary regenerated!"
+        description: "Profile information updated successfully!"
       });
       setEditMode(false);
       setHasChanges(false);
-
-      // Refresh the page data
-      window.location.reload();
     } catch (error: any) {
       console.error("Error submitting profile data:", error.message);
       toast({
@@ -261,6 +321,7 @@ const Profile = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleRegenerateAISummary = async () => {
     if (!user) return;
     toast({
@@ -358,6 +419,41 @@ const Profile = () => {
       </div>;
   }
 
+  // Helper function to handle changes to editable summary fields
+  const handleSummaryChange = (field: keyof Background, value: string | string[]) => {
+    if (editableSummary) {
+      setEditableSummary({
+        ...editableSummary,
+        [field]: value
+      });
+    }
+  };
+
+  // Helper function to handle changes to array fields in summary
+  const handleArrayFieldChange = (field: keyof Background, index: number, value: string) => {
+    if (editableSummary && Array.isArray(editableSummary[field])) {
+      const newArray = [...(editableSummary[field] as string[])];
+      newArray[index] = value;
+      handleSummaryChange(field, newArray);
+    }
+  };
+
+  // Helper function to add a new item to an array field
+  const handleAddArrayItem = (field: keyof Background) => {
+    if (editableSummary && Array.isArray(editableSummary[field])) {
+      const newArray = [...(editableSummary[field] as string[]), ""];
+      handleSummaryChange(field, newArray);
+    }
+  };
+
+  // Helper function to remove an item from an array field
+  const handleRemoveArrayItem = (field: keyof Background, index: number) => {
+    if (editableSummary && Array.isArray(editableSummary[field])) {
+      const newArray = (editableSummary[field] as string[]).filter((_, i) => i !== index);
+      handleSummaryChange(field, newArray);
+    }
+  };
+  
   // Helper function to render arrays safely
   const renderArrayItems = (items?: string[]) => {
     if (!items || !Array.isArray(items) || items.length === 0) return null;
@@ -365,6 +461,44 @@ const Profile = () => {
         {items.map((item, index) => <li key={index}>{item}</li>)}
       </ul>;
   };
+  
+  // Helper function to render editable arrays
+  const renderEditableArrayItems = (field: keyof Background, items?: string[]) => {
+    if (!items || !Array.isArray(items)) return null;
+    
+    return (
+      <div className="space-y-2">
+        {items.map((item, index) => (
+          <div key={index} className="flex gap-2">
+            <Input
+              value={item}
+              onChange={(e) => handleArrayFieldChange(field, index, e.target.value)}
+              className="flex-grow"
+            />
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handleRemoveArrayItem(field, index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handleAddArrayItem(field)}
+          className="mt-2"
+        >
+          Add Item
+        </Button>
+      </div>
+    );
+  };
+  
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
@@ -394,6 +528,104 @@ const Profile = () => {
                   
                   <ProfessionalBackground linkedinContent={linkedinContent} setLinkedinContent={setLinkedinContent} additionalDetails={additionalDetails} setAdditionalDetails={setAdditionalDetails} cvContent={cvContent} setCvContent={setCvContent} isSubmitting={isSubmitting} isEditing={Object.keys(existingData).length > 0} existingData={existingData} />
                   
+                  {/* Editable AI Summary Section */}
+                  {editableSummary && (
+                    <div className="mt-8 border-t pt-6">
+                      <h3 className="text-lg font-medium mb-4">Edit AI Summary</h3>
+                      
+                      {/* Overall Blurb Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Overall Summary</FormLabel>
+                        <Textarea
+                          value={editableSummary.overall_blurb || ""}
+                          onChange={(e) => handleSummaryChange('overall_blurb', e.target.value)}
+                          className="mt-2"
+                          rows={4}
+                        />
+                      </div>
+                      
+                      {/* Value Proposition Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Value Proposition</FormLabel>
+                        <Textarea
+                          value={editableSummary.value_proposition_summary || ""}
+                          onChange={(e) => handleSummaryChange('value_proposition_summary', e.target.value)}
+                          className="mt-2"
+                          rows={4}
+                        />
+                      </div>
+                      
+                      {/* Experience Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Experience</FormLabel>
+                        <Textarea
+                          value={editableSummary.experience}
+                          onChange={(e) => handleSummaryChange('experience', e.target.value)}
+                          className="mt-2"
+                          rows={3}
+                        />
+                        
+                        <div className="mt-4">
+                          <FormLabel className="text-sm font-medium">Experience Highlights</FormLabel>
+                          {renderEditableArrayItems('combined_experience_highlights', editableSummary.combined_experience_highlights)}
+                        </div>
+                      </div>
+                      
+                      {/* Education Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Education</FormLabel>
+                        <Textarea
+                          value={editableSummary.education}
+                          onChange={(e) => handleSummaryChange('education', e.target.value)}
+                          className="mt-2"
+                          rows={3}
+                        />
+                        
+                        <div className="mt-4">
+                          <FormLabel className="text-sm font-medium">Education Highlights</FormLabel>
+                          {renderEditableArrayItems('combined_education_highlights', editableSummary.combined_education_highlights)}
+                        </div>
+                      </div>
+                      
+                      {/* Expertise Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Expertise</FormLabel>
+                        <Textarea
+                          value={editableSummary.expertise}
+                          onChange={(e) => handleSummaryChange('expertise', e.target.value)}
+                          className="mt-2"
+                          rows={3}
+                        />
+                        
+                        <div className="mt-4">
+                          <FormLabel className="text-sm font-medium">Key Skills</FormLabel>
+                          {renderEditableArrayItems('key_skills', editableSummary.key_skills)}
+                        </div>
+                        
+                        <div className="mt-4">
+                          <FormLabel className="text-sm font-medium">Domain Expertise</FormLabel>
+                          {renderEditableArrayItems('domain_expertise', editableSummary.domain_expertise)}
+                        </div>
+                        
+                        <div className="mt-4">
+                          <FormLabel className="text-sm font-medium">Technical Expertise</FormLabel>
+                          {renderEditableArrayItems('technical_expertise', editableSummary.technical_expertise)}
+                        </div>
+                      </div>
+                      
+                      {/* Achievements Section */}
+                      <div className="mb-6">
+                        <FormLabel className="text-base font-medium">Key Achievements</FormLabel>
+                        <Textarea
+                          value={editableSummary.achievements}
+                          onChange={(e) => handleSummaryChange('achievements', e.target.value)}
+                          className="mt-2"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-end gap-4 mt-6">
                     <Button variant="outline" onClick={() => setEditMode(false)} disabled={isSubmitting}>
                       Cancel
@@ -403,18 +635,26 @@ const Profile = () => {
                           Processing... 
                           <span className="ml-2 animate-spin">⟳</span>
                         </> : <>
-                          Save and Regenerate
+                          Save Changes
                           <Save className="h-4 w-4" />
                         </>}
                     </Button>
                   </div>
                 </div>}
               
-              {/* Professional Summary - Only visible when not in edit mode or below edit form when in edit mode */}
-              {backgroundSummary && <div className="mb-6">
+              {/* Professional Summary - Only visible when not in edit mode */}
+              {backgroundSummary && !editMode && <div className="mb-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium">AI Summary</h3>
-                    {!editMode}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRegenerateAISummary}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      Regenerate
+                    </Button>
                   </div>
                   
                   {/* Show overall blurb if available */}
@@ -480,7 +720,6 @@ const Profile = () => {
           
           {/* Development Tools Card */}
           <Card>
-            
             {showDevOptions && <CardContent>
                 <div className="space-y-4">
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -507,4 +746,5 @@ const Profile = () => {
       </div>
     </div>;
 };
+
 export default Profile;
