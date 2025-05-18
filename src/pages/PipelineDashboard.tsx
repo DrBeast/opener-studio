@@ -18,46 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactDetails } from "@/components/ContactDetails";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { useNavigate } from "react-router-dom";
-
-interface CompanyData {
-  company_id: string;
-  name: string;
-  industry?: string;
-  hq_location?: string;
-  user_priority?: 'Top' | 'Medium' | 'Maybe';
-  user_notes?: string;
-  ai_description?: string;
-  updated_at?: string;
-  contacts?: {
-    contact_id: string;
-    first_name?: string;
-    last_name?: string;
-  }[];
-  last_interaction?: {
-    interaction_date: string;
-    description: string;
-  };
-  next_action?: {
-    follow_up_due_date: string;
-    description: string;
-  };
-}
-interface ContactData {
-  contact_id: string;
-  first_name?: string;
-  last_name?: string;
-  role?: string;
-  company_id?: string;
-  location?: string;
-  email?: string;
-  linkedin_url?: string;
-  user_notes?: string;
-  bio_summary?: string;
-  how_i_can_help?: string;
-  companies?: {
-    name: string;
-  };
-}
+import { CompanyData, ContactData } from "@/types/profile";
 
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
@@ -373,9 +334,21 @@ const PipelineDashboard = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="">All priorities</SelectItem>
-                              <SelectItem value="Top">Top</SelectItem>
-                              <SelectItem value="Medium">Medium</SelectItem>
-                              <SelectItem value="Maybe">Maybe</SelectItem>
+                              <SelectItem value="Top">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  Top
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="Medium">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  Medium
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="Maybe">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  Maybe
+                                </span>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -506,8 +479,7 @@ const PipelineDashboard = () => {
                                     </SelectContent>
                                   </Select>
                                 </div> : <div className="flex items-center space-x-1 group">
-                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                                    ${company.user_priority === 'Top' ? 'bg-red-100 text-red-800' : company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`} onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}>
+                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadgeClass(company.user_priority)}`} onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}>
                                     {company.user_priority || 'Maybe'}
                                   </span>
                                 </div>}

@@ -372,8 +372,20 @@ const ConsolidatedJobSearch = () => {
   // Format contact name with initial
   const formatContactName = (contact: { first_name?: string, last_name?: string }) => {
     const firstName = contact.first_name || '';
-    const lastInitial = contact.last_name ? `${contact.last_name.charAt(0)}` : '';
-    return firstName + (lastInitial ? ` ${lastInitial}.` : '');
+    const lastInitial = contact.last_name ? `${contact.last_name.charAt(0)}.` : '';
+    return firstName + (lastInitial ? ` ${lastInitial}` : '');
+  };
+
+  // Get priority badge class
+  const getPriorityBadgeClass = (priority?: string) => {
+    switch (priority) {
+      case 'Top':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'Medium':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
   };
 
   if (error) {
@@ -603,7 +615,7 @@ const ConsolidatedJobSearch = () => {
                         />
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer"
+                        className="cursor-pointer w-[100px]"
                         onClick={() => handleSort('user_priority')}
                       >
                         Priority
@@ -613,16 +625,12 @@ const ConsolidatedJobSearch = () => {
                         className="cursor-pointer"
                         onClick={() => handleSort('name')}
                       >
-                        Company Name
+                        Company
                         <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                       </TableHead>
-                      <TableHead
-                        className="cursor-pointer"
-                        onClick={() => handleSort('industry')}
-                      >
-                        Industry
-                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                      </TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>WFH Policy</TableHead>
+                      <TableHead>Match Reasoning</TableHead>
                       <TableHead>Contacts</TableHead>
                       <TableHead>Latest Update</TableHead>
                       <TableHead>Next Action</TableHead>
@@ -640,38 +648,78 @@ const ConsolidatedJobSearch = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                            ${company.user_priority === 'Top' ? 'bg-red-100 text-red-800' : 
-                              company.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'}`}
+                          <Select 
+                            value={company.user_priority || "Maybe"} 
+                            onValueChange={async (value) => {
+                              const { error } = await supabase
+                                .from('companies')
+                                .update({ user_priority: value })
+                                .eq('company_id', company.company_id);
+                              
+                              if (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to update priority",
+                                  variant: "destructive"
+                                });
+                              } else {
+                                refetch();
+                              }
+                            }}
                           >
-                            {company.user_priority || 'Maybe'}
-                          </span>
+                            <SelectTrigger className={`w-full border ${getPriorityBadgeClass(company.user_priority)}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Top">Top</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Maybe">Maybe</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell className="max-w-[200px]">
                           <div 
-                            className="hover:underline cursor-pointer"
+                            className="font-medium hover:underline cursor-pointer"
                             onClick={() => handleViewCompany(company)}
                           >
                             {company.name}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {company.ai_description?.slice(0, 60)}
-                            {company.ai_description && company.ai_description.length > 60 ? '...' : ''}
-                          </div>
+                          {company.ai_description && (
+                            <div className="text-xs text-muted-foreground line-clamp-2">
+                              {company.ai_description}
+                            </div>
+                          )}
                         </TableCell>
-                        <TableCell>{company.industry || 'Unknown'}</TableCell>
+                        <TableCell>{company.hq_location || 'Unknown'}</TableCell>
+                        <TableCell>{company.wfh_policy || 'Unknown'}</TableCell>
+                        <TableCell className="max-w-[200px]">
+                          {company.ai_match_reasoning ? (
+                            <div className="text-xs text-muted-foreground line-clamp-2">
+                              {company.ai_match_reasoning}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No match reasoning</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {company.contacts && company.contacts.length > 0 ? (
                             <div className="flex flex-col space-y-1">
-                              {company.contacts.slice(0, 3).map((contact) => (
-                                <div key={contact.contact_id} className="group flex items-center gap-1">
-                                  <div className="text-sm">
-                                    {formatContactName(contact)}
-                                    {contact.role && <span className="text-xs text-muted-foreground"> · {contact.role}</span>}
+                              {/* Show only top 3 contacts, sorted by latest interaction */}
+                              {[...company.contacts]
+                                .sort((a, b) => {
+                                  const dateA = a.latest_interaction?.interaction_date ? new Date(a.latest_interaction.interaction_date).getTime() : 0;
+                                  const dateB = b.latest_interaction?.interaction_date ? new Date(b.latest_interaction.interaction_date).getTime() : 0;
+                                  return dateB - dateA;
+                                })
+                                .slice(0, 3)
+                                .map((contact) => (
+                                  <div key={contact.contact_id} className="group flex items-center gap-1">
+                                    <div className="text-sm">
+                                      {formatContactName(contact)}
+                                      {contact.role && <span className="text-xs text-muted-foreground ml-1">({contact.role})</span>}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
                               {company.contacts.length > 3 && (
                                 <div className="text-xs text-muted-foreground">
                                   +{company.contacts.length - 3} more
@@ -691,10 +739,8 @@ const ConsolidatedJobSearch = () => {
                                 <Calendar className="h-3 w-3 mr-1" />
                                 {formatDate(company.latest_update.interaction_date)}
                               </div>
-                              <div className="text-sm">
-                                {company.latest_update.description.length > 30
-                                  ? `${company.latest_update.description.slice(0, 30)}...`
-                                  : company.latest_update.description}
+                              <div className="text-sm line-clamp-2">
+                                {company.latest_update.description}
                               </div>
                             </div>
                           ) : (
@@ -708,10 +754,8 @@ const ConsolidatedJobSearch = () => {
                                 <Calendar className="h-3 w-3 mr-1" />
                                 {formatDate(company.next_followup.follow_up_due_date)}
                               </div>
-                              <div className="text-sm">
-                                {company.next_followup.description.length > 30
-                                  ? `${company.next_followup.description.slice(0, 30)}...`
-                                  : company.next_followup.description}
+                              <div className="text-sm line-clamp-2">
+                                {company.next_followup.description}
                               </div>
                             </div>
                           ) : (

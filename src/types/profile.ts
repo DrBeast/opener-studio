@@ -24,3 +24,56 @@ export interface Background {
   technical_expertise?: string[];
   value_proposition_summary?: string;
 }
+
+export interface CompanyData {
+  company_id: string;
+  name: string;
+  industry?: string;
+  hq_location?: string;
+  wfh_policy?: string;
+  ai_description?: string;
+  match_quality_score?: number;
+  ai_match_reasoning?: string;
+  user_priority?: 'Top' | 'Medium' | 'Maybe';
+  updated_at?: string;
+  user_notes?: string;
+  contacts?: {
+    contact_id: string;
+    first_name?: string;
+    last_name?: string;
+    role?: string;
+    latest_interaction?: {
+      interaction_date: string;
+      description: string;
+    };
+  }[];
+  latest_update?: {
+    interaction_id: string;
+    description: string;
+    interaction_date: string;
+    interaction_type: string;
+  };
+  next_followup?: {
+    interaction_id: string;
+    description: string;
+    follow_up_due_date: string;
+    interaction_type: string;
+  };
+}
+
+export interface ContactData {
+  contact_id: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  company_id?: string;
+  location?: string;
+  email?: string;
+  linkedin_url?: string;
+  user_notes?: string;
+  bio_summary?: string;
+  how_i_can_help?: string;
+  companies?: {
+    name: string;
+  };
+}

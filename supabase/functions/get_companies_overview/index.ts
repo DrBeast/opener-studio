@@ -54,9 +54,26 @@ serve(async (req) => {
       });
     }
     
+    // Calculate priority based on match_quality_score if not already set
+    const companiesWithDefaultPriority = data.map(company => {
+      if (!company.user_priority) {
+        let calculatedPriority = 'Maybe';
+        if (company.match_quality_score >= 80) {
+          calculatedPriority = 'Top';
+        } else if (company.match_quality_score >= 60) {
+          calculatedPriority = 'Medium';
+        }
+        return {
+          ...company,
+          user_priority: calculatedPriority
+        };
+      }
+      return company;
+    });
+    
     // Return the companies data
     return new Response(JSON.stringify({ 
-      companies: data,
+      companies: companiesWithDefaultPriority,
       message: "Note: The Companies page has been merged with Pipeline. Please use the Pipeline page going forward." 
     }), {
       status: 200,
