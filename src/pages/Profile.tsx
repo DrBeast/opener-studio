@@ -535,91 +535,85 @@ const Profile = () => {
                       
                       {/* Overall Blurb Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Overall Summary</FormLabel>
+                        <label className="text-base font-medium block mb-2">Overall Summary</label>
                         <Textarea
                           value={editableSummary.overall_blurb || ""}
                           onChange={(e) => handleSummaryChange('overall_blurb', e.target.value)}
-                          className="mt-2"
                           rows={4}
                         />
                       </div>
                       
                       {/* Value Proposition Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Value Proposition</FormLabel>
+                        <label className="text-base font-medium block mb-2">Value Proposition</label>
                         <Textarea
                           value={editableSummary.value_proposition_summary || ""}
                           onChange={(e) => handleSummaryChange('value_proposition_summary', e.target.value)}
-                          className="mt-2"
                           rows={4}
                         />
                       </div>
                       
                       {/* Experience Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Experience</FormLabel>
+                        <label className="text-base font-medium block mb-2">Experience</label>
                         <Textarea
                           value={editableSummary.experience}
                           onChange={(e) => handleSummaryChange('experience', e.target.value)}
-                          className="mt-2"
                           rows={3}
                         />
                         
                         <div className="mt-4">
-                          <FormLabel className="text-sm font-medium">Experience Highlights</FormLabel>
+                          <label className="text-sm font-medium block mb-2">Experience Highlights</label>
                           {renderEditableArrayItems('combined_experience_highlights', editableSummary.combined_experience_highlights)}
                         </div>
                       </div>
                       
                       {/* Education Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Education</FormLabel>
+                        <label className="text-base font-medium block mb-2">Education</label>
                         <Textarea
                           value={editableSummary.education}
                           onChange={(e) => handleSummaryChange('education', e.target.value)}
-                          className="mt-2"
                           rows={3}
                         />
                         
                         <div className="mt-4">
-                          <FormLabel className="text-sm font-medium">Education Highlights</FormLabel>
+                          <label className="text-sm font-medium block mb-2">Education Highlights</label>
                           {renderEditableArrayItems('combined_education_highlights', editableSummary.combined_education_highlights)}
                         </div>
                       </div>
                       
                       {/* Expertise Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Expertise</FormLabel>
+                        <label className="text-base font-medium block mb-2">Expertise</label>
                         <Textarea
                           value={editableSummary.expertise}
                           onChange={(e) => handleSummaryChange('expertise', e.target.value)}
-                          className="mt-2"
                           rows={3}
                         />
                         
                         <div className="mt-4">
-                          <FormLabel className="text-sm font-medium">Key Skills</FormLabel>
+                          <label className="text-sm font-medium block mb-2">Key Skills</label>
                           {renderEditableArrayItems('key_skills', editableSummary.key_skills)}
                         </div>
                         
                         <div className="mt-4">
-                          <FormLabel className="text-sm font-medium">Domain Expertise</FormLabel>
+                          <label className="text-sm font-medium block mb-2">Domain Expertise</label>
                           {renderEditableArrayItems('domain_expertise', editableSummary.domain_expertise)}
                         </div>
                         
                         <div className="mt-4">
-                          <FormLabel className="text-sm font-medium">Technical Expertise</FormLabel>
+                          <label className="text-sm font-medium block mb-2">Technical Expertise</label>
                           {renderEditableArrayItems('technical_expertise', editableSummary.technical_expertise)}
                         </div>
                       </div>
                       
                       {/* Achievements Section */}
                       <div className="mb-6">
-                        <FormLabel className="text-base font-medium">Key Achievements</FormLabel>
+                        <label className="text-base font-medium block mb-2">Key Achievements</label>
                         <Textarea
                           value={editableSummary.achievements}
                           onChange={(e) => handleSummaryChange('achievements', e.target.value)}
-                          className="mt-2"
                           rows={3}
                         />
                       </div>
