@@ -23,6 +23,15 @@ interface ProfileData {
   cvContent?: string;
 }
 
+// Interface for extracted profile fields
+interface ExtractedProfileFields {
+  first_name?: string;
+  last_name?: string;
+  job_role?: string;
+  current_company?: string;
+  location?: string;
+}
+
 // Updated interface to match our data structure
 interface GeneratedSummary {
   experience: string;
@@ -225,6 +234,150 @@ serve(async (req) => {
       cvContent: profileData.cv_content
     };
 
+    // Extract profile fields from content using Gemini AI
+    let extractedProfileFields: ExtractedProfileFields = {};
+    
+    // Only attempt to extract profile fields if we have some content
+    if (profileContent.linkedinContent || profileContent.cvContent) {
+      try {
+        console.log("Calling Gemini API to extract profile fields...");
+        
+        // Combine relevant content for field extraction
+        let contentForExtraction = '';
+        if (profileContent.linkedinContent) {
+          contentForExtraction += `LINKEDIN CONTENT:\n${profileContent.linkedinContent}\n\n`;
+        }
+        if (profileContent.cvContent) {
+          contentForExtraction += `CV CONTENT:\n${profileContent.cvContent}\n\n`;
+        }
+        
+        // Only proceed if we have content to extract from
+        if (contentForExtraction) {
+          // Construct the prompt for Gemini API field extraction
+          const extractionPrompt = `
+          You are an AI assistant specializing in extracting structured information from professional profiles.
+          
+          Please analyze the following professional content (which may include LinkedIn profile text and/or resume content) 
+          and extract the following information in a structured JSON format:
+          
+          1. first_name: The person's first name only
+          2. last_name: The person's last name only
+          3. job_role: Their current job title/role
+          4. current_company: The name of their current company or organization
+          5. location: Their current location (city, state, country format if available)
+          
+          Return ONLY a valid JSON object with these fields. If you cannot determine a particular field with confidence, 
+          omit that field from the JSON response rather than guessing. Do not include any explanation or additional text.
+          
+          Professional content to analyze:
+          ${contentForExtraction}
+          `;
+          
+          // Make the API call to Gemini for field extraction
+          const extractionResponse = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiApiKey,
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: extractionPrompt }]
+              }],
+              generationConfig: {
+                temperature: 0.1,
+                responseMimeType: "application/json"
+              },
+            }),
+          });
+          
+          if (!extractionResponse.ok) {
+            const errorBody = await extractionResponse.text();
+            console.error(`Gemini API error during field extraction: ${extractionResponse.status} - ${errorBody}`);
+            // Continue with summary generation even if field extraction fails
+          } else {
+            const extractionData = await extractionResponse.json();
+            const rawExtractedText = extractionData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (rawExtractedText) {
+              try {
+                extractedProfileFields = JSON.parse(rawExtractedText);
+                console.log("Successfully extracted profile fields:", Object.keys(extractedProfileFields).join(", "));
+              } catch (parseError) {
+                console.error("Error parsing extracted profile fields:", parseError);
+              }
+            }
+          }
+        }
+      } catch (extractionError) {
+        console.error("Error during profile field extraction:", extractionError);
+        // Continue with summary generation even if field extraction fails
+      }
+      
+      // Update user profile with extracted fields (only if fields are currently empty)
+      if (Object.keys(extractedProfileFields).length > 0) {
+        try {
+          // Get current profile data to check which fields are empty
+          const { data: currentProfileData, error: currentProfileError } = await supabaseClient
+            .from("user_profiles")
+            .select("first_name, last_name, job_role, current_company, location")
+            .eq(identifierField, identifierValue)
+            .single();
+            
+          if (currentProfileError && currentProfileError.code !== "PGRST116") {
+            console.error("Error fetching current profile data for field update:", currentProfileError);
+          } else {
+            // Prepare update data, only including fields that are currently empty
+            const fieldUpdateData: Record<string, any> = {
+              updated_at: new Date().toISOString()
+            };
+            
+            // Only update fields that are currently empty and we have extracted values for
+            if (extractedProfileFields.first_name && (!currentProfileData || !currentProfileData.first_name)) {
+              fieldUpdateData.first_name = extractedProfileFields.first_name;
+            }
+            
+            if (extractedProfileFields.last_name && (!currentProfileData || !currentProfileData.last_name)) {
+              fieldUpdateData.last_name = extractedProfileFields.last_name;
+            }
+            
+            if (extractedProfileFields.job_role && (!currentProfileData || !currentProfileData.job_role)) {
+              fieldUpdateData.job_role = extractedProfileFields.job_role;
+            }
+            
+            if (extractedProfileFields.current_company && (!currentProfileData || !currentProfileData.current_company)) {
+              fieldUpdateData.current_company = extractedProfileFields.current_company;
+            }
+            
+            if (extractedProfileFields.location && (!currentProfileData || !currentProfileData.location)) {
+              fieldUpdateData.location = extractedProfileFields.location;
+            }
+            
+            // Only update if we have fields to update
+            if (Object.keys(fieldUpdateData).length > 1) {
+              console.log("Updating profile with extracted fields:", Object.keys(fieldUpdateData).filter(k => k !== 'updated_at').join(", "));
+              
+              const { error: updateFieldsError } = await supabaseClient
+                .from("user_profiles")
+                .update(fieldUpdateData)
+                .eq(identifierField, identifierValue);
+                
+              if (updateFieldsError) {
+                console.error("Error updating profile with extracted fields:", updateFieldsError);
+              } else {
+                console.log("Successfully updated profile with extracted fields");
+              }
+            } else {
+              console.log("No empty profile fields to update");
+            }
+          }
+        } catch (updateError) {
+          console.error("Error during profile field update process:", updateError);
+          // Continue with summary generation even if field update fails
+        }
+      }
+    }
+
     // Combine all content into a single text block with labels
     let combinedBackgroundText = '';
     
@@ -240,7 +393,7 @@ serve(async (req) => {
       combinedBackgroundText += `--- cv_content ---\n${profileContent.cvContent}\n\n`;
     }
 
-    // If we have data, call the Gemini API
+    // If we have data, call the Gemini API for summary generation
     if (combinedBackgroundText) {
       try {
         console.log("Calling Gemini API to generate summary...");
