@@ -1,3 +1,4 @@
+
 // This file is deprecated and will be removed in a future update.
 // Please use @/integrations/supabase/client directly.
 
@@ -39,11 +40,13 @@ export const cleanupDuplicateTargetCriteria = async (userId: string) => {
           console.log(`Successfully deleted ${toDelete.length} duplicate target criteria records`);
         }
       }
+      
+      return toKeep;
     }
     
-    return true;
+    return data?.[0] || null;
   } catch (error) {
     console.error("Error cleaning up duplicate target criteria:", error);
-    return false;
+    return null;
   }
 };

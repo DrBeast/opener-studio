@@ -15,6 +15,7 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -162,6 +163,7 @@ const ensureStringArray = (value: any): string[] => {
   if (Array.isArray(value)) return value.map(String);
   return [];
 };
+
 const JobTargets = () => {
   const {
     user
@@ -195,43 +197,43 @@ const JobTargets = () => {
     const fetchExistingData = async () => {
       if (!user) return;
       setIsLoading(true);
+      
       try {
-        // Clean up duplicate target criteria first
-        await cleanupDuplicateTargetCriteria(user.id);
+        // Clean up duplicate target criteria first and get the most recent one
+        const cleanedCriteria = await cleanupDuplicateTargetCriteria(user.id);
         
         // Fetch user profile to get location data - using the correct table name "user_profiles"
         const {
           data: profileData,
           error: profileError
-        } = await supabase.from("user_profiles").select("location").eq("user_id", user.id).maybeSingle();
+        } = await supabase
+          .from("user_profiles")
+          .select("location")
+          .eq("user_id", user.id)
+          .maybeSingle();
+          
         if (profileData && !profileError) {
           setUserProfile(profileData);
         }
         
-        // Now fetch the target criteria (should be only one after cleanup)
-        const {
-          data,
-          error
-        } = await supabase.from("target_criteria").select("*").eq("user_id", user.id).maybeSingle();
-        
-        if (error) throw error;
-        if (data) {
-          setExistingData(data);
+        // Use the returned cleaned criteria instead of making another query
+        if (cleanedCriteria) {
+          setExistingData(cleanedCriteria);
           setIsEditing(true);
-          const targetLocations = ensureStringArray(data.target_locations);
-
+          const targetLocations = ensureStringArray(cleanedCriteria.target_locations);
+          
           // If user has no locations set but we have their profile location, use that
           const userLocation = profileData?.location;
           const locations = targetLocations.length > 0 ? targetLocations : userLocation ? [userLocation] : [];
           form.reset({
-            target_functions: ensureStringArray(data.target_functions),
+            target_functions: ensureStringArray(cleanedCriteria.target_functions),
             target_locations: locations,
-            target_wfh_preference: ensureStringArray(data.target_wfh_preference),
-            free_form_role_and_company_description: data.free_form_role_and_company_description || "",
-            target_industries: ensureStringArray(data.target_industries),
-            target_sizes: ensureStringArray(data.target_sizes),
-            similar_companies: ensureStringArray(data.similar_companies),
-            visa_sponsorship_required: data.visa_sponsorship_required || false
+            target_wfh_preference: ensureStringArray(cleanedCriteria.target_wfh_preference),
+            free_form_role_and_company_description: cleanedCriteria.free_form_role_and_company_description || "",
+            target_industries: ensureStringArray(cleanedCriteria.target_industries),
+            target_sizes: ensureStringArray(cleanedCriteria.target_sizes),
+            similar_companies: ensureStringArray(cleanedCriteria.similar_companies),
+            visa_sponsorship_required: cleanedCriteria.visa_sponsorship_required || false
           });
         } else if (profileData?.location) {
           // No existing data but we have user location
