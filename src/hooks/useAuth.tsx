@@ -176,6 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error("Sign in error:", error);
         throw error;
       }
 
@@ -187,12 +188,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }, 500);
       }
     } catch (error: any) {
+      console.error("Sign in failed:", error);
       throw error;
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
+      console.log("Beginning signup process with email:", email);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -202,13 +206,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error("Sign up error:", error);
         throw error;
       }
 
       console.log("useAuth: Successfully signed up, user data:", data.user);
       
       // Sign in automatically after sign up since email verification is disabled
-      await signIn(email, password);
+      try {
+        await signIn(email, password);
+      } catch (signInError) {
+        console.error("Auto sign-in after signup failed:", signInError);
+        throw signInError;
+      }
       
       // After automatic sign-in, try to link profile with multiple attempts
       if (data.user) {
@@ -237,6 +247,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }, 1000);
       }
     } catch (error: any) {
+      console.error("Sign up failed:", error);
       throw error;
     }
   };
@@ -262,6 +273,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error("LinkedIn sign in error:", error);
         throw error;
       }
     } catch (error: any) {

@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Linkedin } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -24,6 +25,7 @@ const Signup = () => {
   const { signUp, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -52,9 +54,12 @@ const Signup = () => {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
+    setErrorMessage(null);
+    
     try {
       // Dismiss any existing toast messages for clean UX
       toast.dismiss("profile-linking-success");
+      toast.dismiss("signup-error");
       
       // Log that we're starting signup with session ID (if any)
       console.log(`Signup: Starting signup process with session ID: ${sessionId || "none"}`);
@@ -100,7 +105,9 @@ const Signup = () => {
                     if (linkError) {
                       console.error("Signup: Final linking attempt failed:", linkError);
                       toast.dismiss("profile-linking-progress"); 
-                      // No error toast shown anymore
+                      toast.error("Unable to link your profile data. You can continue using the app.", {
+                        id: "profile-linking-error"
+                      });
                     } else if (linkData?.success) {
                       toast.dismiss("profile-linking-progress");
                       toast.success("Your profile data was successfully linked to your account", {
@@ -110,18 +117,24 @@ const Signup = () => {
                   } catch (err) {
                     console.error("Signup: Error in final linking attempt:", err);
                     toast.dismiss("profile-linking-progress");
+                    toast.error("Unable to link your profile data. You can continue using the app.", {
+                      id: "profile-linking-error"
+                    });
                   }
                 }
               }
             } catch (err) {
               console.error("Signup: Error verifying profile linking:", err);
               toast.dismiss("profile-linking-progress");
+              toast.error("Unable to link your profile data. You can continue using the app.", {
+                id: "profile-linking-error"
+              });
             }
             
             // Redirect regardless of verification result, but with a delay to ensure toast is visible
             setTimeout(() => {
               navigate(redirectTo);
-            }, 1500);
+            }, 1500); // Short delay to ensure toast is visible
           };
           
           verifyLinking();
@@ -130,19 +143,39 @@ const Signup = () => {
         // Redirect to profile page after successful signup
         navigate(redirectTo);
       }
-    } catch (error) {
-      // Error is handled in the useAuth hook
+    } catch (error: any) {
       setIsLoading(false);
       toast.dismiss("profile-linking-progress");
+      
+      // Set error message for UI display
+      console.error("Signup error:", error);
+      setErrorMessage(error.message || "An error occurred during signup");
+      
+      // Also show error toast
+      toast.error(error.message || "An error occurred during signup", {
+        id: "signup-error",
+        duration: 5000
+      });
+      
+      // Log details for debugging
+      if (error.cause) {
+        console.error("Error cause:", error.cause);
+      }
     }
   };
 
   const handleLinkedInSignIn = async () => {
+    setErrorMessage(null);
     try {
       await signInWithLinkedIn();
       // Redirect happens automatically
-    } catch (error) {
-      // Error is handled in the useAuth hook
+    } catch (error: any) {
+      console.error("LinkedIn signin error:", error);
+      setErrorMessage(error.message || "An error occurred during LinkedIn sign-in");
+      toast.error(error.message || "An error occurred during LinkedIn sign-in", {
+        id: "linkedin-error",
+        duration: 5000
+      });
     }
   };
 
@@ -157,6 +190,12 @@ const Signup = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+          
             <Button 
               variant="outline" 
               className="w-full" 
