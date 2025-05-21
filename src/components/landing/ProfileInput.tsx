@@ -4,14 +4,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const ProfileInput = () => {
   const {
-    user
+    user,
+    linkUserProfile
   } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("linkedin");
@@ -61,81 +62,51 @@ const ProfileInput = () => {
 
   // Check if user is logged in and has a temporary profile that needs to be linked
   useEffect(() => {
-    const linkGuestProfile = async () => {
+    const attemptProfileLinking = async () => {
       if (user && sessionId && !profileLinked && !profileLinkingAttempted) {
         setProfileLinkingAttempted(true);
         setLinkingInProgress(true);
         try {
-          // Create a unique key for this specific user and session
-          const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-          const linkStatusData = localStorage.getItem(linkStatusKey);
-          if (linkStatusData) {
-            console.log("ProfileInput: This profile has already been linked to the current user");
-            setProfileLinked(true);
-            setLinkingInProgress(false);
-            try {
-              // Verify that the profile actually exists
-              const {
-                data: profileData
-              } = await supabase.from('user_profiles').select('*').eq('user_id', user.id).maybeSingle();
-              if (!profileData) {
-                console.log("ProfileInput: Profile marked as linked but not found. Will trigger linking again.");
-                localStorage.removeItem(linkStatusKey);
-                setProfileLinked(false);
-                setProfileLinkingAttempted(false);
-                setLinkingInProgress(false);
-              }
-            } catch (err) {
-              console.error("ProfileInput: Error verifying linked profile exists:", err);
-              setLinkingInProgress(false);
-            }
-            return;
-          }
           console.log("ProfileInput: Attempting to link guest profile to authenticated user");
-          const {
-            data,
-            error
-          } = await supabase.functions.invoke("link_guest_profile", {
-            body: {
-              userId: user.id,
-              sessionId
-            }
-          });
-          if (error) {
-            console.error("ProfileInput: Error linking guest profile:", error);
-            // No error toast shown anymore
-            setLinkingInProgress(false);
-            return;
-          }
-          if (data?.success) {
-            // Mark this session as linked for this specific user
-            localStorage.setItem(linkStatusKey, JSON.stringify({
-              linked: true,
-              timestamp: new Date().toISOString(),
-              success: true
-            }));
-            console.log("ProfileInput: Guest profile successfully linked to user account");
+          
+          const linked = await linkUserProfile(user.id, sessionId);
+          
+          if (linked) {
+            console.log("ProfileInput: Successfully linked profile");
             setProfileLinked(true);
-            setLinkingInProgress(false);
-            toast.success("Profile successfully linked to your account");
-
+            
             // Wait a moment to let the toast show, then redirect
             setTimeout(() => {
               navigate("/profile");
             }, 2000);
           } else {
-            console.log("ProfileInput: Profile linking attempt failed or returned no data");
-            setLinkingInProgress(false);
+            console.log("ProfileInput: Profile linking attempt failed");
+            // Try again one more time after a delay
+            setTimeout(async () => {
+              const secondAttempt = await linkUserProfile(user.id, sessionId);
+              if (secondAttempt) {
+                console.log("ProfileInput: Second linking attempt succeeded");
+                setProfileLinked(true);
+                
+                // Wait a moment to let the toast show, then redirect
+                setTimeout(() => {
+                  navigate("/profile");
+                }, 2000);
+              }
+            }, 2000);
           }
+          
+          setLinkingInProgress(false);
         } catch (err) {
           console.error("ProfileInput: Failed to link guest profile:", err);
-          // No error toast shown anymore
           setLinkingInProgress(false);
         }
       }
     };
-    linkGuestProfile();
-  }, [user, sessionId, navigate, profileLinked, profileLinkingAttempted]);
+    
+    attemptProfileLinking();
+  }, [user, sessionId, navigate, profileLinked, profileLinkingAttempted, linkUserProfile]);
+  
   const getActiveContent = () => {
     switch (activeTab) {
       case "linkedin":
@@ -210,28 +181,10 @@ const ProfileInput = () => {
         console.log("ProfileInput: User is logged in. Attempting to link newly created guest profile.");
         setLinkingInProgress(true);
         try {
-          const {
-            data: linkData,
-            error: linkError
-          } = await supabase.functions.invoke("link_guest_profile", {
-            body: {
-              userId: user.id,
-              sessionId
-            }
-          });
-          if (linkError) {
-            console.error("ProfileInput: Error during auto-linking:", linkError);
-            // No error toast shown anymore
-          } else if (linkData?.success) {
-            // Mark profile as linked
-            const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-            localStorage.setItem(linkStatusKey, JSON.stringify({
-              linked: true,
-              timestamp: new Date().toISOString(),
-              autoLinked: true
-            }));
+          const linked = await linkUserProfile(user.id, sessionId);
+          
+          if (linked) {
             setProfileLinked(true);
-            toast.success("Profile successfully linked to your account");
             console.log("ProfileInput: Auto-linking succeeded after profile generation");
           }
         } catch (linkErr) {
@@ -261,36 +214,20 @@ const ProfileInput = () => {
       if (!profileLinked && sessionId) {
         console.log("ProfileInput: Attempting to link profile before navigating to profile page");
         setLinkingInProgress(true);
-        supabase.functions.invoke("link_guest_profile", {
-          body: {
-            userId: user.id,
-            sessionId
-          }
-        }).then(({
-          data,
-          error
-        }) => {
-          // Mark as linked to prevent repeated attempts
-          const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-          if (error) {
-            console.error("ProfileInput: Error linking on save:", error);
-            // No error toast shown anymore
-          } else if (data?.success) {
-            localStorage.setItem(linkStatusKey, JSON.stringify({
-              linked: true,
-              timestamp: new Date().toISOString(),
-              onSave: true
-            }));
-            toast.success("Profile successfully linked to your account");
-          }
-          setLinkingInProgress(false);
-          navigate("/profile");
-        }).catch(err => {
-          console.error("ProfileInput: Error linking on save:", err);
-          // No error toast shown anymore
-          setLinkingInProgress(false);
-          navigate("/profile");
-        });
+        
+        linkUserProfile(user.id, sessionId)
+          .then(linked => {
+            setLinkingInProgress(false);
+            if (linked) {
+              setProfileLinked(true);
+            }
+            navigate("/profile");
+          })
+          .catch(err => {
+            console.error("ProfileInput: Error linking on save:", err);
+            setLinkingInProgress(false);
+            navigate("/profile");
+          });
       } else {
         navigate("/profile");
       }
