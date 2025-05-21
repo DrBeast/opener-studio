@@ -127,11 +127,16 @@ export function TargetCriteriaForm({ onCancel, onSaved, initialData }: TargetCri
           .update(criteriaData)
           .eq('criteria_id', existingData.criteria_id);
       } else {
-        // Insert new record with generated criteria_id
-        criteriaData.created_at = new Date().toISOString();
+        // Insert new record with generated criteria_id and created_at
+        const newCriteriaData = {
+          ...criteriaData,
+          criteria_id: uuidv4(),
+          created_at: new Date().toISOString()
+        };
+        
         result = await supabase
           .from('target_criteria')
-          .insert([{ ...criteriaData, criteria_id: uuidv4() }]);
+          .insert([newCriteriaData]);
       }
       
       if (result.error) throw result.error;
