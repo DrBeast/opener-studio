@@ -69,16 +69,45 @@ const PipelineDashboard = () => {
   // Generate more companies
   const handleGenerateMoreCompanies = async () => {
     setIsGeneratingCompanies(true);
-    toast.success("Generating 10 more companies based on your profile and targets");
+    toast.success("Generating more companies based on your profile and targets");
+    
     try {
-      // Mock delay to simulate API call - in a real implementation, 
-      // this would call the generate_companies edge function
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success("10 more companies have been generated");
+      // Get the current session for authentication
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw sessionError;
+      }
+      
+      if (!sessionData.session) {
+        throw new Error("No active session found");
+      }
+
+      console.log("Calling generate_companies edge function...");
+      
+      // Call the generate_companies edge function
+      const { data, error: fnError } = await supabase.functions.invoke("generate_companies", {
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
+      });
+      
+      if (fnError) {
+        console.error("Error from edge function:", fnError);
+        throw fnError;
+      }
+      
+      console.log("Edge function response:", data);
+      
+      if (!data || data.status !== 'success') {
+        throw new Error(data?.message || "Failed to generate companies");
+      }
+      
+      toast.success(`Successfully generated ${data.companies?.length || 0} companies`);
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating companies:', error);
-      toast.error('Failed to generate companies');
+      toast.error(`Failed to generate companies: ${error.message || "Unknown error"}`);
     } finally {
       setIsGeneratingCompanies(false);
     }
@@ -302,7 +331,7 @@ const PipelineDashboard = () => {
           </Button>
           <Button variant="action" onClick={handleGenerateMoreCompanies} disabled={isGeneratingCompanies}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
-            Generate More
+            Generate Companies
           </Button>
           
         </div>
