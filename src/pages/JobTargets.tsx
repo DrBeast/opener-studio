@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, cleanupDuplicateTargetCriteria } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -196,6 +196,9 @@ const JobTargets = () => {
       if (!user) return;
       setIsLoading(true);
       try {
+        // Clean up duplicate target criteria first
+        await cleanupDuplicateTargetCriteria(user.id);
+        
         // Fetch user profile to get location data - using the correct table name "user_profiles"
         const {
           data: profileData,
@@ -204,10 +207,13 @@ const JobTargets = () => {
         if (profileData && !profileError) {
           setUserProfile(profileData);
         }
+        
+        // Now fetch the target criteria (should be only one after cleanup)
         const {
           data,
           error
         } = await supabase.from("target_criteria").select("*").eq("user_id", user.id).maybeSingle();
+        
         if (error) throw error;
         if (data) {
           setExistingData(data);

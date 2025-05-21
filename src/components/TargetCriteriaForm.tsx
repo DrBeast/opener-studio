@@ -95,7 +95,6 @@ export function TargetCriteriaForm({ onCancel, onSaved, initialData }: TargetCri
       };
       
       const criteriaData = {
-        criteria_id: initialData?.criteria_id || uuidv4(),
         user_id: user.id,
         free_form_role_and_company_description: data.free_form_role_and_company_description,
         similar_companies: formatStringToObject(data.similar_companies),
@@ -106,19 +105,36 @@ export function TargetCriteriaForm({ onCancel, onSaved, initialData }: TargetCri
         target_functions: formatStringToObject(data.target_functions),
         target_wfh_preference: formatStringToObject(data.target_wfh_preference),
         updated_at: new Date().toISOString(),
-        created_at: initialData?.created_at || new Date().toISOString(),
       };
+
+      // Check if we already have criteria for this user
+      const { data: existingData, error: queryError } = await supabase
+        .from('target_criteria')
+        .select('criteria_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      const { error } = initialData
-        ? await supabase
-            .from('target_criteria')
-            .update(criteriaData)
-            .eq('criteria_id', criteriaData.criteria_id)
-        : await supabase
-            .from('target_criteria')
-            .insert([criteriaData]);
+      if (queryError) {
+        console.error("Error checking for existing criteria:", queryError);
+        throw queryError;
+      }
       
-      if (error) throw error;
+      let result;
+      if (existingData?.criteria_id) {
+        // Update existing record
+        result = await supabase
+          .from('target_criteria')
+          .update(criteriaData)
+          .eq('criteria_id', existingData.criteria_id);
+      } else {
+        // Insert new record with generated criteria_id
+        criteriaData.created_at = new Date().toISOString();
+        result = await supabase
+          .from('target_criteria')
+          .insert([{ ...criteriaData, criteria_id: uuidv4() }]);
+      }
+      
+      if (result.error) throw result.error;
       
       toast.success("Target criteria saved successfully");
       onSaved();
