@@ -165,11 +165,10 @@ const ensureStringArray = (value: any): string[] => {
 };
 
 const JobTargets = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -180,6 +179,7 @@ const JobTargets = () => {
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -193,6 +193,7 @@ const JobTargets = () => {
       visa_sponsorship_required: false
     }
   });
+
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!user) return;
@@ -252,6 +253,7 @@ const JobTargets = () => {
     };
     fetchExistingData();
   }, [user, form]);
+
   const onSubmit = async (values: FormValues) => {
     if (!user) return;
     setIsSubmitting(true);
@@ -494,6 +496,64 @@ const JobTargets = () => {
             </div>
           </FormItem>} />;
   };
+
+  const handleGenerateCompanies = async () => {
+    if (!user) return;
+    
+    setIsGenerating(true);
+    
+    try {
+      // First save the current form data
+      const values = form.getValues();
+      const submissionData = {
+        user_id: user.id,
+        ...values
+      };
+      
+      const { error: saveError } = existingData 
+        ? await supabase.from("target_criteria").update(submissionData).eq("criteria_id", existingData.criteria_id)
+        : await supabase.from("target_criteria").insert([submissionData]);
+      
+      if (saveError) throw saveError;
+
+      // Call the generate companies edge function
+      const { data, error } = await supabase.functions.invoke('generate_companies');
+      
+      if (error) {
+        console.error('Error generating companies:', error);
+        toast({
+          title: "Error",
+          description: "Failed to generate companies. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `Generated ${data?.companies?.length || 0} new companies successfully!`
+      });
+
+      // Navigate to pipeline with a flag to highlight new companies
+      navigate("/pipeline", { 
+        state: { 
+          newCompanies: data?.companies || [],
+          highlightNew: true 
+        } 
+      });
+      
+    } catch (error: any) {
+      console.error("Error generating companies:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate companies. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -507,13 +567,18 @@ const JobTargets = () => {
       });
     })();
   };
+
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Define Your Job & Company Targets</h1>
-        <Button onClick={handleSaveAndContinue} disabled={isSubmitting} className="bg-primary">
-          {isSubmitting ? "Saving..." : "Next: Companies"}
+        <Button 
+          onClick={handleGenerateCompanies} 
+          disabled={isSubmitting || isGenerating} 
+          className="bg-primary"
+        >
+          {isGenerating ? "Generating..." : "Generate Companies"}
         </Button>
       </div>
       
@@ -577,8 +642,12 @@ const JobTargets = () => {
                       </FormItem>} />
                   
                   <div className="flex justify-end space-x-4">
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Saving..." : "Next: Companies"}
+                    <Button 
+                      type="button" 
+                      onClick={handleGenerateCompanies}
+                      disabled={isSubmitting || isGenerating}
+                    >
+                      {isGenerating ? "Generating..." : "Generate Companies"}
                     </Button>
                   </div>
                 </form>
@@ -589,4 +658,5 @@ const JobTargets = () => {
       </div>
     </div>;
 };
+
 export default JobTargets;
