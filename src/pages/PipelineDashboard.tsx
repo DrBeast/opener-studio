@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "@/hooks/useAuth";
@@ -74,7 +73,6 @@ const PipelineDashboard = () => {
   });
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   
   // Get any newly created companies from location state
   const newCompanies = location.state?.newCompanies || [];
@@ -169,19 +167,39 @@ const PipelineDashboard = () => {
     setIsAddCompanyModalOpen(true);
   };
 
-  const handleCompanyAdded = () => {
-    fetchCompanies();
-    setIsAddCompanyModalOpen(false);
+  const handleCompanyAdded = async (companyName: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('add_company_by_name', {
+        body: { companyName }
+      });
+
+      if (error) throw error;
+
+      await fetchCompanies();
+      setIsAddCompanyModalOpen(false);
+      
+      toast({
+        title: "Success",
+        description: "Company added successfully",
+      });
+    } catch (error: any) {
+      console.error("Error adding company:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add company",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
-    setSelectedCompanyId(company.company_id);
   };
 
   const handleCompanyDetailClose = () => {
     setSelectedCompany(null);
-    setSelectedCompanyId(null);
   };
 
   const handleSetPriority = async (companyId: string, priority: string) => {
@@ -416,17 +434,19 @@ const PipelineDashboard = () => {
 
       {/* Company Add Modal */}
       <AddCompanyModal 
-        open={isAddCompanyModalOpen} 
+        isOpen={isAddCompanyModalOpen} 
         onClose={() => setIsAddCompanyModalOpen(false)}
-        onCompanyAdded={handleCompanyAdded}
+        onAddCompany={handleCompanyAdded}
+        isLoading={false}
       />
       
       {/* Company Detail View */}
-      {selectedCompanyId && (
+      {selectedCompany && (
         <CompanyDetails
-          companyId={selectedCompanyId}
-          open={!!selectedCompany}
+          company={selectedCompany}
+          isOpen={!!selectedCompany}
           onClose={handleCompanyDetailClose}
+          onCompanyUpdated={handleCompanyUpdated}
         />
       )}
     </div>
