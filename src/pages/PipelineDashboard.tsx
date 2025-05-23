@@ -32,7 +32,6 @@ const getPriorityBadgeClass = (priority?: string) => {
       return 'bg-gray-100 text-gray-800';
   }
 };
-
 const PipelineDashboard = () => {
   const [activeTab, setActiveTab] = useState("pipeline");
   const navigate = useNavigate();
@@ -70,39 +69,37 @@ const PipelineDashboard = () => {
   const handleGenerateMoreCompanies = async () => {
     setIsGeneratingCompanies(true);
     toast.success("Generating more companies based on your profile and targets");
-    
     try {
       // Get the current session for authentication
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await supabase.auth.getSession();
       if (sessionError) {
         throw sessionError;
       }
-      
       if (!sessionData.session) {
         throw new Error("No active session found");
       }
-
       console.log("Calling generate_companies edge function...");
-      
+
       // Call the generate_companies edge function
-      const { data, error: fnError } = await supabase.functions.invoke("generate_companies", {
+      const {
+        data,
+        error: fnError
+      } = await supabase.functions.invoke("generate_companies", {
         headers: {
           Authorization: `Bearer ${sessionData.session.access_token}`
         }
       });
-      
       if (fnError) {
         console.error("Error from edge function:", fnError);
         throw fnError;
       }
-      
       console.log("Edge function response:", data);
-      
       if (!data || data.status !== 'success') {
         throw new Error(data?.message || "Failed to generate companies");
       }
-      
       toast.success(`Successfully generated ${data.companies?.length || 0} companies`);
       refetch();
     } catch (error: any) {
@@ -321,14 +318,8 @@ const PipelineDashboard = () => {
       <div className="space-y-6">
         {/* Navigation Buttons */}
         <div className="flex flex-wrap gap-3 mb-4">
-          <Button variant="outline" onClick={handleEditProfile}>
-            <Edit className="h-4 w-4 mr-1" />
-            Edit Profile
-          </Button>
-          <Button variant="outline" onClick={handleEditTargets}>
-            <Target className="h-4 w-4 mr-1" />
-            Edit Targets
-          </Button>
+          
+          
           <Button variant="action" onClick={handleGenerateMoreCompanies} disabled={isGeneratingCompanies}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
             Generate Companies
