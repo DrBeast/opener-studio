@@ -90,6 +90,36 @@ serve(async (req) => {
       });
     }
 
+    // 1. NEW: Fetch existing companies for this user (both regular and blacklisted)
+    console.log("Fetching existing companies to prevent duplicates");
+    const { data: existingCompanies, error: existingCompaniesError } = await supabaseClient
+      .from('companies')
+      .select('name, is_blacklisted')
+      .eq('user_id', userId);
+      
+    if (existingCompaniesError) {
+      console.error('Error fetching existing companies:', existingCompaniesError.message);
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: 'Failed to check for existing companies.',
+        error: existingCompaniesError.message
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 500
+      });
+    }
+    
+    // Create lists of existing company names and blacklisted company names
+    const existingCompanyNames = existingCompanies?.map(company => company.name.toLowerCase()) || [];
+    const blacklistedCompanyNames = existingCompanies
+      ?.filter(company => company.is_blacklisted === true)
+      .map(company => company.name.toLowerCase()) || [];
+    
+    console.log(`Found ${existingCompanyNames.length} existing companies, including ${blacklistedCompanyNames.length} blacklisted companies`);
+
     // 1. Fetch the user's overall processed background summary from the user_summaries table
     const { data: userSummaryData, error: fetchSummaryError } = await supabaseClient
       .from('user_summaries')
@@ -190,6 +220,9 @@ serve(async (req) => {
 
     Your task is to identify 10 companies that are the best fit for this user's background and criteria. For each company, provide the following information in a structured JSON array.
 
+    IMPORTANT: The following companies already exist in the user's list, so DO NOT include them or any close variations. Ensure all suggested companies are new and distinctly different from these:
+    ${JSON.stringify(existingCompanyNames)}
+
     For each company object in the array:
     - "name": Company Name
     - "ai_description": A brief, 1-2 sentence description of the company's business, tailored to the user's interests if possible.
@@ -276,6 +309,24 @@ serve(async (req) => {
       // Limit to max 30 companies if AI returned more
       generatedCompanies = generatedCompanies.slice(0, 30);
       console.log(`Successfully parsed ${generatedCompanies.length} companies from response`);
+      
+      // ADDITIONAL CHECK: Filter again for existing or blacklisted companies
+      // This is a second layer of protection in case the AI doesn't respect our instructions
+      const filteredCompanies = generatedCompanies.filter(company => {
+        const companyNameLower = company.name.toLowerCase();
+        const isDuplicate = existingCompanyNames.includes(companyNameLower);
+        if (isDuplicate) {
+          console.log(`Filtered out duplicate company: ${company.name}`);
+        }
+        return !isDuplicate;
+      });
+      
+      if (filteredCompanies.length !== generatedCompanies.length) {
+        console.log(`Filtered out ${generatedCompanies.length - filteredCompanies.length} duplicate companies`);
+      }
+      
+      generatedCompanies = filteredCompanies;
+      
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
       console.error('Raw AI response data:', JSON.stringify(data).substring(0, 200) + "...");
@@ -289,6 +340,20 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         status: 500
+      });
+    }
+    
+    // Safety check - if no companies were generated after filtering
+    if (generatedCompanies.length === 0) {
+      return new Response(JSON.stringify({
+        status: 'warning',
+        message: 'No new companies could be generated. All suggestions were duplicates of existing companies.',
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 200
       });
     }
 

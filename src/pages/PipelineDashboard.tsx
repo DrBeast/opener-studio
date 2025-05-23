@@ -1,656 +1,436 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { useQuery } from "@tanstack/react-query";
+
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Filter, Plus, X, FileText, UserRound, Calendar, AlertCircle, Pencil, Check, MessageCircle, Search, Edit, Target, RefreshCw } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "@/components/ui/sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/use-toast";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  Filter, 
+  Search, 
+  Building2, 
+  Plus, 
+  MoreVertical, 
+  Trash, 
+  Edit, 
+  Star, 
+  CircleDashed, 
+  CircleDot 
+} from "lucide-react";
+import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { InteractionForm } from "@/components/InteractionForm";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContactDetails } from "@/components/ContactDetails";
-import { MessageGeneration } from "@/components/MessageGeneration";
-import { useNavigate } from "react-router-dom";
-import { CompanyData, ContactData } from "@/types/profile";
+import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
+import { cn } from "@/lib/utils";
 
-// Function to determine the CSS class for priority badges
-const getPriorityBadgeClass = (priority?: string) => {
-  switch (priority) {
-    case 'Top':
-      return 'bg-purple-100 text-purple-800';
-    case 'Medium':
-      return 'bg-indigo-100 text-indigo-800';
-    case 'Maybe':
-    default:
-      return 'bg-gray-100 text-gray-800';
+// Using TypeScript interfaces for type safety
+interface Company {
+  company_id: string;
+  name: string;
+  industry?: string;
+  hq_location?: string;
+  ai_description?: string;
+  user_priority?: string;
+  is_blacklisted?: boolean;
+  match_quality_score?: number;
+}
+
+// Highlight animation style for new companies
+const highlightAnimation = `
+  @keyframes highlightFade {
+    0% { background-color: rgba(var(--primary-rgb), 0.3); }
+    100% { background-color: transparent; }
   }
-};
+`;
+
 const PipelineDashboard = () => {
-  const [activeTab, setActiveTab] = useState("pipeline");
+  const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+  
+  // State variables
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    priority: [] as string[],
+  });
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  
+  // Get any newly created companies from location state
+  const newCompanies = location.state?.newCompanies || [];
+  const highlightNew = location.state?.highlightNew || false;
+  const newCompanyIds = newCompanies.map((company: any) => company.company_id);
 
-  // Pipeline tab state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState("updated_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
-  const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<{
-    [key: string]: string;
-  }>({});
-  const [filterPriority, setFilterPriority] = useState<string | null>(null);
-  const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
-  const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
-
-  // Contacts tab state
-  const [contactSearchQuery, setContactSearchQuery] = useState("");
-  const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
-  const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
-  const [isMessageOpen, setIsMessageOpen] = useState(false);
-
-  // Navigation handlers
-  const handleEditProfile = () => {
-    navigate("/profile"); // Updated to navigate to main profile page
-  };
-  const handleEditTargets = () => {
-    navigate("/job-targets");
-  };
-
-  // Generate more companies
-  const handleGenerateMoreCompanies = async () => {
-    setIsGeneratingCompanies(true);
-    toast.success("Generating more companies based on your profile and targets");
+  // Fetch companies from Supabase
+  const fetchCompanies = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
     try {
-      // Get the current session for authentication
-      const {
-        data: sessionData,
-        error: sessionError
-      } = await supabase.auth.getSession();
-      if (sessionError) {
-        throw sessionError;
+      // Call the get_companies_overview function to get the overview data
+      const { data: companiesOverview, error: functionError } = await supabase.functions.invoke('get_companies_overview');
+      
+      if (functionError) {
+        throw functionError;
       }
-      if (!sessionData.session) {
-        throw new Error("No active session found");
+      
+      if (companiesOverview && Array.isArray(companiesOverview)) {
+        setCompanies(companiesOverview);
+      } else {
+        console.error("Invalid response format from get_companies_overview function");
       }
-      console.log("Calling generate_companies edge function...");
-
-      // Call the generate_companies edge function
-      const {
-        data,
-        error: fnError
-      } = await supabase.functions.invoke("generate_companies", {
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`
-        }
-      });
-      if (fnError) {
-        console.error("Error from edge function:", fnError);
-        throw fnError;
-      }
-      console.log("Edge function response:", data);
-      if (!data || data.status !== 'success') {
-        throw new Error(data?.message || "Failed to generate companies");
-      }
-      toast.success(`Successfully generated ${data.companies?.length || 0} companies`);
-      refetch();
     } catch (error: any) {
-      console.error('Error generating companies:', error);
-      toast.error(`Failed to generate companies: ${error.message || "Unknown error"}`);
-    } finally {
-      setIsGeneratingCompanies(false);
-    }
-  };
-
-  // Fetch companies from Supabase with related data
-  const {
-    data: companies,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['pipeline-companies', sortField, sortDirection, filterPriority],
-    queryFn: async () => {
-      // Create query
-      let query = supabase.from('companies').select(`
-          *,
-          contacts(
-            contact_id,
-            first_name,
-            last_name
-          )
-        `);
-
-      // Apply priority filter if set
-      if (filterPriority) {
-        query = query.eq('user_priority', filterPriority);
+      console.error("Error fetching companies:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load companies. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to direct query if the function fails
+      try {
+        const { data, error: queryError } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_blacklisted', false)
+          .order('user_priority', { ascending: true })
+          .order('name');
+          
+        if (queryError) throw queryError;
+        
+        setCompanies(data || []);
+      } catch (fallbackError: any) {
+        console.error("Fallback query also failed:", fallbackError);
       }
-
-      // Apply sorting
-      const {
-        data: companiesData,
-        error: companiesError
-      } = await query.order(sortField, {
-        ascending: sortDirection === 'asc'
-      });
-      if (companiesError) throw companiesError;
-
-      // Fetch the latest interaction for each company
-      const companiesWithInteractions = await Promise.all(companiesData.map(async company => {
-        // Get latest interaction
-        const {
-          data: latestInteraction
-        } = await supabase.from('interactions').select('interaction_date, description').eq('company_id', company.company_id).order('interaction_date', {
-          ascending: false
-        }).limit(1).maybeSingle();
-
-        // Get next follow-up action
-        const {
-          data: nextAction
-        } = await supabase.from('interactions').select('follow_up_due_date, description').eq('company_id', company.company_id).eq('follow_up_completed', false).not('follow_up_due_date', 'is', null).order('follow_up_due_date', {
-          ascending: true
-        }).limit(1).maybeSingle();
-        return {
-          ...company,
-          last_interaction: latestInteraction || null,
-          next_action: nextAction || null
-        };
-      }));
-      return companiesWithInteractions as CompanyData[];
-    }
-  });
-
-  // Fetch contacts from Supabase
-  const {
-    data: contacts,
-    isLoading: contactsLoading,
-    error: contactsError,
-    refetch: refetchContacts
-  } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('contacts').select(`
-          *,
-          companies (
-            name
-          )
-        `).order('updated_at', {
-        ascending: false
-      });
-      if (error) throw error;
-      return data as ContactData[];
-    }
-  });
-
-  // Filter companies based on search query
-  const filteredCompanies = companies?.filter(company => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const contactNames = company.contacts?.map(c => `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase()).join(' ') || '';
-    return company.name.toLowerCase().includes(query) || (company.industry || "").toLowerCase().includes(query) || (company.hq_location || "").toLowerCase().includes(query) || (company.user_priority || "").toLowerCase().includes(query) || contactNames.includes(query);
-  });
-
-  // Filter contacts based on search query
-  const filteredContacts = contacts?.filter(contact => {
-    if (!contactSearchQuery) return true;
-    const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
-    const companyName = contact.companies?.name?.toLowerCase() || '';
-    const role = contact.role?.toLowerCase() || '';
-    const query = contactSearchQuery.toLowerCase();
-    return fullName.includes(query) || companyName.includes(query) || role.includes(query);
-  });
-
-  // Handle sorting
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      // Toggle direction
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
+    } finally {
+      setIsLoading(false);
+      
+      // Clear location state after loading to prevent highlighting on subsequent renders
+      if (location.state?.highlightNew) {
+        navigate(location.pathname, { replace: true });
+      }
     }
   };
 
-  // Open company details
-  const handleViewCompany = (company: CompanyData) => {
-    setSelectedCompany(company);
-    setIsDetailsOpen(true);
-  };
+  // Initial fetch
+  useEffect(() => {
+    if (user) {
+      fetchCompanies();
+    }
+  }, [user]);
 
-  // Handle company updates
-  const handleCompanyUpdated = () => {
-    refetch();
-    setIsDetailsOpen(false);
-  };
+  // Filter companies based on search term and filters
+  const filteredCompanies = companies.filter((company) => {
+    // Search filter
+    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Priority filter
+    const matchesPriority = filters.priority.length === 0 || 
+                           (company.user_priority && filters.priority.includes(company.user_priority));
+    
+    return matchesSearch && matchesPriority;
+  });
 
-  // Start editing a company field inline
-  const startEditing = (companyId: string, field: string, value: string) => {
-    setEditingCompanyId(companyId);
-    setEditData({
-      ...editData,
-      [field]: value || ''
+  const handlePriorityFilter = (priority: string) => {
+    setFilters(prev => {
+      if (prev.priority.includes(priority)) {
+        return { ...prev, priority: prev.priority.filter(p => p !== priority) };
+      } else {
+        return { ...prev, priority: [...prev.priority, priority] };
+      }
     });
   };
 
-  // Save edited company field
-  const saveEditing = async (companyId: string, field: string) => {
+  const handleAddCompany = () => {
+    setIsAddCompanyModalOpen(true);
+  };
+
+  const handleCompanyAdded = () => {
+    fetchCompanies();
+    setIsAddCompanyModalOpen(false);
+  };
+
+  const handleCompanyClick = (company: Company) => {
+    setSelectedCompany(company);
+    setSelectedCompanyId(company.company_id);
+  };
+
+  const handleCompanyDetailClose = () => {
+    setSelectedCompany(null);
+    setSelectedCompanyId(null);
+  };
+
+  const handleSetPriority = async (companyId: string, priority: string) => {
     try {
-      const {
-        error
-      } = await supabase.from('companies').update({
-        [field]: editData[field],
-        updated_at: new Date().toISOString()
-      }).eq('company_id', companyId);
+      const { error } = await supabase
+        .from('companies')
+        .update({ user_priority: priority })
+        .eq('company_id', companyId);
+        
       if (error) throw error;
-      setEditingCompanyId(null);
-      setEditData({});
-      refetch();
-      toast.success("Updated successfully");
-    } catch (error) {
-      console.error("Error updating company:", error);
-      toast.error("Failed to update");
+      
+      // Update local state
+      setCompanies(prev => prev.map(company => 
+        company.company_id === companyId ? {...company, user_priority: priority} : company
+      ));
+      
+      toast({
+        title: "Success",
+        description: "Company priority updated",
+      });
+    } catch (error: any) {
+      console.error("Error updating company priority:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update company priority",
+        variant: "destructive"
+      });
     }
   };
 
-  // Cancel editing
-  const cancelEditing = () => {
-    setEditingCompanyId(null);
-    setEditData({});
-  };
-
-  // Contact tab functions
-  const handleViewDetails = (contact: ContactData) => {
-    setSelectedContact(contact);
-    setIsContactDetailsOpen(true);
-  };
-  const handleGenerateMessage = (contact: ContactData) => {
-    setSelectedContact(contact);
-    setIsMessageOpen(true);
-  };
-  const handleContactUpdated = () => {
-    refetchContacts();
-    setIsContactDetailsOpen(false);
-  };
-
-  // Format a date nicely
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  // Format contact name with initial
-  const formatContactName = (contact: {
-    first_name?: string;
-    last_name?: string;
-  }) => {
-    const firstName = contact.first_name || '';
-    const lastInitial = contact.last_name ? `${contact.last_name.charAt(0)}` : '';
-    return firstName + (lastInitial ? ` ${lastInitial}` : '');
-  };
-
-  // Open interaction form for planning a new interaction
-  const handlePlanInteraction = (company: CompanyData) => {
-    setSelectedCompany(company);
-    setIsAddInteractionOpen(true);
-  };
-
-  // Handle errors
-  if (error) {
-    toast.error("Failed to load pipeline data");
-  }
-  if (contactsError) {
-    toast.error("Failed to load contacts");
-  }
-  return <div className="container mx-auto py-8 max-w-full">
-      <ProfileBreadcrumbs />
+  const handleBlacklist = async (companyId: string) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ is_blacklisted: true })
+        .eq('company_id', companyId);
+        
+      if (error) throw error;
       
-      <div className="space-y-6">
-        {/* Navigation Buttons */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          
-          
-          <Button variant="action" onClick={handleGenerateMoreCompanies} disabled={isGeneratingCompanies}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
-            Generate Companies
-          </Button>
-          
-        </div>
+      // Remove from local state
+      setCompanies(prev => prev.filter(company => company.company_id !== companyId));
+      
+      toast({
+        title: "Success",
+        description: "Company added to blacklist",
+      });
+    } catch (error: any) {
+      console.error("Error blacklisting company:", error);
+      toast({
+        title: "Error",
+        description: "Failed to blacklist company",
+        variant: "destructive"
+      });
+    }
+  };
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle className="text-2xl font-bold">Pipeline & Tracking</CardTitle>
-              <CardDescription>
-                Track your job search progress and manage contacts
-              </CardDescription>
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 w-[400px] mb-6">
-                <TabsTrigger value="pipeline">Companies</TabsTrigger>
-                <TabsTrigger value="contacts">Contacts</TabsTrigger>
-              </TabsList>
-              
-              {/* Pipeline Tab */}
-              <TabsContent value="pipeline" className="w-full">
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="relative w-full max-w-sm">
-                    <Input placeholder="Search companies..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-4" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Filter className="h-4 w-4 mr-2" />
-                          Filters {filterPriority && <Badge className="ml-1">{filterPriority}</Badge>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56">
-                        <div className="space-y-2">
-                          <h4 className="font-medium">Priority</h4>
-                          <Select value={filterPriority || ""} onValueChange={value => setFilterPriority(value || null)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="All priorities" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="">All priorities</SelectItem>
-                              <SelectItem value="Top">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  Top
-                                </span>
-                              </SelectItem>
-                              <SelectItem value="Medium">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                  Medium
-                                </span>
-                              </SelectItem>
-                              <SelectItem value="Maybe">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  Maybe
-                                </span>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex justify-end mt-4">
-                          <Button variant="outline" size="sm" onClick={() => setFilterPriority(null)} className="text-xs">
-                            <X className="h-3 w-3 mr-1" />
-                            Clear Filters
-                          </Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Company
-                    </Button>
-                  </div>
-                </div>
-                
-                {isLoading ? <div className="space-y-2">
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                  </div> : filteredCompanies && filteredCompanies.length > 0 ? <div className="rounded-md border overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[180px]" onClick={() => handleSort('name')} role="button">
-                            Company Name
-                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                          </TableHead>
-                          <TableHead onClick={() => handleSort('industry')} role="button">
-                            Industry
-                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                          </TableHead>
-                          <TableHead onClick={() => handleSort('hq_location')} role="button">
-                            Location
-                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                          </TableHead>
-                          <TableHead onClick={() => handleSort('user_priority')} role="button">
-                            Priority
-                            <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                          </TableHead>
-                          <TableHead>Contacts</TableHead>
-                          <TableHead className="w-[220px]">Latest Update</TableHead>
-                          <TableHead className="w-[220px]">Next Action</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredCompanies.map(company => <TableRow key={company.company_id}>
-                            <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('name') ? <div className="flex items-center space-x-1">
-                                  <Input value={editData.name} onChange={e => setEditData({
-                            ...editData,
-                            name: e.target.value
-                          })} className="h-8 py-1" />
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'name')}>
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div> : <div className="flex items-center space-x-1 group">
-                                  <div className="font-medium">{company.name}</div>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'name', company.name)}>
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                </div>}
-                            </TableCell>
-
-                            <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('industry') ? <div className="flex items-center space-x-1">
-                                  <Input value={editData.industry} onChange={e => setEditData({
-                            ...editData,
-                            industry: e.target.value
-                          })} className="h-8 py-1" />
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'industry')}>
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div> : <div className="flex items-center space-x-1 group">
-                                  <div>{company.industry || 'N/A'}</div>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'industry', company.industry || '')}>
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                </div>}
-                            </TableCell>
-
-                            <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('hq_location') ? <div className="flex items-center space-x-1">
-                                  <Input value={editData.hq_location} onChange={e => setEditData({
-                            ...editData,
-                            hq_location: e.target.value
-                          })} className="h-8 py-1" />
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => saveEditing(company.company_id, 'hq_location')}>
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={cancelEditing}>
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div> : <div className="flex items-center space-x-1 group">
-                                  <div>{company.hq_location || 'N/A'}</div>
-                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100" onClick={() => startEditing(company.company_id, 'hq_location', company.hq_location || '')}>
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                </div>}
-                            </TableCell>
-
-                            <TableCell>
-                              {editingCompanyId === company.company_id && editData.hasOwnProperty('user_priority') ? <div className="flex items-center space-x-1">
-                                  <Select value={editData.user_priority} onValueChange={value => {
-                            setEditData({
-                              ...editData,
-                              user_priority: value
-                            });
-                            saveEditing(company.company_id, 'user_priority');
-                          }}>
-                                    <SelectTrigger className="w-24 h-8">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Top">Top</SelectItem>
-                                      <SelectItem value="Medium">Medium</SelectItem>
-                                      <SelectItem value="Maybe">Maybe</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div> : <div className="flex items-center space-x-1 group">
-                                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadgeClass(company.user_priority)}`} onClick={() => startEditing(company.company_id, 'user_priority', company.user_priority || 'Maybe')}>
-                                    {company.user_priority || 'Maybe'}
-                                  </span>
-                                </div>}
-                            </TableCell>
-
-                            <TableCell>
-                              {company.contacts && company.contacts.length > 0 ? <div className="flex flex-col space-y-1">
-                                  {company.contacts.slice(0, 3).map(contact => <div key={contact.contact_id} className="text-sm hover:underline cursor-pointer" onClick={() => handleViewCompany(company)}>
-                                      {formatContactName(contact)}
-                                    </div>)}
-                                  {company.contacts.length > 3 && <div className="text-xs text-muted-foreground">
-                                      +{company.contacts.length - 3} more
-                                    </div>}
-                                </div> : <span className="text-muted-foreground text-sm">No contacts</span>}
-                            </TableCell>
-
-                            <TableCell>
-                              {company.last_interaction ? <div className="flex flex-col">
-                                  <div className="text-xs text-muted-foreground flex items-center">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {formatDate(company.last_interaction.interaction_date)}
-                                  </div>
-                                  <div className="text-sm">
-                                    {company.last_interaction.description}
-                                  </div>
-                                </div> : <div className="text-muted-foreground text-sm">No interactions</div>}
-                            </TableCell>
-
-                            <TableCell>
-                              {company.next_action ? <div className="flex flex-col">
-                                  <div className="text-xs flex items-center font-medium">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {formatDate(company.next_action.follow_up_due_date)}
-                                  </div>
-                                  <div className="text-sm">
-                                    {company.next_action.description}
-                                  </div>
-                                </div> : <div className="text-muted-foreground text-sm">No follow-ups</div>}
-                            </TableCell>
-
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button variant="outline" size="sm" onClick={() => handlePlanInteraction(company)}>
-                                  <MessageCircle className="h-4 w-4 mr-1" />
-                                  Plan
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleViewCompany(company)}>
-                                  <FileText className="h-4 w-4 mr-1" />
-                                  Details
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>)}
-                      </TableBody>
-                    </Table>
-                  </div> : <div className="bg-muted/30 rounded-lg p-8 text-center">
-                    <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <h3 className="text-lg font-medium mb-1">No companies found</h3>
-                    <p className="text-muted-foreground mb-4">
-                      {searchQuery ? "No companies match your search criteria" : "You haven't added any companies to your pipeline yet"}
-                    </p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Company
-                    </Button>
-                  </div>}
-              </TabsContent>
-              
-              {/* Contacts Tab */}
-              <TabsContent value="contacts" className="w-full">
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="relative w-full max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search contacts..." className="pl-8" value={contactSearchQuery} onChange={e => setContactSearchQuery(e.target.value)} />
-                  </div>
-                </div>
-                
-                {contactsLoading ? <div className="flex items-center justify-center p-8">
-                    <p className="text-muted-foreground">Loading contacts...</p>
-                  </div> : filteredContacts && filteredContacts.length > 0 ? <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Role</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredContacts.map(contact => <TableRow key={contact.contact_id}>
-                            <TableCell className="font-medium">
-                              {contact.first_name || ''} {contact.last_name || ''}
-                            </TableCell>
-                            <TableCell>{contact.companies?.name || 'N/A'}</TableCell>
-                            <TableCell>{contact.role || 'N/A'}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={() => handleViewDetails(contact)}>
-                                  <Pencil className="h-4 w-4 mr-1" />
-                                  Details
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => handleGenerateMessage(contact)}>
-                                  <MessageCircle className="h-4 w-4 mr-1" />
-                                  Message
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>)}
-                      </TableBody>
-                    </Table>
-                  </div> : <div className="bg-muted/30 rounded-lg p-8 text-center">
-                    <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <h3 className="text-lg font-medium mb-1">No contacts found</h3>
-                    <p className="text-muted-foreground mb-4">
-                      {contactSearchQuery ? "No contacts match your search criteria" : "You haven't saved any contacts yet"}
-                    </p>
-                  </div>}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <style>{highlightAnimation}</style>
       
-      {/* Company Details Dialog */}
-      {selectedCompany && <CompanyDetails company={selectedCompany} isOpen={isDetailsOpen} onClose={() => setIsDetailsOpen(false)} onCompanyUpdated={handleCompanyUpdated} />}
+      <ProfileBreadcrumbs />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold">Company Pipeline</h1>
+        <Button onClick={handleAddCompany} className="shrink-0">
+          <Plus className="mr-2 h-4 w-4" /> Add Company
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search companies..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Filter className="mr-2 h-4 w-4" /> Filters
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Priority</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handlePriorityFilter('Top')} className="flex items-center justify-between">
+                  Top
+                  {filters.priority.includes('Top') && <CircleDot className="h-4 w-4 ml-2" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePriorityFilter('Medium')} className="flex items-center justify-between">
+                  Medium
+                  {filters.priority.includes('Medium') && <CircleDot className="h-4 w-4 ml-2" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePriorityFilter('Maybe')} className="flex items-center justify-between">
+                  Maybe
+                  {filters.priority.includes('Maybe') && <CircleDot className="h-4 w-4 ml-2" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setFilters({ ...filters, priority: [] })}>
+                  Clear Filters
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {filteredCompanies.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+              <h3 className="mt-4 text-lg font-medium">No companies found</h3>
+              <p className="mt-1 text-muted-foreground">
+                {searchTerm || filters.priority.length > 0
+                  ? "Try adjusting your search or filters"
+                  : "Start by adding your target companies"}
+              </p>
+              <Button onClick={handleAddCompany} className="mt-4">
+                <Plus className="mr-2 h-4 w-4" /> Add Company
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px]">Name</TableHead>
+                    <TableHead className="hidden md:table-cell">Industry</TableHead>
+                    <TableHead className="hidden lg:table-cell">Location</TableHead>
+                    <TableHead className="hidden lg:table-cell">Description</TableHead>
+                    <TableHead className="w-[100px]">Priority</TableHead>
+                    <TableHead className="w-[70px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredCompanies.map((company) => {
+                    const isNewCompany = newCompanyIds.includes(company.company_id);
+                    return (
+                      <TableRow 
+                        key={company.company_id} 
+                        className={cn(
+                          "cursor-pointer hover:bg-muted/50",
+                          isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : ""
+                        )}
+                        onClick={() => handleCompanyClick(company)}
+                      >
+                        <TableCell>{company.name}</TableCell>
+                        <TableCell className="hidden md:table-cell">{company.industry || "-"}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{company.hq_location || "-"}</TableCell>
+                        <TableCell className="hidden lg:table-cell max-w-xs truncate">{company.ai_description || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {company.user_priority === "Top" && (
+                              <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                Top
+                              </span>
+                            )}
+                            {company.user_priority === "Medium" && (
+                              <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                Medium
+                              </span>
+                            )}
+                            {company.user_priority === "Maybe" && (
+                              <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                Maybe
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPriority(company.company_id, "Top");
+                              }}>
+                                <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                                Mark as Top
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPriority(company.company_id, "Medium");
+                              }}>
+                                <CircleDot className="mr-2 h-4 w-4 text-blue-500" />
+                                Mark as Medium
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPriority(company.company_id, "Maybe");
+                              }}>
+                                <CircleDashed className="mr-2 h-4 w-4 text-gray-500" />
+                                Mark as Maybe
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleBlacklist(company.company_id);
+                              }}>
+                                <Trash className="mr-2 h-4 w-4 text-red-500" />
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Company Add Modal */}
+      <AddCompanyModal 
+        open={isAddCompanyModalOpen} 
+        onClose={() => setIsAddCompanyModalOpen(false)}
+        onCompanyAdded={handleCompanyAdded}
+      />
       
-      {/* Interaction Form Dialog for Planning */}
-      {selectedCompany && <InteractionForm companyId={selectedCompany.company_id} companyName={selectedCompany.name} contacts={selectedCompany.contacts || []} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={() => {
-      refetch();
-      setIsAddInteractionOpen(false);
-    }} isPlanningMode={true} />}
-      
-      {/* Contact Details Dialog */}
-      {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
-      
-      {/* Message Generation Dialog */}
-      {selectedContact && selectedContact.companies && <MessageGeneration contact={selectedContact} companyName={selectedContact.companies.name || ''} isOpen={isMessageOpen} onClose={() => setIsMessageOpen(false)} />}
-    </div>;
+      {/* Company Detail View */}
+      {selectedCompanyId && (
+        <CompanyDetails
+          companyId={selectedCompanyId}
+          open={!!selectedCompany}
+          onClose={handleCompanyDetailClose}
+        />
+      )}
+    </div>
+  );
 };
+
 export default PipelineDashboard;
