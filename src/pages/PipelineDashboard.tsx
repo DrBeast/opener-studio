@@ -39,14 +39,14 @@ import { CompanyDetails } from "@/components/CompanyDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { cn } from "@/lib/utils";
 
-// Using TypeScript interfaces for type safety
+// Using TypeScript interfaces for type safety - aligned with CompanyData from types/profile.ts
 interface Company {
   company_id: string;
   name: string;
   industry?: string;
   hq_location?: string;
   ai_description?: string;
-  user_priority?: string;
+  user_priority?: 'Top' | 'Medium' | 'Maybe';
   is_blacklisted?: boolean;
   match_quality_score?: number;
 }
@@ -200,6 +200,11 @@ const PipelineDashboard = () => {
 
   const handleCompanyDetailClose = () => {
     setSelectedCompany(null);
+  };
+
+  // Add the missing handleCompanyUpdated function
+  const handleCompanyUpdated = async () => {
+    await fetchCompanies();
   };
 
   const handleSetPriority = async (companyId: string, priority: string) => {
