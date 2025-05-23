@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "@/hooks/useAuth";
@@ -87,17 +86,16 @@ const PipelineDashboard = () => {
     if (!user) return;
     
     setIsLoading(true);
+    let companiesData: Company[] = [];
+    let successfullyFetched = false;
+    
     try {
-      // Call the get_companies_overview function to get the overview data
+      // Try calling the get_companies_overview function first
       const { data: companiesOverview, error: functionError } = await supabase.functions.invoke('get_companies_overview');
       
-      if (functionError) {
-        throw functionError;
-      }
-      
-      if (companiesOverview && Array.isArray(companiesOverview)) {
+      if (!functionError && companiesOverview && Array.isArray(companiesOverview)) {
         // Type the data properly to ensure user_priority is correctly typed
-        const typedCompanies: Company[] = companiesOverview.map((company: any) => ({
+        companiesData = companiesOverview.map((company: any) => ({
           company_id: company.company_id,
           name: company.name,
           industry: company.industry,
@@ -107,19 +105,14 @@ const PipelineDashboard = () => {
           is_blacklisted: company.is_blacklisted,
           match_quality_score: company.match_quality_score
         }));
-        setCompanies(typedCompanies);
-      } else {
-        console.error("Invalid response format from get_companies_overview function");
+        successfullyFetched = true;
       }
-    } catch (error: any) {
-      console.error("Error fetching companies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load companies. Please try again.",
-        variant: "destructive"
-      });
-      
-      // Fallback to direct query if the function fails
+    } catch (error) {
+      console.log("Function call failed, trying fallback query:", error);
+    }
+    
+    // If the function fails, fallback to direct query
+    if (!successfullyFetched) {
       try {
         const { data, error: queryError } = await supabase
           .from('companies')
@@ -132,7 +125,7 @@ const PipelineDashboard = () => {
         if (queryError) throw queryError;
         
         // Type the fallback data properly
-        const typedFallbackCompanies: Company[] = (data || []).map((company: any) => ({
+        companiesData = (data || []).map((company: any) => ({
           company_id: company.company_id,
           name: company.name,
           industry: company.industry,
@@ -142,17 +135,26 @@ const PipelineDashboard = () => {
           is_blacklisted: company.is_blacklisted,
           match_quality_score: company.match_quality_score
         }));
-        setCompanies(typedFallbackCompanies);
+        successfullyFetched = true;
       } catch (fallbackError: any) {
-        console.error("Fallback query also failed:", fallbackError);
+        console.error("Both function and fallback query failed:", fallbackError);
+        toast({
+          title: "Error",
+          description: "Failed to load companies. Please try again.",
+          variant: "destructive"
+        });
       }
-    } finally {
-      setIsLoading(false);
-      
-      // Clear location state after loading to prevent highlighting on subsequent renders
-      if (location.state?.highlightNew) {
-        navigate(location.pathname, { replace: true });
-      }
+    }
+    
+    if (successfullyFetched) {
+      setCompanies(companiesData);
+    }
+    
+    setIsLoading(false);
+    
+    // Clear location state after loading to prevent highlighting on subsequent renders
+    if (location.state?.highlightNew) {
+      navigate(location.pathname, { replace: true });
     }
   };
 
@@ -260,7 +262,6 @@ const PipelineDashboard = () => {
     setSelectedCompany(null);
   };
 
-  // Add the missing handleCompanyUpdated function
   const handleCompanyUpdated = async () => {
     await fetchCompanies();
   };
