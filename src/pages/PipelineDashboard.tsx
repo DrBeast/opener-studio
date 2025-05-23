@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "@/hooks/useAuth";
@@ -32,7 +33,8 @@ import {
   Edit, 
   Star, 
   CircleDashed, 
-  CircleDot 
+  CircleDot,
+  Sparkles 
 } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
@@ -73,6 +75,7 @@ const PipelineDashboard = () => {
   });
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
   
   // Get any newly created companies from location state
   const newCompanies = location.state?.newCompanies || [];
@@ -93,7 +96,18 @@ const PipelineDashboard = () => {
       }
       
       if (companiesOverview && Array.isArray(companiesOverview)) {
-        setCompanies(companiesOverview);
+        // Type the data properly to ensure user_priority is correctly typed
+        const typedCompanies: Company[] = companiesOverview.map((company: any) => ({
+          company_id: company.company_id,
+          name: company.name,
+          industry: company.industry,
+          hq_location: company.hq_location,
+          ai_description: company.ai_description,
+          user_priority: company.user_priority as 'Top' | 'Medium' | 'Maybe',
+          is_blacklisted: company.is_blacklisted,
+          match_quality_score: company.match_quality_score
+        }));
+        setCompanies(typedCompanies);
       } else {
         console.error("Invalid response format from get_companies_overview function");
       }
@@ -117,7 +131,18 @@ const PipelineDashboard = () => {
           
         if (queryError) throw queryError;
         
-        setCompanies(data || []);
+        // Type the fallback data properly
+        const typedFallbackCompanies: Company[] = (data || []).map((company: any) => ({
+          company_id: company.company_id,
+          name: company.name,
+          industry: company.industry,
+          hq_location: company.hq_location,
+          ai_description: company.ai_description,
+          user_priority: company.user_priority as 'Top' | 'Medium' | 'Maybe',
+          is_blacklisted: company.is_blacklisted,
+          match_quality_score: company.match_quality_score
+        }));
+        setCompanies(typedFallbackCompanies);
       } catch (fallbackError: any) {
         console.error("Fallback query also failed:", fallbackError);
       }
@@ -194,6 +219,39 @@ const PipelineDashboard = () => {
     }
   };
 
+  const handleGenerateCompanies = async () => {
+    if (!user) return;
+    
+    setIsGeneratingCompanies(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate_companies');
+      
+      if (error) throw error;
+      
+      if (data?.status === 'success') {
+        await fetchCompanies();
+        toast({
+          title: "Success",
+          description: `Generated ${data.companies?.length || 0} new companies successfully`,
+        });
+      } else if (data?.status === 'warning') {
+        toast({
+          title: "Notice",
+          description: data.message,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error generating companies:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate companies",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingCompanies(false);
+    }
+  };
+
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
   };
@@ -216,9 +274,9 @@ const PipelineDashboard = () => {
         
       if (error) throw error;
       
-      // Update local state
+      // Update local state with proper typing
       setCompanies(prev => prev.map(company => 
-        company.company_id === companyId ? {...company, user_priority: priority} : company
+        company.company_id === companyId ? {...company, user_priority: priority as 'Top' | 'Medium' | 'Maybe'} : company
       ));
       
       toast({
@@ -277,9 +335,15 @@ const PipelineDashboard = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Company Pipeline</h1>
-        <Button onClick={handleAddCompany} className="shrink-0">
-          <Plus className="mr-2 h-4 w-4" /> Add Company
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateCompanies} disabled={isGeneratingCompanies} variant="outline">
+            <Sparkles className="mr-2 h-4 w-4" />
+            {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
+          </Button>
+          <Button onClick={handleAddCompany} className="shrink-0">
+            <Plus className="mr-2 h-4 w-4" /> Add Company
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -333,9 +397,15 @@ const PipelineDashboard = () => {
                   ? "Try adjusting your search or filters"
                   : "Start by adding your target companies"}
               </p>
-              <Button onClick={handleAddCompany} className="mt-4">
-                <Plus className="mr-2 h-4 w-4" /> Add Company
-              </Button>
+              <div className="flex gap-2 justify-center mt-4">
+                <Button onClick={handleGenerateCompanies} disabled={isGeneratingCompanies} variant="outline">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {isGeneratingCompanies ? "Generating..." : "Generate Companies"}
+                </Button>
+                <Button onClick={handleAddCompany}>
+                  <Plus className="mr-2 h-4 w-4" /> Add Company
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="rounded-md border overflow-hidden">
