@@ -22,7 +22,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Signup = () => {
-  const { signUp, signInWithLinkedIn, linkUserProfile } = useAuth();
+  const { signUp, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -57,96 +57,30 @@ const Signup = () => {
     setErrorMessage(null);
     
     try {
-      // Dismiss any existing toast messages for clean UX
-      toast.dismiss("profile-linking-success");
+      // Clear any existing toasts
+      toast.dismiss("profile-linking-progress");
       toast.dismiss("signup-error");
       
-      // Log that we're starting signup with session ID (if any)
+      // Log session ID for debugging
       console.log(`Signup: Starting signup process with session ID: ${sessionId || "none"}`);
       
+      // Perform signup (this will also trigger profile linking internally via useAuth)
       await signUp(data.email, data.password);
       
-      // Check if there's a guest profile to link and show appropriate message
+      // Show a toast about profile linking if a session ID exists
       if (sessionId) {
-        toast.info("Linking your profile data...", { id: "profile-linking-progress" });
-        console.log("Signup: User signed up, waiting to ensure profile linking has time to complete");
-        
-        // Get the current user data
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          // Make an explicit attempt to link the profile after signup success
-          console.log("Signup: Making direct profile linking attempt with session ID:", sessionId);
-          
-          // Add a substantial delay to ensure auth is fully initialized
-          setTimeout(async () => {
-            try {
-              const linkSuccess = await linkUserProfile(session.user.id, sessionId);
-              
-              if (linkSuccess) {
-                toast.dismiss("profile-linking-progress");
-                toast.success("Your profile data was successfully linked to your account", { 
-                  id: "profile-linking-success",
-                  duration: 5000
-                });
-              } else {
-                // If linking fails, make one more attempt
-                console.log("Signup: First direct linking attempt failed, trying again");
-                setTimeout(async () => {
-                  const secondAttempt = await linkUserProfile(session.user.id, sessionId);
-                  
-                  if (secondAttempt) {
-                    toast.dismiss("profile-linking-progress");
-                    toast.success("Your profile data was successfully linked to your account", { 
-                      id: "profile-linking-success",
-                      duration: 5000
-                    });
-                  } else {
-                    toast.dismiss("profile-linking-progress"); 
-                    toast.error("Unable to link your profile data. Please try again from your profile page.", {
-                      id: "profile-linking-error",
-                      duration: 5000
-                    });
-                  }
-                  
-                  // Redirect after a short delay to ensure toast is seen
-                  setTimeout(() => {
-                    navigate(redirectTo);
-                  }, 1500);
-                }, 2000);
-              }
-            } catch (err) {
-              console.error("Signup: Error in explicit profile linking attempt:", err);
-              toast.dismiss("profile-linking-progress");
-              toast.error("Unable to link your profile data. Please try again from your profile page.", {
-                id: "profile-linking-error",
-                duration: 5000
-              });
-              
-              // Redirect despite error
-              setTimeout(() => {
-                navigate(redirectTo);
-              }, 1500);
-            }
-          }, 2000);
-        } else {
-          toast.dismiss("profile-linking-progress");
-          toast.error("Unable to link your profile. Please try again from your profile page.", {
-            id: "profile-linking-error",
-            duration: 5000
-          });
-          
-          // Redirect despite error
-          setTimeout(() => {
-            navigate(redirectTo);
-          }, 1500);
-        }
-      } else {
-        // Redirect to profile page after successful signup
-        navigate(redirectTo);
+        toast.info("Your profile data will be linked to your new account", { 
+          id: "profile-linking-progress",
+          duration: 3000
+        });
       }
+      
+      // Redirect after a brief delay to allow for authentication to complete
+      setTimeout(() => {
+        navigate(redirectTo);
+      }, 1500);
     } catch (error: any) {
       setIsLoading(false);
-      toast.dismiss("profile-linking-progress");
       
       // Set error message for UI display with more details
       console.error("Signup error:", error);

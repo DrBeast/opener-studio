@@ -46,17 +46,7 @@ serve(async (req) => {
     }
 
     console.log(`[LINK PROFILE] Starting - userId: ${userId}, sessionId: ${sessionId}`);
-
-    // Begin transaction to ensure atomicity of operations
-    const { data: txResult, error: txError } = await supabaseClient.rpc('begin_transaction');
     
-    if (txError) {
-      console.error(`[LINK PROFILE] Transaction error: ${JSON.stringify(txError)}`);
-      // Continue without transaction if it fails - legacy behavior
-    } else {
-      console.log(`[LINK PROFILE] Transaction started successfully`);
-    }
-
     // Check if the guest profile exists
     const { data: guestProfile, error: guestProfileError } = await supabaseClient
       .from("user_profiles")
@@ -114,14 +104,6 @@ serve(async (req) => {
         console.log("[LINK PROFILE] User already has a profile, no need to create a new one");
       }
       
-      // Commit transaction if we started one
-      if (!txError) {
-        const { error: commitError } = await supabaseClient.rpc('commit_transaction');
-        if (commitError) {
-          console.error(`[LINK PROFILE] Error committing transaction: ${JSON.stringify(commitError)}`);
-        }
-      }
-      
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -158,30 +140,16 @@ serve(async (req) => {
         if (Object.keys(updateData).length > 1) {
           console.log(`[LINK PROFILE] Updating user profile with data: ${JSON.stringify(updateData)}`);
           
-          // Retry loop for profile update
-          let updateAttempts = 0;
-          let updateSuccess = false;
-          
-          while (!updateSuccess && updateAttempts < 3) {
-            updateAttempts++;
-            const { error: updateError } = await supabaseClient
-              .from("user_profiles")
-              .update(updateData)
-              .eq("user_id", userId);
-      
-            if (updateError) {
-              console.error(`[LINK PROFILE] Failed to update user profile (attempt ${updateAttempts}): ${JSON.stringify(updateError)}`);
-              if (updateAttempts < 3) {
-                console.log(`[LINK PROFILE] Retrying update in 500ms...`);
-                await new Promise(resolve => setTimeout(resolve, 500));
-              } else {
-                throw new Error(`Failed to update user profile after ${updateAttempts} attempts: ${updateError.message}`);
-              }
-            } else {
-              updateSuccess = true;
-              console.log(`[LINK PROFILE] Successfully merged guest profile data into existing user profile on attempt ${updateAttempts}`);
-            }
+          const { error: updateError } = await supabaseClient
+            .from("user_profiles")
+            .update(updateData)
+            .eq("user_id", userId);
+    
+          if (updateError) {
+            console.error(`[LINK PROFILE] Failed to update user profile: ${JSON.stringify(updateError)}`);
+            throw new Error(`Failed to update user profile: ${updateError.message}`);
           }
+          console.log(`[LINK PROFILE] Successfully merged guest profile data into existing user profile`);
         } else {
           console.log("[LINK PROFILE] No new data to merge from guest profile");
         }
@@ -206,99 +174,76 @@ serve(async (req) => {
           // Convert the guest profile to a user profile
           console.log(`[LINK PROFILE] Converting guest profile with session_id ${sessionId} to user profile with user_id ${userId}`);
           
-          // Retry loop for profile conversion
-          let conversionAttempts = 0;
-          let conversionSuccess = false;
-          
-          while (!conversionSuccess && conversionAttempts < 3) {
-            conversionAttempts++;
-            
-            const { error: updateError } = await supabaseClient
-              .from("user_profiles")
-              .update({
-                user_id: userId,
-                is_temporary: false,
-                session_id: null, 
-                temp_created_at: null,
-                updated_at: new Date().toISOString()
-              })
-              .eq("session_id", sessionId)
-              .eq("is_temporary", true);
-      
-            if (updateError) {
-              console.error(`[LINK PROFILE] Failed to convert guest profile (attempt ${conversionAttempts}): ${JSON.stringify(updateError)}`);
-              
-              if (conversionAttempts < 3) {
-                console.log(`[LINK PROFILE] Retrying conversion in 500ms...`);
-                await new Promise(resolve => setTimeout(resolve, 500));
-              } else {
-                throw new Error(`Failed to convert guest profile after ${conversionAttempts} attempts: ${updateError.message}`);
-              }
-            } else {
-              conversionSuccess = true;
-              console.log(`[LINK PROFILE] Successfully converted guest profile to user profile on attempt ${conversionAttempts}`);
-            }
-          }
-        } catch (conversionError) {
-          console.error(`[LINK PROFILE] All attempts to convert profile failed: ${conversionError}`);
-          
-          // Fallback: If conversion fails, create a new profile for the user with the guest data
-          console.log("[LINK PROFILE] Attempting fallback: Creating new user profile with guest data");
-          
-          const newUserProfile = {
-            user_id: userId,
-            is_temporary: false,
-            linkedin_content: guestProfile.linkedin_content,
-            additional_details: guestProfile.additional_details,
-            cv_content: guestProfile.cv_content,
-            first_name: guestProfile.first_name,
-            last_name: guestProfile.last_name,
-            current_company: guestProfile.current_company,
-            location: guestProfile.location,
-            job_role: guestProfile.job_role,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          
-          const { error: insertError } = await supabaseClient
+          const { error: updateError } = await supabaseClient
             .from("user_profiles")
-            .insert(newUserProfile);
+            .update({
+              user_id: userId,
+              is_temporary: false,
+              session_id: null, 
+              temp_created_at: null,
+              updated_at: new Date().toISOString()
+            })
+            .eq("session_id", sessionId)
+            .eq("is_temporary", true);
+    
+          if (updateError) {
+            console.error(`[LINK PROFILE] Failed to convert guest profile: ${JSON.stringify(updateError)}`);
             
-          if (insertError) {
-            console.error(`[LINK PROFILE] Fallback failed - could not create new user profile: ${JSON.stringify(insertError)}`);
-            throw new Error(`Fallback failed - could not create new user profile: ${insertError.message}`);
-          }
-          
-          console.log("[LINK PROFILE] Successfully created new user profile from guest data");
-          
-          // Try to delete the guest profile
-          try {
-            await supabaseClient
+            // Fallback: If conversion fails, create a new profile for the user with the guest data
+            console.log("[LINK PROFILE] Attempting fallback: Creating new user profile with guest data");
+            
+            const newUserProfile = {
+              user_id: userId,
+              is_temporary: false,
+              linkedin_content: guestProfile.linkedin_content,
+              additional_details: guestProfile.additional_details,
+              cv_content: guestProfile.cv_content,
+              first_name: guestProfile.first_name,
+              last_name: guestProfile.last_name,
+              current_company: guestProfile.current_company,
+              location: guestProfile.location,
+              job_role: guestProfile.job_role,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            
+            const { error: insertError } = await supabaseClient
               .from("user_profiles")
-              .delete()
-              .eq("session_id", sessionId)
-              .eq("is_temporary", true);
+              .insert(newUserProfile);
               
-            console.log("[LINK PROFILE] Successfully deleted original guest profile after fallback");
-          } catch (deleteError) {
-            console.error(`[LINK PROFILE] Warning: Could not delete original guest profile: ${deleteError}`);
+            if (insertError) {
+              console.error(`[LINK PROFILE] Fallback failed - could not create new user profile: ${JSON.stringify(insertError)}`);
+              throw new Error(`Fallback failed - could not create new user profile: ${insertError.message}`);
+            }
+            
+            console.log("[LINK PROFILE] Successfully created new user profile from guest data");
+            
+            // Try to delete the guest profile
+            try {
+              await supabaseClient
+                .from("user_profiles")
+                .delete()
+                .eq("session_id", sessionId)
+                .eq("is_temporary", true);
+                
+              console.log("[LINK PROFILE] Successfully deleted original guest profile after fallback");
+            } catch (deleteError) {
+              console.error(`[LINK PROFILE] Warning: Could not delete original guest profile: ${deleteError}`);
+            }
+          } else {
+            console.log(`[LINK PROFILE] Successfully converted guest profile to user profile`);
           }
+        } catch (profileError) {
+          console.error(`[LINK PROFILE] Error processing profile: ${profileError}`);
+          throw profileError;
         }
       }
     } catch (profileError) {
-      // Rollback transaction if we started one
-      if (!txError) {
-        const { error: rollbackError } = await supabaseClient.rpc('rollback_transaction');
-        if (rollbackError) {
-          console.error(`[LINK PROFILE] Error rolling back transaction: ${JSON.stringify(rollbackError)}`);
-        }
-      }
-      
       console.error(`[LINK PROFILE] Error processing profile: ${profileError}`);
       throw profileError;
     }
 
-    // Now handle the user summary data similarly with better error handling and retries
+    // Now handle the user summary data similarly with better error handling
     try {
       const { data: guestSummary, error: guestSummaryError } = await supabaseClient
         .from("user_summaries")
@@ -352,31 +297,16 @@ serve(async (req) => {
           if (Object.keys(summaryUpdateData).length > 1) {
             console.log(`[LINK PROFILE] Updating user summary with data fields: ${Object.keys(summaryUpdateData).join(', ')}`);
             
-            // Retry loop for summary update
-            let updateAttempts = 0;
-            let updateSuccess = false;
-            
-            while (!updateSuccess && updateAttempts < 3) {
-              updateAttempts++;
-              const { error: updateSummaryError } = await supabaseClient
-                .from("user_summaries")
-                .update(summaryUpdateData)
-                .eq("user_id", userId);
-      
-              if (updateSummaryError) {
-                console.error(`[LINK PROFILE] Failed to update user summary (attempt ${updateAttempts}): ${JSON.stringify(updateSummaryError)}`);
-                
-                if (updateAttempts < 3) {
-                  console.log(`[LINK PROFILE] Retrying summary update in 500ms...`);
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                } else {
-                  throw new Error(`Failed to update user summary after ${updateAttempts} attempts: ${updateSummaryError.message}`);
-                }
-              } else {
-                updateSuccess = true;
-                console.log(`[LINK PROFILE] Successfully merged guest summary data into existing user summary on attempt ${updateAttempts}`);
-              }
+            const { error: updateSummaryError } = await supabaseClient
+              .from("user_summaries")
+              .update(summaryUpdateData)
+              .eq("user_id", userId);
+    
+            if (updateSummaryError) {
+              console.error(`[LINK PROFILE] Failed to update user summary: ${JSON.stringify(updateSummaryError)}`);
+              throw new Error(`Failed to update user summary: ${updateSummaryError.message}`);
             }
+            console.log(`[LINK PROFILE] Successfully merged guest summary data into existing user summary`);
           } else {
             console.log("[LINK PROFILE] No new summary data to merge");
           }
@@ -397,83 +327,69 @@ serve(async (req) => {
           console.log("[LINK PROFILE] No existing user summary found, converting guest summary to user summary");
           
           try {
-            // Convert guest summary to user summary with retries
+            // Convert guest summary to user summary
             console.log(`[LINK PROFILE] Converting guest summary with session_id ${sessionId} to user summary with user_id ${userId}`);
             
-            let conversionAttempts = 0;
-            let conversionSuccess = false;
-            
-            while (!conversionSuccess && conversionAttempts < 3) {
-              conversionAttempts++;
+            const { error: updateSummaryError } = await supabaseClient
+              .from("user_summaries")
+              .update({
+                user_id: userId,
+                session_id: null,
+                updated_at: new Date().toISOString()
+              })
+              .eq("session_id", sessionId);
+    
+            if (updateSummaryError) {
+              console.error(`[LINK PROFILE] Failed to convert guest summary to user summary: ${JSON.stringify(updateSummaryError)}`);
               
-              const { error: updateSummaryError } = await supabaseClient
+              // Fallback: If conversion fails, create a new summary for the user with the guest data
+              console.log("[LINK PROFILE] Attempting fallback: Creating new user summary with guest data");
+              
+              const newUserSummary = {
+                user_id: userId,
+                experience: guestSummary.experience,
+                education: guestSummary.education,
+                expertise: guestSummary.expertise,
+                achievements: guestSummary.achievements,
+                overall_blurb: guestSummary.overall_blurb,
+                combined_experience_highlights: guestSummary.combined_experience_highlights,
+                combined_education_highlights: guestSummary.combined_education_highlights,
+                key_skills: guestSummary.key_skills,
+                domain_expertise: guestSummary.domain_expertise,
+                technical_expertise: guestSummary.technical_expertise,
+                value_proposition_summary: guestSummary.value_proposition_summary,
+                updated_at: new Date().toISOString(),
+                generated_at: new Date().toISOString()
+              };
+              
+              const { error: insertSummaryError } = await supabaseClient
                 .from("user_summaries")
-                .update({
-                  user_id: userId,
-                  session_id: null,
-                  updated_at: new Date().toISOString()
-                })
-                .eq("session_id", sessionId);
-      
-              if (updateSummaryError) {
-                console.error(`[LINK PROFILE] Failed to convert guest summary to user summary (attempt ${conversionAttempts}): ${JSON.stringify(updateSummaryError)}`);
+                .insert(newUserSummary);
                 
-                if (conversionAttempts < 3) {
-                  console.log(`[LINK PROFILE] Retrying summary conversion in 500ms...`);
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                } else {
-                  throw new Error(`Failed to convert guest summary to user summary after ${conversionAttempts} attempts: ${updateSummaryError.message}`);
-                }
-              } else {
-                conversionSuccess = true;
-                console.log(`[LINK PROFILE] Successfully converted guest summary to user summary on attempt ${conversionAttempts}`);
+              if (insertSummaryError) {
+                console.error(`[LINK PROFILE] Fallback failed - could not create new user summary: ${JSON.stringify(insertSummaryError)}`);
+                throw new Error(`Fallback failed - could not create new user summary: ${insertSummaryError.message}`);
               }
+              
+              console.log("[LINK PROFILE] Successfully created new user summary from guest data");
+              
+              // Try to delete the guest summary
+              try {
+                await supabaseClient
+                  .from("user_summaries")
+                  .delete()
+                  .eq("session_id", sessionId);
+                  
+                console.log("[LINK PROFILE] Successfully deleted original guest summary after fallback");
+              } catch (deleteError) {
+                console.error(`[LINK PROFILE] Warning: Could not delete original guest summary: ${deleteError}`);
+              }
+            } else {
+              console.log("[LINK PROFILE] Successfully converted guest summary to user summary");
             }
           } catch (conversionError) {
             console.error(`[LINK PROFILE] Error during summary conversion: ${conversionError}`);
-            
-            // Fallback: If conversion fails, create a new summary for the user with the guest data
-            console.log("[LINK PROFILE] Attempting fallback: Creating new user summary with guest data");
-            
-            const newUserSummary = {
-              user_id: userId,
-              experience: guestSummary.experience,
-              education: guestSummary.education,
-              expertise: guestSummary.expertise,
-              achievements: guestSummary.achievements,
-              overall_blurb: guestSummary.overall_blurb,
-              combined_experience_highlights: guestSummary.combined_experience_highlights,
-              combined_education_highlights: guestSummary.combined_education_highlights,
-              key_skills: guestSummary.key_skills,
-              domain_expertise: guestSummary.domain_expertise,
-              technical_expertise: guestSummary.technical_expertise,
-              value_proposition_summary: guestSummary.value_proposition_summary,
-              updated_at: new Date().toISOString(),
-              generated_at: new Date().toISOString()
-            };
-            
-            const { error: insertSummaryError } = await supabaseClient
-              .from("user_summaries")
-              .insert(newUserSummary);
-              
-            if (insertSummaryError) {
-              console.error(`[LINK PROFILE] Fallback failed - could not create new user summary: ${JSON.stringify(insertSummaryError)}`);
-              throw new Error(`Fallback failed - could not create new user summary: ${insertSummaryError.message}`);
-            }
-            
-            console.log("[LINK PROFILE] Successfully created new user summary from guest data");
-            
-            // Try to delete the guest summary
-            try {
-              await supabaseClient
-                .from("user_summaries")
-                .delete()
-                .eq("session_id", sessionId);
-                
-              console.log("[LINK PROFILE] Successfully deleted original guest summary after fallback");
-            } catch (deleteError) {
-              console.error(`[LINK PROFILE] Warning: Could not delete original guest summary: ${deleteError}`);
-            }
+            // Continue execution despite summary errors
           }
         }
       } else {
@@ -510,17 +426,7 @@ serve(async (req) => {
       }
     } catch (summaryError) {
       console.error(`[LINK PROFILE] Error processing summary data: ${summaryError}`);
-      // Continue execution despite summary errors - don't fail the whole linking process
-    }
-
-    // Commit the transaction if we started one
-    if (!txError) {
-      const { error: commitError } = await supabaseClient.rpc('commit_transaction');
-      if (commitError) {
-        console.error(`[LINK PROFILE] Error committing transaction: ${JSON.stringify(commitError)}`);
-      } else {
-        console.log(`[LINK PROFILE] Transaction committed successfully`);
-      }
+      // Continue execution despite summary errors
     }
 
     // Verify profile linking was successful
