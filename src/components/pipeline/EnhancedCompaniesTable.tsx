@@ -50,6 +50,7 @@ export const EnhancedCompaniesTable = ({
       100% { background-color: transparent; }
     }
   `;
+  
   const formatContacts = (contacts?: any[]) => {
     if (!contacts || contacts.length === 0) return null;
     const sortedContacts = [...contacts].sort((a, b) => {
@@ -61,12 +62,15 @@ export const EnhancedCompaniesTable = ({
     return sortedContacts.map(contact => {
       const firstName = contact.first_name || '';
       const lastInitial = contact.last_name ? contact.last_name.charAt(0) + '.' : '';
+      const abbreviatedRole = contact.role ? (contact.role.length > 15 ? contact.role.substring(0, 15) + '...' : contact.role) : '';
       return {
         id: contact.contact_id,
-        displayName: `${firstName} ${lastInitial}`.trim()
+        displayName: `${firstName} ${lastInitial}`.trim(),
+        role: abbreviatedRole
       };
     });
   };
+  
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -75,12 +79,14 @@ export const EnhancedCompaniesTable = ({
       return '-';
     }
   };
+  
   const formatLocationAndWFH = (location?: string, wfh?: string) => {
     const parts = [];
     if (location) parts.push(location);
     if (wfh) parts.push(wfh);
     return parts.length > 0 ? parts.join(' / ') : '-';
   };
+  
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'Top':
@@ -93,10 +99,12 @@ export const EnhancedCompaniesTable = ({
         return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
     }
   };
+  
   const getPriorityOptions = (currentPriority?: string) => {
     const priorities = ['Top', 'Medium', 'Maybe'];
     return priorities.filter(p => p !== currentPriority);
   };
+  
   const SortButton = ({
     field,
     children
@@ -107,6 +115,7 @@ export const EnhancedCompaniesTable = ({
       {children}
       <ArrowUpDown className="h-3 w-3" />
     </button>;
+  
   const PriorityDropdown = ({
     company
   }: {
@@ -137,7 +146,9 @@ export const EnhancedCompaniesTable = ({
         </DropdownMenuContent>
       </DropdownMenu>;
   };
-  return <>
+  
+  return (
+    <>
       <style>{highlightAnimation}</style>
       <div className="rounded-md border overflow-hidden">
         <div className="overflow-x-auto">
@@ -163,11 +174,12 @@ export const EnhancedCompaniesTable = ({
             </TableHeader>
             <TableBody>
               {companies.map(company => {
-              const isNewCompany = newCompanyIds.includes(company.company_id);
-              const isSelected = selectedCompanies.has(company.company_id);
-              const contactsData = formatContacts(company.contacts);
-              
-              return <TableRow key={company.company_id} className={cn("cursor-pointer hover:bg-muted/50", isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "", isSelected ? "bg-muted/20" : "")} onClick={() => onCompanyClick(company)}>
+                const isNewCompany = newCompanyIds.includes(company.company_id);
+                const isSelected = selectedCompanies.has(company.company_id);
+                const contactsData = formatContacts(company.contacts);
+                
+                return (
+                  <TableRow key={company.company_id} className={cn("cursor-pointer hover:bg-muted/50", isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "", isSelected ? "bg-muted/20" : "")} onClick={() => onCompanyClick(company)}>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <Checkbox checked={isSelected} onCheckedChange={() => onSelectCompany(company.company_id)} />
                     </TableCell>
@@ -198,27 +210,8 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <div className="text-xs min-w-0 flex-1">
-                          {contactsData && contactsData.length > 0 ? (
-                            <div className="space-y-0.5">
-                              {contactsData.map(contact => (
-                                <button
-                                  key={contact.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onContactClick(contact.id);
-                                  }}
-                                  className="block text-left text-xs text-primary hover:underline w-full truncate"
-                                >
-                                  {contact.displayName}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">No contacts</span>
-                          )}
-                        </div>
+                      <div className="space-y-2">
+                        {/* Buttons at the top */}
                         <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                           <ContactRecommendation 
                             companyId={company.company_id} 
@@ -236,6 +229,34 @@ export const EnhancedCompaniesTable = ({
                           >
                             <UserPlus className="h-3 w-3" />
                           </Button>
+                        </div>
+                        
+                        {/* Contact names with roles below */}
+                        <div className="text-xs min-w-0">
+                          {contactsData && contactsData.length > 0 ? (
+                            <div className="space-y-1">
+                              {contactsData.map(contact => (
+                                <div key={contact.id}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onContactClick(contact.id);
+                                    }}
+                                    className="block text-left text-xs text-primary hover:underline w-full truncate"
+                                  >
+                                    {contact.displayName}
+                                  </button>
+                                  {contact.role && (
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {contact.role}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No contacts</span>
+                          )}
                         </div>
                       </div>
                     </TableCell>
@@ -279,11 +300,13 @@ export const EnhancedCompaniesTable = ({
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>;
-            })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       </div>
-    </>;
+    </>
+  );
 };
