@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, MessageCircle, UserPlus, Users, Check, X, Loader2 } from "lucide-react";
+import { Bot, MessageCircle, UserPlus, Users, Check, X, Loader2, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -193,9 +193,40 @@ export function ContactRecommendation({ companyId, companyName, existingContacts
           </DialogHeader>
           
           {isLoading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-muted-foreground">Generating contacts based on your profile...</p>
+            <div className="space-y-4">
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground mb-4">Generating contacts based on your profile...</p>
+              </div>
+              
+              {/* Info box during generation */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <strong className="text-blue-900">How our AI identifies the right contacts:</strong>
+                      <p className="text-blue-800 mt-1">
+                        Our AI analyzes your professional background, skills, and target criteria to identify individuals who would be most relevant for your networking goals. This goes beyond simple title matching to find decision-makers and influencers who align with your career objectives.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <strong className="text-blue-900">Important limitations:</strong>
+                      <p className="text-blue-800 mt-1">
+                        We cannot access private LinkedIn profiles or proprietary databases. Suggested contacts are based on publicly available information only. Some companies may have limited public contact data.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-blue-100 rounded p-3 mt-3">
+                      <strong className="text-blue-900">💡 Pro tip:</strong>
+                      <p className="text-blue-800 mt-1">
+                        For the best networking results, combine AI suggestions with your own research. Use tools like LinkedIn, company websites, and industry publications to find additional contacts and verify information.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-8 text-destructive">
