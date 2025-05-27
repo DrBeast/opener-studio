@@ -83,6 +83,8 @@ export function CompanyDetails({
   const [isPlanningMode, setIsPlanningMode] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionData | null>(null);
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
+  const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
+  const [editingDescription, setEditingDescription] = useState<string>('');
   const { overview, isLoading: isOverviewLoading, error: overviewError, regenerateOverview } = useInteractionOverview(company.company_id);
 
   // Update formData when company prop changes
@@ -328,12 +330,60 @@ export function CompanyDetails({
     }
   };
 
+  const handleEditInteractionInline = (interactionId: string, currentDescription: string) => {
+    setEditingInteraction(interactionId);
+    setEditingDescription(currentDescription || '');
+  };
+
+  const handleSaveInlineEdit = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .update({
+          description: editingDescription
+        })
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction updated");
+      setEditingInteraction(null);
+      fetchInteractions();
+      onCompanyUpdated();
+    } catch (error) {
+      console.error("Error updating interaction:", error);
+      toast.error("Failed to update interaction");
+    }
+  };
+
+  const handleCancelInlineEdit = () => {
+    setEditingInteraction(null);
+    setEditingDescription('');
+  };
+
+  const handleDeleteInteraction = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .delete()
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction deleted");
+      fetchInteractions();
+      onCompanyUpdated();
+    } catch (error) {
+      console.error("Error deleting interaction:", error);
+      toast.error("Failed to delete interaction");
+    }
+  };
+
   // Format a date nicely
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
-  
 
   // Render the interaction summary section
   const renderInteractionSummary = () => {
@@ -407,7 +457,7 @@ export function CompanyDetails({
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="details">Company Details</TabsTrigger>
             <TabsTrigger value="contacts">Contacts ({contacts.length})</TabsTrigger>
-            <TabsTrigger value="interactions">History & Follow-ups</TabsTrigger>
+            <TabsTrigger value="interactions">Interactions</TabsTrigger>
           </TabsList>
           
           {/* Company Details Tab */}
@@ -613,94 +663,99 @@ export function CompanyDetails({
           
           {/* Interactions Tab */}
           <TabsContent value="interactions" className="space-y-4 pt-4">
+            {/* Interaction Summary Section */}
+            <div className="space-y-2">
+              <Label className="flex items-center justify-between">
+                <span>Interaction Summary</span>
+              </Label>
+              <div className="rounded-md border p-3 bg-muted/20">
+                {renderInteractionSummary()}
+              </div>
+            </div>
+
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Interaction History & Planned Actions</h3>
-              <div className="space-x-2">
-                <Button variant="outline" size="sm" onClick={() => {
-                setIsPlanningMode(true);
-                setIsAddInteractionOpen(true);
-              }}>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Plan Action
-                </Button>
-                <Button size="sm" onClick={() => {
+              <h3 className="text-lg font-medium">Interactions</h3>
+              <Button size="sm" onClick={() => {
                 setIsPlanningMode(false);
                 setIsAddInteractionOpen(true);
               }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Log Interaction
-                </Button>
-              </div>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Interaction
+              </Button>
             </div>
             
-            {interactions.length > 0 ? <div className="border rounded-md overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Type</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Description</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Follow-up</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {interactions.map(interaction => <tr key={interaction.interaction_id} className="border-b">
-                        <td className="p-3">
-                          {interaction.interaction_date ? formatDate(interaction.interaction_date) : 'Planned'}
-                        </td>
-                        <td className="p-3">
-                          <Badge className={`
-                            ${interaction.interaction_type === 'Planned Action' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : interaction.interaction_type === 'Cold Outreach' ? 'bg-purple-100 text-purple-800 hover:bg-purple-100' : interaction.interaction_type === 'Follow-up' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' : interaction.interaction_type === 'Job Application' ? 'bg-green-100 text-green-800 hover:bg-green-100' : interaction.interaction_type === 'Interview' ? 'bg-pink-100 text-pink-800 hover:bg-pink-100' : 'bg-blue-100 text-blue-800 hover:bg-blue-100'}
-                          `}>
-                            {interaction.interaction_type}
-                          </Badge>
-                        </td>
-                        <td className="p-3">
-                          <div>{interaction.description}</div>
-                          {interaction.medium && <div className="text-xs text-muted-foreground mt-1">
-                              via {interaction.medium}
-                            </div>}
-                        </td>
-                        <td className="p-3">
-                          {interaction.follow_up_due_date ? <div className="flex flex-col">
-                              <div className="flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                <span className={`text-sm ${interaction.follow_up_completed ? 'line-through text-muted-foreground' : new Date(interaction.follow_up_due_date) < new Date() ? 'text-red-600 font-medium' : ''}`}>
-                                  {formatDate(interaction.follow_up_due_date)}
-                                </span>
-                              </div>
-                              {interaction.follow_up_completed ? <span className="text-xs text-muted-foreground mt-0.5">Completed</span> : <Button variant="ghost" size="sm" className="justify-start px-0 py-0 h-6 text-xs hover:bg-transparent hover:text-primary" onClick={() => handleCompleteFollowUp(interaction.interaction_id)}>
-                                  Mark as complete
-                                </Button>}
-                            </div> : 'None'}
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex justify-end space-x-1">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleEditInteraction(interaction)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Trash className="h-4 w-4" />
-                            </Button>
+            {interactions.length > 0 ? (
+              <div className="space-y-3">
+                {interactions.map(interaction => (
+                  <div key={interaction.interaction_id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 space-y-2">
+                        <div className="text-sm font-medium text-muted-foreground">
+                          {formatDate(interaction.interaction_date)}
+                        </div>
+                        
+                        {editingInteraction === interaction.interaction_id ? (
+                          <div className="space-y-3">
+                            <Textarea
+                              value={editingDescription}
+                              onChange={(e) => setEditingDescription(e.target.value)}
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveInlineEdit(interaction.interaction_id)}
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCancelInlineEdit}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
-                        </td>
-                      </tr>)}
-                  </tbody>
-                </table>
-              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
+                        ) : (
+                          <div 
+                            className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
+                            onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
+                          >
+                            {interaction.description}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {editingInteraction !== interaction.interaction_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteInteraction(interaction.interaction_id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-muted/30 rounded-lg p-6 text-center">
                 <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
                   No interactions logged for this company yet
                 </p>
                 <Button size="sm" onClick={() => {
-              setIsPlanningMode(false);
-              setIsAddInteractionOpen(true);
-            }}>
+                  setIsPlanningMode(false);
+                  setIsAddInteractionOpen(true);
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Log Interaction
+                  Add Interaction
                 </Button>
-              </div>}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
