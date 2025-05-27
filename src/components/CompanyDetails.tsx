@@ -383,29 +383,27 @@ export function CompanyDetails({
                   </div>
                 )}
                 
-                {hasData(formData.estimated_headcount) && (
-                  <div className="space-y-2">
-                    <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                    <Input 
-                      id="estimated_headcount" 
-                      name="estimated_headcount" 
-                      value={formData.estimated_headcount || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
+                  <Input 
+                    id="estimated_headcount" 
+                    name="estimated_headcount" 
+                    value={formData.estimated_headcount || ''} 
+                    onChange={handleChange}
+                    placeholder="e.g., 100-500"
+                  />
+                </div>
                 
-                {hasData(formData.estimated_revenue) && (
-                  <div className="space-y-2">
-                    <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                    <Input 
-                      id="estimated_revenue" 
-                      name="estimated_revenue" 
-                      value={formData.estimated_revenue || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
+                  <Input 
+                    id="estimated_revenue" 
+                    name="estimated_revenue" 
+                    value={formData.estimated_revenue || ''} 
+                    onChange={handleChange}
+                    placeholder="e.g., $10M-50M"
+                  />
+                </div>
 
                 {hasData(formData.public_private) && (
                   <div className="space-y-2">
