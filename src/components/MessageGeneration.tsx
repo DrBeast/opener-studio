@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -253,7 +253,8 @@ export function MessageGeneration({
 
   console.log("MessageGeneration component rendering, additionalContext:", additionalContext);
 
-  const MessageContent = () => (
+  // Memoize the MessageContent to prevent unnecessary re-renders
+  const MessageContent = useMemo(() => (
     <div className="space-y-6 mt-4">
       {/* Message Configuration */}
       <div className="space-y-4">
@@ -404,10 +405,30 @@ export function MessageGeneration({
         </div>
       )}
     </div>
-  );
+  ), [
+    medium, 
+    objective, 
+    customObjective, 
+    additionalContext, 
+    isGenerating, 
+    generatedMessages, 
+    editedMessages, 
+    maxLength, 
+    showAIReasoning,
+    handleMediumChange,
+    handleObjectiveChange,
+    handleAdditionalContextChange,
+    handleCustomObjectiveChange,
+    getEffectiveObjective,
+    generateMessages,
+    handleMessageEdit,
+    copyMessage,
+    saveMessage,
+    toggleAIReasoning
+  ]);
 
   if (embedded) {
-    return <MessageContent />;
+    return MessageContent;
   }
 
   return (
@@ -426,7 +447,7 @@ export function MessageGeneration({
           </DialogDescription>
         </DialogHeader>
         
-        <MessageContent />
+        {MessageContent}
       </DialogContent>
     </Dialog>
   );
