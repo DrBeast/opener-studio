@@ -31,6 +31,7 @@ export interface Company {
   user_priority?: 'Top' | 'Medium' | 'Maybe';
   is_blacklisted?: boolean;
   match_quality_score?: number;
+  interaction_summary?: string;
   contacts?: Contact[];
   latest_update?: Interaction;
   next_followup?: Interaction;
@@ -82,6 +83,7 @@ export const useCompanies = () => {
           user_priority: company.user_priority || calculatePriority(company.match_quality_score),
           is_blacklisted: company.is_blacklisted,
           match_quality_score: company.match_quality_score,
+          interaction_summary: company.interaction_summary,
           contacts: company.contacts || [],
           latest_update: company.latest_update?.interaction_id ? company.latest_update : undefined,
           next_followup: company.next_followup?.interaction_id ? company.next_followup : undefined
@@ -152,6 +154,7 @@ export const useCompanies = () => {
             user_priority: company.user_priority || calculatePriority(company.match_quality_score),
             is_blacklisted: company.is_blacklisted,
             match_quality_score: company.match_quality_score,
+            interaction_summary: company.interaction_summary,
             contacts: companyContacts,
             latest_update: undefined,
             next_followup: undefined

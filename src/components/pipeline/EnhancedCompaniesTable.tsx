@@ -28,8 +28,12 @@ interface EnhancedCompaniesTableProps {
   onGenerateMessage: (contactId: string) => void;
 }
 
-const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
+const InteractionOverviewCell = ({ companyId, storedSummary }: { companyId: string; storedSummary?: string }) => {
   const { overview, isLoading, error, regenerateOverview } = useInteractionOverview(companyId);
+
+  // Use stored summary if available, otherwise fall back to generated overview
+  const displaySummary = storedSummary || overview?.overview;
+  const hasInteractions = storedSummary !== "No interactions yet with this company." && storedSummary !== undefined;
 
   if (isLoading) {
     return (
@@ -58,7 +62,7 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
     );
   }
 
-  if (!overview) {
+  if (!displaySummary) {
     return (
       <div className="text-xs text-muted-foreground">
         No overview available
@@ -68,8 +72,8 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
 
   return (
     <div className="text-xs leading-relaxed max-w-64">
-      {overview.overview}
-      {overview.hasInteractions && (
+      {displaySummary}
+      {hasInteractions && overview && (
         <div className="text-xs text-muted-foreground mt-1">
           {overview.interactionCount} total
           {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
@@ -447,7 +451,10 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <InteractionOverviewCell companyId={company.company_id} />
+                      <InteractionOverviewCell 
+                        companyId={company.company_id} 
+                        storedSummary={company.interaction_summary}
+                      />
                     </TableCell>
                   </TableRow>
                 );
