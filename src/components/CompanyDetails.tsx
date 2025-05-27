@@ -1,42 +1,23 @@
-
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { 
-  Save, 
-  UserRound, 
-  Calendar, 
-  MessageCircle,
-  Plus,
-  Trash,
-  ArrowUpDown,
-  FileText,
-  Pencil
-} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, ArrowUpDown, FileText, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
-
 interface ContactData {
   contact_id: string;
   first_name?: string;
   last_name?: string;
   role?: string;
 }
-
 interface InteractionData {
   interaction_id: string;
   interaction_type: string;
@@ -47,7 +28,6 @@ interface InteractionData {
   medium?: string;
   contact_id?: string;
 }
-
 interface CompanyData {
   company_id: string;
   name: string;
@@ -74,22 +54,24 @@ interface CompanyData {
     description: string;
   };
 }
-
 interface CompanyDetailsProps {
   company: CompanyData;
   isOpen: boolean;
   onClose: () => void;
   onCompanyUpdated: () => void;
 }
-
-export function CompanyDetails({ 
-  company, 
-  isOpen, 
-  onClose, 
-  onCompanyUpdated 
+export function CompanyDetails({
+  company,
+  isOpen,
+  onClose,
+  onCompanyUpdated
 }: CompanyDetailsProps) {
-  const { user } = useAuth();
-  const [formData, setFormData] = useState<CompanyData>({...company});
+  const {
+    user
+  } = useAuth();
+  const [formData, setFormData] = useState<CompanyData>({
+    ...company
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [contacts, setContacts] = useState<ContactData[]>([]);
@@ -100,7 +82,7 @@ export function CompanyDetails({
   const [isPlanningMode, setIsPlanningMode] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionData | null>(null);
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
-  
+
   // Fetch contacts and interactions when component mounts or company changes
   useEffect(() => {
     if (company.company_id) {
@@ -112,13 +94,10 @@ export function CompanyDetails({
   // Fetch contacts for this company
   const fetchContacts = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('contacts')
-      .select('*')
-      .eq('company_id', company.company_id)
-      .eq('user_id', user.id);
-      
+    const {
+      data,
+      error
+    } = await supabase.from('contacts').select('*').eq('company_id', company.company_id).eq('user_id', user.id);
     if (error) {
       console.error("Error fetching contacts:", error);
       toast.error("Failed to load contacts");
@@ -126,18 +105,16 @@ export function CompanyDetails({
       setContacts(data);
     }
   };
-  
+
   // Fetch interactions for this company
   const fetchInteractions = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('interactions')
-      .select('*')
-      .eq('company_id', company.company_id)
-      .eq('user_id', user.id)
-      .order('interaction_date', { ascending: false });
-      
+    const {
+      data,
+      error
+    } = await supabase.from('interactions').select('*').eq('company_id', company.company_id).eq('user_id', user.id).order('interaction_date', {
+      ascending: false
+    });
     if (error) {
       console.error("Error fetching interactions:", error);
       toast.error("Failed to load interactions");
@@ -148,7 +125,10 @@ export function CompanyDetails({
 
   // Handle form changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -162,30 +142,25 @@ export function CompanyDetails({
       toast.error("You must be logged in to update company details");
       return;
     }
-    
     setIsLoading(true);
-    
     try {
-      const { error } = await supabase
-        .from('companies')
-        .update({
-          name: formData.name,
-          industry: formData.industry,
-          hq_location: formData.hq_location,
-          wfh_policy: formData.wfh_policy,
-          user_priority: formData.user_priority,
-          user_notes: formData.user_notes,
-          estimated_headcount: formData.estimated_headcount,
-          estimated_revenue: formData.estimated_revenue,
-          website_url: formData.website_url,
-          public_private: formData.public_private,
-          updated_at: new Date().toISOString(),
-          user_id: user.id
-        })
-        .eq('company_id', company.company_id);
-      
+      const {
+        error
+      } = await supabase.from('companies').update({
+        name: formData.name,
+        industry: formData.industry,
+        hq_location: formData.hq_location,
+        wfh_policy: formData.wfh_policy,
+        user_priority: formData.user_priority,
+        user_notes: formData.user_notes,
+        estimated_headcount: formData.estimated_headcount,
+        estimated_revenue: formData.estimated_revenue,
+        website_url: formData.website_url,
+        public_private: formData.public_private,
+        updated_at: new Date().toISOString(),
+        user_id: user.id
+      }).eq('company_id', company.company_id);
       if (error) throw error;
-      
       toast.success("Company details updated successfully");
       onCompanyUpdated();
     } catch (error: any) {
@@ -195,19 +170,19 @@ export function CompanyDetails({
       setIsLoading(false);
     }
   };
-  
+
   // View contact details
   const handleViewContact = (contact: ContactData) => {
     setSelectedContact(contact);
     setIsContactDetailsOpen(true);
   };
-  
+
   // Handle contact updated
   const handleContactUpdated = () => {
     fetchContacts();
     setIsContactDetailsOpen(false);
   };
-  
+
   // Handle new interaction created
   const handleInteractionCreated = () => {
     fetchInteractions();
@@ -216,26 +191,23 @@ export function CompanyDetails({
     setSelectedInteraction(null);
     onCompanyUpdated(); // Refresh parent component data as well
   };
-  
+
   // Handle opening the interaction form for editing
   const handleEditInteraction = (interaction: InteractionData) => {
     setSelectedInteraction(interaction);
     setIsEditInteractionOpen(true);
   };
-  
+
   // Handle marking a follow-up as complete
   const handleCompleteFollowUp = async (interactionId: string) => {
     try {
-      const { error } = await supabase
-        .from('interactions')
-        .update({
-          follow_up_completed: true,
-          follow_up_completed_date: new Date().toISOString()
-        })
-        .eq('interaction_id', interactionId);
-        
+      const {
+        error
+      } = await supabase.from('interactions').update({
+        follow_up_completed: true,
+        follow_up_completed_date: new Date().toISOString()
+      }).eq('interaction_id', interactionId);
       if (error) throw error;
-      
       toast.success("Follow-up marked as completed");
       fetchInteractions();
       onCompanyUpdated();
@@ -250,9 +222,7 @@ export function CompanyDetails({
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
@@ -273,54 +243,27 @@ export function CompanyDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Company Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="industry">Industry</Label>
-                  <Input
-                    id="industry"
-                    name="industry"
-                    value={formData.industry || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="hq_location">Location</Label>
-                  <Input
-                    id="hq_location"
-                    name="hq_location"
-                    value={formData.hq_location || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                  <Input
-                    id="wfh_policy"
-                    name="wfh_policy"
-                    value={formData.wfh_policy || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="user_priority">Priority</Label>
-                  <select
-                    id="user_priority"
-                    name="user_priority"
-                    value={formData.user_priority || 'Maybe'}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
+                  <select id="user_priority" name="user_priority" value={formData.user_priority || 'Maybe'} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                     <option value="Top">Top</option>
                     <option value="Medium">Medium</option>
                     <option value="Maybe">Maybe</option>
@@ -331,9 +274,7 @@ export function CompanyDetails({
                   <Label>Current Priority</Label>
                   <div className="flex h-10 w-full items-center">
                     <Badge className={`
-                      ${formData.user_priority === 'Top' ? 'bg-red-100 text-red-800 hover:bg-red-100' : 
-                        formData.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 
-                        'bg-blue-100 text-blue-800 hover:bg-blue-100'}
+                      ${formData.user_priority === 'Top' ? 'bg-red-100 text-red-800 hover:bg-red-100' : formData.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 'bg-blue-100 text-blue-800 hover:bg-blue-100'}
                     `}>
                       {formData.user_priority || 'Maybe'}
                     </Badge>
@@ -342,83 +283,47 @@ export function CompanyDetails({
                 
                 <div className="space-y-2">
                   <Label htmlFor="website_url">Website URL</Label>
-                  <Input
-                    id="website_url"
-                    name="website_url"
-                    value={formData.website_url || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                  <Input
-                    id="estimated_headcount"
-                    name="estimated_headcount"
-                    value={formData.estimated_headcount || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                  <Input
-                    id="estimated_revenue"
-                    name="estimated_revenue"
-                    value={formData.estimated_revenue || ''}
-                    onChange={handleChange}
-                  />
+                  <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="public_private">Company Type</Label>
-                  <Input
-                    id="public_private"
-                    name="public_private"
-                    value={formData.public_private || ''}
-                    onChange={handleChange}
-                    placeholder="e.g., Public, Private, Startup"
-                  />
+                  <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
                 </div>
 
-                {formData.match_quality_score && (
-                  <div className="space-y-2">
-                    <Label>Match Quality Score</Label>
-                    <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                      {formData.match_quality_score}%
-                    </div>
-                  </div>
-                )}
+                {formData.match_quality_score && <div className="space-y-2">
+                    
+                    
+                  </div>}
                 
                 <div className="col-span-2 space-y-2">
                   <Label htmlFor="user_notes">Notes</Label>
-                  <Textarea
-                    id="user_notes"
-                    name="user_notes"
-                    rows={4}
-                    value={formData.user_notes || ''}
-                    onChange={handleChange}
-                    placeholder="Add your notes about this company..."
-                  />
+                  <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
                 </div>
                 
-                {formData.ai_description && (
-                  <div className="col-span-2 space-y-2">
+                {formData.ai_description && <div className="col-span-2 space-y-2">
                     <Label>AI Description</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_description}
                     </div>
-                  </div>
-                )}
+                  </div>}
 
-                {formData.ai_match_reasoning && (
-                  <div className="col-span-2 space-y-2">
+                {formData.ai_match_reasoning && <div className="col-span-2 space-y-2">
                     <Label>AI Match Reasoning</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_match_reasoning}
                     </div>
-                  </div>
-                )}
+                  </div>}
               </div>
               
               <div className="flex justify-end mt-6">
@@ -440,8 +345,7 @@ export function CompanyDetails({
               </Button>
             </div>
             
-            {contacts.length > 0 ? (
-              <div className="border rounded-md overflow-hidden">
+            {contacts.length > 0 ? <div className="border rounded-md overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
@@ -451,29 +355,21 @@ export function CompanyDetails({
                     </tr>
                   </thead>
                   <tbody>
-                    {contacts.map(contact => (
-                      <tr key={contact.contact_id} className="border-b">
+                    {contacts.map(contact => <tr key={contact.contact_id} className="border-b">
                         <td className="p-3">
                           {contact.first_name || ''} {contact.last_name || ''}
                         </td>
                         <td className="p-3">{contact.role || 'N/A'}</td>
                         <td className="p-3 text-right">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewContact(contact)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleViewContact(contact)}>
                             <FileText className="h-4 w-4 mr-1" />
                             Details
                           </Button>
                         </td>
-                      </tr>
-                    ))}
+                      </tr>)}
                   </tbody>
                 </table>
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-lg p-6 text-center">
+              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
                 <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
                   No contacts added for this company yet
@@ -482,8 +378,7 @@ export function CompanyDetails({
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
-              </div>
-            )}
+              </div>}
           </TabsContent>
           
           {/* Interactions Tab */}
@@ -491,32 +386,24 @@ export function CompanyDetails({
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Interaction History & Planned Actions</h3>
               <div className="space-x-2">
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setIsPlanningMode(true);
-                    setIsAddInteractionOpen(true);
-                  }}
-                >
+                <Button variant="outline" size="sm" onClick={() => {
+                setIsPlanningMode(true);
+                setIsAddInteractionOpen(true);
+              }}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Plan Action
                 </Button>
-                <Button 
-                  size="sm"
-                  onClick={() => {
-                    setIsPlanningMode(false);
-                    setIsAddInteractionOpen(true);
-                  }}
-                >
+                <Button size="sm" onClick={() => {
+                setIsPlanningMode(false);
+                setIsAddInteractionOpen(true);
+              }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Log Interaction
                 </Button>
               </div>
             </div>
             
-            {interactions.length > 0 ? (
-              <div className="border rounded-md overflow-hidden">
+            {interactions.length > 0 ? <div className="border rounded-md overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
@@ -528,146 +415,81 @@ export function CompanyDetails({
                     </tr>
                   </thead>
                   <tbody>
-                    {interactions.map(interaction => (
-                      <tr key={interaction.interaction_id} className="border-b">
+                    {interactions.map(interaction => <tr key={interaction.interaction_id} className="border-b">
                         <td className="p-3">
                           {interaction.interaction_date ? formatDate(interaction.interaction_date) : 'Planned'}
                         </td>
                         <td className="p-3">
                           <Badge className={`
-                            ${interaction.interaction_type === 'Planned Action' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 
-                              interaction.interaction_type === 'Cold Outreach' ? 'bg-purple-100 text-purple-800 hover:bg-purple-100' : 
-                              interaction.interaction_type === 'Follow-up' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' : 
-                              interaction.interaction_type === 'Job Application' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 
-                              interaction.interaction_type === 'Interview' ? 'bg-pink-100 text-pink-800 hover:bg-pink-100' : 
-                              'bg-blue-100 text-blue-800 hover:bg-blue-100'}
+                            ${interaction.interaction_type === 'Planned Action' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : interaction.interaction_type === 'Cold Outreach' ? 'bg-purple-100 text-purple-800 hover:bg-purple-100' : interaction.interaction_type === 'Follow-up' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' : interaction.interaction_type === 'Job Application' ? 'bg-green-100 text-green-800 hover:bg-green-100' : interaction.interaction_type === 'Interview' ? 'bg-pink-100 text-pink-800 hover:bg-pink-100' : 'bg-blue-100 text-blue-800 hover:bg-blue-100'}
                           `}>
                             {interaction.interaction_type}
                           </Badge>
                         </td>
                         <td className="p-3">
                           <div>{interaction.description}</div>
-                          {interaction.medium && (
-                            <div className="text-xs text-muted-foreground mt-1">
+                          {interaction.medium && <div className="text-xs text-muted-foreground mt-1">
                               via {interaction.medium}
-                            </div>
-                          )}
+                            </div>}
                         </td>
                         <td className="p-3">
-                          {interaction.follow_up_due_date ? (
-                            <div className="flex flex-col">
+                          {interaction.follow_up_due_date ? <div className="flex flex-col">
                               <div className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-1" />
-                                <span className={`text-sm ${
-                                  interaction.follow_up_completed ? 'line-through text-muted-foreground' : 
-                                  new Date(interaction.follow_up_due_date) < new Date() ? 'text-red-600 font-medium' : ''
-                                }`}>
+                                <span className={`text-sm ${interaction.follow_up_completed ? 'line-through text-muted-foreground' : new Date(interaction.follow_up_due_date) < new Date() ? 'text-red-600 font-medium' : ''}`}>
                                   {formatDate(interaction.follow_up_due_date)}
                                 </span>
                               </div>
-                              {interaction.follow_up_completed ? (
-                                <span className="text-xs text-muted-foreground mt-0.5">Completed</span>
-                              ) : (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start px-0 py-0 h-6 text-xs hover:bg-transparent hover:text-primary"
-                                  onClick={() => handleCompleteFollowUp(interaction.interaction_id)}
-                                >
+                              {interaction.follow_up_completed ? <span className="text-xs text-muted-foreground mt-0.5">Completed</span> : <Button variant="ghost" size="sm" className="justify-start px-0 py-0 h-6 text-xs hover:bg-transparent hover:text-primary" onClick={() => handleCompleteFollowUp(interaction.interaction_id)}>
                                   Mark as complete
-                                </Button>
-                              )}
-                            </div>
-                          ) : 'None'}
+                                </Button>}
+                            </div> : 'None'}
                         </td>
                         <td className="p-3 text-right">
                           <div className="flex justify-end space-x-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleEditInteraction(interaction)}
-                            >
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleEditInteraction(interaction)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                            >
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Trash className="h-4 w-4" />
                             </Button>
                           </div>
                         </td>
-                      </tr>
-                    ))}
+                      </tr>)}
                   </tbody>
                 </table>
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-lg p-6 text-center">
+              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
                 <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
                   No interactions logged for this company yet
                 </p>
-                <Button 
-                  size="sm"
-                  onClick={() => {
-                    setIsPlanningMode(false);
-                    setIsAddInteractionOpen(true);
-                  }}
-                >
+                <Button size="sm" onClick={() => {
+              setIsPlanningMode(false);
+              setIsAddInteractionOpen(true);
+            }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Log Interaction
                 </Button>
-              </div>
-            )}
+              </div>}
           </TabsContent>
         </Tabs>
       </DialogContent>
       
       {/* Contact Details Dialog */}
-      {selectedContact && (
-        <ContactDetails 
-          contact={selectedContact}
-          isOpen={isContactDetailsOpen}
-          onClose={() => setIsContactDetailsOpen(false)}
-          onContactUpdated={handleContactUpdated}
-        />
-      )}
+      {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
       
       {/* Interaction Form Dialog */}
-      <InteractionForm
-        companyId={company.company_id}
-        companyName={company.name}
-        contacts={contacts}
-        isOpen={isAddInteractionOpen}
-        onClose={() => setIsAddInteractionOpen(false)}
-        onInteractionCreated={handleInteractionCreated}
-        isPlanningMode={isPlanningMode}
-      />
+      <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} isPlanningMode={isPlanningMode} />
       
       {/* Edit Interaction Dialog */}
-      {selectedInteraction && (
-        <InteractionForm
-          companyId={company.company_id}
-          companyName={company.name}
-          contacts={contacts}
-          isOpen={isEditInteractionOpen}
-          onClose={() => setIsEditInteractionOpen(false)}
-          onInteractionCreated={handleInteractionCreated}
-          existingInteraction={{
-            interaction_id: selectedInteraction.interaction_id,
-            interaction_type: selectedInteraction.interaction_type,
-            description: selectedInteraction.description,
-            interaction_date: selectedInteraction.interaction_date,
-            contact_id: selectedInteraction.contact_id,
-            follow_up_due_date: selectedInteraction.follow_up_due_date,
-            medium: selectedInteraction.medium
-          }}
-        />
-      )}
-    </Dialog>
-  );
+      {selectedInteraction && <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isEditInteractionOpen} onClose={() => setIsEditInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} existingInteraction={{
+      interaction_id: selectedInteraction.interaction_id,
+      interaction_type: selectedInteraction.interaction_type,
+      description: selectedInteraction.description,
+      interaction_date: selectedInteraction.interaction_date,
+      contact_id: selectedInteraction.contact_id,
+      follow_up_due_date: selectedInteraction.follow_up_due_date,
+      medium: selectedInteraction.medium
+    }} />}
+    </Dialog>;
 }
-
