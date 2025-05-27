@@ -196,7 +196,7 @@ export const EnhancedCompaniesTable = ({
                         {company.ai_match_reasoning || '-'}
                       </div>
                     </TableCell>
-                    <TableCell className="Abbreviate the titles, eg CEO, COO, VP Product">
+                    <TableCell className="">
                       <div className="space-y-2">
                         {/* Buttons at the top */}
                         <div className="flex gap-1" onClick={e => e.stopPropagation()}>
