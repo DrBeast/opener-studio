@@ -229,7 +229,7 @@ const PipelineDashboard = () => {
       <ProfileBreadcrumbs />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">Company Targets and Contac</h1>
+        <h1 className="text-2xl font-bold">Company Targets and Contacts</h1>
         <div className="flex gap-2">
           <Button onClick={handleGenerateCompanies} disabled={isGeneratingCompanies} variant="outline">
             <Sparkles className="mr-2 h-4 w-4" />
