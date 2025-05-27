@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
 import type { Company } from '@/hooks/useCompanies';
+
 interface EnhancedCompaniesTableProps {
   companies: Company[];
   onCompanyClick: (company: Company) => void;
@@ -26,6 +27,7 @@ interface EnhancedCompaniesTableProps {
   onCreateContact: (companyId: string) => void;
   onContactClick: (contactId: string) => void;
 }
+
 export const EnhancedCompaniesTable = ({
   companies,
   onCompanyClick,
@@ -49,17 +51,97 @@ export const EnhancedCompaniesTable = ({
       100% { background-color: transparent; }
     }
   `;
+
+  const abbreviateRole = (role: string): string => {
+    if (!role) return '';
+    
+    const abbreviations: { [key: string]: string } = {
+      'Chief Executive Officer': 'CEO',
+      'Chief Operating Officer': 'COO',
+      'Chief Technology Officer': 'CTO',
+      'Chief Financial Officer': 'CFO',
+      'Chief Marketing Officer': 'CMO',
+      'Chief Human Resources Officer': 'CHRO',
+      'Chief Product Officer': 'CPO',
+      'Chief Data Officer': 'CDO',
+      'Chief Security Officer': 'CSO',
+      'Vice President': 'VP',
+      'Senior Vice President': 'SVP',
+      'Executive Vice President': 'EVP',
+      'Vice President of Product': 'VP Product',
+      'Vice President of Engineering': 'VP Engineering',
+      'Vice President of Sales': 'VP Sales',
+      'Vice President of Marketing': 'VP Marketing',
+      'Senior Director': 'Sr Director',
+      'Senior Manager': 'Sr Manager',
+      'Senior Engineer': 'Sr Engineer',
+      'Senior Developer': 'Sr Developer',
+      'Senior Software Engineer': 'Sr SWE',
+      'Software Engineer': 'SWE',
+      'Product Manager': 'PM',
+      'Senior Product Manager': 'Sr PM',
+      'Principal Product Manager': 'Principal PM',
+      'Engineering Manager': 'EM',
+      'Senior Engineering Manager': 'Sr EM',
+      'Technical Lead': 'Tech Lead',
+      'Lead Engineer': 'Lead Eng',
+      'Staff Engineer': 'Staff Eng',
+      'Principal Engineer': 'Principal Eng',
+      'Distinguished Engineer': 'Distinguished Eng',
+      'Human Resources': 'HR',
+      'Business Development': 'Biz Dev',
+      'Customer Success': 'CS',
+      'Account Manager': 'AM',
+      'Senior Account Manager': 'Sr AM',
+      'Sales Representative': 'Sales Rep',
+      'Business Analyst': 'BA',
+      'Data Scientist': 'Data Scientist',
+      'Data Analyst': 'Data Analyst',
+      'UX Designer': 'UX Designer',
+      'UI Designer': 'UI Designer',
+      'Product Designer': 'Product Designer',
+      'Marketing Manager': 'Marketing Mgr',
+      'Content Manager': 'Content Mgr',
+      'Operations Manager': 'Ops Mgr',
+      'Project Manager': 'Project Mgr',
+      'Program Manager': 'Program Mgr',
+      'Recruiter': 'Recruiter',
+      'Talent Acquisition': 'TA'
+    };
+
+    // Check for exact matches first
+    if (abbreviations[role]) {
+      return abbreviations[role];
+    }
+
+    // Check for partial matches and apply abbreviations
+    let abbreviated = role;
+    Object.entries(abbreviations).forEach(([full, abbrev]) => {
+      abbreviated = abbreviated.replace(new RegExp(full, 'gi'), abbrev);
+    });
+
+    // If still too long, truncate with ellipsis
+    if (abbreviated.length > 15) {
+      abbreviated = abbreviated.substring(0, 15) + '...';
+    }
+
+    return abbreviated;
+  };
+
   const formatContacts = (contacts?: any[]) => {
     if (!contacts || contacts.length === 0) return null;
+
     const sortedContacts = [...contacts].sort((a, b) => {
       const dateA = a.latest_interaction_date ? new Date(a.latest_interaction_date).getTime() : 0;
       const dateB = b.latest_interaction_date ? new Date(b.latest_interaction_date).getTime() : 0;
       return dateB - dateA;
     }).slice(0, 2);
+
     return sortedContacts.map(contact => {
       const firstName = contact.first_name || '';
       const lastInitial = contact.last_name ? contact.last_name.charAt(0) + '.' : '';
-      const abbreviatedRole = contact.role ? contact.role.length > 15 ? contact.role.substring(0, 15) + '...' : contact.role : '';
+      const abbreviatedRole = contact.role ? abbreviateRole(contact.role) : '';
+
       return {
         id: contact.contact_id,
         displayName: `${firstName} ${lastInitial}`.trim(),
@@ -67,6 +149,7 @@ export const EnhancedCompaniesTable = ({
       };
     });
   };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -75,12 +158,14 @@ export const EnhancedCompaniesTable = ({
       return '-';
     }
   };
+
   const formatLocationAndWFH = (location?: string, wfh?: string) => {
     const parts = [];
     if (location) parts.push(location);
     if (wfh) parts.push(wfh);
     return parts.length > 0 ? parts.join(' / ') : '-';
   };
+
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'Top':
@@ -93,51 +178,85 @@ export const EnhancedCompaniesTable = ({
         return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
     }
   };
+
   const getPriorityOptions = (currentPriority?: string) => {
     const priorities = ['Top', 'Medium', 'Maybe'];
     return priorities.filter(p => p !== currentPriority);
   };
+
   const SortButton = ({
     field,
     children
   }: {
     field: string;
     children: React.ReactNode;
-  }) => <button onClick={() => onSort(field)} className="flex items-center gap-1 hover:text-foreground transition-colors">
+  }) => (
+    <button
+      onClick={() => onSort(field)}
+      className="flex items-center gap-1 hover:text-foreground transition-colors"
+    >
       {children}
       <ArrowUpDown className="h-3 w-3" />
-    </button>;
+    </button>
+  );
+
   const PriorityDropdown = ({
     company
   }: {
     company: Company;
   }) => {
     const otherPriorities = getPriorityOptions(company.user_priority);
+
     if (otherPriorities.length === 0) {
-      return <span className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors", getPriorityColor(company.user_priority))}>
+      return (
+        <span className={cn(
+          "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors",
+          getPriorityColor(company.user_priority)
+        )}>
           {company.user_priority || 'Maybe'}
-        </span>;
+        </span>
+      );
     }
-    return <DropdownMenu>
+
+    return (
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1", getPriorityColor(company.user_priority))} onClick={e => e.stopPropagation()}>
+          <button
+            className={cn(
+              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1",
+              getPriorityColor(company.user_priority)
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
             {company.user_priority || 'Maybe'}
             <ChevronDown className="h-3 w-3" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-20 p-1">
-          {otherPriorities.map(priority => <DropdownMenuItem key={priority} onClick={e => {
-          e.stopPropagation();
-          onSetPriority(company.company_id, priority);
-        }} className="p-1 hover:bg-transparent focus:bg-transparent">
-              <span className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center", getPriorityColor(priority))}>
+          {otherPriorities.map((priority) => (
+            <DropdownMenuItem
+              key={priority}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetPriority(company.company_id, priority);
+              }}
+              className="p-1 hover:bg-transparent focus:bg-transparent"
+            >
+              <span className={cn(
+                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center",
+                getPriorityColor(priority)
+              )}>
                 {priority}
               </span>
-            </DropdownMenuItem>)}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
-      </DropdownMenu>;
+      </DropdownMenu>
+    );
   };
-  return <>
+
+  return (
+    <>
       <style>{highlightAnimation}</style>
       <div className="rounded-md border overflow-hidden">
         <div className="overflow-x-auto">
@@ -145,7 +264,10 @@ export const EnhancedCompaniesTable = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8">
-                  <Checkbox checked={selectedCompanies.size === companies.length && companies.length > 0} onCheckedChange={onSelectAll} />
+                  <Checkbox
+                    checked={selectedCompanies.size === companies.length && companies.length > 0}
+                    onCheckedChange={onSelectAll}
+                  />
                 </TableHead>
                 <TableHead className="w-20">
                   <SortButton field="priority">Priority</SortButton>
@@ -162,23 +284,38 @@ export const EnhancedCompaniesTable = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {companies.map(company => {
-              const isNewCompany = newCompanyIds.includes(company.company_id);
-              const isSelected = selectedCompanies.has(company.company_id);
-              const contactsData = formatContacts(company.contacts);
-              return <TableRow key={company.company_id} className={cn("cursor-pointer hover:bg-muted/50", isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "", isSelected ? "bg-muted/20" : "")} onClick={() => onCompanyClick(company)}>
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <Checkbox checked={isSelected} onCheckedChange={() => onSelectCompany(company.company_id)} />
+              {companies.map((company) => {
+                const isNewCompany = newCompanyIds.includes(company.company_id);
+                const isSelected = selectedCompanies.has(company.company_id);
+                const contactsData = formatContacts(company.contacts);
+
+                return (
+                  <TableRow
+                    key={company.company_id}
+                    className={cn(
+                      "cursor-pointer hover:bg-muted/50",
+                      isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "",
+                      isSelected ? "bg-muted/20" : ""
+                    )}
+                    onClick={() => onCompanyClick(company)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onSelectCompany(company.company_id)}
+                      />
                     </TableCell>
-                    <TableCell onClick={e => e.stopPropagation()}>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <PriorityDropdown company={company} />
                     </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium text-sm leading-tight">{company.name}</div>
-                        {company.industry && <div className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                        {company.industry && (
+                          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">
                             {company.industry}
-                          </div>}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -199,50 +336,76 @@ export const EnhancedCompaniesTable = ({
                     <TableCell className="">
                       <div className="space-y-2">
                         {/* Buttons at the top */}
-                        <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           <ContactRecommendation companyId={company.company_id} companyName={company.name} />
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={e => {
-                        e.stopPropagation();
-                        onCreateContact(company.company_id);
-                      }} title="Add contact manually">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCreateContact(company.company_id);
+                            }}
+                            title="Add contact manually"
+                          >
                             <UserPlus className="h-3 w-3" />
                           </Button>
                         </div>
                         
                         {/* Contact names with roles below */}
                         <div className="text-xs min-w-0">
-                          {contactsData && contactsData.length > 0 ? <div className="space-y-1">
-                              {contactsData.map(contact => <div key={contact.id}>
-                                  <button onClick={e => {
-                            e.stopPropagation();
-                            onContactClick(contact.id);
-                          }} className="block text-left text-xs text-primary hover:underline w-full truncate">
+                          {contactsData && contactsData.length > 0 ? (
+                            <div className="space-y-1">
+                              {contactsData.map((contact) => (
+                                <div key={contact.id}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onContactClick(contact.id);
+                                    }}
+                                    className="block text-left text-xs text-primary hover:underline w-full truncate"
+                                  >
                                     {contact.displayName}
                                   </button>
-                                  {contact.role && <div className="text-xs text-muted-foreground truncate">
+                                  {contact.role && (
+                                    <div className="text-xs text-muted-foreground truncate">
                                       {contact.role}
-                                    </div>}
-                                </div>)}
-                            </div> : <span className="text-xs text-muted-foreground">No contacts</span>}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No contacts</span>
+                          )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <div className="min-w-0 flex-1">
-                          {company.latest_update ? <div>
+                          {company.latest_update ? (
+                            <div>
                               <div className="text-xs truncate leading-tight">
                                 {company.latest_update.description}
                               </div>
                               <div className="text-xs text-muted-foreground mt-0.5">
                                 {formatDate(company.latest_update.interaction_date)}
                               </div>
-                            </div> : <span className="text-xs text-muted-foreground">No updates</span>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No updates</span>
+                          )}
                         </div>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={e => {
-                      e.stopPropagation();
-                      onLogInteraction(company.company_id);
-                    }}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLogInteraction(company.company_id);
+                          }}
+                        >
                           <MessageSquare className="h-3 w-3" />
                         </Button>
                       </div>
@@ -250,28 +413,39 @@ export const EnhancedCompaniesTable = ({
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <div className="min-w-0 flex-1">
-                          {company.next_followup ? <div>
+                          {company.next_followup ? (
+                            <div>
                               <div className="text-xs truncate leading-tight">
                                 {company.next_followup.description}
                               </div>
                               <div className="text-xs text-muted-foreground mt-0.5">
                                 {formatDate(company.next_followup.follow_up_due_date)}
                               </div>
-                            </div> : <span className="text-xs text-muted-foreground">No follow-ups</span>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No follow-ups</span>
+                          )}
                         </div>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={e => {
-                      e.stopPropagation();
-                      onScheduleAction(company.company_id);
-                    }}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onScheduleAction(company.company_id);
+                          }}
+                        >
                           <Calendar className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>;
-            })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       </div>
-    </>;
+    </>
+  );
 };
