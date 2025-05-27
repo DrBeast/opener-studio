@@ -94,10 +94,23 @@ serve(async (req) => {
     }
 
     // Separate past and planned interactions
-    const pastInteractions = interactions.filter(i => i.follow_up_completed === true);
-    const plannedInteractions = interactions.filter(i => 
-      i.follow_up_completed === false && i.follow_up_due_date && new Date(i.follow_up_due_date) >= new Date()
+    // Consider message_draft and completed interactions as "past"
+    // Consider only future follow-ups as "planned"
+    const pastInteractions = interactions.filter(i => 
+      i.interaction_type === 'message_draft' || 
+      i.follow_up_completed === true ||
+      (i.follow_up_due_date && new Date(i.follow_up_due_date) < new Date())
     );
+    
+    const plannedInteractions = interactions.filter(i => 
+      i.follow_up_completed === false && 
+      i.follow_up_due_date && 
+      new Date(i.follow_up_due_date) >= new Date() &&
+      i.interaction_type !== 'message_draft'
+    );
+
+    console.log(`Processing ${interactions.length} total interactions for company ${company.name}`);
+    console.log(`Past interactions: ${pastInteractions.length}, Planned: ${plannedInteractions.length}`);
 
     // Generate AI overview
     const prompt = `Analyze the following interaction history and provide a concise overview (2-3 sentences max) of the relationship status and next steps with ${company.name}:
@@ -121,6 +134,8 @@ Provide a brief, professional summary focusing on:
 
 Keep it concise and actionable.`;
 
+    console.log('Sending prompt to Gemini API for summary generation');
+
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + geminiApiKey, {
       method: 'POST',
       headers: {
@@ -142,11 +157,14 @@ Keep it concise and actionable.`;
     });
 
     if (!response.ok) {
+      console.error(`Gemini API error: ${response.status}`);
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
     const summary = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate overview.";
+
+    console.log('Generated summary:', summary);
 
     // Update company with the generated summary
     const { error: updateError } = await supabase
@@ -159,6 +177,8 @@ Keep it concise and actionable.`;
       console.error('Error updating company summary:', updateError);
       throw updateError;
     }
+
+    console.log('Successfully updated company summary');
 
     return new Response(JSON.stringify({ 
       summary: summary.trim(),

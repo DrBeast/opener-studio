@@ -83,31 +83,23 @@ serve(async (req) => {
     }
 
     // Separate past and planned interactions
-    const pastInteractions = interactions.filter(i => i.follow_up_completed === true);
+    // Consider message_draft and completed interactions as "past"
+    // Consider only future follow-ups as "planned"
+    const pastInteractions = interactions.filter(i => 
+      i.interaction_type === 'message_draft' || 
+      i.follow_up_completed === true ||
+      (i.follow_up_due_date && new Date(i.follow_up_due_date) < new Date())
+    );
+    
     const plannedInteractions = interactions.filter(i => 
-      i.follow_up_completed === false && i.follow_up_due_date && new Date(i.follow_up_due_date) >= new Date()
+      i.follow_up_completed === false && 
+      i.follow_up_due_date && 
+      new Date(i.follow_up_due_date) >= new Date() &&
+      i.interaction_type !== 'message_draft'
     );
 
-    // Prepare data for AI
-    const interactionSummary = {
-      companyName: company.name,
-      industry: company.industry,
-      totalInteractions: interactions.length,
-      pastInteractions: pastInteractions.map(i => ({
-        date: i.interaction_date,
-        type: i.interaction_type,
-        description: i.description,
-        contact: i.contacts ? `${i.contacts.first_name || ''} ${i.contacts.last_name || ''}`.trim() : 'Company-level',
-        contactRole: i.contacts?.role || null
-      })),
-      plannedInteractions: plannedInteractions.map(i => ({
-        dueDate: i.follow_up_due_date,
-        type: i.interaction_type,
-        description: i.description,
-        contact: i.contacts ? `${i.contacts.first_name || ''} ${i.contacts.last_name || ''}`.trim() : 'Company-level',
-        contactRole: i.contacts?.role || null
-      }))
-    };
+    console.log(`Processing ${interactions.length} total interactions for company ${company.name}`);
+    console.log(`Past interactions: ${pastInteractions.length}, Planned: ${plannedInteractions.length}`);
 
     // Generate AI overview
     const prompt = `Analyze the following interaction history and provide a concise overview (2-3 sentences max) of the relationship status and next steps with ${company.name}:
@@ -116,12 +108,12 @@ Company: ${company.name} (${company.industry || 'Unknown industry'})
 
 Past Interactions (${pastInteractions.length}):
 ${pastInteractions.map(i => 
-  `• ${new Date(i.date).toLocaleDateString()}: ${i.type} - ${i.description}${i.contact && i.contact !== 'Company-level' ? ` (with ${i.contact}${i.contactRole ? `, ${i.contactRole}` : ''})` : ''}`
+  `• ${new Date(i.interaction_date).toLocaleDateString()}: ${i.interaction_type} - ${i.description}${i.contacts && i.contacts.first_name ? ` (with ${i.contacts.first_name} ${i.contacts.last_name || ''}${i.contacts.role ? `, ${i.contacts.role}` : ''})` : ''}`
 ).join('\n')}
 
 Planned Follow-ups (${plannedInteractions.length}):
 ${plannedInteractions.map(i => 
-  `• ${new Date(i.dueDate).toLocaleDateString()}: ${i.type} - ${i.description}${i.contact && i.contact !== 'Company-level' ? ` (with ${i.contact}${i.contactRole ? `, ${i.contactRole}` : ''})` : ''}`
+  `• ${new Date(i.follow_up_due_date).toLocaleDateString()}: ${i.interaction_type} - ${i.description}${i.contacts && i.contacts.first_name ? ` (with ${i.contacts.first_name} ${i.contacts.last_name || ''}${i.contacts.role ? `, ${i.contacts.role}` : ''})` : ''}`
 ).join('\n')}
 
 Provide a brief, professional summary focusing on:
@@ -130,6 +122,8 @@ Provide a brief, professional summary focusing on:
 3. Next logical steps or follow-ups
 
 Keep it concise and actionable.`;
+
+    console.log('Sending prompt to Gemini API for overview generation');
 
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + geminiApiKey, {
       method: 'POST',
@@ -152,11 +146,14 @@ Keep it concise and actionable.`;
     });
 
     if (!response.ok) {
+      console.error(`Gemini API error: ${response.status}`);
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
     const overview = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate overview.";
+
+    console.log('Generated overview:', overview);
 
     return new Response(JSON.stringify({ 
       overview: overview.trim(),
