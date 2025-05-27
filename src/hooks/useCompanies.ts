@@ -5,15 +5,36 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
-interface Company {
+interface Contact {
+  contact_id: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  latest_interaction_date?: string;
+}
+
+interface Interaction {
+  interaction_id: string;
+  description: string;
+  interaction_date: string;
+  interaction_type: string;
+  follow_up_due_date?: string;
+}
+
+export interface Company {
   company_id: string;
   name: string;
   industry?: string;
   hq_location?: string;
+  wfh_policy?: string;
   ai_description?: string;
+  ai_match_reasoning?: string;
   user_priority?: 'Top' | 'Medium' | 'Maybe';
   is_blacklisted?: boolean;
   match_quality_score?: number;
+  contacts?: Contact[];
+  latest_update?: Interaction;
+  next_followup?: Interaction;
 }
 
 export const useCompanies = () => {
@@ -23,11 +44,21 @@ export const useCompanies = () => {
   
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedCompanies, setSelectedCompanies] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Get any newly created companies from location state
   const newCompanies = location.state?.newCompanies || [];
   const highlightNew = location.state?.highlightNew || false;
   const newCompanyIds = newCompanies.map((company: any) => company.company_id);
+
+  const calculatePriority = (score?: number): 'Top' | 'Medium' | 'Maybe' => {
+    if (!score) return 'Maybe';
+    if (score >= 80) return 'Top';
+    if (score >= 60) return 'Medium';
+    return 'Maybe';
+  };
 
   const fetchCompanies = async () => {
     if (!user) return;
@@ -41,16 +72,20 @@ export const useCompanies = () => {
       const { data: companiesOverview, error: functionError } = await supabase.functions.invoke('get_companies_overview');
       
       if (!functionError && companiesOverview && Array.isArray(companiesOverview)) {
-        // Type the data properly to ensure user_priority is correctly typed
         companiesData = companiesOverview.map((company: any) => ({
           company_id: company.company_id,
           name: company.name,
           industry: company.industry,
           hq_location: company.hq_location,
+          wfh_policy: company.wfh_policy,
           ai_description: company.ai_description,
-          user_priority: company.user_priority as 'Top' | 'Medium' | 'Maybe',
+          ai_match_reasoning: company.ai_match_reasoning,
+          user_priority: company.user_priority || calculatePriority(company.match_quality_score),
           is_blacklisted: company.is_blacklisted,
-          match_quality_score: company.match_quality_score
+          match_quality_score: company.match_quality_score,
+          contacts: company.contacts || [],
+          latest_update: company.latest_update?.interaction_id ? company.latest_update : undefined,
+          next_followup: company.next_followup?.interaction_id ? company.next_followup : undefined
         }));
         successfullyFetched = true;
       }
@@ -71,16 +106,20 @@ export const useCompanies = () => {
           
         if (queryError) throw queryError;
         
-        // Type the fallback data properly
         companiesData = (data || []).map((company: any) => ({
           company_id: company.company_id,
           name: company.name,
           industry: company.industry,
           hq_location: company.hq_location,
+          wfh_policy: company.wfh_policy,
           ai_description: company.ai_description,
-          user_priority: company.user_priority as 'Top' | 'Medium' | 'Maybe',
+          ai_match_reasoning: company.ai_match_reasoning,
+          user_priority: company.user_priority || calculatePriority(company.match_quality_score),
           is_blacklisted: company.is_blacklisted,
-          match_quality_score: company.match_quality_score
+          match_quality_score: company.match_quality_score,
+          contacts: [],
+          latest_update: undefined,
+          next_followup: undefined
         }));
         successfullyFetched = true;
       } catch (fallbackError: any) {
@@ -114,7 +153,6 @@ export const useCompanies = () => {
         
       if (error) throw error;
       
-      // Update local state with proper typing
       setCompanies(prev => prev.map(company => 
         company.company_id === companyId ? {...company, user_priority: priority as 'Top' | 'Medium' | 'Maybe'} : company
       ));
@@ -142,12 +180,16 @@ export const useCompanies = () => {
         
       if (error) throw error;
       
-      // Remove from local state
       setCompanies(prev => prev.filter(company => company.company_id !== companyId));
       
       toast({
         title: "Success",
-        description: "Company added to blacklist",
+        description: "Company added to blacklist. Contacts and interactions remain accessible.",
+        action: (
+          <button className="text-sm underline">
+            Manage Blacklist
+          </button>
+        )
       });
     } catch (error: any) {
       console.error("Error blacklisting company:", error);
@@ -156,6 +198,64 @@ export const useCompanies = () => {
         description: "Failed to blacklist company",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleBulkBlacklist = async (companyIds: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ is_blacklisted: true })
+        .in('company_id', companyIds);
+        
+      if (error) throw error;
+      
+      setCompanies(prev => prev.filter(company => !companyIds.includes(company.company_id)));
+      setSelectedCompanies(new Set());
+      
+      toast({
+        title: "Success",
+        description: `${companyIds.length} companies blacklisted. Contacts and interactions remain accessible.`,
+        action: (
+          <button className="text-sm underline">
+            Manage Blacklist
+          </button>
+        )
+      });
+    } catch (error: any) {
+      console.error("Error bulk blacklisting companies:", error);
+      toast({
+        title: "Error",
+        description: "Failed to blacklist companies",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleSelectCompany = (companyId: string) => {
+    const newSelected = new Set(selectedCompanies);
+    if (newSelected.has(companyId)) {
+      newSelected.delete(companyId);
+    } else {
+      newSelected.add(companyId);
+    }
+    setSelectedCompanies(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedCompanies.size === companies.length) {
+      setSelectedCompanies(new Set());
+    } else {
+      setSelectedCompanies(new Set(companies.map(c => c.company_id)));
     }
   };
 
@@ -171,8 +271,15 @@ export const useCompanies = () => {
     fetchCompanies,
     handleSetPriority,
     handleBlacklist,
+    handleBulkBlacklist,
     newCompanyIds,
-    highlightNew
+    highlightNew,
+    selectedCompanies,
+    handleSelectCompany,
+    handleSelectAll,
+    sortField,
+    sortDirection,
+    handleSort
   };
 };
 

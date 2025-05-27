@@ -11,8 +11,10 @@ import { CompanyDetails } from "@/components/CompanyDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
-import { CompaniesTable } from "@/components/pipeline/CompaniesTable";
+import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
+import { InteractionModal } from "@/components/pipeline/InteractionModal";
+import { ContactModal } from "@/components/pipeline/ContactModal";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
@@ -22,8 +24,15 @@ const PipelineDashboard = () => {
     fetchCompanies,
     handleSetPriority,
     handleBlacklist,
+    handleBulkBlacklist,
     newCompanyIds,
-    highlightNew
+    highlightNew,
+    selectedCompanies,
+    handleSelectCompany,
+    handleSelectAll,
+    sortField,
+    sortDirection,
+    handleSort
   } = useCompanies();
   
   // State variables
@@ -34,9 +43,52 @@ const PipelineDashboard = () => {
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
+  const [interactionModal, setInteractionModal] = useState<{
+    isOpen: boolean;
+    companyId: string;
+    mode: 'log' | 'schedule';
+  }>({ isOpen: false, companyId: '', mode: 'log' });
+  const [contactModal, setContactModal] = useState<{
+    isOpen: boolean;
+    companyId: string;
+  }>({ isOpen: false, companyId: '' });
+
+  // Sort companies based on selected field and direction
+  const sortedCompanies = [...companies].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue: any = '';
+    let bValue: any = '';
+    
+    switch (sortField) {
+      case 'name':
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+      case 'priority':
+        const priorityOrder = { 'Top': 1, 'Medium': 2, 'Maybe': 3 };
+        aValue = priorityOrder[a.user_priority as keyof typeof priorityOrder] || 4;
+        bValue = priorityOrder[b.user_priority as keyof typeof priorityOrder] || 4;
+        break;
+      case 'latest_update':
+        aValue = a.latest_update?.interaction_date ? new Date(a.latest_update.interaction_date).getTime() : 0;
+        bValue = b.latest_update?.interaction_date ? new Date(b.latest_update.interaction_date).getTime() : 0;
+        break;
+      case 'next_followup':
+        aValue = a.next_followup?.follow_up_due_date ? new Date(a.next_followup.follow_up_due_date).getTime() : 0;
+        bValue = b.next_followup?.follow_up_due_date ? new Date(b.next_followup.follow_up_due_date).getTime() : 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   // Filter companies based on search term and filters
-  const filteredCompanies = companies.filter((company) => {
+  const filteredCompanies = sortedCompanies.filter((company) => {
     // Search filter
     const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -140,6 +192,23 @@ const PipelineDashboard = () => {
     await fetchCompanies();
   };
 
+  const handleBulkRemove = async () => {
+    if (selectedCompanies.size === 0) return;
+    await handleBulkBlacklist(Array.from(selectedCompanies));
+  };
+
+  const handleLogInteraction = (companyId: string) => {
+    setInteractionModal({ isOpen: true, companyId, mode: 'log' });
+  };
+
+  const handleScheduleAction = (companyId: string) => {
+    setInteractionModal({ isOpen: true, companyId, mode: 'schedule' });
+  };
+
+  const handleCreateContact = (companyId: string) => {
+    setContactModal({ isOpen: true, companyId });
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -149,7 +218,7 @@ const PipelineDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-full">
       <ProfileBreadcrumbs />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -173,6 +242,8 @@ const PipelineDashboard = () => {
             filters={filters}
             onPriorityFilter={handlePriorityFilter}
             onClearFilters={handleClearFilters}
+            selectedCount={selectedCompanies.size}
+            onBulkRemove={handleBulkRemove}
           />
 
           {filteredCompanies.length === 0 ? (
@@ -184,19 +255,28 @@ const PipelineDashboard = () => {
               isGeneratingCompanies={isGeneratingCompanies}
             />
           ) : (
-            <CompaniesTable
+            <EnhancedCompaniesTable
               companies={filteredCompanies}
               onCompanyClick={handleCompanyClick}
               onSetPriority={handleSetPriority}
               onBlacklist={handleBlacklist}
               newCompanyIds={newCompanyIds}
               highlightNew={highlightNew}
+              selectedCompanies={selectedCompanies}
+              onSelectCompany={handleSelectCompany}
+              onSelectAll={handleSelectAll}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              onLogInteraction={handleLogInteraction}
+              onScheduleAction={handleScheduleAction}
+              onCreateContact={handleCreateContact}
             />
           )}
         </CardContent>
       </Card>
 
-      {/* Company Add Modal */}
+      {/* Modals */}
       <AddCompanyModal 
         isOpen={isAddCompanyModalOpen} 
         onClose={() => setIsAddCompanyModalOpen(false)}
@@ -204,7 +284,6 @@ const PipelineDashboard = () => {
         isLoading={false}
       />
       
-      {/* Company Detail View */}
       {selectedCompany && (
         <CompanyDetails
           company={selectedCompany}
@@ -213,6 +292,21 @@ const PipelineDashboard = () => {
           onCompanyUpdated={handleCompanyUpdated}
         />
       )}
+
+      <InteractionModal
+        isOpen={interactionModal.isOpen}
+        onClose={() => setInteractionModal({ isOpen: false, companyId: '', mode: 'log' })}
+        companyId={interactionModal.companyId}
+        mode={interactionModal.mode}
+        onSuccess={handleCompanyUpdated}
+      />
+
+      <ContactModal
+        isOpen={contactModal.isOpen}
+        onClose={() => setContactModal({ isOpen: false, companyId: '' })}
+        companyId={contactModal.companyId}
+        onSuccess={handleCompanyUpdated}
+      />
     </div>
   );
 };
