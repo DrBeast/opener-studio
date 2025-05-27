@@ -12,6 +12,7 @@ import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+
 interface ContactData {
   contact_id: string;
   first_name?: string;
@@ -60,6 +61,7 @@ interface CompanyDetailsProps {
   onClose: () => void;
   onCompanyUpdated: () => void;
 }
+
 export function CompanyDetails({
   company,
   isOpen,
@@ -121,6 +123,11 @@ export function CompanyDetails({
     } else {
       setInteractions(data);
     }
+  };
+
+  // Helper function to check if a field has meaningful data
+  const hasData = (value: string | null | undefined): boolean => {
+    return value !== null && value !== undefined && value.trim() !== '';
   };
 
   // Handle form changes
@@ -222,6 +229,7 @@ export function CompanyDetails({
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
+
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -246,20 +254,26 @@ export function CompanyDetails({
                   <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="industry">Industry</Label>
-                  <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.industry) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Industry</Label>
+                    <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
+                  </div>
+                )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="hq_location">Location</Label>
-                  <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.hq_location) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="hq_location">Location</Label>
+                    <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
+                  </div>
+                )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                  <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.wfh_policy) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="wfh_policy">Work From Home Policy</Label>
+                    <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="user_priority">Priority</Label>
@@ -281,49 +295,56 @@ export function CompanyDetails({
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="website_url">Website URL</Label>
-                  <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.website_url) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="website_url">Website URL</Label>
+                    <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
+                  </div>
+                )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                  <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.estimated_headcount) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
+                    <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} />
+                  </div>
+                )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                  <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} />
-                </div>
+                {hasData(formData.estimated_revenue) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
+                    <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} />
+                  </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="public_private">Company Type</Label>
-                  <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
-                </div>
-
-                {formData.match_quality_score && <div className="space-y-2">
-                    
-                    
-                  </div>}
+                {hasData(formData.public_private) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="public_private">Company Type</Label>
+                    <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
+                  </div>
+                )}
                 
                 <div className="col-span-2 space-y-2">
                   <Label htmlFor="user_notes">Notes</Label>
                   <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
                 </div>
                 
-                {formData.ai_description && <div className="col-span-2 space-y-2">
+                {hasData(formData.ai_description) && (
+                  <div className="col-span-2 space-y-2">
                     <Label>AI Description</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_description}
                     </div>
-                  </div>}
+                  </div>
+                )}
 
-                {formData.ai_match_reasoning && <div className="col-span-2 space-y-2">
+                {hasData(formData.ai_match_reasoning) && (
+                  <div className="col-span-2 space-y-2">
                     <Label>AI Match Reasoning</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_match_reasoning}
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
               
               <div className="flex justify-end mt-6">
