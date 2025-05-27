@@ -272,5 +272,3 @@ export const useCompanies = () => {
     handleSort
   };
 };
-
-export type { Company };
