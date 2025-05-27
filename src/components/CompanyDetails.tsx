@@ -112,7 +112,12 @@ export function CompanyDetails({
       if (error) throw error;
       
       if (data) {
-        setFormData(data);
+        // Ensure user_priority is properly typed
+        const companyData: CompanyData = {
+          ...data,
+          user_priority: (data.user_priority as 'Top' | 'Medium' | 'Maybe') || 'Maybe'
+        };
+        setFormData(companyData);
       }
     } catch (error) {
       console.error("Error fetching full company details:", error);
