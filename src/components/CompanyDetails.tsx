@@ -5,13 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, ArrowUpDown, FileText, Pencil } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, ArrowUpDown, FileText, Pencil, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 interface ContactData {
   contact_id: string;
@@ -128,6 +131,83 @@ export function CompanyDetails({
   // Helper function to check if a field has meaningful data
   const hasData = (value: string | null | undefined): boolean => {
     return value !== null && value !== undefined && value.trim() !== '';
+  };
+
+  // Helper function to get priority color classes (same as Pipeline view)
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'Top':
+        return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
+      case 'Medium':
+        return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
+      case 'Maybe':
+        return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+      default:
+        return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+    }
+  };
+
+  // Get priority options excluding the current one
+  const getPriorityOptions = (currentPriority?: string) => {
+    const priorities = ['Top', 'Medium', 'Maybe'];
+    return priorities.filter(p => p !== currentPriority);
+  };
+
+  // Handle priority change
+  const handlePriorityChange = (newPriority: string) => {
+    setFormData(prev => ({
+      ...prev,
+      user_priority: newPriority as 'Top' | 'Medium' | 'Maybe'
+    }));
+  };
+
+  // Priority dropdown component (same style as Pipeline view)
+  const PriorityDropdown = () => {
+    const otherPriorities = getPriorityOptions(formData.user_priority);
+    
+    if (otherPriorities.length === 0) {
+      return (
+        <span className={cn(
+          "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors",
+          getPriorityColor(formData.user_priority)
+        )}>
+          {formData.user_priority || 'Maybe'}
+        </span>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button 
+            type="button"
+            className={cn(
+              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1",
+              getPriorityColor(formData.user_priority)
+            )}
+          >
+            {formData.user_priority || 'Maybe'}
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-20 p-1">
+          {otherPriorities.map(priority => (
+            <DropdownMenuItem 
+              key={priority} 
+              onClick={() => handlePriorityChange(priority)}
+              className="p-1 hover:bg-transparent focus:bg-transparent"
+            >
+              <span className={cn(
+                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center",
+                getPriorityColor(priority)
+              )}>
+                {priority}
+              </span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
   };
 
   // Handle form changes
@@ -251,81 +331,128 @@ export function CompanyDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Company Name</Label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleChange} 
+                    required 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <div className="flex h-10 w-full items-center">
+                    <PriorityDropdown />
+                  </div>
                 </div>
                 
                 {hasData(formData.industry) && (
                   <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
-                    <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
+                    <Input 
+                      id="industry" 
+                      name="industry" 
+                      value={formData.industry || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
                 
                 {hasData(formData.hq_location) && (
                   <div className="space-y-2">
                     <Label htmlFor="hq_location">Location</Label>
-                    <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
+                    <Input 
+                      id="hq_location" 
+                      name="hq_location" 
+                      value={formData.hq_location || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
                 
                 {hasData(formData.wfh_policy) && (
                   <div className="space-y-2">
                     <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                    <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
+                    <Input 
+                      id="wfh_policy" 
+                      name="wfh_policy" 
+                      value={formData.wfh_policy || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="user_priority">Priority</Label>
-                  <select id="user_priority" name="user_priority" value={formData.user_priority || 'Maybe'} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    <option value="Top">Top</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Maybe">Maybe</option>
-                  </select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Current Priority</Label>
-                  <div className="flex h-10 w-full items-center">
-                    <Badge className={`
-                      ${formData.user_priority === 'Top' ? 'bg-red-100 text-red-800 hover:bg-red-100' : formData.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 'bg-blue-100 text-blue-800 hover:bg-blue-100'}
-                    `}>
-                      {formData.user_priority || 'Maybe'}
-                    </Badge>
-                  </div>
-                </div>
                 
                 {hasData(formData.website_url) && (
                   <div className="space-y-2">
                     <Label htmlFor="website_url">Website URL</Label>
-                    <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
+                    <Input 
+                      id="website_url" 
+                      name="website_url" 
+                      value={formData.website_url || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
                 
                 {hasData(formData.estimated_headcount) && (
                   <div className="space-y-2">
                     <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                    <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} />
+                    <Input 
+                      id="estimated_headcount" 
+                      name="estimated_headcount" 
+                      value={formData.estimated_headcount || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
                 
                 {hasData(formData.estimated_revenue) && (
                   <div className="space-y-2">
                     <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                    <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} />
+                    <Input 
+                      id="estimated_revenue" 
+                      name="estimated_revenue" 
+                      value={formData.estimated_revenue || ''} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 )}
 
                 {hasData(formData.public_private) && (
                   <div className="space-y-2">
                     <Label htmlFor="public_private">Company Type</Label>
-                    <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
+                    <Input 
+                      id="public_private" 
+                      name="public_private" 
+                      value={formData.public_private || ''} 
+                      onChange={handleChange} 
+                      placeholder="e.g., Public, Private, Startup" 
+                    />
+                  </div>
+                )}
+                
+                {hasData(formData.match_quality_score?.toString()) && (
+                  <div className="space-y-2">
+                    <Label>Match Quality Score</Label>
+                    <div className="flex h-10 w-full items-center">
+                      <Badge variant="outline">
+                        {formData.match_quality_score}/100
+                      </Badge>
+                    </div>
                   </div>
                 )}
                 
                 <div className="col-span-2 space-y-2">
                   <Label htmlFor="user_notes">Notes</Label>
-                  <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
+                  <Textarea 
+                    id="user_notes" 
+                    name="user_notes" 
+                    rows={4} 
+                    value={formData.user_notes || ''} 
+                    onChange={handleChange} 
+                    placeholder="Add your notes about this company..." 
+                  />
                 </div>
                 
                 {hasData(formData.ai_description) && (
