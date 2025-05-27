@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from "@/hooks/useAuth";
@@ -69,10 +68,10 @@ export const useCompanies = () => {
     
     try {
       // Try calling the get_companies_overview function first
-      const { data: companiesOverview, error: functionError } = await supabase.functions.invoke('get_companies_overview');
+      const { data: response, error: functionError } = await supabase.functions.invoke('get_companies_overview');
       
-      if (!functionError && companiesOverview && Array.isArray(companiesOverview)) {
-        companiesData = companiesOverview.map((company: any) => ({
+      if (!functionError && response && response.companies && Array.isArray(response.companies)) {
+        companiesData = response.companies.map((company: any) => ({
           company_id: company.company_id,
           name: company.name,
           industry: company.industry,
@@ -93,10 +92,11 @@ export const useCompanies = () => {
       console.log("Function call failed, trying fallback query:", error);
     }
     
-    // If the function fails, fallback to direct query
+    // If the function fails, fallback to direct query with contacts
     if (!successfullyFetched) {
       try {
-        const { data, error: queryError } = await supabase
+        // First get companies
+        const { data: companiesOnly, error: companiesError } = await supabase
           .from('companies')
           .select('*')
           .eq('user_id', user.id)
@@ -104,23 +104,59 @@ export const useCompanies = () => {
           .order('user_priority', { ascending: true })
           .order('name');
           
-        if (queryError) throw queryError;
+        if (companiesError) throw companiesError;
         
-        companiesData = (data || []).map((company: any) => ({
-          company_id: company.company_id,
-          name: company.name,
-          industry: company.industry,
-          hq_location: company.hq_location,
-          wfh_policy: company.wfh_policy,
-          ai_description: company.ai_description,
-          ai_match_reasoning: company.ai_match_reasoning,
-          user_priority: company.user_priority || calculatePriority(company.match_quality_score),
-          is_blacklisted: company.is_blacklisted,
-          match_quality_score: company.match_quality_score,
-          contacts: [],
-          latest_update: undefined,
-          next_followup: undefined
-        }));
+        // Then get contacts for each company
+        const companyIds = (companiesOnly || []).map(c => c.company_id);
+        let contactsData: any[] = [];
+        
+        if (companyIds.length > 0) {
+          const { data: contacts, error: contactsError } = await supabase
+            .from('contacts')
+            .select(`
+              contact_id,
+              company_id,
+              first_name,
+              last_name,
+              role,
+              added_at
+            `)
+            .eq('user_id', user.id)
+            .in('company_id', companyIds);
+            
+          if (!contactsError) {
+            contactsData = contacts || [];
+          }
+        }
+        
+        // Combine companies with their contacts
+        companiesData = (companiesOnly || []).map((company: any) => {
+          const companyContacts = contactsData
+            .filter(contact => contact.company_id === company.company_id)
+            .map(contact => ({
+              contact_id: contact.contact_id,
+              first_name: contact.first_name,
+              last_name: contact.last_name,
+              role: contact.role,
+              latest_interaction_date: contact.added_at // Use added_at as fallback
+            }));
+            
+          return {
+            company_id: company.company_id,
+            name: company.name,
+            industry: company.industry,
+            hq_location: company.hq_location,
+            wfh_policy: company.wfh_policy,
+            ai_description: company.ai_description,
+            ai_match_reasoning: company.ai_match_reasoning,
+            user_priority: company.user_priority || calculatePriority(company.match_quality_score),
+            is_blacklisted: company.is_blacklisted,
+            match_quality_score: company.match_quality_score,
+            contacts: companyContacts,
+            latest_update: undefined,
+            next_followup: undefined
+          };
+        });
         successfullyFetched = true;
       } catch (fallbackError: any) {
         console.error("Both function and fallback query failed:", fallbackError);
