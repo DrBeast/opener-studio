@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useCallback } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -74,26 +75,40 @@ export function MessageGeneration({
     "Custom objective"
   ];
 
-  const handleMediumChange = (value: string) => {
+  // Optimized event handlers with useCallback to prevent re-renders
+  const handleMediumChange = useCallback((value: string) => {
+    console.log("Medium changed to:", value);
     setMedium(value);
     const selectedOption = mediumOptions.find(option => option.id === value);
     if (selectedOption) {
       setMaxLength(selectedOption.maxLength);
     }
-  };
+  }, []);
 
-  const handleObjectiveChange = (value: string) => {
+  const handleObjectiveChange = useCallback((value: string) => {
+    console.log("Objective changed to:", value);
     setObjective(value);
     if (value !== "Custom objective") {
       setCustomObjective("");
     }
-  };
+  }, []);
 
-  const getEffectiveObjective = () => {
+  const handleAdditionalContextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log("Additional context change event triggered");
+    const value = e.target.value;
+    console.log("New additional context value:", value);
+    setAdditionalContext(value);
+  }, []);
+
+  const handleCustomObjectiveChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomObjective(e.target.value);
+  }, []);
+
+  const getEffectiveObjective = useCallback(() => {
     return objective === "Custom objective" ? customObjective : objective;
-  };
+  }, [objective, customObjective]);
 
-  const generateMessages = async () => {
+  const generateMessages = useCallback(async () => {
     const effectiveObjective = getEffectiveObjective();
     if (!effectiveObjective) {
       toast.error("Please select or provide a message objective");
@@ -165,25 +180,25 @@ export function MessageGeneration({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [contact.contact_id, medium, getEffectiveObjective, additionalContext]);
   
-  const handleMessageEdit = (version: string, text: string) => {
+  const handleMessageEdit = useCallback((version: string, text: string) => {
     setEditedMessages(prev => ({
       ...prev,
       [version]: text.substring(0, maxLength)
     }));
-  };
+  }, [maxLength]);
   
-  const copyMessage = (text: string) => {
+  const copyMessage = useCallback((text: string) => {
     navigator.clipboard.writeText(text)
       .then(() => toast.success("Message copied to clipboard!"))
       .catch(err => {
         console.error("Failed to copy message:", err);
         toast.error("Failed to copy message to clipboard");
       });
-  };
+  }, []);
   
-  const saveMessage = async (version: string, messageText: string) => {
+  const saveMessage = useCallback(async (version: string, messageText: string) => {
     try {
       const effectiveObjective = getEffectiveObjective();
       const { data, error } = await supabase
@@ -220,7 +235,6 @@ export function MessageGeneration({
       
       toast.success("Message saved to conversation history!");
       
-      // Call the callback to refresh interactions
       if (onMessageSaved) {
         onMessageSaved();
       }
@@ -228,14 +242,16 @@ export function MessageGeneration({
       console.error("Error saving message:", err);
       toast.error("Failed to save message: " + (err.message || "Unknown error"));
     }
-  };
+  }, [getEffectiveObjective, contact, medium, additionalContext, onMessageSaved]);
   
-  const toggleAIReasoning = (version: string) => {
+  const toggleAIReasoning = useCallback((version: string) => {
     setShowAIReasoning(prev => ({
       ...prev,
       [version]: !prev[version]
     }));
-  };
+  }, []);
+
+  console.log("MessageGeneration component rendering, additionalContext:", additionalContext);
 
   const MessageContent = () => (
     <div className="space-y-6 mt-4">
@@ -283,7 +299,7 @@ export function MessageGeneration({
             <Input
               placeholder="Describe your custom objective..."
               value={customObjective}
-              onChange={(e) => setCustomObjective(e.target.value)}
+              onChange={handleCustomObjectiveChange}
               className="mt-2"
             />
           )}
@@ -296,7 +312,7 @@ export function MessageGeneration({
             id="additional-context"
             placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
             value={additionalContext}
-            onChange={(e) => setAdditionalContext(e.target.value)}
+            onChange={handleAdditionalContextChange}
             rows={3}
           />
         </div>
