@@ -95,12 +95,28 @@ export const EnhancedCompaniesTable = ({
     }
   };
 
+  const formatLocationAndWFH = (location?: string, wfh?: string) => {
+    const parts = [];
+    if (location) parts.push(location);
+    if (wfh) parts.push(wfh);
+    return parts.length > 0 ? parts.join(' / ') : '-';
+  };
+
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'Top': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
       case 'Medium': return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
       case 'Maybe': return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
       default: return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+    }
+  };
+
+  const getPriorityMenuItemColor = (priority: string) => {
+    switch (priority) {
+      case 'Top': return 'text-green-800 hover:bg-green-50';
+      case 'Medium': return 'text-blue-800 hover:bg-blue-50';
+      case 'Maybe': return 'text-gray-600 hover:bg-gray-50';
+      default: return 'text-gray-600 hover:bg-gray-50';
     }
   };
 
@@ -155,7 +171,7 @@ export const EnhancedCompaniesTable = ({
                 e.stopPropagation();
                 onSetPriority(company.company_id, priority);
               }}
-              className="text-xs"
+              className={cn("text-xs", getPriorityMenuItemColor(priority))}
             >
               {priority}
             </DropdownMenuItem>
@@ -186,8 +202,7 @@ export const EnhancedCompaniesTable = ({
                   <SortButton field="name">Company</SortButton>
                 </TableHead>
                 <TableHead className="w-64">Description</TableHead>
-                <TableHead className="hidden md:table-cell w-24">Location</TableHead>
-                <TableHead className="hidden lg:table-cell w-20">WFH</TableHead>
+                <TableHead className="hidden md:table-cell w-32">Location / WFH</TableHead>
                 <TableHead className="hidden xl:table-cell w-48">Match Reasoning</TableHead>
                 <TableHead className="w-28">Contacts</TableHead>
                 <TableHead className="w-32">Latest</TableHead>
@@ -228,18 +243,17 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs leading-relaxed max-w-64">
+                      <div className="text-xs leading-relaxed max-w-64 break-words">
                         {company.ai_description || '-'}
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <div className="text-xs">{company.hq_location || '-'}</div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="text-xs">{company.wfh_policy || '-'}</div>
+                      <div className="text-xs break-words">
+                        {formatLocationAndWFH(company.hq_location, company.wfh_policy)}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden xl:table-cell">
-                      <div className="text-xs leading-relaxed max-w-48">
+                      <div className="text-xs leading-relaxed max-w-48 break-words">
                         {company.ai_match_reasoning || '-'}
                       </div>
                     </TableCell>
