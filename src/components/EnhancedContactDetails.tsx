@@ -504,7 +504,7 @@ export function EnhancedContactDetails({
             {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-4 pt-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Interaction History</h3>
+                <h3 className="text-lg font-medium">Interactions</h3>
                 <Button size="sm" onClick={() => {
                   setIsPlanningMode(false);
                   setIsAddInteractionOpen(true);
