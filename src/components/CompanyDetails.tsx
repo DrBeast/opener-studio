@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
+
 interface ContactData {
   contact_id: string;
   first_name?: string;
@@ -282,13 +283,58 @@ export function CompanyDetails({
     setIsContactDetailsOpen(false);
   };
 
-  // Handle new interaction created
-  const handleInteractionCreated = () => {
-    fetchInteractions();
+  // Handle new interaction created - regenerate summary
+  const handleInteractionCreated = async () => {
+    await fetchInteractions();
     setIsAddInteractionOpen(false);
     setIsEditInteractionOpen(false);
     setSelectedInteraction(null);
-    onCompanyUpdated(); // Refresh parent component data as well
+    onCompanyUpdated();
+    // Regenerate interaction summary
+    await regenerateOverview();
+  };
+
+  // Handle interaction updated - regenerate summary
+  const handleSaveInlineEdit = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .update({ description: editingDescription })
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction updated");
+      setEditingInteraction(null);
+      await fetchInteractions();
+      onCompanyUpdated();
+      // Regenerate interaction summary
+      await regenerateOverview();
+    } catch (error) {
+      console.error("Error updating interaction:", error);
+      toast.error("Failed to update interaction");
+    }
+  };
+
+  // Handle interaction deleted - regenerate summary
+  const handleDeleteInteraction = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .delete()
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction deleted");
+      await fetchInteractions();
+      onCompanyUpdated();
+      // Regenerate interaction summary
+      await regenerateOverview();
+    } catch (error) {
+      console.error("Error deleting interaction:", error);
+      toast.error("Failed to delete interaction");
+    }
   };
 
   // Handle opening the interaction form for editing
@@ -319,40 +365,9 @@ export function CompanyDetails({
     setEditingInteraction(interactionId);
     setEditingDescription(currentDescription || '');
   };
-  const handleSaveInlineEdit = async (interactionId: string) => {
-    try {
-      const {
-        error
-      } = await supabase.from('interactions').update({
-        description: editingDescription
-      }).eq('interaction_id', interactionId);
-      if (error) throw error;
-      toast.success("Interaction updated");
-      setEditingInteraction(null);
-      fetchInteractions();
-      onCompanyUpdated();
-    } catch (error) {
-      console.error("Error updating interaction:", error);
-      toast.error("Failed to update interaction");
-    }
-  };
   const handleCancelInlineEdit = () => {
     setEditingInteraction(null);
     setEditingDescription('');
-  };
-  const handleDeleteInteraction = async (interactionId: string) => {
-    try {
-      const {
-        error
-      } = await supabase.from('interactions').delete().eq('interaction_id', interactionId);
-      if (error) throw error;
-      toast.success("Interaction deleted");
-      fetchInteractions();
-      onCompanyUpdated();
-    } catch (error) {
-      console.error("Error deleting interaction:", error);
-      toast.error("Failed to delete interaction");
-    }
   };
 
   // Format a date nicely
@@ -361,40 +376,64 @@ export function CompanyDetails({
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Render the interaction summary section
+  // Render the interaction summary section consistently
   const renderInteractionSummary = () => {
     if (isOverviewLoading) {
-      return <div className="flex items-center gap-2 text-muted-foreground">
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
           Generating interaction summary...
-        </div>;
+        </div>
+      );
     }
+    
     if (overviewError) {
-      return <div className="flex flex-col">
+      return (
+        <div className="flex flex-col">
           <div className="text-red-500">Error loading interaction summary</div>
           <Button variant="outline" size="sm" onClick={regenerateOverview} className="mt-2 self-start">
             <RefreshCw className="mr-2 h-3 w-3" /> Try again
           </Button>
-        </div>;
+        </div>
+      );
     }
-    return <div className="flex flex-col">
+    
+    return (
+      <div className="flex flex-col">
         <div className="flex items-start justify-between">
           <div>
-            {overview?.overview ? <p className="text-sm">{overview.overview}</p> : <p className="text-sm text-muted-foreground">No interaction summary available</p>}
+            {overview?.overview ? (
+              <p className="text-sm">{overview.overview}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No interaction summary available</p>
+            )}
             
-            {overview?.interactionCount !== undefined && <p className="text-xs text-muted-foreground mt-1">
+            {overview?.interactionCount !== undefined && (
+              <p className="text-xs text-muted-foreground mt-1">
                 {overview.interactionCount} total
-                {overview.pastCount !== undefined && overview.plannedCount !== undefined && ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
-              </p>}
+                {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
+                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
+                }
+              </p>
+            )}
           </div>
           
-          <Button variant="ghost" size="sm" onClick={regenerateOverview} className="ml-2 h-8 w-8 p-0" title="Regenerate summary">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={regenerateOverview} 
+            className="ml-2 h-8 w-8 p-0" 
+            title="Regenerate summary"
+          >
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
-      </div>;
+      </div>
+    );
   };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{company.name}</DialogTitle>
@@ -545,9 +584,7 @@ export function CompanyDetails({
           <TabsContent value="interactions" className="space-y-4 pt-4">
             {/* Interaction Summary Section */}
             <div className="space-y-2">
-              <Label className="flex items-center justify-between">
-                <span>Interaction Summary</span>
-              </Label>
+              <Label>Interaction Summary</Label>
               <div className="rounded-md border p-3 bg-muted/20">
                 {renderInteractionSummary()}
               </div>
@@ -556,24 +593,31 @@ export function CompanyDetails({
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Interactions</h3>
               <Button size="sm" onClick={() => {
-              setIsPlanningMode(false);
-              setIsAddInteractionOpen(true);
-            }}>
+                setIsPlanningMode(false);
+                setIsAddInteractionOpen(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Interaction
               </Button>
             </div>
             
-            {interactions.length > 0 ? <div className="space-y-3">
-                {interactions.map(interaction => <div key={interaction.interaction_id} className="border rounded-lg p-4">
+            {interactions.length > 0 ? (
+              <div className="space-y-3">
+                {interactions.map(interaction => (
+                  <div key={interaction.interaction_id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1 space-y-2">
                         <div className="text-sm font-medium text-muted-foreground">
                           {formatDate(interaction.interaction_date)}
                         </div>
                         
-                        {editingInteraction === interaction.interaction_id ? <div className="space-y-3">
-                            <Textarea value={editingDescription} onChange={e => setEditingDescription(e.target.value)} rows={3} />
+                        {editingInteraction === interaction.interaction_id ? (
+                          <div className="space-y-3">
+                            <Textarea
+                              value={editingDescription}
+                              onChange={(e) => setEditingDescription(e.target.value)}
+                              rows={3}
+                            />
                             <div className="flex gap-2">
                               <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)}>
                                 Save
@@ -582,29 +626,46 @@ export function CompanyDetails({
                                 Cancel
                               </Button>
                             </div>
-                          </div> : <div className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded" onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}>
+                          </div>
+                        ) : (
+                          <div 
+                            className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
+                            onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
+                          >
                             {interaction.description}
-                          </div>}
+                          </div>
+                        )}
                       </div>
                       
-                      {editingInteraction !== interaction.interaction_id && <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteInteraction(interaction.interaction_id)}>
+                      {editingInteraction !== interaction.interaction_id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteInteraction(interaction.interaction_id)}
+                        >
                           <Trash className="h-4 w-4" />
-                        </Button>}
+                        </Button>
+                      )}
                     </div>
-                  </div>)}
-              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-muted/30 rounded-lg p-6 text-center">
                 <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
                   No interactions logged for this company yet
                 </p>
                 <Button size="sm" onClick={() => {
-              setIsPlanningMode(false);
-              setIsAddInteractionOpen(true);
-            }}>
+                  setIsPlanningMode(false);
+                  setIsAddInteractionOpen(true);
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Interaction
                 </Button>
-              </div>}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>
@@ -625,5 +686,6 @@ export function CompanyDetails({
       follow_up_due_date: selectedInteraction.follow_up_due_date,
       medium: selectedInteraction.medium
     }} />}
-    </Dialog>;
+    </Dialog>
+  );
 }
