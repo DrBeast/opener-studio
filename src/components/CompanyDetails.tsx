@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,12 +52,16 @@ interface CompanyData {
   name: string;
   industry?: string;
   hq_location?: string;
+  wfh_policy?: string;
   user_priority?: 'Top' | 'Medium' | 'Maybe';
   user_notes?: string;
   ai_description?: string;
+  ai_match_reasoning?: string;
   estimated_headcount?: string;
   estimated_revenue?: string;
   website_url?: string;
+  public_private?: string;
+  match_quality_score?: number;
   updated_at?: string;
   contacts?: ContactData[];
   last_interaction?: {
@@ -166,11 +171,13 @@ export function CompanyDetails({
           name: formData.name,
           industry: formData.industry,
           hq_location: formData.hq_location,
+          wfh_policy: formData.wfh_policy,
           user_priority: formData.user_priority,
           user_notes: formData.user_notes,
           estimated_headcount: formData.estimated_headcount,
           estimated_revenue: formData.estimated_revenue,
           website_url: formData.website_url,
+          public_private: formData.public_private,
           updated_at: new Date().toISOString(),
           user_id: user.id
         })
@@ -295,6 +302,16 @@ export function CompanyDetails({
                 </div>
                 
                 <div className="space-y-2">
+                  <Label htmlFor="wfh_policy">Work From Home Policy</Label>
+                  <Input
+                    id="wfh_policy"
+                    name="wfh_policy"
+                    value={formData.wfh_policy || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="user_priority">Priority</Label>
                   <select
                     id="user_priority"
@@ -338,6 +355,26 @@ export function CompanyDetails({
                     onChange={handleChange}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="public_private">Company Type</Label>
+                  <Input
+                    id="public_private"
+                    name="public_private"
+                    value={formData.public_private || ''}
+                    onChange={handleChange}
+                    placeholder="e.g., Public, Private, Startup"
+                  />
+                </div>
+
+                {formData.match_quality_score && (
+                  <div className="space-y-2">
+                    <Label>Match Quality Score</Label>
+                    <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                      {formData.match_quality_score}%
+                    </div>
+                  </div>
+                )}
                 
                 <div className="col-span-2 space-y-2">
                   <Label htmlFor="user_notes">Notes</Label>
@@ -354,8 +391,17 @@ export function CompanyDetails({
                 {formData.ai_description && (
                   <div className="col-span-2 space-y-2">
                     <Label>AI Description</Label>
-                    <div className="rounded-md border p-3 bg-muted/20">
+                    <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_description}
+                    </div>
+                  </div>
+                )}
+
+                {formData.ai_match_reasoning && (
+                  <div className="col-span-2 space-y-2">
+                    <Label>AI Match Reasoning</Label>
+                    <div className="rounded-md border p-3 bg-muted/20 text-sm">
+                      {formData.ai_match_reasoning}
                     </div>
                   </div>
                 )}
