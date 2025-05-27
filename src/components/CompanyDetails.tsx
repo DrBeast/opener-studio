@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -324,6 +325,19 @@ export function CompanyDetails({
                     <option value="Medium">Medium</option>
                     <option value="Maybe">Maybe</option>
                   </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Current Priority</Label>
+                  <div className="flex h-10 w-full items-center">
+                    <Badge className={`
+                      ${formData.user_priority === 'Top' ? 'bg-red-100 text-red-800 hover:bg-red-100' : 
+                        formData.user_priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 
+                        'bg-blue-100 text-blue-800 hover:bg-blue-100'}
+                    `}>
+                      {formData.user_priority || 'Maybe'}
+                    </Badge>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -656,3 +670,4 @@ export function CompanyDetails({
     </Dialog>
   );
 }
+
