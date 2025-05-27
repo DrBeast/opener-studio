@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, ArrowUpDown, FileText, Pencil, ChevronDown } from "lucide-react";
+import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -71,12 +70,8 @@ export function CompanyDetails({
   onClose,
   onCompanyUpdated
 }: CompanyDetailsProps) {
-  const {
-    user
-  } = useAuth();
-  const [formData, setFormData] = useState<CompanyData>({
-    ...company
-  });
+  const { user } = useAuth();
+  const [formData, setFormData] = useState<CompanyData>({ ...company });
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [contacts, setContacts] = useState<ContactData[]>([]);
@@ -212,14 +207,8 @@ export function CompanyDetails({
 
   // Handle form changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const {
-      name,
-      value
-    } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   // Submit company details update
@@ -310,12 +299,11 @@ export function CompanyDetails({
     return new Date(dateString).toLocaleDateString();
   };
 
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">
-            {company.name}
-          </DialogTitle>
+          <DialogTitle className="text-xl">{company.name}</DialogTitle>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -429,17 +417,6 @@ export function CompanyDetails({
                       onChange={handleChange} 
                       placeholder="e.g., Public, Private, Startup" 
                     />
-                  </div>
-                )}
-                
-                {hasData(formData.match_quality_score?.toString()) && (
-                  <div className="space-y-2">
-                    <Label>Match Quality Score</Label>
-                    <div className="flex h-10 w-full items-center">
-                      <Badge variant="outline">
-                        {formData.match_quality_score}/100
-                      </Badge>
-                    </div>
                   </div>
                 )}
                 
@@ -639,5 +616,6 @@ export function CompanyDetails({
       follow_up_due_date: selectedInteraction.follow_up_due_date,
       medium: selectedInteraction.medium
     }} />}
-    </Dialog>;
+    </Dialog>
+  );
 }
