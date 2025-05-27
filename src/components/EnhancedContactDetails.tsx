@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -503,6 +504,13 @@ export function EnhancedContactDetails({
             
             {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>Interaction Summary</Label>
+                <div className="rounded-md border p-3 bg-muted/20">
+                  {renderInteractionSummary()}
+                </div>
+              </div>
+
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Interactions</h3>
                 <Button size="sm" onClick={() => {
@@ -512,13 +520,6 @@ export function EnhancedContactDetails({
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Add Interaction
                 </Button>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Interaction Summary</Label>
-                <div className="rounded-md border p-3 bg-muted/20">
-                  {renderInteractionSummary()}
-                </div>
               </div>
 
               {interactions.length > 0 ? (
