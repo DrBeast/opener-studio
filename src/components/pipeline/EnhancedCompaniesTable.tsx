@@ -288,6 +288,7 @@ export const EnhancedCompaniesTable = ({
                 const isNewCompany = newCompanyIds.includes(company.company_id);
                 const isSelected = selectedCompanies.has(company.company_id);
                 const contactsData = formatContacts(company.contacts);
+                const existingContactsCount = company.contacts?.length || 0;
 
                 return (
                   <TableRow
@@ -337,7 +338,11 @@ export const EnhancedCompaniesTable = ({
                       <div className="space-y-2">
                         {/* Buttons at the top */}
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <ContactRecommendation companyId={company.company_id} companyName={company.name} />
+                          <ContactRecommendation 
+                            companyId={company.company_id} 
+                            companyName={company.name}
+                            existingContactsCount={existingContactsCount}
+                          />
                           <Button
                             size="sm"
                             variant="ghost"

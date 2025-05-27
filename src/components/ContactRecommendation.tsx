@@ -11,6 +11,7 @@ import { MessageGeneration } from "@/components/MessageGeneration";
 interface ContactRecommendationProps {
   companyId: string;
   companyName: string;
+  existingContactsCount?: number;
 }
 
 interface ContactData {
@@ -28,7 +29,7 @@ interface ContactData {
   isSelected?: boolean;
 }
 
-export function ContactRecommendation({ companyId, companyName }: ContactRecommendationProps) {
+export function ContactRecommendation({ companyId, companyName, existingContactsCount = 0 }: ContactRecommendationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [contacts, setContacts] = useState<ContactData[]>([]);
@@ -36,7 +37,11 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
   const [messageContact, setMessageContact] = useState<ContactData | null>(null);
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
 
+  const isDisabled = existingContactsCount >= 3;
+
   const generateContacts = async () => {
+    if (isDisabled) return;
+    
     setIsLoading(true);
     setError(null);
     setIsOpen(true); // Open modal immediately to show loading state
@@ -162,13 +167,13 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         variant="ghost" 
         className="h-6 w-6 p-0 shrink-0"
         onClick={generateContacts}
-        disabled={isLoading}
-        title="Generate AI-recommended contacts"
+        disabled={isLoading || isDisabled}
+        title={isDisabled ? `Company already has ${existingContactsCount} contacts. Generate contacts when you have fewer than 3.` : "Generate AI-recommended contacts"}
       >
         {isLoading ? (
           <Loader2 className="h-3 w-3 animate-spin" />
         ) : (
-          <Bot className="h-3 w-3" />
+          <Bot className={`h-3 w-3 ${isDisabled ? 'text-muted-foreground' : ''}`} />
         )}
       </Button>
       
