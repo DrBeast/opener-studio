@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Plus, Sparkles } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
+import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
@@ -14,10 +15,9 @@ import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesT
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
+
 const PipelineDashboard = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const {
     companies,
     isLoading,
@@ -59,6 +59,8 @@ const PipelineDashboard = () => {
     isOpen: false,
     companyId: ''
   });
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -98,10 +100,14 @@ const PipelineDashboard = () => {
   // Filter companies based on search term and filters
   const filteredCompanies = sortedCompanies.filter(company => {
     // Search filter
-    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) || company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) || company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Priority filter
-    const matchesPriority = filters.priority.length === 0 || company.user_priority && filters.priority.includes(company.user_priority);
+    const matchesPriority = filters.priority.length === 0 || 
+      company.user_priority && filters.priority.includes(company.user_priority);
     return matchesSearch && matchesPriority;
   });
   const handlePriorityFilter = (priority: string) => {
@@ -220,6 +226,17 @@ const PipelineDashboard = () => {
       companyId
     });
   };
+  const handleContactClick = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setIsContactDetailsOpen(true);
+  };
+  const handleContactDetailClose = () => {
+    setIsContactDetailsOpen(false);
+    setSelectedContactId(null);
+  };
+  const handleContactUpdated = async () => {
+    await fetchCompanies();
+  };
   if (isLoading) {
     return <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -243,27 +260,95 @@ const PipelineDashboard = () => {
 
       <Card>
         <CardContent className="p-6">
-          <SearchAndFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} filters={filters} onPriorityFilter={handlePriorityFilter} onClearFilters={handleClearFilters} selectedCount={selectedCompanies.size} onBulkRemove={handleBulkRemove} />
+          <SearchAndFilters 
+            searchTerm={searchTerm} 
+            onSearchChange={setSearchTerm} 
+            filters={filters} 
+            onPriorityFilter={handlePriorityFilter} 
+            onClearFilters={handleClearFilters} 
+            selectedCount={selectedCompanies.size} 
+            onBulkRemove={handleBulkRemove} 
+          />
 
-          {filteredCompanies.length === 0 ? <EmptyState searchTerm={searchTerm} hasFilters={filters.priority.length > 0} onAddCompany={handleAddCompany} onGenerateCompanies={handleGenerateCompanies} isGeneratingCompanies={isGeneratingCompanies} /> : <EnhancedCompaniesTable companies={filteredCompanies} onCompanyClick={handleCompanyClick} onSetPriority={handleSetPriority} onBlacklist={handleBlacklist} newCompanyIds={newCompanyIds} highlightNew={highlightNew} selectedCompanies={selectedCompanies} onSelectCompany={handleSelectCompany} onSelectAll={handleSelectAll} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} onLogInteraction={handleLogInteraction} onScheduleAction={handleScheduleAction} onCreateContact={handleCreateContact} />}
+          {filteredCompanies.length === 0 ? 
+            <EmptyState 
+              searchTerm={searchTerm} 
+              hasFilters={filters.priority.length > 0} 
+              onAddCompany={handleAddCompany} 
+              onGenerateCompanies={handleGenerateCompanies} 
+              isGeneratingCompanies={isGeneratingCompanies} 
+            /> : 
+            <EnhancedCompaniesTable 
+              companies={filteredCompanies} 
+              onCompanyClick={handleCompanyClick} 
+              onSetPriority={handleSetPriority} 
+              onBlacklist={handleBlacklist} 
+              newCompanyIds={newCompanyIds} 
+              highlightNew={highlightNew} 
+              selectedCompanies={selectedCompanies} 
+              onSelectCompany={handleSelectCompany} 
+              onSelectAll={handleSelectAll} 
+              sortField={sortField} 
+              sortDirection={sortDirection} 
+              onSort={handleSort} 
+              onLogInteraction={handleLogInteraction} 
+              onScheduleAction={handleScheduleAction} 
+              onCreateContact={handleCreateContact}
+              onContactClick={handleContactClick}
+            />
+          }
         </CardContent>
       </Card>
 
       {/* Modals */}
-      <AddCompanyModal isOpen={isAddCompanyModalOpen} onClose={() => setIsAddCompanyModalOpen(false)} onAddCompany={handleCompanyAdded} isLoading={false} />
+      <AddCompanyModal 
+        isOpen={isAddCompanyModalOpen} 
+        onClose={() => setIsAddCompanyModalOpen(false)} 
+        onAddCompany={handleCompanyAdded} 
+        isLoading={false} 
+      />
       
-      {selectedCompany && <CompanyDetails company={selectedCompany} isOpen={!!selectedCompany} onClose={handleCompanyDetailClose} onCompanyUpdated={handleCompanyUpdated} />}
+      {selectedCompany && 
+        <CompanyDetails 
+          company={selectedCompany} 
+          isOpen={!!selectedCompany} 
+          onClose={handleCompanyDetailClose} 
+          onCompanyUpdated={handleCompanyUpdated} 
+        />
+      }
 
-      <InteractionModal isOpen={interactionModal.isOpen} onClose={() => setInteractionModal({
-      isOpen: false,
-      companyId: '',
-      mode: 'log'
-    })} companyId={interactionModal.companyId} mode={interactionModal.mode} onSuccess={handleCompanyUpdated} />
+      <InteractionModal 
+        isOpen={interactionModal.isOpen} 
+        onClose={() => setInteractionModal({
+          isOpen: false,
+          companyId: '',
+          mode: 'log'
+        })} 
+        companyId={interactionModal.companyId} 
+        mode={interactionModal.mode} 
+        onSuccess={handleCompanyUpdated} 
+      />
 
-      <ContactModal isOpen={contactModal.isOpen} onClose={() => setContactModal({
-      isOpen: false,
-      companyId: ''
-    })} companyId={contactModal.companyId} onSuccess={handleCompanyUpdated} />
+      <ContactModal 
+        isOpen={contactModal.isOpen} 
+        onClose={() => setContactModal({
+          isOpen: false,
+          companyId: ''
+        })} 
+        companyId={contactModal.companyId} 
+        onSuccess={handleCompanyUpdated} 
+      />
+
+      {/* Enhanced Contact Details Modal */}
+      {selectedContactId && (
+        <EnhancedContactDetails
+          contactId={selectedContactId}
+          isOpen={isContactDetailsOpen}
+          onClose={handleContactDetailClose}
+          onContactUpdated={handleContactUpdated}
+        />
+      )}
     </div>;
 };
+
 export default PipelineDashboard;

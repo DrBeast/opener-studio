@@ -1,8 +1,10 @@
+
 import { useState } from "react";
-import { Mail, MessageCircle, User } from "lucide-react";
+import { User, MessageCircle, UserPlus, Users, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -24,6 +26,7 @@ interface ContactData {
   bio_summary?: string;
   how_i_can_help?: string;
   company_id?: string;
+  isSelected?: boolean;
 }
 
 export function ContactRecommendation({ companyId, companyName }: ContactRecommendationProps) {
@@ -39,7 +42,6 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
     setError(null);
     
     try {
-      // Get the current session for authentication
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) throw sessionError;
@@ -48,7 +50,6 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         throw new Error("No active session found");
       }
 
-      // Make the call to our edge function
       const { data, error: fnError } = await supabase.functions.invoke("generate_contacts", {
         body: { company_id: companyId },
         headers: {
@@ -62,13 +63,13 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         throw new Error("Invalid response from generate_contacts function");
       }
       
-      // Add contact_id field to each contact for easier reference
       const contactsWithIds = data.contacts.map((contact: Omit<ContactData, 'contact_id'>) => ({
         ...contact,
-        contact_id: crypto.randomUUID(), // Temporary ID for UI purposes before saving to DB
+        contact_id: crypto.randomUUID(),
         first_name: contact.name.split(' ')[0],
         last_name: contact.name.includes(' ') ? contact.name.split(' ').slice(1).join(' ') : '',
-        company_id: companyId
+        company_id: companyId,
+        isSelected: true // Default to selected
       }));
       
       setContacts(contactsWithIds);
@@ -81,17 +82,40 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
       setIsLoading(false);
     }
   };
+
+  const toggleContactSelection = (contactId: string) => {
+    setContacts(prev => 
+      prev.map(contact => 
+        contact.contact_id === contactId 
+          ? { ...contact, isSelected: !contact.isSelected }
+          : contact
+      )
+    );
+  };
+
+  const selectAll = () => {
+    setContacts(prev => prev.map(contact => ({ ...contact, isSelected: true })));
+  };
+
+  const deselectAll = () => {
+    setContacts(prev => prev.map(contact => ({ ...contact, isSelected: false })));
+  };
   
-  const saveContact = async (contact: ContactData) => {
+  const saveSelectedContacts = async () => {
+    const selectedContacts = contacts.filter(contact => contact.isSelected);
+    
+    if (selectedContacts.length === 0) {
+      toast.error("Please select at least one contact to save");
+      return;
+    }
+
     try {
-      // Get the user's ID
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
         throw new Error("No active session");
       }
       
-      // Prepare contact data for saving
-      const contactData = {
+      const contactsToSave = selectedContacts.map(contact => ({
         company_id: companyId,
         user_id: session.session.user.id,
         first_name: contact.first_name || contact.name.split(' ')[0],
@@ -102,29 +126,23 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         email: contact.email,
         bio_summary: contact.bio_summary,
         how_i_can_help: contact.how_i_can_help
-      };
+      }));
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("contacts")
-        .insert(contactData)
-        .select('contact_id')
-        .single();
+        .insert(contactsToSave);
         
       if (error) throw error;
       
-      // Update the contact in the state with the actual database ID
-      if (data) {
-        setContacts(prev => 
-          prev.map(c => 
-            c === contact ? { ...c, contact_id: data.contact_id } : c
-          )
-        );
-      }
+      toast.success(`${selectedContacts.length} contact(s) saved successfully!`);
+      setIsOpen(false);
       
-      toast.success("Contact saved successfully!");
+      // Refresh the page data
+      window.location.reload();
+      
     } catch (err: any) {
-      console.error("Error saving contact:", err);
-      toast.error("Failed to save contact: " + (err.message || "Unknown error"));
+      console.error("Error saving contacts:", err);
+      toast.error("Failed to save contacts: " + (err.message || "Unknown error"));
     }
   };
 
@@ -142,20 +160,26 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
     <>
       <Button 
         size="sm" 
-        variant="outline" 
+        variant="ghost" 
+        className="h-6 w-6 p-0 shrink-0"
         onClick={generateContacts}
         disabled={isLoading}
       >
-        <User className="mr-2 h-4 w-4" />
-        {isLoading ? "Generating..." : "Generate Contacts"}
+        <Users className="h-3 w-3" />
       </Button>
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Recommended Contacts at {companyName}</DialogTitle>
-            <DialogDescription>
-              Here are potential contacts who might be helpful for your networking efforts.
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Generate Contacts at {companyName}
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>AI has identified key individuals who can potentially facilitate your application, provide insights into opportunities, or influence hiring decisions.</p>
+              <p className="text-sm text-primary">
+                <strong>How AI helps:</strong> Contacts are selected based on your specific background and skills in relation to this company's needs, not just title matching. The AI considers your experience and identifies decision-makers and influencers who would be most relevant to your career goals.
+              </p>
             </DialogDescription>
           </DialogHeader>
           
@@ -164,77 +188,105 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
               No contacts could be generated. Try again later.
             </div>
           ) : (
-            <div className="grid gap-4 mt-4">
-              {contacts.map((contact, index) => (
-                <Card key={index} className="p-4 relative">
-                  <div className="flex flex-col sm:flex-row justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-primary" />
-                        <h3 className="font-semibold text-lg">{contact.name}</h3>
-                      </div>
-                      
-                      {contact.role && (
-                        <p className="text-muted-foreground">{contact.role}</p>
-                      )}
-                      
-                      {contact.location && (
-                        <p className="text-sm text-muted-foreground">{contact.location}</p>
-                      )}
-                      
-                      {contact.linkedin_url && (
-                        <a 
-                          href={contact.linkedin_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-primary hover:underline text-sm flex items-center gap-1"
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b pb-4">
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={selectAll}>
+                    Select All
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={deselectAll}>
+                    Deselect All
+                  </Button>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {contacts.filter(c => c.isSelected).length} of {contacts.length} selected
+                </div>
+              </div>
+
+              <div className="grid gap-4">
+                {contacts.map((contact, index) => (
+                  <Card key={index} className={`p-4 transition-all ${contact.isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <Button
+                          variant={contact.isSelected ? "default" : "outline"}
+                          size="sm"
+                          className="mt-1"
+                          onClick={() => toggleContactSelection(contact.contact_id)}
                         >
-                          LinkedIn Profile
-                        </a>
-                      )}
+                          {contact.isSelected ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                        </Button>
+                        
+                        <div className="space-y-3 flex-1">
+                          <div className="flex items-center gap-2">
+                            <User className="h-5 w-5 text-primary" />
+                            <h3 className="font-semibold text-lg">{contact.name}</h3>
+                            {contact.isSelected && <Badge variant="default">Selected</Badge>}
+                          </div>
+                          
+                          {contact.role && (
+                            <p className="text-muted-foreground font-medium">{contact.role}</p>
+                          )}
+                          
+                          {contact.location && (
+                            <p className="text-sm text-muted-foreground">{contact.location}</p>
+                          )}
+                          
+                          {contact.linkedin_url && (
+                            <a 
+                              href={contact.linkedin_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-primary hover:underline text-sm flex items-center gap-1"
+                            >
+                              LinkedIn Profile
+                            </a>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleGenerateMessage(contact)}
+                          >
+                            <MessageCircle className="mr-1 h-4 w-4" />
+                            Generate Message
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="mt-4 sm:mt-0 flex flex-col sm:items-end gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleGenerateMessage(contact)}
-                      >
-                        <MessageCircle className="mr-1 h-4 w-4" />
-                        Generate Message
-                      </Button>
-                      
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => saveContact(contact)}
-                      >
-                        Save Contact
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {contact.bio_summary && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-medium mb-1">Background Summary</h4>
-                      <p className="text-sm">{contact.bio_summary}</p>
-                    </div>
-                  )}
-                  
-                  {contact.how_i_can_help && (
-                    <div className="mt-4 bg-primary/5 p-3 rounded-md border border-primary/10">
-                      <h4 className="text-sm font-medium mb-1 text-primary">How I Can Help</h4>
-                      <p className="text-sm">{contact.how_i_can_help}</p>
-                    </div>
-                  )}
-                </Card>
-              ))}
+                    {contact.bio_summary && (
+                      <div className="mt-4 pl-11">
+                        <h4 className="text-sm font-medium mb-2">Background Summary</h4>
+                        <p className="text-sm text-muted-foreground">{contact.bio_summary}</p>
+                      </div>
+                    )}
+                    
+                    {contact.how_i_can_help && (
+                      <div className="mt-4 pl-11 bg-primary/5 p-3 rounded-md border border-primary/10">
+                        <h4 className="text-sm font-medium mb-2 text-primary">How I Can Help</h4>
+                        <p className="text-sm">{contact.how_i_can_help}</p>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveSelectedContacts}>
+                  Save Selected Contacts ({contacts.filter(c => c.isSelected).length})
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Message Generation Dialog */}
       {messageContact && (
         <MessageGeneration
           contact={messageContact}

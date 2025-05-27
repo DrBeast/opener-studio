@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Calendar, MessageSquare, UserPlus, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Calendar, MessageSquare, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { ContactRecommendation } from "@/components/ContactRecommendation";
 import type { Company } from '@/hooks/useCompanies';
 
 interface EnhancedCompaniesTableProps {
@@ -24,6 +25,7 @@ interface EnhancedCompaniesTableProps {
   onLogInteraction: (companyId: string) => void;
   onScheduleAction: (companyId: string) => void;
   onCreateContact: (companyId: string) => void;
+  onContactClick: (contactId: string) => void;
 }
 export const EnhancedCompaniesTable = ({
   companies,
@@ -39,7 +41,8 @@ export const EnhancedCompaniesTable = ({
   onSort,
   onLogInteraction,
   onScheduleAction,
-  onCreateContact
+  onCreateContact,
+  onContactClick
 }: EnhancedCompaniesTableProps) => {
   const highlightAnimation = `
     @keyframes highlightFade {
@@ -48,17 +51,21 @@ export const EnhancedCompaniesTable = ({
     }
   `;
   const formatContacts = (contacts?: any[]) => {
-    if (!contacts || contacts.length === 0) return '-';
+    if (!contacts || contacts.length === 0) return null;
     const sortedContacts = [...contacts].sort((a, b) => {
       const dateA = a.latest_interaction_date ? new Date(a.latest_interaction_date).getTime() : 0;
       const dateB = b.latest_interaction_date ? new Date(b.latest_interaction_date).getTime() : 0;
       return dateB - dateA;
     }).slice(0, 2);
+    
     return sortedContacts.map(contact => {
       const firstName = contact.first_name || '';
-      const lastInitial = contact.last_name ? contact.last_name.charAt(0) : '';
-      return `${firstName} ${lastInitial}`;
-    }).join(', ');
+      const lastInitial = contact.last_name ? contact.last_name.charAt(0) + '.' : '';
+      return {
+        id: contact.contact_id,
+        displayName: `${firstName} ${lastInitial}`.trim()
+      };
+    });
   };
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -158,6 +165,8 @@ export const EnhancedCompaniesTable = ({
               {companies.map(company => {
               const isNewCompany = newCompanyIds.includes(company.company_id);
               const isSelected = selectedCompanies.has(company.company_id);
+              const contactsData = formatContacts(company.contacts);
+              
               return <TableRow key={company.company_id} className={cn("cursor-pointer hover:bg-muted/50", isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "", isSelected ? "bg-muted/20" : "")} onClick={() => onCompanyClick(company)}>
                     <TableCell onClick={e => e.stopPropagation()}>
                       <Checkbox checked={isSelected} onCheckedChange={() => onSelectCompany(company.company_id)} />
@@ -191,14 +200,31 @@ export const EnhancedCompaniesTable = ({
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <div className="text-xs min-w-0 flex-1">
-                          {formatContacts(company.contacts)}
+                          {contactsData && contactsData.length > 0 ? (
+                            <div className="space-y-0.5">
+                              {contactsData.map(contact => (
+                                <button
+                                  key={contact.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onContactClick(contact.id);
+                                  }}
+                                  className="block text-left text-xs text-primary hover:underline"
+                                >
+                                  {contact.displayName}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No contacts</span>
+                          )}
                         </div>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={e => {
-                      e.stopPropagation();
-                      onCreateContact(company.company_id);
-                    }}>
-                          <UserPlus className="h-3 w-3" />
-                        </Button>
+                        <div onClick={e => e.stopPropagation()}>
+                          <ContactRecommendation 
+                            companyId={company.company_id} 
+                            companyName={company.name} 
+                          />
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
