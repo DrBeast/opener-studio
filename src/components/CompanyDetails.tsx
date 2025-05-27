@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
-
 interface ContactData {
   contact_id: string;
   first_name?: string;
@@ -64,15 +63,18 @@ interface CompanyDetailsProps {
   onClose: () => void;
   onCompanyUpdated: () => void;
 }
-
 export function CompanyDetails({
   company,
   isOpen,
   onClose,
   onCompanyUpdated
 }: CompanyDetailsProps) {
-  const { user } = useAuth();
-  const [formData, setFormData] = useState<CompanyData>({ ...company });
+  const {
+    user
+  } = useAuth();
+  const [formData, setFormData] = useState<CompanyData>({
+    ...company
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [contacts, setContacts] = useState<ContactData[]>([]);
@@ -85,11 +87,18 @@ export function CompanyDetails({
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState<string>('');
-  const { overview, isLoading: isOverviewLoading, error: overviewError, regenerateOverview } = useInteractionOverview(company.company_id);
+  const {
+    overview,
+    isLoading: isOverviewLoading,
+    error: overviewError,
+    regenerateOverview
+  } = useInteractionOverview(company.company_id);
 
   // Update formData when company prop changes
   useEffect(() => {
-    setFormData({ ...company });
+    setFormData({
+      ...company
+    });
   }, [company]);
 
   // Fetch contacts and interactions when component mounts or company changes
@@ -104,22 +113,17 @@ export function CompanyDetails({
   // Fetch full company details to ensure we have all the data
   const fetchFullCompanyDetails = async () => {
     if (!user) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('company_id', company.company_id)
-        .eq('user_id', user.id)
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('companies').select('*').eq('company_id', company.company_id).eq('user_id', user.id).single();
       if (error) throw error;
-      
       if (data) {
         // Ensure user_priority is properly typed
         const companyData: CompanyData = {
           ...data,
-          user_priority: (data.user_priority as 'Top' | 'Medium' | 'Maybe') || 'Maybe'
+          user_priority: data.user_priority as 'Top' | 'Medium' | 'Maybe' || 'Maybe'
         };
         setFormData(companyData);
       }
@@ -196,56 +200,38 @@ export function CompanyDetails({
   // Priority dropdown component (same style as Pipeline view)
   const PriorityDropdown = () => {
     const otherPriorities = getPriorityOptions(formData.user_priority);
-    
     if (otherPriorities.length === 0) {
-      return (
-        <span className={cn(
-          "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors",
-          getPriorityColor(formData.user_priority)
-        )}>
+      return <span className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors", getPriorityColor(formData.user_priority))}>
           {formData.user_priority || 'Maybe'}
-        </span>
-      );
+        </span>;
     }
-
-    return (
-      <DropdownMenu>
+    return <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button 
-            type="button"
-            className={cn(
-              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1",
-              getPriorityColor(formData.user_priority)
-            )}
-          >
+          <button type="button" className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1", getPriorityColor(formData.user_priority))}>
             {formData.user_priority || 'Maybe'}
             <ChevronDown className="h-3 w-3" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-20 p-1">
-          {otherPriorities.map(priority => (
-            <DropdownMenuItem 
-              key={priority} 
-              onClick={() => handlePriorityChange(priority)}
-              className="p-1 hover:bg-transparent focus:bg-transparent"
-            >
-              <span className={cn(
-                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center",
-                getPriorityColor(priority)
-              )}>
+          {otherPriorities.map(priority => <DropdownMenuItem key={priority} onClick={() => handlePriorityChange(priority)} className="p-1 hover:bg-transparent focus:bg-transparent">
+              <span className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center", getPriorityColor(priority))}>
                 {priority}
               </span>
-            </DropdownMenuItem>
-          ))}
+            </DropdownMenuItem>)}
         </DropdownMenuContent>
-      </DropdownMenu>
-    );
+      </DropdownMenu>;
   };
 
   // Handle form changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const {
+      name,
+      value
+    } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Submit company details update
@@ -329,23 +315,18 @@ export function CompanyDetails({
       toast.error("Failed to update follow-up status");
     }
   };
-
   const handleEditInteractionInline = (interactionId: string, currentDescription: string) => {
     setEditingInteraction(interactionId);
     setEditingDescription(currentDescription || '');
   };
-
   const handleSaveInlineEdit = async (interactionId: string) => {
     try {
-      const { error } = await supabase
-        .from('interactions')
-        .update({
-          description: editingDescription
-        })
-        .eq('interaction_id', interactionId);
-      
+      const {
+        error
+      } = await supabase.from('interactions').update({
+        description: editingDescription
+      }).eq('interaction_id', interactionId);
       if (error) throw error;
-      
       toast.success("Interaction updated");
       setEditingInteraction(null);
       fetchInteractions();
@@ -355,21 +336,16 @@ export function CompanyDetails({
       toast.error("Failed to update interaction");
     }
   };
-
   const handleCancelInlineEdit = () => {
     setEditingInteraction(null);
     setEditingDescription('');
   };
-
   const handleDeleteInteraction = async (interactionId: string) => {
     try {
-      const { error } = await supabase
-        .from('interactions')
-        .delete()
-        .eq('interaction_id', interactionId);
-      
+      const {
+        error
+      } = await supabase.from('interactions').delete().eq('interaction_id', interactionId);
       if (error) throw error;
-      
       toast.success("Interaction deleted");
       fetchInteractions();
       onCompanyUpdated();
@@ -388,66 +364,37 @@ export function CompanyDetails({
   // Render the interaction summary section
   const renderInteractionSummary = () => {
     if (isOverviewLoading) {
-      return (
-        <div className="flex items-center gap-2 text-muted-foreground">
+      return <div className="flex items-center gap-2 text-muted-foreground">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
           Generating interaction summary...
-        </div>
-      );
+        </div>;
     }
-
     if (overviewError) {
-      return (
-        <div className="flex flex-col">
+      return <div className="flex flex-col">
           <div className="text-red-500">Error loading interaction summary</div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={regenerateOverview}
-            className="mt-2 self-start"
-          >
+          <Button variant="outline" size="sm" onClick={regenerateOverview} className="mt-2 self-start">
             <RefreshCw className="mr-2 h-3 w-3" /> Try again
           </Button>
-        </div>
-      );
+        </div>;
     }
-
-    return (
-      <div className="flex flex-col">
+    return <div className="flex flex-col">
         <div className="flex items-start justify-between">
           <div>
-            {overview?.overview ? (
-              <p className="text-sm">{overview.overview}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">No interaction summary available</p>
-            )}
+            {overview?.overview ? <p className="text-sm">{overview.overview}</p> : <p className="text-sm text-muted-foreground">No interaction summary available</p>}
             
-            {overview?.interactionCount !== undefined && (
-              <p className="text-xs text-muted-foreground mt-1">
+            {overview?.interactionCount !== undefined && <p className="text-xs text-muted-foreground mt-1">
                 {overview.interactionCount} total
-                {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
-                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
-                }
-              </p>
-            )}
+                {overview.pastCount !== undefined && overview.plannedCount !== undefined && ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
+              </p>}
           </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={regenerateOverview}
-            className="ml-2 h-8 w-8 p-0"
-            title="Regenerate summary"
-          >
+          <Button variant="ghost" size="sm" onClick={regenerateOverview} className="ml-2 h-8 w-8 p-0" title="Regenerate summary">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{company.name}</DialogTitle>
@@ -466,13 +413,7 @@ export function CompanyDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Company Name</Label>
-                  <Input 
-                    id="name" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    required 
-                  />
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
                 </div>
                 
                 <div className="space-y-2">
@@ -482,127 +423,66 @@ export function CompanyDetails({
                   </div>
                 </div>
                 
-                {hasData(formData.industry) && (
-                  <div className="space-y-2">
+                {hasData(formData.industry) && <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
-                    <Input 
-                      id="industry" 
-                      name="industry" 
-                      value={formData.industry || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                    <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
+                  </div>}
                 
-                {hasData(formData.hq_location) && (
-                  <div className="space-y-2">
+                {hasData(formData.hq_location) && <div className="space-y-2">
                     <Label htmlFor="hq_location">Location</Label>
-                    <Input 
-                      id="hq_location" 
-                      name="hq_location" 
-                      value={formData.hq_location || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                    <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
+                  </div>}
                 
-                {hasData(formData.wfh_policy) && (
-                  <div className="space-y-2">
+                {hasData(formData.wfh_policy) && <div className="space-y-2">
                     <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                    <Input 
-                      id="wfh_policy" 
-                      name="wfh_policy" 
-                      value={formData.wfh_policy || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                    <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
+                  </div>}
                 
-                {hasData(formData.website_url) && (
-                  <div className="space-y-2">
+                {hasData(formData.website_url) && <div className="space-y-2">
                     <Label htmlFor="website_url">Website URL</Label>
-                    <Input 
-                      id="website_url" 
-                      name="website_url" 
-                      value={formData.website_url || ''} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                )}
+                    <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
+                  </div>}
                 
                 <div className="space-y-2">
                   <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                  <Input 
-                    id="estimated_headcount" 
-                    name="estimated_headcount" 
-                    value={formData.estimated_headcount || ''} 
-                    onChange={handleChange}
-                    placeholder="e.g., 100-500"
-                  />
+                  <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} placeholder="e.g., 100-500" />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                  <Input 
-                    id="estimated_revenue" 
-                    name="estimated_revenue" 
-                    value={formData.estimated_revenue || ''} 
-                    onChange={handleChange}
-                    placeholder="e.g., $10M-50M"
-                  />
+                  <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} placeholder="e.g., $10M-50M" />
                 </div>
 
-                {hasData(formData.public_private) && (
-                  <div className="space-y-2">
+                {hasData(formData.public_private) && <div className="space-y-2">
                     <Label htmlFor="public_private">Company Type</Label>
-                    <Input 
-                      id="public_private" 
-                      name="public_private" 
-                      value={formData.public_private || ''} 
-                      onChange={handleChange} 
-                      placeholder="e.g., Public, Private, Startup" 
-                    />
-                  </div>
-                )}
+                    <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
+                  </div>}
                 
                 <div className="col-span-2 space-y-2">
                   <Label htmlFor="user_notes">Notes</Label>
-                  <Textarea 
-                    id="user_notes" 
-                    name="user_notes" 
-                    rows={4} 
-                    value={formData.user_notes || ''} 
-                    onChange={handleChange} 
-                    placeholder="Add your notes about this company..." 
-                  />
+                  <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
                 </div>
                 
-                {hasData(formData.ai_description) && (
-                  <div className="col-span-2 space-y-2">
+                {hasData(formData.ai_description) && <div className="col-span-2 space-y-2">
                     <Label>AI Description</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_description}
                     </div>
-                  </div>
-                )}
+                  </div>}
 
-                {hasData(formData.ai_match_reasoning) && (
-                  <div className="col-span-2 space-y-2">
+                {hasData(formData.ai_match_reasoning) && <div className="col-span-2 space-y-2">
                     <Label>AI Match Reasoning</Label>
                     <div className="rounded-md border p-3 bg-muted/20 text-sm">
                       {formData.ai_match_reasoning}
                     </div>
-                  </div>
-                )}
+                  </div>}
                 
                 {/* Interaction Summary Section */}
                 <div className="col-span-2 space-y-2">
                   <Label className="flex items-center justify-between">
-                    <span>Interaction Summary</span>
+                    
                   </Label>
-                  <div className="rounded-md border p-3 bg-muted/20">
-                    {renderInteractionSummary()}
-                  </div>
+                  
                 </div>
               </div>
               
@@ -676,86 +556,55 @@ export function CompanyDetails({
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Interactions</h3>
               <Button size="sm" onClick={() => {
-                setIsPlanningMode(false);
-                setIsAddInteractionOpen(true);
-              }}>
+              setIsPlanningMode(false);
+              setIsAddInteractionOpen(true);
+            }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Interaction
               </Button>
             </div>
             
-            {interactions.length > 0 ? (
-              <div className="space-y-3">
-                {interactions.map(interaction => (
-                  <div key={interaction.interaction_id} className="border rounded-lg p-4">
+            {interactions.length > 0 ? <div className="space-y-3">
+                {interactions.map(interaction => <div key={interaction.interaction_id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1 space-y-2">
                         <div className="text-sm font-medium text-muted-foreground">
                           {formatDate(interaction.interaction_date)}
                         </div>
                         
-                        {editingInteraction === interaction.interaction_id ? (
-                          <div className="space-y-3">
-                            <Textarea
-                              value={editingDescription}
-                              onChange={(e) => setEditingDescription(e.target.value)}
-                              rows={3}
-                            />
+                        {editingInteraction === interaction.interaction_id ? <div className="space-y-3">
+                            <Textarea value={editingDescription} onChange={e => setEditingDescription(e.target.value)} rows={3} />
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleSaveInlineEdit(interaction.interaction_id)}
-                              >
+                              <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)}>
                                 Save
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCancelInlineEdit}
-                              >
+                              <Button size="sm" variant="outline" onClick={handleCancelInlineEdit}>
                                 Cancel
                               </Button>
                             </div>
-                          </div>
-                        ) : (
-                          <div 
-                            className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
-                            onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
-                          >
+                          </div> : <div className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded" onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}>
                             {interaction.description}
-                          </div>
-                        )}
+                          </div>}
                       </div>
                       
-                      {editingInteraction !== interaction.interaction_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteInteraction(interaction.interaction_id)}
-                        >
+                      {editingInteraction !== interaction.interaction_id && <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteInteraction(interaction.interaction_id)}>
                           <Trash className="h-4 w-4" />
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  </div>)}
+              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
                 <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
                   No interactions logged for this company yet
                 </p>
                 <Button size="sm" onClick={() => {
-                  setIsPlanningMode(false);
-                  setIsAddInteractionOpen(true);
-                }}>
+              setIsPlanningMode(false);
+              setIsAddInteractionOpen(true);
+            }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Interaction
                 </Button>
-              </div>
-            )}
+              </div>}
           </TabsContent>
         </Tabs>
       </DialogContent>
@@ -776,6 +625,5 @@ export function CompanyDetails({
       follow_up_due_date: selectedInteraction.follow_up_due_date,
       medium: selectedInteraction.medium
     }} />}
-    </Dialog>
-  );
+    </Dialog>;
 }
