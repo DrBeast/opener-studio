@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Calendar, MessageSquare, ChevronDown } from "lucide-react";
+import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
@@ -209,7 +209,7 @@ export const EnhancedCompaniesTable = ({
                                     e.stopPropagation();
                                     onContactClick(contact.id);
                                   }}
-                                  className="block text-left text-xs text-primary hover:underline"
+                                  className="block text-left text-xs text-primary hover:underline w-full truncate"
                                 >
                                   {contact.displayName}
                                 </button>
@@ -219,11 +219,23 @@ export const EnhancedCompaniesTable = ({
                             <span className="text-xs text-muted-foreground">No contacts</span>
                           )}
                         </div>
-                        <div onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                           <ContactRecommendation 
                             companyId={company.company_id} 
                             companyName={company.name} 
                           />
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 w-6 p-0 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCreateContact(company.company_id);
+                            }}
+                            title="Add contact manually"
+                          >
+                            <UserPlus className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     </TableCell>

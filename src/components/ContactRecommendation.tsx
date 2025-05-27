@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { User, MessageCircle, UserPlus, Users, Check, X } from "lucide-react";
+import { Bot, MessageCircle, UserPlus, Users, Check, X, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,6 +39,7 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
   const generateContacts = async () => {
     setIsLoading(true);
     setError(null);
+    setIsOpen(true); // Open modal immediately to show loading state
     
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -73,7 +73,6 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
       }));
       
       setContacts(contactsWithIds);
-      setIsOpen(true);
     } catch (err: any) {
       console.error("Error generating contacts:", err);
       setError(err.message || "Failed to generate contacts");
@@ -164,15 +163,20 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
         className="h-6 w-6 p-0 shrink-0"
         onClick={generateContacts}
         disabled={isLoading}
+        title="Generate AI-recommended contacts"
       >
-        <Users className="h-3 w-3" />
+        {isLoading ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Bot className="h-3 w-3" />
+        )}
       </Button>
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+              <Bot className="h-5 w-5" />
               Generate Contacts at {companyName}
             </DialogTitle>
             <DialogDescription className="space-y-2">
@@ -183,7 +187,19 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
             </DialogDescription>
           </DialogHeader>
           
-          {contacts.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Generating contacts based on your profile...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              <p>Error: {error}</p>
+              <Button variant="outline" onClick={generateContacts} className="mt-4">
+                Try Again
+              </Button>
+            </div>
+          ) : contacts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No contacts could be generated. Try again later.
             </div>
@@ -219,7 +235,6 @@ export function ContactRecommendation({ companyId, companyName }: ContactRecomme
                         
                         <div className="space-y-3 flex-1">
                           <div className="flex items-center gap-2">
-                            <User className="h-5 w-5 text-primary" />
                             <h3 className="font-semibold text-lg">{contact.name}</h3>
                             {contact.isSelected && <Badge variant="default">Selected</Badge>}
                           </div>
