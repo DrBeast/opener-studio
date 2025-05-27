@@ -83,13 +83,41 @@ export function CompanyDetails({
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionData | null>(null);
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
 
+  // Update formData when company prop changes
+  useEffect(() => {
+    setFormData({ ...company });
+  }, [company]);
+
   // Fetch contacts and interactions when component mounts or company changes
   useEffect(() => {
     if (company.company_id) {
       fetchContacts();
       fetchInteractions();
+      fetchFullCompanyDetails();
     }
   }, [company.company_id]);
+
+  // Fetch full company details to ensure we have all the data
+  const fetchFullCompanyDetails = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('company_id', company.company_id)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setFormData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching full company details:", error);
+    }
+  };
 
   // Fetch contacts for this company
   const fetchContacts = async () => {
