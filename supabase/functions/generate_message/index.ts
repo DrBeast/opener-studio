@@ -24,6 +24,7 @@ const MAX_MESSAGE_LENGTH: { [key: string]: number } = {
   'LinkedIn message to 1st connection': 400,
   'LinkedIn InMail': 400,
   'Cold email': 500,
+  'Chat': 300,
   'Forwardable intro': 1000,
 };
 
@@ -146,11 +147,17 @@ serve(async (req) => {
   const companyData = contactData.companies;
   const maxLength = MAX_MESSAGE_LENGTH[medium] || 500;
 
-  // 3. Enhanced prompt for value-focused messaging
+  // 3. Enhanced prompt for authentic, specific messaging with clear asks
   const prompt = `
-  You are an AI assistant helping a professional craft an authentic, value-driven outreach message for job search networking.
+  You are an AI assistant helping a professional craft authentic, specific outreach messages for job search networking. Your role is to help them articulate their unique value proposition in a way that feels genuine and includes a clear, well-defined ask.
 
-  Your goal is to help the user articulate their value proposition in a way that feels genuine and mutually beneficial, focusing on how they can contribute rather than what they need. The message should position the user as someone who brings value and authentic interest, avoiding any "sales-y" feeling.
+  CRITICAL GUIDELINES:
+  1. ALWAYS include a clear, specific ask based on the objective - never leave it vague
+  2. AVOID generic praise like "I'm impressed with your work" unless you have very specific examples
+  3. Focus on specific industry challenges, technologies, or domain expertise rather than generic statements
+  4. Use concrete examples from the user's background that relate to the company's specific needs
+  5. The message should feel authentic and professional, not sales-y
+  6. LinkedIn connection requests can have implied objectives (to connect), but other mediums need explicit asks
 
   User Background Summary:
   Overall Professional Summary: ${userSummary.overall_blurb ?? 'N/A'}
@@ -177,22 +184,33 @@ serve(async (req) => {
   Message Objective: ${objective}
   Additional Context: ${additional_context ?? 'None provided'}
 
-  IMPORTANT INSTRUCTIONS:
+  SPECIFIC INSTRUCTIONS FOR MESSAGE CREATION:
 
-  1. Generate 3 distinct message versions that highlight different aspects of the user's background and value proposition
-  2. Focus on authentic value creation and genuine interest rather than asking for favors
-  3. Position the user as someone who can contribute to the contact's work and company goals
-  4. Use language that demonstrates understanding of the industry and role
-  5. Avoid overly formal or sales-oriented language
-  6. Make each version feel personal and thoughtful
+  1. Lead with specific expertise/domain knowledge that relates to the company's industry and challenges
+  2. Mention concrete technologies, processes, or industry challenges you've tackled
+  3. Include a clear, specific ask that matches the objective:
+     - For "get to know and build relationship": "I'd be happy to connect as I'm [specific reason]"
+     - For "get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
+     - For "ask for referral": "Could you point me to the right people at [Company] to explore opportunities?"
+     - For "explore roles": "I'd like to connect to discover [specific type] roles at [Company]"
+     - For "follow up": Reference the previous interaction and include a specific next step
+  4. Avoid generic phrases like "I'm impressed with your work" unless you can be very specific
+  5. Use industry-specific terminology and challenges where relevant
+  6. Keep the tone professional but authentic
 
+  REASONING INSTRUCTIONS:
   For the AI reasoning, explain your approach using "you" language directed at the user:
-  - "Your experience in [X] positions you as..."
-  - "Your background shows..."
-  - "You are demonstrating value by..."
-  - "This approach works because you are..."
+  - "Your experience in [specific area] positions you as someone who understands [specific challenge]"
+  - "Your background with [specific technology/process] directly relates to [company's needs]"
+  - "You are demonstrating value by mentioning [specific expertise] because..."
+  - "This approach works because you are showing how you can solve [specific problem]"
 
-  Explain how each message positions the user authentically and why this approach will resonate positively with the contact emotionally and professionally.
+  Explain how each message positions the user authentically, why the specific ask is appropriate, and how this approach will resonate professionally while avoiding generic networking language.
+
+  Generate 3 distinct message versions that:
+  - Version 1: Focus on technical/domain expertise alignment
+  - Version 2: Emphasize problem-solving capabilities with specific examples
+  - Version 3: Highlight leadership/strategic experience relevant to their role
 
   Generate the output as a JSON object with 'messages' (containing version1, version2, version3) and 'ai_reasoning' (explaining your approach in "you" language):
 
@@ -220,7 +238,7 @@ serve(async (req) => {
         }],
         generationConfig: {
            temperature: 0.7,
-           maxOutputTokens: Math.round(maxLength * 2),
+           maxOutputTokens: Math.round(maxLength * 3),
            responseMimeType: "application/json"
         },
       }),
