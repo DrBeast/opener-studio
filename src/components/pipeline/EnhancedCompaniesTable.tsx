@@ -7,6 +7,7 @@ import { ArrowUpDown, Calendar, MessageSquare, UserPlus, ChevronDown } from "luc
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { Company } from '@/hooks/useCompanies';
+
 interface EnhancedCompaniesTableProps {
   companies: Company[];
   onCompanyClick: (company: Company) => void;
@@ -85,18 +86,6 @@ export const EnhancedCompaniesTable = ({
         return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
     }
   };
-  const getPriorityMenuItemColor = (priority: string) => {
-    switch (priority) {
-      case 'Top':
-        return 'text-green-800 hover:bg-green-50';
-      case 'Medium':
-        return 'text-blue-800 hover:bg-blue-50';
-      case 'Maybe':
-        return 'text-gray-600 hover:bg-gray-50';
-      default:
-        return 'text-gray-600 hover:bg-gray-50';
-    }
-  };
   const getPriorityOptions = (currentPriority?: string) => {
     const priorities = ['Top', 'Medium', 'Maybe'];
     return priorities.filter(p => p !== currentPriority);
@@ -129,12 +118,14 @@ export const EnhancedCompaniesTable = ({
             <ChevronDown className="h-3 w-3" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-20">
+        <DropdownMenuContent align="start" className="w-20 p-1">
           {otherPriorities.map(priority => <DropdownMenuItem key={priority} onClick={e => {
           e.stopPropagation();
           onSetPriority(company.company_id, priority);
-        }} className={cn("text-xs", getPriorityMenuItemColor(priority))}>
-              {priority}
+        }} className="p-1 hover:bg-transparent focus:bg-transparent">
+              <span className={cn("inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center", getPriorityColor(priority))}>
+                {priority}
+              </span>
             </DropdownMenuItem>)}
         </DropdownMenuContent>
       </DropdownMenu>;
