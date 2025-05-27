@@ -184,12 +184,7 @@ export const useCompanies = () => {
       
       toast({
         title: "Success",
-        description: "Company added to blacklist. Contacts and interactions remain accessible.",
-        action: (
-          <button className="text-sm underline">
-            Manage Blacklist
-          </button>
-        )
+        description: "Company blacklisted. Contacts and interactions remain accessible.",
       });
     } catch (error: any) {
       console.error("Error blacklisting company:", error);
@@ -216,11 +211,6 @@ export const useCompanies = () => {
       toast({
         title: "Success",
         description: `${companyIds.length} companies blacklisted. Contacts and interactions remain accessible.`,
-        action: (
-          <button className="text-sm underline">
-            Manage Blacklist
-          </button>
-        )
       });
     } catch (error: any) {
       console.error("Error bulk blacklisting companies:", error);
