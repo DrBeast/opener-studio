@@ -1,11 +1,11 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus, MessageCircle, RefreshCw } from "lucide-react";
+import { ArrowUpDown, ChevronDown, UserPlus, MessageCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import type { Company } from '@/hooks/useCompanies';
@@ -201,15 +201,6 @@ export const EnhancedCompaniesTable = ({
         role: abbreviatedRole
       };
     });
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    try {
-      return format(new Date(dateString), 'MMM d');
-    } catch {
-      return '-';
-    }
   };
 
   const formatLocationAndWFH = (location?: string, wfh?: string) => {

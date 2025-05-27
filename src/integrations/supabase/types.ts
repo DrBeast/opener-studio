@@ -20,6 +20,7 @@ export type Database = {
           generated_criteria_highlights: Json | null
           hq_location: string | null
           industry: string | null
+          interaction_summary: string | null
           is_blacklisted: boolean | null
           match_quality_score: number | null
           name: string
@@ -41,6 +42,7 @@ export type Database = {
           generated_criteria_highlights?: Json | null
           hq_location?: string | null
           industry?: string | null
+          interaction_summary?: string | null
           is_blacklisted?: boolean | null
           match_quality_score?: number | null
           name: string
@@ -62,6 +64,7 @@ export type Database = {
           generated_criteria_highlights?: Json | null
           hq_location?: string | null
           industry?: string | null
+          interaction_summary?: string | null
           is_blacklisted?: boolean | null
           match_quality_score?: number | null
           name?: string
@@ -446,6 +449,7 @@ export type Database = {
           match_quality_score: number
           ai_match_reasoning: string
           user_priority: string
+          interaction_summary: string
           latest_update: Json
           next_followup: Json
           contacts: Json
