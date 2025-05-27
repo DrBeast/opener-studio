@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -335,17 +334,6 @@ export function CompanyDetails({
     return new Date(dateString).toLocaleDateString();
   };
   
-  // Get responses from interactions
-  const getRecordedResponses = () => {
-    return interactions.filter(i => 
-      i.description?.toLowerCase().includes('replied') || 
-      i.description?.toLowerCase().includes('responded') ||
-      i.description?.toLowerCase().includes('response') ||
-      i.interaction_type?.toLowerCase().includes('response')
-    );
-  };
-  
-  const recordedResponses = getRecordedResponses();
 
   // Render the interaction summary section
   const renderInteractionSummary = () => {
@@ -404,22 +392,6 @@ export function CompanyDetails({
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
-        
-        {recordedResponses.length > 0 && (
-          <div className="mt-3">
-            <h4 className="text-sm font-medium mb-1">Recorded Responses:</h4>
-            <ul className="text-xs space-y-1">
-              {recordedResponses.map(response => (
-                <li key={response.interaction_id} className="flex items-start">
-                  <span className="inline-block w-20 flex-shrink-0 text-muted-foreground">
-                    {formatDate(response.interaction_date)}
-                  </span>
-                  <span>{response.description}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
     );
   };
