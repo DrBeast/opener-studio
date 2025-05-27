@@ -63,9 +63,10 @@ export function EnhancedContactDetails({
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [interactions, setInteractions] = useState<InteractionData[]>([]);
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
+  const [editingValues, setEditingValues] = useState<{[key: string]: {date: string, description: string}}>({});
 
   useEffect(() => {
     if (contactId && isOpen) {
@@ -186,6 +187,70 @@ export function EnhancedContactDetails({
     fetchContactInteractions();
     setIsAddInteractionOpen(false);
     onContactUpdated();
+  };
+
+  const handleMessageSaved = () => {
+    fetchContactInteractions();
+    onContactUpdated();
+  };
+
+  const handleDeleteInteraction = async (interactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .delete()
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction deleted");
+      fetchContactInteractions();
+      onContactUpdated();
+    } catch (error) {
+      console.error("Error deleting interaction:", error);
+      toast.error("Failed to delete interaction");
+    }
+  };
+
+  const handleEditInteraction = (interactionId: string, currentDate: string, currentDescription: string) => {
+    setEditingInteraction(interactionId);
+    setEditingValues({
+      ...editingValues,
+      [interactionId]: {
+        date: format(new Date(currentDate), 'yyyy-MM-dd'),
+        description: currentDescription || ''
+      }
+    });
+  };
+
+  const handleSaveInteraction = async (interactionId: string) => {
+    const values = editingValues[interactionId];
+    if (!values) return;
+
+    try {
+      const { error } = await supabase
+        .from('interactions')
+        .update({
+          interaction_date: new Date(values.date).toISOString(),
+          description: values.description
+        })
+        .eq('interaction_id', interactionId);
+      
+      if (error) throw error;
+      
+      toast.success("Interaction updated");
+      setEditingInteraction(null);
+      fetchContactInteractions();
+      onContactUpdated();
+    } catch (error) {
+      console.error("Error updating interaction:", error);
+      toast.error("Failed to update interaction");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingInteraction(null);
+    setEditingValues({});
   };
 
   const formatDate = (dateString: string | undefined) => {
@@ -326,17 +391,11 @@ export function EnhancedContactDetails({
             
             {/* Enhanced Messages Tab */}
             <TabsContent value="messages" className="space-y-4 pt-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-medium">Generate Outreach Message</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    You are crafting a personalized message to build genuine connections and articulate your value proposition authentically, focusing on mutual learning rather than just asking for opportunities.
-                  </p>
-                </div>
-                <Button onClick={() => setIsMessageDialogOpen(true)}>
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Generate Message
-                </Button>
+              <div>
+                <h3 className="text-lg font-medium">Generate Outreach Message</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You are crafting a personalized message to build genuine connections and articulate your value proposition authentically, focusing on mutual learning rather than just asking for opportunities.
+                </p>
               </div>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -360,115 +419,124 @@ export function EnhancedContactDetails({
                 </div>
               </div>
               
-              <div className="text-center py-8 border rounded-lg bg-muted/20">
-                <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-muted-foreground mb-4">
-                  Generate personalized messages that highlight your value and build authentic connections
-                </p>
-                <Button onClick={() => setIsMessageDialogOpen(true)}>
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Start Message Generation
-                </Button>
-              </div>
+              {/* Message Generation Form - Show directly */}
+              <MessageGeneration
+                contact={contact}
+                companyName={contact.companies?.name || 'Unknown Company'}
+                isOpen={true}
+                onClose={() => {}}
+                onMessageSaved={handleMessageSaved}
+                embedded={true}
+              />
             </TabsContent>
             
-            {/* Interactions Tab */}
+            {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-4 pt-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Interaction History</h3>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => {
-                    setIsPlanningMode(true);
-                    setIsAddInteractionOpen(true);
-                  }}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Plan Action
-                  </Button>
-                  <Button size="sm" onClick={() => {
-                    setIsPlanningMode(false);
-                    setIsAddInteractionOpen(true);
-                  }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </Button>
-                </div>
+                <Button size="sm" onClick={() => {
+                  setIsPlanningMode(false);
+                  setIsAddInteractionOpen(true);
+                }}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Add Interaction
+                </Button>
               </div>
               
               {interactions.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-3 font-medium text-muted-foreground">Date</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Type</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Description</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Follow-up</th>
-                        <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {interactions.map(interaction => (
-                        <tr key={interaction.interaction_id} className="border-b">
-                          <td className="p-3">
-                            {formatDate(interaction.interaction_date)}
-                          </td>
-                          <td className="p-3">
-                            <Badge variant="outline">
-                              {interaction.interaction_type}
-                            </Badge>
-                          </td>
-                          <td className="p-3">
-                            <div>{interaction.description}</div>
-                            {interaction.medium && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                via {interaction.medium}
+                <div className="space-y-3">
+                  {interactions.map(interaction => (
+                    <div key={interaction.interaction_id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 space-y-2">
+                          {editingInteraction === interaction.interaction_id ? (
+                            <div className="space-y-3">
+                              <div>
+                                <Label htmlFor={`date-${interaction.interaction_id}`}>Date</Label>
+                                <Input
+                                  id={`date-${interaction.interaction_id}`}
+                                  type="date"
+                                  value={editingValues[interaction.interaction_id]?.date || ''}
+                                  onChange={(e) => setEditingValues({
+                                    ...editingValues,
+                                    [interaction.interaction_id]: {
+                                      ...editingValues[interaction.interaction_id],
+                                      date: e.target.value
+                                    }
+                                  })}
+                                />
                               </div>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            {interaction.follow_up_due_date ? (
-                              <div className="flex flex-col">
-                                <div className="flex items-center">
-                                  <Calendar className="h-4 w-4 mr-1" />
-                                  <span className={`text-sm ${
-                                    interaction.follow_up_completed 
-                                      ? 'line-through text-muted-foreground' 
-                                      : new Date(interaction.follow_up_due_date) < new Date() 
-                                        ? 'text-red-600 font-medium' 
-                                        : ''
-                                  }`}>
-                                    {formatDate(interaction.follow_up_due_date)}
-                                  </span>
-                                </div>
-                                {interaction.follow_up_completed ? (
-                                  <span className="text-xs text-muted-foreground mt-0.5">Completed</span>
-                                ) : (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="justify-start px-0 py-0 h-6 text-xs hover:bg-transparent hover:text-primary"
-                                    onClick={() => handleCompleteFollowUp(interaction.interaction_id)}
-                                  >
-                                    Mark as complete
-                                  </Button>
-                                )}
+                              <div>
+                                <Label htmlFor={`desc-${interaction.interaction_id}`}>Description</Label>
+                                <Textarea
+                                  id={`desc-${interaction.interaction_id}`}
+                                  value={editingValues[interaction.interaction_id]?.description || ''}
+                                  onChange={(e) => setEditingValues({
+                                    ...editingValues,
+                                    [interaction.interaction_id]: {
+                                      ...editingValues[interaction.interaction_id],
+                                      description: e.target.value
+                                    }
+                                  })}
+                                  rows={3}
+                                />
                               </div>
-                            ) : 'None'}
-                          </td>
-                          <td className="p-3 text-right">
-                            <div className="flex justify-end space-x-1">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <Trash className="h-4 w-4" />
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveInteraction(interaction.interaction_id)}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
                             </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          ) : (
+                            <div>
+                              <div 
+                                className="text-sm font-medium text-muted-foreground cursor-pointer hover:text-primary"
+                                onClick={() => handleEditInteraction(
+                                  interaction.interaction_id, 
+                                  interaction.interaction_date, 
+                                  interaction.description || ''
+                                )}
+                              >
+                                {formatDate(interaction.interaction_date)}
+                              </div>
+                              <div 
+                                className="text-sm mt-1 cursor-pointer hover:bg-muted/50 p-1 rounded"
+                                onClick={() => handleEditInteraction(
+                                  interaction.interaction_id, 
+                                  interaction.interaction_date, 
+                                  interaction.description || ''
+                                )}
+                              >
+                                {interaction.description}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {editingInteraction !== interaction.interaction_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteInteraction(interaction.interaction_id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="bg-muted/30 rounded-lg p-6 text-center">
@@ -480,8 +548,8 @@ export function EnhancedContactDetails({
                     setIsPlanningMode(false);
                     setIsAddInteractionOpen(true);
                   }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Log Interaction
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Add Interaction
                   </Button>
                 </div>
               )}
@@ -489,16 +557,6 @@ export function EnhancedContactDetails({
           </Tabs>
         </DialogContent>
       </Dialog>
-
-      {/* Message Generation Dialog */}
-      {contact && (
-        <MessageGeneration
-          contact={contact}
-          companyName={contact.companies?.name || 'Unknown Company'}
-          isOpen={isMessageDialogOpen}
-          onClose={() => setIsMessageDialogOpen(false)}
-        />
-      )}
 
       {/* Interaction Form Dialog */}
       {contact && (

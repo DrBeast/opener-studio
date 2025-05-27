@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,6 +24,8 @@ interface MessageGenerationProps {
   companyName: string;
   isOpen: boolean;
   onClose: () => void;
+  onMessageSaved?: () => void;
+  embedded?: boolean;
 }
 
 interface GeneratedMessageResponse {
@@ -38,7 +39,14 @@ interface GeneratedMessageResponse {
   ai_reasoning: string;
 }
 
-export function MessageGeneration({ contact, companyName, isOpen, onClose }: MessageGenerationProps) {
+export function MessageGeneration({ 
+  contact, 
+  companyName, 
+  isOpen, 
+  onClose, 
+  onMessageSaved,
+  embedded = false 
+}: MessageGenerationProps) {
   const [medium, setMedium] = useState<string>("LinkedIn connection note");
   const [objective, setObjective] = useState<string>("");
   const [customObjective, setCustomObjective] = useState<string>("");
@@ -211,6 +219,11 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       if (interactionError) throw interactionError;
       
       toast.success("Message saved to conversation history!");
+      
+      // Call the callback to refresh interactions
+      if (onMessageSaved) {
+        onMessageSaved();
+      }
     } catch (err: any) {
       console.error("Error saving message:", err);
       toast.error("Failed to save message: " + (err.message || "Unknown error"));
@@ -223,6 +236,163 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       [version]: !prev[version]
     }));
   };
+
+  const MessageContent = () => (
+    <div className="space-y-6 mt-4">
+      {/* Message Configuration */}
+      <div className="space-y-4">
+        {/* Medium Selection */}
+        <div className="space-y-2">
+          <Label>Communication Medium</Label>
+          <RadioGroup 
+            value={medium}
+            onValueChange={handleMediumChange}
+            className="grid grid-cols-1 gap-2"
+          >
+            {mediumOptions.map(option => (
+              <div key={option.id} className="flex items-center space-x-2">
+                <RadioGroupItem value={option.id} id={option.id} />
+                <Label htmlFor={option.id} className="text-sm flex-1">{option.label}</Label>
+                <Badge variant="outline" className="text-xs">
+                  {option.maxLength >= 1000 ? `${option.maxLength/1000}k` : option.maxLength} chars
+                </Badge>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+        
+        {/* Message Objective */}
+        <div className="space-y-3">
+          <Label>Message Objective <span className="text-red-500">*</span></Label>
+          <div className="grid grid-cols-2 gap-2">
+            {objectiveOptions.map(option => (
+              <Button
+                key={option}
+                type="button"
+                variant={objective === option ? "default" : "outline"}
+                size="sm"
+                className="justify-start text-left h-auto py-2 px-3"
+                onClick={() => handleObjectiveChange(option)}
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+          
+          {objective === "Custom objective" && (
+            <Input
+              placeholder="Describe your custom objective..."
+              value={customObjective}
+              onChange={(e) => setCustomObjective(e.target.value)}
+              className="mt-2"
+            />
+          )}
+        </div>
+        
+        {/* Additional Context */}
+        <div className="space-y-2">
+          <Label htmlFor="additional-context">Additional Context (Optional)</Label>
+          <Textarea
+            id="additional-context"
+            placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
+            value={additionalContext}
+            onChange={(e) => setAdditionalContext(e.target.value)}
+            rows={3}
+          />
+        </div>
+        
+        {/* Generate Button */}
+        <Button 
+          onClick={generateMessages} 
+          disabled={isGenerating || !getEffectiveObjective()}
+          className="w-full"
+        >
+          <MessageCircle className="mr-2 h-4 w-4" />
+          {isGenerating ? "Generating Your Message..." : "Generate Messages"}
+        </Button>
+      </div>
+      
+      {/* Generated Messages */}
+      {Object.keys(generatedMessages).length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Your Message Options</h3>
+          {Object.entries(generatedMessages).map(([version, content]) => (
+            <Card key={version} className="p-4 relative">
+              <div className="flex justify-between mb-2 items-center">
+                <h4 className="font-medium text-base">{version}</h4>
+                <div className="space-x-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => toggleAIReasoning(version)}
+                  >
+                    {showAIReasoning[version] ? <ThumbsDown className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
+                    <span className="ml-1 hidden sm:inline">
+                      {showAIReasoning[version] ? "Hide Insights" : "Show AI Insights"}
+                    </span>
+                  </Button>
+                </div>
+              </div>
+              
+              {/* AI Reasoning */}
+              {showAIReasoning[version] && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                  <p className="font-medium mb-1 text-blue-900">Why this approach works for you:</p>
+                  <p className="text-blue-800">{content.reasoning}</p>
+                </div>
+              )}
+              
+              {/* Editable Message Text */}
+              <div className="space-y-2">
+                <Textarea
+                  value={editedMessages[version] || content.text}
+                  onChange={(e) => handleMessageEdit(version, e.target.value)}
+                  className="w-full resize-none"
+                  rows={6}
+                  maxLength={maxLength}
+                />
+                <div className="text-xs text-muted-foreground text-right">
+                  {(editedMessages[version] || content.text).length}/{maxLength} characters
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyMessage(editedMessages[version] || content.text)}
+                >
+                  <Copy className="mr-1 h-4 w-4" />
+                  Copy
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => saveMessage(version, editedMessages[version] || content.text)}
+                >
+                  <Save className="mr-1 h-4 w-4" />
+                  Save to History
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleMessageEdit(version, content.text)}
+                >
+                  <RotateCcw className="mr-1 h-4 w-4" />
+                  Reset
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (embedded) {
+    return <MessageContent />;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -240,156 +410,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6 mt-4">
-          {/* Message Configuration */}
-          <div className="space-y-4">
-            {/* Medium Selection */}
-            <div className="space-y-2">
-              <Label>Communication Medium</Label>
-              <RadioGroup 
-                value={medium}
-                onValueChange={handleMediumChange}
-                className="grid grid-cols-1 gap-2"
-              >
-                {mediumOptions.map(option => (
-                  <div key={option.id} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option.id} id={option.id} />
-                    <Label htmlFor={option.id} className="text-sm flex-1">{option.label}</Label>
-                    <Badge variant="outline" className="text-xs">
-                      {option.maxLength >= 1000 ? `${option.maxLength/1000}k` : option.maxLength} chars
-                    </Badge>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-            
-            {/* Message Objective */}
-            <div className="space-y-3">
-              <Label>Message Objective <span className="text-red-500">*</span></Label>
-              <div className="grid grid-cols-2 gap-2">
-                {objectiveOptions.map(option => (
-                  <Button
-                    key={option}
-                    type="button"
-                    variant={objective === option ? "default" : "outline"}
-                    size="sm"
-                    className="justify-start text-left h-auto py-2 px-3"
-                    onClick={() => handleObjectiveChange(option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-              
-              {objective === "Custom objective" && (
-                <Input
-                  placeholder="Describe your custom objective..."
-                  value={customObjective}
-                  onChange={(e) => setCustomObjective(e.target.value)}
-                  className="mt-2"
-                />
-              )}
-            </div>
-            
-            {/* Additional Context */}
-            <div className="space-y-2">
-              <Label htmlFor="additional-context">Additional Context (Optional)</Label>
-              <Textarea
-                id="additional-context"
-                placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
-                value={additionalContext}
-                onChange={(e) => setAdditionalContext(e.target.value)}
-                rows={3}
-              />
-            </div>
-            
-            {/* Generate Button */}
-            <Button 
-              onClick={generateMessages} 
-              disabled={isGenerating || !getEffectiveObjective()}
-              className="w-full"
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              {isGenerating ? "Generating Your Message..." : "Generate Messages"}
-            </Button>
-          </div>
-          
-          {/* Generated Messages */}
-          {Object.keys(generatedMessages).length > 0 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium">Your Message Options</h3>
-              {Object.entries(generatedMessages).map(([version, content]) => (
-                <Card key={version} className="p-4 relative">
-                  <div className="flex justify-between mb-2 items-center">
-                    <h4 className="font-medium text-base">{version}</h4>
-                    <div className="space-x-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toggleAIReasoning(version)}
-                      >
-                        {showAIReasoning[version] ? <ThumbsDown className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
-                        <span className="ml-1 hidden sm:inline">
-                          {showAIReasoning[version] ? "Hide Insights" : "Show AI Insights"}
-                        </span>
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* AI Reasoning */}
-                  {showAIReasoning[version] && (
-                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                      <p className="font-medium mb-1 text-blue-900">Why this approach works for you:</p>
-                      <p className="text-blue-800">{content.reasoning}</p>
-                    </div>
-                  )}
-                  
-                  {/* Editable Message Text */}
-                  <div className="space-y-2">
-                    <Textarea
-                      value={editedMessages[version] || content.text}
-                      onChange={(e) => handleMessageEdit(version, e.target.value)}
-                      className="w-full resize-none"
-                      rows={6}
-                      maxLength={maxLength}
-                    />
-                    <div className="text-xs text-muted-foreground text-right">
-                      {(editedMessages[version] || content.text).length}/{maxLength} characters
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex justify-end space-x-2 mt-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyMessage(editedMessages[version] || content.text)}
-                    >
-                      <Copy className="mr-1 h-4 w-4" />
-                      Copy
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => saveMessage(version, editedMessages[version] || content.text)}
-                    >
-                      <Save className="mr-1 h-4 w-4" />
-                      Save to History
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleMessageEdit(version, content.text)}
-                    >
-                      <RotateCcw className="mr-1 h-4 w-4" />
-                      Reset
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+        <MessageContent />
       </DialogContent>
     </Dialog>
   );
