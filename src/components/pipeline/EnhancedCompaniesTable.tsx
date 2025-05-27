@@ -14,21 +14,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-  MoreVertical, 
-  Trash, 
-  Star, 
-  CircleDashed, 
-  CircleDot,
   ArrowUpDown,
-  Plus,
   Calendar,
   MessageSquare,
-  UserPlus
+  UserPlus,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -56,7 +49,6 @@ export const EnhancedCompaniesTable = ({
   companies,
   onCompanyClick,
   onSetPriority,
-  onBlacklist,
   newCompanyIds,
   highlightNew,
   selectedCompanies,
@@ -85,7 +77,7 @@ export const EnhancedCompaniesTable = ({
         const dateB = b.latest_interaction_date ? new Date(b.latest_interaction_date).getTime() : 0;
         return dateB - dateA;
       })
-      .slice(0, 3);
+      .slice(0, 2);
     
     return sortedContacts.map(contact => {
       const firstName = contact.first_name || '';
@@ -97,7 +89,7 @@ export const EnhancedCompaniesTable = ({
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'MMM d, yyyy');
+      return format(new Date(dateString), 'MMM d');
     } catch {
       return '-';
     }
@@ -105,11 +97,16 @@ export const EnhancedCompaniesTable = ({
 
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
-      case 'Top': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Medium': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Maybe': return 'bg-gray-100 text-gray-600 border-gray-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      case 'Top': return 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200';
+      case 'Medium': return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
+      case 'Maybe': return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
+      default: return 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200';
     }
+  };
+
+  const getPriorityOptions = (currentPriority?: string) => {
+    const priorities = ['Top', 'Medium', 'Maybe'];
+    return priorities.filter(p => p !== currentPriority);
   };
 
   const SortButton = ({ field, children }: { field: string; children: React.ReactNode }) => (
@@ -122,208 +119,212 @@ export const EnhancedCompaniesTable = ({
     </button>
   );
 
+  const PriorityDropdown = ({ company }: { company: Company }) => {
+    const otherPriorities = getPriorityOptions(company.user_priority);
+    
+    if (otherPriorities.length === 0) {
+      return (
+        <span className={cn(
+          "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors",
+          getPriorityColor(company.user_priority)
+        )}>
+          {company.user_priority || 'Maybe'}
+        </span>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={cn(
+              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1",
+              getPriorityColor(company.user_priority)
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {company.user_priority || 'Maybe'}
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-20">
+          {otherPriorities.map((priority) => (
+            <DropdownMenuItem 
+              key={priority}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetPriority(company.company_id, priority);
+              }}
+              className="text-xs"
+            >
+              {priority}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
   return (
     <>
       <style>{highlightAnimation}</style>
       <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedCompanies.size === companies.length && companies.length > 0}
-                  onCheckedChange={onSelectAll}
-                />
-              </TableHead>
-              <TableHead className="w-20">
-                <SortButton field="priority">Priority</SortButton>
-              </TableHead>
-              <TableHead className="w-48">
-                <SortButton field="name">Company</SortButton>
-              </TableHead>
-              <TableHead className="hidden lg:table-cell w-64">Description</TableHead>
-              <TableHead className="hidden md:table-cell w-32">Location</TableHead>
-              <TableHead className="hidden lg:table-cell w-24">WFH Policy</TableHead>
-              <TableHead className="hidden xl:table-cell w-48">Match Reasoning</TableHead>
-              <TableHead className="w-32">Contacts</TableHead>
-              <TableHead className="w-40">Latest Update</TableHead>
-              <TableHead className="w-40">Follow-up</TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {companies.map((company) => {
-              const isNewCompany = newCompanyIds.includes(company.company_id);
-              const isSelected = selectedCompanies.has(company.company_id);
-              return (
-                <TableRow 
-                  key={company.company_id} 
-                  className={cn(
-                    "cursor-pointer hover:bg-muted/50",
-                    isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "",
-                    isSelected ? "bg-muted/20" : ""
-                  )}
-                  onClick={() => onCompanyClick(company)}
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => onSelectCompany(company.company_id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <span className={cn(
-                      "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border",
-                      getPriorityColor(company.user_priority)
-                    )}>
-                      {company.user_priority || 'Maybe'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{company.name}</div>
-                      {company.industry && (
-                        <div className="text-sm text-muted-foreground">{company.industry}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="max-w-xs truncate text-sm">
-                      {company.ai_description || '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {company.hq_location || '-'}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {company.wfh_policy || '-'}
-                  </TableCell>
-                  <TableCell className="hidden xl:table-cell">
-                    <div className="max-w-xs truncate text-sm">
-                      {company.ai_match_reasoning || '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{formatContacts(company.contacts)}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCreateContact(company.company_id);
-                        }}
-                      >
-                        <UserPlus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="min-w-0">
-                        {company.latest_update ? (
-                          <div>
-                            <div className="text-sm truncate max-w-32">
-                              {company.latest_update.description}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDate(company.latest_update.interaction_date)}
-                            </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8">
+                  <Checkbox
+                    checked={selectedCompanies.size === companies.length && companies.length > 0}
+                    onCheckedChange={onSelectAll}
+                  />
+                </TableHead>
+                <TableHead className="w-20">
+                  <SortButton field="priority">Priority</SortButton>
+                </TableHead>
+                <TableHead className="w-44">
+                  <SortButton field="name">Company</SortButton>
+                </TableHead>
+                <TableHead className="w-64">Description</TableHead>
+                <TableHead className="hidden md:table-cell w-24">Location</TableHead>
+                <TableHead className="hidden lg:table-cell w-20">WFH</TableHead>
+                <TableHead className="hidden xl:table-cell w-48">Match Reasoning</TableHead>
+                <TableHead className="w-28">Contacts</TableHead>
+                <TableHead className="w-32">Latest</TableHead>
+                <TableHead className="w-32">Follow-up</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {companies.map((company) => {
+                const isNewCompany = newCompanyIds.includes(company.company_id);
+                const isSelected = selectedCompanies.has(company.company_id);
+                return (
+                  <TableRow 
+                    key={company.company_id} 
+                    className={cn(
+                      "cursor-pointer hover:bg-muted/50",
+                      isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : "",
+                      isSelected ? "bg-muted/20" : ""
+                    )}
+                    onClick={() => onCompanyClick(company)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onSelectCompany(company.company_id)}
+                      />
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <PriorityDropdown company={company} />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-sm leading-tight">{company.name}</div>
+                        {company.industry && (
+                          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                            {company.industry}
                           </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">No updates</span>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onLogInteraction(company.company_id);
-                        }}
-                      >
-                        <MessageSquare className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="min-w-0">
-                        {company.next_followup ? (
-                          <div>
-                            <div className="text-sm truncate max-w-32">
-                              {company.next_followup.description}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDate(company.next_followup.follow_up_due_date)}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">No follow-ups</span>
-                        )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-xs leading-relaxed max-w-64">
+                        {company.ai_description || '-'}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onScheduleAction(company.company_id);
-                        }}
-                      >
-                        <Calendar className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="text-xs">{company.hq_location || '-'}</div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className="text-xs">{company.wfh_policy || '-'}</div>
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <div className="text-xs leading-relaxed max-w-48">
+                        {company.ai_match_reasoning || '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <div className="text-xs min-w-0 flex-1">
+                          {formatContacts(company.contacts)}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCreateContact(company.company_id);
+                          }}
+                        >
+                          <UserPlus className="h-3 w-3" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          onSetPriority(company.company_id, "Top");
-                        }}>
-                          <Star className="mr-2 h-4 w-4 text-yellow-500" />
-                          Mark as Top
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          onSetPriority(company.company_id, "Medium");
-                        }}>
-                          <CircleDot className="mr-2 h-4 w-4 text-blue-500" />
-                          Mark as Medium
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          onSetPriority(company.company_id, "Maybe");
-                        }}>
-                          <CircleDashed className="mr-2 h-4 w-4 text-gray-500" />
-                          Mark as Maybe
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          onBlacklist(company.company_id);
-                        }}>
-                          <Trash className="mr-2 h-4 w-4 text-red-500" />
-                          Remove
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <div className="min-w-0 flex-1">
+                          {company.latest_update ? (
+                            <div>
+                              <div className="text-xs truncate leading-tight">
+                                {company.latest_update.description}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {formatDate(company.latest_update.interaction_date)}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No updates</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLogInteraction(company.company_id);
+                          }}
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <div className="min-w-0 flex-1">
+                          {company.next_followup ? (
+                            <div>
+                              <div className="text-xs truncate leading-tight">
+                                {company.next_followup.description}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {formatDate(company.next_followup.follow_up_due_date)}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No follow-ups</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onScheduleAction(company.company_id);
+                          }}
+                        >
+                          <Calendar className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </>
   );
