@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Copy, Save, RotateCcw, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 
@@ -40,6 +41,7 @@ interface GeneratedMessageResponse {
 export function MessageGeneration({ contact, companyName, isOpen, onClose }: MessageGenerationProps) {
   const [medium, setMedium] = useState<string>("LinkedIn connection note");
   const [objective, setObjective] = useState<string>("");
+  const [customObjective, setCustomObjective] = useState<string>("");
   const [additionalContext, setAdditionalContext] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedMessages, setGeneratedMessages] = useState<{[key: string]: {text: string, reasoning: string}}>({});
@@ -48,10 +50,20 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
   const [showAIReasoning, setShowAIReasoning] = useState<{[key: string]: boolean}>({});
 
   const mediumOptions = [
-    { id: "LinkedIn connection note", label: "LinkedIn Connection Note (max 300 symbols)", maxLength: 300 },
-    { id: "LinkedIn InMail", label: "LinkedIn InMail (max 2000 symbols)", maxLength: 2000 },
-    { id: "LinkedIn message to 1st connection", label: "LinkedIn Message to 1st Connection (max 400 symbols)", maxLength: 400 },
-    { id: "Cold email", label: "Cold Email (max 500 symbols)", maxLength: 500 }
+    { id: "LinkedIn connection note", label: "LinkedIn Connection Note", maxLength: 300 },
+    { id: "LinkedIn message to 1st connection", label: "LinkedIn Message to 1st Connection", maxLength: 400 },
+    { id: "LinkedIn InMail", label: "LinkedIn InMail", maxLength: 400 },
+    { id: "Cold email", label: "Cold Email", maxLength: 500 },
+    { id: "Forwardable intro", label: "Forwardable Intro", maxLength: 1000 }
+  ];
+
+  const objectiveOptions = [
+    "Get to know and build relationship",
+    "Get informational interview", 
+    "Ask for referral",
+    "Explore roles",
+    "Follow up on previous conversation",
+    "Custom objective"
   ];
 
   const handleMediumChange = (value: string) => {
@@ -62,9 +74,21 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
     }
   };
 
+  const handleObjectiveChange = (value: string) => {
+    setObjective(value);
+    if (value !== "Custom objective") {
+      setCustomObjective("");
+    }
+  };
+
+  const getEffectiveObjective = () => {
+    return objective === "Custom objective" ? customObjective : objective;
+  };
+
   const generateMessages = async () => {
-    if (!objective) {
-      toast.error("Please provide a message objective");
+    const effectiveObjective = getEffectiveObjective();
+    if (!effectiveObjective) {
+      toast.error("Please select or provide a message objective");
       return;
     }
 
@@ -74,7 +98,6 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
     setShowAIReasoning({});
 
     try {
-      // Get the current session for authentication
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) throw sessionError;
@@ -83,12 +106,11 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
         throw new Error("No active session found");
       }
 
-      // Make the call to our edge function
       const { data, error: fnError } = await supabase.functions.invoke("generate_message", {
         body: { 
           contact_id: contact.contact_id,
           medium,
-          objective,
+          objective: effectiveObjective,
           additional_context: additionalContext || undefined
         },
         headers: {
@@ -98,7 +120,6 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       
       if (fnError) throw fnError;
       
-      // Fix: Changed comparison from status !== "success" to status === "error"
       if (!data || data.status === "error" || !data.generated_messages) {
         throw new Error("Invalid response from generate_message function");
       }
@@ -120,7 +141,6 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
       
       setGeneratedMessages(messageVersions);
       
-      // Initialize edited messages with the generated ones
       const initialEditedMessages: {[key: string]: string} = {};
       Object.entries(messageVersions).forEach(([version, content]) => {
         if (content.text) {
@@ -157,7 +177,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
   
   const saveMessage = async (version: string, messageText: string) => {
     try {
-      // Save to saved_message_versions table
+      const effectiveObjective = getEffectiveObjective();
       const { data, error } = await supabase
         .from('saved_message_versions')
         .insert({
@@ -167,13 +187,14 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           version_name: version,
           message_text: messageText,
           medium: medium,
-          message_objective: objective,
+          message_objective: effectiveObjective,
           message_additional_context: additionalContext || null
         });
         
       if (error) throw error;
       
-      // Also log an interaction
+      const interactionDescription = `You sent a ${medium.toLowerCase()} to ${contact.first_name || ''} ${contact.last_name || ''}: "${messageText}"`;
+      
       const { error: interactionError } = await supabase
         .from('interactions')
         .insert({
@@ -181,9 +202,9 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
           contact_id: contact.contact_id,
           company_id: contact.company_id,
           interaction_type: 'message_draft',
-          description: messageText,
+          description: interactionDescription,
           medium: medium,
-          message_objective: objective,
+          message_objective: effectiveObjective,
           message_additional_context: additionalContext || null
         });
         
@@ -205,14 +226,17 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Generate Messages for {contact.first_name || ''} {contact.last_name || ''}
+            Generate Message for {contact.first_name || ''} {contact.last_name || ''}
             {contact.role && ` (${contact.role})`} at {companyName}
           </DialogTitle>
-          <DialogDescription>
-            Create personalized outreach messages based on your profile and contact details.
+          <DialogDescription className="space-y-2">
+            <p>You are creating a personalized outreach message that highlights your value proposition and builds authentic connections.</p>
+            <p className="text-sm text-primary">
+              <strong>Your approach:</strong> You are framing this outreach around genuine interest and mutual value, focusing on how your experience can contribute rather than what you need. This authentic approach helps avoid the "sales-y" feeling and creates meaningful professional connections.
+            </p>
           </DialogDescription>
         </DialogHeader>
         
@@ -225,26 +249,46 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
               <RadioGroup 
                 value={medium}
                 onValueChange={handleMediumChange}
-                className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+                className="grid grid-cols-1 gap-2"
               >
                 {mediumOptions.map(option => (
                   <div key={option.id} className="flex items-center space-x-2">
                     <RadioGroupItem value={option.id} id={option.id} />
-                    <Label htmlFor={option.id} className="text-sm">{option.label}</Label>
+                    <Label htmlFor={option.id} className="text-sm flex-1">{option.label}</Label>
+                    <Badge variant="outline" className="text-xs">
+                      {option.maxLength >= 1000 ? `${option.maxLength/1000}k` : option.maxLength} chars
+                    </Badge>
                   </div>
                 ))}
               </RadioGroup>
             </div>
             
             {/* Message Objective */}
-            <div className="space-y-2">
-              <Label htmlFor="objective">Message Objective <span className="text-red-500">*</span></Label>
-              <Input
-                id="objective"
-                placeholder="e.g., Explore job opportunities, Request informational interview, Connect for industry insights"
-                value={objective}
-                onChange={(e) => setObjective(e.target.value)}
-              />
+            <div className="space-y-3">
+              <Label>Message Objective <span className="text-red-500">*</span></Label>
+              <div className="grid grid-cols-2 gap-2">
+                {objectiveOptions.map(option => (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={objective === option ? "default" : "outline"}
+                    size="sm"
+                    className="justify-start text-left h-auto py-2 px-3"
+                    onClick={() => handleObjectiveChange(option)}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              
+              {objective === "Custom objective" && (
+                <Input
+                  placeholder="Describe your custom objective..."
+                  value={customObjective}
+                  onChange={(e) => setCustomObjective(e.target.value)}
+                  className="mt-2"
+                />
+              )}
             </div>
             
             {/* Additional Context */}
@@ -252,7 +296,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
               <Label htmlFor="additional-context">Additional Context (Optional)</Label>
               <Textarea
                 id="additional-context"
-                placeholder="Any specific details you'd like the AI to consider when crafting your message"
+                placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
                 value={additionalContext}
                 onChange={(e) => setAdditionalContext(e.target.value)}
                 rows={3}
@@ -262,18 +306,18 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
             {/* Generate Button */}
             <Button 
               onClick={generateMessages} 
-              disabled={isGenerating || !objective}
+              disabled={isGenerating || !getEffectiveObjective()}
               className="w-full"
             >
               <MessageCircle className="mr-2 h-4 w-4" />
-              {isGenerating ? "Generating..." : "Generate Messages"}
+              {isGenerating ? "Generating Your Message..." : "Generate Messages"}
             </Button>
           </div>
           
           {/* Generated Messages */}
           {Object.keys(generatedMessages).length > 0 && (
             <div className="space-y-6">
-              <h3 className="text-lg font-medium">Message Options</h3>
+              <h3 className="text-lg font-medium">Your Message Options</h3>
               {Object.entries(generatedMessages).map(([version, content]) => (
                 <Card key={version} className="p-4 relative">
                   <div className="flex justify-between mb-2 items-center">
@@ -286,7 +330,7 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                       >
                         {showAIReasoning[version] ? <ThumbsDown className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
                         <span className="ml-1 hidden sm:inline">
-                          {showAIReasoning[version] ? "Hide Reasoning" : "Show Reasoning"}
+                          {showAIReasoning[version] ? "Hide Insights" : "Show AI Insights"}
                         </span>
                       </Button>
                     </div>
@@ -294,9 +338,9 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                   
                   {/* AI Reasoning */}
                   {showAIReasoning[version] && (
-                    <div className="mb-3 p-3 bg-muted/50 rounded-md text-sm">
-                      <p className="font-medium mb-1">Why this approach works:</p>
-                      <p>{content.reasoning}</p>
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                      <p className="font-medium mb-1 text-blue-900">Why this approach works for you:</p>
+                      <p className="text-blue-800">{content.reasoning}</p>
                     </div>
                   )}
                   
@@ -306,11 +350,11 @@ export function MessageGeneration({ contact, companyName, isOpen, onClose }: Mes
                       value={editedMessages[version] || content.text}
                       onChange={(e) => handleMessageEdit(version, e.target.value)}
                       className="w-full resize-none"
-                      rows={5}
+                      rows={6}
                       maxLength={maxLength}
                     />
                     <div className="text-xs text-muted-foreground text-right">
-                      {(editedMessages[version] || content.text).length}/{maxLength} symbols
+                      {(editedMessages[version] || content.text).length}/{maxLength} characters
                     </div>
                   </div>
                   

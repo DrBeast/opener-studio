@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -48,19 +47,21 @@ interface EnhancedContactDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onContactUpdated: () => void;
+  defaultTab?: string;
 }
 
 export function EnhancedContactDetails({ 
   contactId, 
   isOpen, 
   onClose, 
-  onContactUpdated 
+  onContactUpdated,
+  defaultTab = "details" 
 }: EnhancedContactDetailsProps) {
   const { user } = useAuth();
   const [contact, setContact] = useState<ContactData | null>(null);
   const [formData, setFormData] = useState<ContactData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [interactions, setInteractions] = useState<InteractionData[]>([]);
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
@@ -72,6 +73,10 @@ export function EnhancedContactDetails({
       fetchContactInteractions();
     }
   }, [contactId, isOpen]);
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   const fetchContactDetails = async () => {
     try {
@@ -319,20 +324,46 @@ export function EnhancedContactDetails({
               </form>
             </TabsContent>
             
-            {/* Messages Tab */}
+            {/* Enhanced Messages Tab */}
             <TabsContent value="messages" className="space-y-4 pt-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Generate Message</h3>
+                <div>
+                  <h3 className="text-lg font-medium">Generate Outreach Message</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You are crafting a personalized message to build genuine connections and articulate your value proposition authentically, focusing on mutual learning rather than just asking for opportunities.
+                  </p>
+                </div>
                 <Button onClick={() => setIsMessageDialogOpen(true)}>
                   <MessageCircle className="mr-2 h-4 w-4" />
-                  Generate New Message
+                  Generate Message
                 </Button>
               </div>
               
-              <div className="bg-muted/30 rounded-lg p-6 text-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <strong className="text-blue-900">How AI helps you succeed:</strong>
+                      <p className="text-blue-800 mt-1">
+                        Your experience and skills are analyzed in relation to this contact's role and company needs. The AI helps you frame your outreach around genuine interest and mutual value, avoiding the "sales-y" feeling by focusing on how you can contribute rather than what you need.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <strong className="text-blue-900">Your value proposition approach:</strong>
+                      <p className="text-blue-800 mt-1">
+                        You are positioning yourself as someone who can bring value to their work and company goals. Your professional background is leveraged to demonstrate authentic interest in their industry and challenges, making the connection feel natural and mutually beneficial.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center py-8 border rounded-lg bg-muted/20">
                 <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground mb-4">
-                  Generate personalized messages for this contact
+                  Generate personalized messages that highlight your value and build authentic connections
                 </p>
                 <Button onClick={() => setIsMessageDialogOpen(true)}>
                   <MessageCircle className="mr-2 h-4 w-4" />

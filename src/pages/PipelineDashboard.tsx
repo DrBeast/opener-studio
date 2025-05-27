@@ -61,6 +61,7 @@ const PipelineDashboard = () => {
   });
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
+  const [contactDetailsTab, setContactDetailsTab] = useState<string>('details');
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -228,11 +229,18 @@ const PipelineDashboard = () => {
   };
   const handleContactClick = (contactId: string) => {
     setSelectedContactId(contactId);
+    setContactDetailsTab('details');
+    setIsContactDetailsOpen(true);
+  };
+  const handleGenerateMessage = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setContactDetailsTab('messages');
     setIsContactDetailsOpen(true);
   };
   const handleContactDetailClose = () => {
     setIsContactDetailsOpen(false);
     setSelectedContactId(null);
+    setContactDetailsTab('details');
   };
   const handleContactUpdated = async () => {
     await fetchCompanies();
@@ -295,6 +303,7 @@ const PipelineDashboard = () => {
               onScheduleAction={handleScheduleAction} 
               onCreateContact={handleCreateContact}
               onContactClick={handleContactClick}
+              onGenerateMessage={handleGenerateMessage}
             />
           }
         </CardContent>
@@ -346,6 +355,7 @@ const PipelineDashboard = () => {
           isOpen={isContactDetailsOpen}
           onClose={handleContactDetailClose}
           onContactUpdated={handleContactUpdated}
+          defaultTab={contactDetailsTab}
         />
       )}
     </div>;

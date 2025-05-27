@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus } from "lucide-react";
+import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
@@ -26,6 +26,7 @@ interface EnhancedCompaniesTableProps {
   onScheduleAction: (companyId: string) => void;
   onCreateContact: (companyId: string) => void;
   onContactClick: (contactId: string) => void;
+  onGenerateMessage: (contactId: string) => void;
 }
 
 export const EnhancedCompaniesTable = ({
@@ -43,7 +44,8 @@ export const EnhancedCompaniesTable = ({
   onLogInteraction,
   onScheduleAction,
   onCreateContact,
-  onContactClick
+  onContactClick,
+  onGenerateMessage
 }: EnhancedCompaniesTableProps) => {
   const highlightAnimation = `
     @keyframes highlightFade {
@@ -357,26 +359,40 @@ export const EnhancedCompaniesTable = ({
                           </Button>
                         </div>
                         
-                        {/* Contact names with roles below */}
+                        {/* Contact names with roles and message icons below */}
                         <div className="text-xs min-w-0">
                           {contactsData && contactsData.length > 0 ? (
                             <div className="space-y-1">
                               {contactsData.map((contact) => (
-                                <div key={contact.id}>
-                                  <button
+                                <div key={contact.id} className="flex items-center gap-1">
+                                  <div className="flex-1 min-w-0">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onContactClick(contact.id);
+                                      }}
+                                      className="block text-left text-xs text-primary hover:underline w-full truncate"
+                                    >
+                                      {contact.displayName}
+                                    </button>
+                                    {contact.role && (
+                                      <div className="text-xs text-muted-foreground truncate">
+                                        {contact.role}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-4 w-4 p-0 shrink-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      onContactClick(contact.id);
+                                      onGenerateMessage(contact.id);
                                     }}
-                                    className="block text-left text-xs text-primary hover:underline w-full truncate"
+                                    title="Generate message for this contact"
                                   >
-                                    {contact.displayName}
-                                  </button>
-                                  {contact.role && (
-                                    <div className="text-xs text-muted-foreground truncate">
-                                      {contact.role}
-                                    </div>
-                                  )}
+                                    <MessageCircle className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                                  </Button>
                                 </div>
                               ))}
                             </div>
