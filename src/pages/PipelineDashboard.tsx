@@ -43,15 +43,6 @@ const PipelineDashboard = () => {
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
-  const [interactionModal, setInteractionModal] = useState<{
-    isOpen: boolean;
-    companyId: string;
-    mode: 'log' | 'schedule';
-  }>({
-    isOpen: false,
-    companyId: '',
-    mode: 'log'
-  });
   const [contactModal, setContactModal] = useState<{
     isOpen: boolean;
     companyId: string;
@@ -111,6 +102,7 @@ const PipelineDashboard = () => {
       company.user_priority && filters.priority.includes(company.user_priority);
     return matchesSearch && matchesPriority;
   });
+
   const handlePriorityFilter = (priority: string) => {
     setFilters(prev => {
       if (prev.priority.includes(priority)) {
@@ -126,15 +118,18 @@ const PipelineDashboard = () => {
       }
     });
   };
+
   const handleClearFilters = () => {
     setFilters({
       ...filters,
       priority: []
     });
   };
+
   const handleAddCompany = () => {
     setIsAddCompanyModalOpen(true);
   };
+
   const handleCompanyAdded = async (companyName: string) => {
     if (!user) return;
     try {
@@ -162,6 +157,7 @@ const PipelineDashboard = () => {
       });
     }
   };
+
   const handleGenerateCompanies = async () => {
     if (!user) return;
     setIsGeneratingCompanies(true);
@@ -194,62 +190,59 @@ const PipelineDashboard = () => {
       setIsGeneratingCompanies(false);
     }
   };
+
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
   };
+
   const handleCompanyDetailClose = () => {
     setSelectedCompany(null);
   };
+
   const handleCompanyUpdated = async () => {
     await fetchCompanies();
   };
+
   const handleBulkRemove = async () => {
     if (selectedCompanies.size === 0) return;
     await handleBulkBlacklist(Array.from(selectedCompanies));
   };
-  const handleLogInteraction = (companyId: string) => {
-    setInteractionModal({
-      isOpen: true,
-      companyId,
-      mode: 'log'
-    });
-  };
-  const handleScheduleAction = (companyId: string) => {
-    setInteractionModal({
-      isOpen: true,
-      companyId,
-      mode: 'schedule'
-    });
-  };
+
   const handleCreateContact = (companyId: string) => {
     setContactModal({
       isOpen: true,
       companyId
     });
   };
+  
   const handleContactClick = (contactId: string) => {
     setSelectedContactId(contactId);
     setContactDetailsTab('details');
     setIsContactDetailsOpen(true);
   };
+  
   const handleGenerateMessage = (contactId: string) => {
     setSelectedContactId(contactId);
     setContactDetailsTab('messages');
     setIsContactDetailsOpen(true);
   };
+  
   const handleContactDetailClose = () => {
     setIsContactDetailsOpen(false);
     setSelectedContactId(null);
     setContactDetailsTab('details');
   };
+  
   const handleContactUpdated = async () => {
     await fetchCompanies();
   };
+
   if (isLoading) {
     return <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>;
   }
+
   return <div className="container mx-auto px-4 py-8 max-w-full">
       <ProfileBreadcrumbs />
 
@@ -299,8 +292,6 @@ const PipelineDashboard = () => {
               sortField={sortField} 
               sortDirection={sortDirection} 
               onSort={handleSort} 
-              onLogInteraction={handleLogInteraction} 
-              onScheduleAction={handleScheduleAction} 
               onCreateContact={handleCreateContact}
               onContactClick={handleContactClick}
               onGenerateMessage={handleGenerateMessage}
@@ -325,18 +316,6 @@ const PipelineDashboard = () => {
           onCompanyUpdated={handleCompanyUpdated} 
         />
       }
-
-      <InteractionModal 
-        isOpen={interactionModal.isOpen} 
-        onClose={() => setInteractionModal({
-          isOpen: false,
-          companyId: '',
-          mode: 'log'
-        })} 
-        companyId={interactionModal.companyId} 
-        mode={interactionModal.mode} 
-        onSuccess={handleCompanyUpdated} 
-      />
 
       <ContactModal 
         isOpen={contactModal.isOpen} 

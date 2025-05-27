@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus, MessageCircle } from "lucide-react";
+import { ArrowUpDown, Calendar, MessageSquare, ChevronDown, Bot, UserPlus, MessageCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
+import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import type { Company } from '@/hooks/useCompanies';
 
 interface EnhancedCompaniesTableProps {
@@ -22,12 +23,63 @@ interface EnhancedCompaniesTableProps {
   sortField: string;
   sortDirection: 'asc' | 'desc';
   onSort: (field: string) => void;
-  onLogInteraction: (companyId: string) => void;
-  onScheduleAction: (companyId: string) => void;
   onCreateContact: (companyId: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
 }
+
+const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
+  const { overview, isLoading, error, regenerateOverview } = useInteractionOverview(companyId);
+
+  if (isLoading) {
+    return (
+      <div className="text-xs text-muted-foreground">
+        Generating overview...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-xs text-red-500">
+        <div>Error loading overview</div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-4 w-4 p-0 mt-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            regenerateOverview();
+          }}
+        >
+          <RefreshCw className="h-3 w-3" />
+        </Button>
+      </div>
+    );
+  }
+
+  if (!overview) {
+    return (
+      <div className="text-xs text-muted-foreground">
+        No overview available
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-xs leading-relaxed max-w-64">
+      {overview.overview}
+      {overview.hasInteractions && (
+        <div className="text-xs text-muted-foreground mt-1">
+          {overview.interactionCount} total
+          {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
+            ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
+          }
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const EnhancedCompaniesTable = ({
   companies,
@@ -41,8 +93,6 @@ export const EnhancedCompaniesTable = ({
   sortField,
   sortDirection,
   onSort,
-  onLogInteraction,
-  onScheduleAction,
   onCreateContact,
   onContactClick,
   onGenerateMessage
@@ -111,18 +161,15 @@ export const EnhancedCompaniesTable = ({
       'Talent Acquisition': 'TA'
     };
 
-    // Check for exact matches first
     if (abbreviations[role]) {
       return abbreviations[role];
     }
 
-    // Check for partial matches and apply abbreviations
     let abbreviated = role;
     Object.entries(abbreviations).forEach(([full, abbrev]) => {
       abbreviated = abbreviated.replace(new RegExp(full, 'gi'), abbrev);
     });
 
-    // If still too long, truncate with ellipsis
     if (abbreviated.length > 15) {
       abbreviated = abbreviated.substring(0, 15) + '...';
     }
@@ -281,8 +328,7 @@ export const EnhancedCompaniesTable = ({
                 <TableHead className="hidden md:table-cell w-32">Location / WFH</TableHead>
                 <TableHead className="hidden xl:table-cell w-48">Match Reasoning</TableHead>
                 <TableHead className="w-28">Contacts</TableHead>
-                <TableHead className="w-32">Past Interactions</TableHead>
-                <TableHead className="w-32">Planned Interactions</TableHead>
+                <TableHead className="w-64">Interactions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -338,7 +384,6 @@ export const EnhancedCompaniesTable = ({
                     </TableCell>
                     <TableCell className="">
                       <div className="space-y-2">
-                        {/* Buttons at the top */}
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           <ContactRecommendation 
                             companyId={company.company_id} 
@@ -359,7 +404,6 @@ export const EnhancedCompaniesTable = ({
                           </Button>
                         </div>
                         
-                        {/* Contact names with roles and message icons below */}
                         <div className="text-xs min-w-0">
                           {contactsData && contactsData.length > 0 ? (
                             <div className="space-y-1">
@@ -403,62 +447,7 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <div className="min-w-0 flex-1">
-                          {company.latest_update ? (
-                            <div>
-                              <div className="text-xs truncate leading-tight">
-                                {company.latest_update.description}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {formatDate(company.latest_update.interaction_date)}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">No updates</span>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onLogInteraction(company.company_id);
-                          }}
-                        >
-                          <MessageSquare className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <div className="min-w-0 flex-1">
-                          {company.next_followup ? (
-                            <div>
-                              <div className="text-xs truncate leading-tight">
-                                {company.next_followup.description}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {formatDate(company.next_followup.follow_up_due_date)}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">No follow-ups</span>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onScheduleAction(company.company_id);
-                          }}
-                        >
-                          <Calendar className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <InteractionOverviewCell companyId={company.company_id} />
                     </TableCell>
                   </TableRow>
                 );
