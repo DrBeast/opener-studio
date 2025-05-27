@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil, ChevronDown } from "lucide-react";
+import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil, ChevronDown, RefreshCw } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -14,6 +15,7 @@ import { InteractionForm } from "@/components/InteractionForm";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 
 interface ContactData {
   contact_id: string;
@@ -82,6 +84,7 @@ export function CompanyDetails({
   const [isPlanningMode, setIsPlanningMode] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionData | null>(null);
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
+  const { overview, isLoading: isOverviewLoading, error: overviewError, regenerateOverview } = useInteractionOverview(company.company_id);
 
   // Update formData when company prop changes
   useEffect(() => {
@@ -331,6 +334,95 @@ export function CompanyDetails({
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
+  
+  // Get responses from interactions
+  const getRecordedResponses = () => {
+    return interactions.filter(i => 
+      i.description?.toLowerCase().includes('replied') || 
+      i.description?.toLowerCase().includes('responded') ||
+      i.description?.toLowerCase().includes('response') ||
+      i.interaction_type?.toLowerCase().includes('response')
+    );
+  };
+  
+  const recordedResponses = getRecordedResponses();
+
+  // Render the interaction summary section
+  const renderInteractionSummary = () => {
+    if (isOverviewLoading) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          Generating interaction summary...
+        </div>
+      );
+    }
+
+    if (overviewError) {
+      return (
+        <div className="flex flex-col">
+          <div className="text-red-500">Error loading interaction summary</div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={regenerateOverview}
+            className="mt-2 self-start"
+          >
+            <RefreshCw className="mr-2 h-3 w-3" /> Try again
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col">
+        <div className="flex items-start justify-between">
+          <div>
+            {overview?.overview ? (
+              <p className="text-sm">{overview.overview}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">No interaction summary available</p>
+            )}
+            
+            {overview?.interactionCount !== undefined && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {overview.interactionCount} total
+                {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
+                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
+                }
+              </p>
+            )}
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={regenerateOverview}
+            className="ml-2 h-8 w-8 p-0"
+            title="Regenerate summary"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        {recordedResponses.length > 0 && (
+          <div className="mt-3">
+            <h4 className="text-sm font-medium mb-1">Recorded Responses:</h4>
+            <ul className="text-xs space-y-1">
+              {recordedResponses.map(response => (
+                <li key={response.interaction_id} className="flex items-start">
+                  <span className="inline-block w-20 flex-shrink-0 text-muted-foreground">
+                    {formatDate(response.interaction_date)}
+                  </span>
+                  <span>{response.description}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -480,6 +572,16 @@ export function CompanyDetails({
                     </div>
                   </div>
                 )}
+                
+                {/* Interaction Summary Section */}
+                <div className="col-span-2 space-y-2">
+                  <Label className="flex items-center justify-between">
+                    <span>Interaction Summary</span>
+                  </Label>
+                  <div className="rounded-md border p-3 bg-muted/20">
+                    {renderInteractionSummary()}
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end mt-6">
