@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,17 +27,18 @@ interface EnhancedCompaniesTableProps {
   onGenerateMessage: (contactId: string) => void;
 }
 
-const InteractionOverviewCell = ({ companyId, storedSummary }: { companyId: string; storedSummary?: string }) => {
+const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
   const { overview, isLoading, error, regenerateOverview } = useInteractionOverview(companyId);
 
-  // Use stored summary if available, otherwise fall back to generated overview
-  const displaySummary = storedSummary || overview?.overview;
-  const hasInteractions = storedSummary !== "No interactions yet with this company." && storedSummary !== undefined;
+  console.log(`InteractionOverviewCell for ${companyId}:`, { overview, isLoading, error });
 
   if (isLoading) {
     return (
       <div className="text-xs text-muted-foreground">
-        Generating overview...
+        <div className="flex items-center gap-1">
+          <div className="animate-spin rounded-full h-3 w-3 border-b border-primary"></div>
+          Generating overview...
+        </div>
       </div>
     );
   }
@@ -46,7 +46,7 @@ const InteractionOverviewCell = ({ companyId, storedSummary }: { companyId: stri
   if (error) {
     return (
       <div className="text-xs text-red-500">
-        <div>Error loading overview</div>
+        <div>Error: {error}</div>
         <Button
           size="sm"
           variant="ghost"
@@ -62,18 +62,30 @@ const InteractionOverviewCell = ({ companyId, storedSummary }: { companyId: stri
     );
   }
 
-  if (!displaySummary) {
+  if (!overview) {
     return (
       <div className="text-xs text-muted-foreground">
-        No overview available
+        <div>No overview available</div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-4 w-4 p-0 mt-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            regenerateOverview();
+          }}
+          title="Generate overview"
+        >
+          <RefreshCw className="h-3 w-3" />
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="text-xs leading-relaxed max-w-64">
-      {displaySummary}
-      {hasInteractions && overview && (
+      <div>{overview.overview}</div>
+      {overview.hasInteractions && overview.interactionCount && (
         <div className="text-xs text-muted-foreground mt-1">
           {overview.interactionCount} total
           {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
@@ -81,6 +93,18 @@ const InteractionOverviewCell = ({ companyId, storedSummary }: { companyId: stri
           }
         </div>
       )}
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-3 w-3 p-0 mt-1 opacity-50 hover:opacity-100"
+        onClick={(e) => {
+          e.stopPropagation();
+          regenerateOverview();
+        }}
+        title="Regenerate overview"
+      >
+        <RefreshCw className="h-2 w-2" />
+      </Button>
     </div>
   );
 };
@@ -442,10 +466,7 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <InteractionOverviewCell 
-                        companyId={company.company_id} 
-                        storedSummary={company.interaction_summary}
-                      />
+                      <InteractionOverviewCell companyId={company.company_id} />
                     </TableCell>
                   </TableRow>
                 );
