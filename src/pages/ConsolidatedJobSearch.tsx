@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -326,8 +327,6 @@ const ConsolidatedJobSearch = () => {
 
   // Handle generate more companies
   const handleGenerateMoreCompanies = async (useDifferentCriteria = false) => {
-    // This is a placeholder - in a real implementation, you would call 
-    // the generate_companies edge function with the current criteria
     setIsGeneratingCompanies(true);
     toast({
       title: "Info", 
@@ -339,7 +338,8 @@ const ConsolidatedJobSearch = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (useDifferentCriteria) {
-        setShowTargetForm(true);
+        // Navigate to job targets page for different criteria
+        navigate("/job-targets");
       } else {
         // In real implementation, call generate_companies
         toast({
