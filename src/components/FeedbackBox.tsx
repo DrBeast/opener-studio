@@ -68,7 +68,7 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
 
   if (variant === 'header') {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`relative ${className}`}>
         {!isExpanded ? (
           <Button
             onClick={() => setIsExpanded(true)}
@@ -80,12 +80,13 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
             Feedback
           </Button>
         ) : (
-          <div className="flex items-center gap-2 bg-white border rounded-md p-2 shadow-sm">
+          <div className="absolute top-0 right-0 z-50 bg-white border rounded-md p-3 shadow-lg w-80">
             <Textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder={`Share your thoughts on this ${viewName.toLowerCase()} - what's working well? What could be improved? What are you feeling?`}
-              className="min-h-[32px] max-h-[80px] text-xs resize-none border-0 p-0 focus-visible:ring-0 w-64"
+              className="text-xs mb-3 min-h-[120px] resize-none"
+              rows={5}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   setIsExpanded(false);
@@ -93,15 +94,7 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
                 }
               }}
             />
-            <div className="flex gap-1">
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                size="sm"
-                className="h-6 px-2 text-xs"
-              >
-                <Send className="h-3 w-3" />
-              </Button>
+            <div className="flex justify-end gap-2">
               <Button
                 onClick={() => {
                   setIsExpanded(false);
@@ -109,9 +102,17 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
                 }}
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs"
+                className="text-xs"
               >
-                ×
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                size="sm"
+                className="text-xs"
+              >
+                {isSubmitting ? 'Sending...' : 'Send'}
               </Button>
             </div>
           </div>
@@ -134,12 +135,13 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
           Feedback
         </Button>
       ) : (
-        <div className="bg-white border rounded-md p-3 shadow-lg w-72">
+        <div className="bg-white border rounded-md p-3 shadow-lg w-80">
           <Textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder={`Share your thoughts on this ${viewName.toLowerCase()} - what's working well? What could be improved? What are you feeling?`}
-            className="min-h-[60px] text-xs mb-2"
+            className="text-xs mb-3 min-h-[120px] resize-none"
+            rows={5}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 setIsExpanded(false);

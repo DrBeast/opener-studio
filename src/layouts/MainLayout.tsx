@@ -41,7 +41,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <div className="relative">
         <Header />
         {showFeedback && (
-          <div className="absolute top-4 right-20 z-50">
+          <div className="absolute top-4 right-36 z-40">
             <FeedbackBox viewName={getViewName()} variant="header" />
           </div>
         )}
