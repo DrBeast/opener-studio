@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { LinkedInQuerySuggestions } from "./LinkedInQuerySuggestions";
+import { FeedbackBox } from "@/components/FeedbackBox";
 
 interface EnhancedContactModalProps {
   isOpen: boolean;
@@ -142,6 +143,8 @@ export const EnhancedContactModal = ({
         </DialogHeader>
 
         <div className="space-y-6">
+          <FeedbackBox viewName="Enhanced Contact Modal" />
+
           {/* Info Box */}
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-4">

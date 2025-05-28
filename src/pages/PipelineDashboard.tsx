@@ -17,6 +17,7 @@ import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { FeedbackBox } from "@/components/FeedbackBox";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
@@ -265,6 +266,9 @@ const PipelineDashboard = () => {
       </div>
 
       <ContactInfoBox />
+
+      {/* Feedback Box */}
+      <FeedbackBox viewName="Pipeline Dashboard" className="mb-6" />
 
       <Card>
         <CardContent className="p-6">
