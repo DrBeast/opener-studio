@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
 const ProfileInput = () => {
   const {
     user,
@@ -282,7 +283,7 @@ const ProfileInput = () => {
           {isProcessing ? <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
-            </> : "Generate My Professional Profile"}
+            </> : "Sign Up And Generate My Profile"}
         </Button>
       </Tabs>
 
