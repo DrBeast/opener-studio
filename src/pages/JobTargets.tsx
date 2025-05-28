@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { InfoBox } from "@/components/ui/info-box";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -562,13 +564,13 @@ const JobTargets = () => {
         </Button>
       </div>
       
-      {isEditing && <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-          <h3 className="font-medium text-blue-800">Why This Matters</h3>
-          <p className="text-sm text-blue-700 mt-1">
-            The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-            Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
-          </p>
-        </div>}
+      <InfoBox className="mb-6">
+        <p className="font-medium mb-1">Why This Matters</p>
+        <p>
+          The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+          Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+        </p>
+      </InfoBox>
       
       <div className="grid grid-cols-1 gap-8">
         <div className="space-y-8">
