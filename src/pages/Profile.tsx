@@ -277,6 +277,13 @@ const Profile = () => {
               </div>
             </CardHeader>
             
+            {/* New Info Box */}
+            <div className="mx-6 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
+              </p>
+            </div>
+            
             <CardContent className="space-y-6">
               {/* Edit Form - Moved to the top when in edit mode */}
               {editMode && (
