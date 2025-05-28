@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
@@ -16,7 +16,6 @@ import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
-import { FeedbackBox } from "@/components/FeedbackBox";
 
 interface ContactData {
   contact_id: string;
@@ -117,11 +116,7 @@ export function EnhancedContactDetails({
       }
     } catch (error) {
       console.error("Error fetching contact details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load contact details",
-        variant: "destructive"
-      });
+      toast.error("Failed to load contact details");
     }
   };
 
@@ -159,11 +154,7 @@ export function EnhancedContactDetails({
       setInteractions(data || []);
     } catch (error) {
       console.error("Error fetching contact interactions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load interactions",
-        variant: "destructive"
-      });
+      toast.error("Failed to load interactions");
     }
   };
 
@@ -196,19 +187,12 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: "Contact details updated successfully"
-      });
+      toast.success("Contact details updated successfully");
       onContactUpdated();
       await fetchContactDetails();
     } catch (error: any) {
       console.error("Error updating contact:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update contact details: " + (error.message || "Unknown error"),
-        variant: "destructive"
-      });
+      toast.error("Failed to update contact details: " + (error.message || "Unknown error"));
     } finally {
       setIsLoading(false);
     }
@@ -226,19 +210,12 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: "Follow-up marked as completed"
-      });
+      toast.success("Follow-up marked as completed");
       fetchContactInteractions();
       onContactUpdated();
     } catch (error) {
       console.error("Error completing follow-up:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update follow-up status",
-        variant: "destructive"
-      });
+      toast.error("Failed to update follow-up status");
     }
   };
 
@@ -282,21 +259,14 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: "Interaction deleted"
-      });
+      toast.success("Interaction deleted");
       await fetchContactInteractions();
       onContactUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
     } catch (error) {
       console.error("Error deleting interaction:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete interaction",
-        variant: "destructive"
-      });
+      toast.error("Failed to delete interaction");
     }
   };
 
@@ -326,10 +296,7 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: "Interaction updated"
-      });
+      toast.success("Interaction updated");
       setEditingInteraction(null);
       fetchContactInteractions();
       onContactUpdated();
@@ -337,11 +304,7 @@ export function EnhancedContactDetails({
       await regenerateOverview();
     } catch (error) {
       console.error("Error updating interaction:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update interaction",
-        variant: "destructive"
-      });
+      toast.error("Failed to update interaction");
     }
   };
 
@@ -417,9 +380,7 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto relative">
-          <FeedbackBox viewName="Contact Details Modal" variant="modal" />
-          
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
               {formData.first_name || ''} {formData.last_name || ''}

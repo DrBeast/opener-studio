@@ -1,55 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
+import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil, ChevronDown, RefreshCw } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import { 
-  Building, 
-  MapPin, 
-  Users, 
-  Star, 
-  Calendar,
-  MessageCircle,
-  Plus,
-  ExternalLink,
-  Save,
-  Trash,
-  Edit,
-  Check,
-  X,
-  RefreshCw,
-  ChevronDown,
-  FileText,
-  UserRound
-} from "lucide-react";
-import { format } from "date-fns";
-import { ContactRecommendation } from "@/components/ContactRecommendation";
+import { toast } from "@/components/ui/sonner";
+import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
-import { PlanInteractionModal } from "@/components/PlanInteractionModal";
-import { ContactDetails } from "@/components/ContactDetails";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
-import { FeedbackBox } from "@/components/FeedbackBox";
+import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 
 interface ContactData {
   contact_id: string;
@@ -181,11 +148,7 @@ export function CompanyDetails({
     } = await supabase.from('contacts').select('*').eq('company_id', company.company_id).eq('user_id', user.id);
     if (error) {
       console.error("Error fetching contacts:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to load contacts",
-        variant: "destructive" 
-      });
+      toast.error("Failed to load contacts");
     } else {
       setContacts(data);
     }
@@ -202,11 +165,7 @@ export function CompanyDetails({
     });
     if (error) {
       console.error("Error fetching interactions:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to load interactions",
-        variant: "destructive" 
-      });
+      toast.error("Failed to load interactions");
     } else {
       setInteractions(data);
     }
@@ -286,11 +245,7 @@ export function CompanyDetails({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast({ 
-        title: "Error", 
-        description: "You must be logged in to update company details",
-        variant: "destructive" 
-      });
+      toast.error("You must be logged in to update company details");
       return;
     }
     setIsLoading(true);
@@ -312,18 +267,11 @@ export function CompanyDetails({
         user_id: user.id
       }).eq('company_id', company.company_id);
       if (error) throw error;
-      toast({ 
-        title: "Success", 
-        description: "Company details updated successfully" 
-      });
+      toast.success("Company details updated successfully");
       onCompanyUpdated();
     } catch (error: any) {
       console.error("Error updating company:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to update company details",
-        variant: "destructive" 
-      });
+      toast.error("Failed to update company details");
     } finally {
       setIsLoading(false);
     }
@@ -378,10 +326,7 @@ export function CompanyDetails({
       
       if (error) throw error;
       
-      toast({ 
-        title: "Success", 
-        description: "Interaction updated" 
-      });
+      toast.success("Interaction updated");
       setEditingInteraction(null);
       await fetchInteractions();
       onCompanyUpdated();
@@ -389,11 +334,7 @@ export function CompanyDetails({
       await regenerateOverview();
     } catch (error) {
       console.error("Error updating interaction:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to update interaction",
-        variant: "destructive" 
-      });
+      toast.error("Failed to update interaction");
     }
   };
 
@@ -407,21 +348,14 @@ export function CompanyDetails({
       
       if (error) throw error;
       
-      toast({ 
-        title: "Success", 
-        description: "Interaction deleted" 
-      });
+      toast.success("Interaction deleted");
       await fetchInteractions();
       onCompanyUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
     } catch (error) {
       console.error("Error deleting interaction:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to delete interaction",
-        variant: "destructive" 
-      });
+      toast.error("Failed to delete interaction");
     }
   };
 
@@ -441,19 +375,12 @@ export function CompanyDetails({
         follow_up_completed_date: new Date().toISOString()
       }).eq('interaction_id', interactionId);
       if (error) throw error;
-      toast({ 
-        title: "Success", 
-        description: "Follow-up marked as completed" 
-      });
+      toast.success("Follow-up marked as completed");
       fetchInteractions();
       onCompanyUpdated();
     } catch (error) {
       console.error("Error completing follow-up:", error);
-      toast({ 
-        title: "Error", 
-        description: "Failed to update follow-up status",
-        variant: "destructive" 
-      });
+      toast.error("Failed to update follow-up status");
     }
   };
   const handleEditInteractionInline = (interactionId: string, currentDescription: string) => {
@@ -530,18 +457,9 @@ export function CompanyDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto relative">
-          <FeedbackBox viewName="Company Details Modal" variant="modal" />
-          
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Building className="h-6 w-6" />
-              {company.name}
-              <Badge variant={company.user_priority === 'Top' ? 'default' : 
-                             company.user_priority === 'Medium' ? 'secondary' : 'outline'}>
-                {company.user_priority || 'Not Set'}
-              </Badge>
-            </DialogTitle>
+            <DialogTitle className="text-xl">{company.name}</DialogTitle>
           </DialogHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab}>
