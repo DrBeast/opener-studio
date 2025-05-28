@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/hooks/use-toast";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
