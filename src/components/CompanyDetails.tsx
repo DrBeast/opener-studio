@@ -308,6 +308,14 @@ export function CompanyDetails({
     await regenerateOverview();
   };
 
+  const handlePlanInteractionSuccess = async () => {
+    await fetchInteractions();
+    setIsPlanInteractionOpen(false);
+    onCompanyUpdated();
+    // Regenerate interaction summary
+    await regenerateOverview();
+  };
+
   // Handle interaction updated - regenerate summary
   const handleSaveInlineEdit = async (interactionId: string) => {
     try {
