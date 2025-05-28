@@ -13,9 +13,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 import { 
   Building, 
   MapPin, 
@@ -30,13 +37,17 @@ import {
   Edit,
   Check,
   X,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  FileText,
+  UserRound
 } from "lucide-react";
 import { format } from "date-fns";
 import { ContactRecommendation } from "@/components/ContactRecommendation";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
+import { ContactDetails } from "@/components/ContactDetails";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { FeedbackBox } from "@/components/FeedbackBox";
 
@@ -170,7 +181,11 @@ export function CompanyDetails({
     } = await supabase.from('contacts').select('*').eq('company_id', company.company_id).eq('user_id', user.id);
     if (error) {
       console.error("Error fetching contacts:", error);
-      toast.error("Failed to load contacts");
+      toast({ 
+        title: "Error", 
+        description: "Failed to load contacts",
+        variant: "destructive" 
+      });
     } else {
       setContacts(data);
     }
@@ -187,7 +202,11 @@ export function CompanyDetails({
     });
     if (error) {
       console.error("Error fetching interactions:", error);
-      toast.error("Failed to load interactions");
+      toast({ 
+        title: "Error", 
+        description: "Failed to load interactions",
+        variant: "destructive" 
+      });
     } else {
       setInteractions(data);
     }
@@ -267,7 +286,11 @@ export function CompanyDetails({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("You must be logged in to update company details");
+      toast({ 
+        title: "Error", 
+        description: "You must be logged in to update company details",
+        variant: "destructive" 
+      });
       return;
     }
     setIsLoading(true);
@@ -289,11 +312,18 @@ export function CompanyDetails({
         user_id: user.id
       }).eq('company_id', company.company_id);
       if (error) throw error;
-      toast.success("Company details updated successfully");
+      toast({ 
+        title: "Success", 
+        description: "Company details updated successfully" 
+      });
       onCompanyUpdated();
     } catch (error: any) {
       console.error("Error updating company:", error);
-      toast.error("Failed to update company details");
+      toast({ 
+        title: "Error", 
+        description: "Failed to update company details",
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -348,7 +378,10 @@ export function CompanyDetails({
       
       if (error) throw error;
       
-      toast.success("Interaction updated");
+      toast({ 
+        title: "Success", 
+        description: "Interaction updated" 
+      });
       setEditingInteraction(null);
       await fetchInteractions();
       onCompanyUpdated();
@@ -356,7 +389,11 @@ export function CompanyDetails({
       await regenerateOverview();
     } catch (error) {
       console.error("Error updating interaction:", error);
-      toast.error("Failed to update interaction");
+      toast({ 
+        title: "Error", 
+        description: "Failed to update interaction",
+        variant: "destructive" 
+      });
     }
   };
 
@@ -370,14 +407,21 @@ export function CompanyDetails({
       
       if (error) throw error;
       
-      toast.success("Interaction deleted");
+      toast({ 
+        title: "Success", 
+        description: "Interaction deleted" 
+      });
       await fetchInteractions();
       onCompanyUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
     } catch (error) {
       console.error("Error deleting interaction:", error);
-      toast.error("Failed to delete interaction");
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete interaction",
+        variant: "destructive" 
+      });
     }
   };
 
@@ -397,12 +441,19 @@ export function CompanyDetails({
         follow_up_completed_date: new Date().toISOString()
       }).eq('interaction_id', interactionId);
       if (error) throw error;
-      toast.success("Follow-up marked as completed");
+      toast({ 
+        title: "Success", 
+        description: "Follow-up marked as completed" 
+      });
       fetchInteractions();
       onCompanyUpdated();
     } catch (error) {
       console.error("Error completing follow-up:", error);
-      toast.error("Failed to update follow-up status");
+      toast({ 
+        title: "Error", 
+        description: "Failed to update follow-up status",
+        variant: "destructive" 
+      });
     }
   };
   const handleEditInteractionInline = (interactionId: string, currentDescription: string) => {
