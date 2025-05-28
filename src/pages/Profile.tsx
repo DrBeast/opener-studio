@@ -14,7 +14,6 @@ import { useProfileData } from "@/hooks/useProfileData";
 // Import new components
 import ProfileSummary from "@/components/profile/ProfileSummary";
 import EditableSummary from "@/components/profile/EditableSummary";
-import DevOptions from "@/components/profile/DevOptions";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -27,7 +26,6 @@ const Profile = () => {
     saveUserProfile,
     saveSummaryData,
     regenerateAISummary,
-    resetUserData,
     setBackgroundSummary
   } = useProfileData(user?.id);
 
@@ -46,10 +44,6 @@ const Profile = () => {
 
   // State for editable summary fields
   const [editableSummary, setEditableSummary] = useState<Background | null>(null);
-
-  // Dev mode - user data reset
-  const [showDevOptions, setShowDevOptions] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
 
   // Navigate to job targets page
   const handleNavigateToTargets = () => {
@@ -191,34 +185,6 @@ const Profile = () => {
       // Error is already handled in the hook
     }
   };
-
-  // Development mode - Reset user data
-  const handleResetUserData = async () => {
-    if (!user) return;
-    
-    if (!window.confirm("Are you sure you want to reset all user data? This will delete your background data.")) {
-      return;
-    }
-    
-    setIsResetting(true);
-    try {
-      await resetUserData(user.id);
-      
-      toast({
-        title: "Success",
-        description: "User data has been reset successfully"
-      });
-
-      // Refresh the page after a brief delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error) {
-      // Error is already handled in the hook
-    } finally {
-      setIsResetting(false);
-    }
-  };
   
   const handleEnrichProfile = () => {
     // Navigate to profile/enrichment which will be redirected to /profile
@@ -358,15 +324,6 @@ const Profile = () => {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardFooter>
-          </Card>
-          
-          {/* Development Tools Card */}
-          <Card>
-            <DevOptions 
-              showDevOptions={showDevOptions}
-              isResetting={isResetting}
-              onResetUserData={handleResetUserData}
-            />
           </Card>
         </div>
       </div>

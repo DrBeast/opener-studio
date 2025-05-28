@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, Background } from "@/types/profile";
@@ -222,48 +221,6 @@ export const useProfileData = (userId: string | undefined) => {
       throw error;
     }
   };
-  
-  // Function to reset user data
-  const resetUserData = async (userId: string) => {
-    if (!userId) return;
-    
-    try {
-      // Delete user profile data
-      const { error: profileError } = await supabase
-        .from("user_profiles")
-        .delete()
-        .eq("user_id", userId);
-      if (profileError) throw profileError;
-
-      // Delete user summary data
-      const { error: summaryError } = await supabase
-        .from("user_summaries")
-        .delete()
-        .eq("user_id", userId);
-      if (summaryError) throw summaryError;
-
-      // Delete user target criteria
-      const { error: targetError } = await supabase
-        .from("target_criteria")
-        .delete()
-        .eq("user_id", userId);
-      if (targetError) throw targetError;
-      
-      // Clear state
-      setProfile(null);
-      setBackgroundSummary(null);
-      
-      return true;
-    } catch (error: any) {
-      console.error("Error resetting user data:", error.message);
-      toast({
-        title: "Error",
-        description: `Failed to reset user data: ${error.message}`,
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
 
   return {
     profile,
@@ -272,7 +229,6 @@ export const useProfileData = (userId: string | undefined) => {
     saveUserProfile,
     saveSummaryData,
     regenerateAISummary,
-    resetUserData,
     setBackgroundSummary
   };
 };
