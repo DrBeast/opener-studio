@@ -109,9 +109,7 @@ const ProfessionalBackground = ({
         </Card>
         
         {cvExpanded && <div className="mt-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {isEditing && existingData.cv ? "Update your resume content below." : "Copy and paste your resume content into the text box below. Don't worry about formatting - AI will figure it out. This helps us understand your professional background better."}
-            </p>
+            
             
             {isEditing && existingData.cv && <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
                 <p>Your resume content is shown below. You can keep it as is or update it.</p>
