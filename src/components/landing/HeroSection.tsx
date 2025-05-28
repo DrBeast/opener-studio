@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -17,7 +16,7 @@ const HeroSection = () => {
               Connect With a Human: <span className="text-primary">
                 Your AI Copilot</span> for Job Search Networking
             </h1>
-            <p className="text-xl text-gray-600 mb-8">In today's market, getting seen is hard. ConnectorAI helps you build the meaningful connections and craft outreach that actually gets responses, without the awkwardness.</p>
+            <p className="text-xl text-gray-600 mb-8">In today's job market, getting to talk to a real person is hard yet essential. ConnectorAI helps you craft messaging that gets responses and build networks that actually help - at scale and without the awkwardness .</p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
               {user ? <Button size="lg" asChild className="group">
                   <Link to="/profile">

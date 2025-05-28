@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-
 const ProfileInput = () => {
   const {
     user,
@@ -68,13 +67,11 @@ const ProfileInput = () => {
         setLinkingInProgress(true);
         try {
           console.log("ProfileInput: Attempting to link guest profile to authenticated user");
-          
           const linked = await linkUserProfile(user.id, sessionId);
-          
           if (linked) {
             console.log("ProfileInput: Successfully linked profile");
             setProfileLinked(true);
-            
+
             // Wait a moment to let the toast show, then redirect
             setTimeout(() => {
               navigate("/profile");
@@ -87,7 +84,7 @@ const ProfileInput = () => {
               if (secondAttempt) {
                 console.log("ProfileInput: Second linking attempt succeeded");
                 setProfileLinked(true);
-                
+
                 // Wait a moment to let the toast show, then redirect
                 setTimeout(() => {
                   navigate("/profile");
@@ -95,7 +92,6 @@ const ProfileInput = () => {
               }
             }, 2000);
           }
-          
           setLinkingInProgress(false);
         } catch (err) {
           console.error("ProfileInput: Failed to link guest profile:", err);
@@ -103,10 +99,8 @@ const ProfileInput = () => {
         }
       }
     };
-    
     attemptProfileLinking();
   }, [user, sessionId, navigate, profileLinked, profileLinkingAttempted, linkUserProfile]);
-  
   const getActiveContent = () => {
     switch (activeTab) {
       case "linkedin":
@@ -182,7 +176,6 @@ const ProfileInput = () => {
         setLinkingInProgress(true);
         try {
           const linked = await linkUserProfile(user.id, sessionId);
-          
           if (linked) {
             setProfileLinked(true);
             console.log("ProfileInput: Auto-linking succeeded after profile generation");
@@ -214,20 +207,17 @@ const ProfileInput = () => {
       if (!profileLinked && sessionId) {
         console.log("ProfileInput: Attempting to link profile before navigating to profile page");
         setLinkingInProgress(true);
-        
-        linkUserProfile(user.id, sessionId)
-          .then(linked => {
-            setLinkingInProgress(false);
-            if (linked) {
-              setProfileLinked(true);
-            }
-            navigate("/profile");
-          })
-          .catch(err => {
-            console.error("ProfileInput: Error linking on save:", err);
-            setLinkingInProgress(false);
-            navigate("/profile");
-          });
+        linkUserProfile(user.id, sessionId).then(linked => {
+          setLinkingInProgress(false);
+          if (linked) {
+            setProfileLinked(true);
+          }
+          navigate("/profile");
+        }).catch(err => {
+          console.error("ProfileInput: Error linking on save:", err);
+          setLinkingInProgress(false);
+          navigate("/profile");
+        });
       } else {
         navigate("/profile");
       }
@@ -241,9 +231,7 @@ const ProfileInput = () => {
         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text py-1 inline-block">
           Get Started: Generate Your Profile
         </h2>
-        <p className="text-xl text-gray-600">
-          To get started, share a bit about your professional background. Our AI will process it and show you how it builds your profile.
-        </p>
+        <p className="text-xl text-gray-600">Share your professional background. Your LinkedIn profile is typically enough. Our AI will process it and show you how it builds your profile.</p>
       </div>
 
       <Tabs defaultValue="linkedin" value={activeTab} onValueChange={setActiveTab} className="w-full">
