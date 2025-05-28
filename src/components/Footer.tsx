@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -60,7 +61,7 @@ const Footer = () => {
         </div>
         <div className="mt-8 border-t pt-6">
           <p className="text-sm text-gray-600">
-            &copy; {year} EngageAI. All rights reserved.
+            &copy; {year} ConnectorAI. All rights reserved.
           </p>
         </div>
       </div>
