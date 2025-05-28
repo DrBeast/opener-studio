@@ -606,7 +606,7 @@ const JobTargets = () => {
                           Tell us what matters to you about your next job - in your own words or using the criteria below.
                         </FormDescription>
                         <FormControl>
-                          <Textarea placeholder="Example: I'm looking for a product management role in a sustainability-focused tech company..." className="min-h-[150px]" {...field} />
+                          <Textarea placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below." className="min-h-[150px]" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>} />
