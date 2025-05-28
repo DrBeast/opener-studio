@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InfoBox } from "@/components/ui/info-box";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -242,7 +243,9 @@ const ProfileInput = () => {
         </TabsList>
         
         <TabsContent value="linkedin" className="space-y-4">
-          <p className="text-sm text-muted-foreground">Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it into the text box below. Don't worry about formatting - copy everything. This will help us understand your professional background better.</p>
+          <InfoBox>
+            Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out. We will use the AI-generated summary of your profile for company matching and message generation.
+          </InfoBox>
           <Textarea placeholder="Paste your LinkedIn profile content here..." className="min-h-[200px]" value={linkedinContent} onChange={e => setLinkedinContent(e.target.value)} />
         </TabsContent>
         
