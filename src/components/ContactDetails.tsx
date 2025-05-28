@@ -1,13 +1,19 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/use-toast";
+import { Save, User } from "lucide-react";
 
 interface ContactData {
   contact_id: string;
@@ -20,10 +26,6 @@ interface ContactData {
   user_notes?: string;
   bio_summary?: string;
   how_i_can_help?: string;
-  company_id?: string;
-  companies?: {
-    name: string;
-  };
 }
 
 interface ContactDetailsProps {
@@ -33,22 +35,29 @@ interface ContactDetailsProps {
   onContactUpdated: () => void;
 }
 
-export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: ContactDetailsProps) {
-  const [formData, setFormData] = useState<ContactData>({
-    ...contact
-  });
+export function ContactDetails({ 
+  contact, 
+  isOpen, 
+  onClose, 
+  onContactUpdated 
+}: ContactDetailsProps) {
+  const { user } = useAuth();
+  const [formData, setFormData] = useState<ContactData>(contact);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setFormData(contact);
+  }, [contact]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
     setIsLoading(true);
     
     try {
@@ -68,11 +77,20 @@ export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: C
       
       if (error) throw error;
       
-      toast.success("Contact details updated successfully");
+      toast({
+        title: "Success",
+        description: "Contact updated successfully"
+      });
+      
       onContactUpdated();
+      onClose();
     } catch (error: any) {
       console.error("Error updating contact:", error);
-      toast.error("Failed to update contact details: " + (error.message || "Unknown error"));
+      toast({
+        title: "Error",
+        description: "Failed to update contact",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -80,16 +98,16 @@ export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: C
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {formData.first_name || ''} {formData.last_name || ''} 
-            {formData.companies?.name && ` - ${formData.companies.name}`}
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {formData.first_name || ''} {formData.last_name || ''}
           </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name</Label>
               <Input
@@ -109,7 +127,9 @@ export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: C
                 onChange={handleChange}
               />
             </div>
-            
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Input
@@ -129,7 +149,9 @@ export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: C
                 onChange={handleChange}
               />
             </div>
-            
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -151,38 +173,41 @@ export function ContactDetails({ contact, isOpen, onClose, onContactUpdated }: C
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="user_notes">Your Notes</Label>
+            <Label htmlFor="user_notes">Notes</Label>
             <Textarea
               id="user_notes"
               name="user_notes"
               rows={4}
               value={formData.user_notes || ''}
               onChange={handleChange}
-              placeholder="Add your personal notes about this contact..."
+              placeholder="Add your notes about this contact..."
             />
           </div>
-          
+
           {formData.bio_summary && (
             <div className="space-y-2">
-              <Label>Background Summary</Label>
-              <div className="rounded-md border p-3 bg-muted/20">
+              <Label>Bio Summary</Label>
+              <div className="rounded-md border p-3 bg-muted/20 text-sm">
                 {formData.bio_summary}
               </div>
             </div>
           )}
-          
+
           {formData.how_i_can_help && (
             <div className="space-y-2">
               <Label>How I Can Help</Label>
-              <div className="rounded-md border p-3 bg-primary/5 border-primary/10">
+              <div className="rounded-md border p-3 bg-primary/5 border-primary/10 text-sm">
                 {formData.how_i_can_help}
               </div>
             </div>
           )}
-          
-          <div className="flex justify-end">
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
             <Button type="submit" disabled={isLoading}>
               <Save className="mr-2 h-4 w-4" />
               {isLoading ? "Saving..." : "Save Changes"}
