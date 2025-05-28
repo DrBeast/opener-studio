@@ -1,8 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { RefreshCcw } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { RefreshCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Background } from "@/types/profile";
+import { useState } from "react";
 
 interface ProfileSummaryProps {
   backgroundSummary: Background | null;
@@ -18,6 +20,8 @@ const renderArrayItems = (items?: string[]) => {
 };
 
 const ProfileSummary = ({ backgroundSummary, onRegenerateAISummary }: ProfileSummaryProps) => {
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
   if (!backgroundSummary) {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
@@ -57,44 +61,58 @@ const ProfileSummary = ({ backgroundSummary, onRegenerateAISummary }: ProfileSum
         </div>
       )}
     
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="bg-primary/5 p-4 rounded-lg">
-          <h4 className="font-semibold">Experience</h4>
-          <p className="text-sm mt-1">{backgroundSummary.experience}</p>
-          {renderArrayItems(backgroundSummary.combined_experience_highlights)}
-        </div>
-        <div className="bg-primary/5 p-4 rounded-lg">
-          <h4 className="font-semibold">Education</h4>
-          <p className="text-sm mt-1">{backgroundSummary.education}</p>
-          {renderArrayItems(backgroundSummary.combined_education_highlights)}
-        </div>
-        <div className="bg-primary/5 p-4 rounded-lg">
-          <h4 className="font-semibold">Expertise</h4>
-          <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
-          {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && (
-            <div className="mt-2">
-              <h5 className="text-sm font-medium">Key Skills:</h5>
-              {renderArrayItems(backgroundSummary.key_skills)}
+      {/* Collapsible detailed sections */}
+      <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
+        <CollapsibleTrigger asChild>
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-between mb-4"
+          >
+            <span>View Detailed Breakdown</span>
+            {isDetailsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <h4 className="font-semibold">Experience</h4>
+              <p className="text-sm mt-1">{backgroundSummary.experience}</p>
+              {renderArrayItems(backgroundSummary.combined_experience_highlights)}
             </div>
-          )}
-          {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && (
-            <div className="mt-2">
-              <h5 className="text-sm font-medium">Domain Expertise:</h5>
-              {renderArrayItems(backgroundSummary.domain_expertise)}
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <h4 className="font-semibold">Education</h4>
+              <p className="text-sm mt-1">{backgroundSummary.education}</p>
+              {renderArrayItems(backgroundSummary.combined_education_highlights)}
             </div>
-          )}
-          {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && (
-            <div className="mt-2">
-              <h5 className="text-sm font-medium">Technical Expertise:</h5>
-              {renderArrayItems(backgroundSummary.technical_expertise)}
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <h4 className="font-semibold">Expertise</h4>
+              <p className="text-sm mt-1">{backgroundSummary.expertise}</p>
+              {backgroundSummary.key_skills && backgroundSummary.key_skills.length > 0 && (
+                <div className="mt-2">
+                  <h5 className="text-sm font-medium">Key Skills:</h5>
+                  {renderArrayItems(backgroundSummary.key_skills)}
+                </div>
+              )}
+              {backgroundSummary.domain_expertise && backgroundSummary.domain_expertise.length > 0 && (
+                <div className="mt-2">
+                  <h5 className="text-sm font-medium">Domain Expertise:</h5>
+                  {renderArrayItems(backgroundSummary.domain_expertise)}
+                </div>
+              )}
+              {backgroundSummary.technical_expertise && backgroundSummary.technical_expertise.length > 0 && (
+                <div className="mt-2">
+                  <h5 className="text-sm font-medium">Technical Expertise:</h5>
+                  {renderArrayItems(backgroundSummary.technical_expertise)}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div className="bg-primary/5 p-4 rounded-lg">
-          <h4 className="font-semibold">Key Achievements</h4>
-          <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
-        </div>
-      </div>
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <h4 className="font-semibold">Key Achievements</h4>
+              <p className="text-sm mt-1">{backgroundSummary.achievements}</p>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };

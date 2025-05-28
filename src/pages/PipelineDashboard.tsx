@@ -15,6 +15,8 @@ import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesT
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
+import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
+import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
@@ -46,9 +48,11 @@ const PipelineDashboard = () => {
   const [contactModal, setContactModal] = useState<{
     isOpen: boolean;
     companyId: string;
+    companyName: string;
   }>({
     isOpen: false,
-    companyId: ''
+    companyId: '',
+    companyName: ''
   });
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
@@ -208,13 +212,14 @@ const PipelineDashboard = () => {
     await handleBulkBlacklist(Array.from(selectedCompanies));
   };
 
-  const handleCreateContact = (companyId: string) => {
+  const handleCreateContact = (companyId: string, companyName: string) => {
     setContactModal({
       isOpen: true,
-      companyId
+      companyId,
+      companyName
     });
   };
-  
+
   const handleContactClick = (contactId: string) => {
     setSelectedContactId(contactId);
     setContactDetailsTab('details');
@@ -259,6 +264,8 @@ const PipelineDashboard = () => {
         </div>
       </div>
 
+      <ContactInfoBox />
+
       <Card>
         <CardContent className="p-6">
           <SearchAndFilters 
@@ -292,7 +299,10 @@ const PipelineDashboard = () => {
               sortField={sortField} 
               sortDirection={sortDirection} 
               onSort={handleSort} 
-              onCreateContact={handleCreateContact}
+              onCreateContact={(companyId) => {
+                const company = filteredCompanies.find(c => c.company_id === companyId);
+                handleCreateContact(companyId, company?.name || '');
+              }}
               onContactClick={handleContactClick}
               onGenerateMessage={handleGenerateMessage}
             />
@@ -317,13 +327,15 @@ const PipelineDashboard = () => {
         />
       }
 
-      <ContactModal 
+      <EnhancedContactModal 
         isOpen={contactModal.isOpen} 
         onClose={() => setContactModal({
           isOpen: false,
-          companyId: ''
+          companyId: '',
+          companyName: ''
         })} 
-        companyId={contactModal.companyId} 
+        companyId={contactModal.companyId}
+        companyName={contactModal.companyName}
         onSuccess={handleCompanyUpdated} 
       />
 

@@ -93,8 +93,8 @@ serve(async (req) => {
       });
     }
 
-    // Separate past and planned interactions
-    // Consider message_draft and completed interactions as "past"
+    // Updated logic: Include message_draft interactions as past interactions
+    // Treat message_draft and completed interactions as "past"
     // Consider only future follow-ups as "planned"
     const pastInteractions = interactions.filter(i => 
       i.interaction_type === 'message_draft' || 
@@ -111,9 +111,10 @@ serve(async (req) => {
 
     console.log(`Processing ${interactions.length} total interactions for company ${company.name}`);
     console.log(`Past interactions: ${pastInteractions.length}, Planned: ${plannedInteractions.length}`);
+    console.log(`Message drafts included in past interactions: ${pastInteractions.filter(i => i.interaction_type === 'message_draft').length}`);
 
-    // Generate AI overview
-    const prompt = `Analyze the following interaction history and provide a concise overview (2-3 sentences max) of the relationship status and next steps with ${company.name}:
+    // Generate AI overview with concise, note-like style
+    const prompt = `Summarize interaction history with ${company.name} in brief, note-like style. Use incomplete sentences and be very concise (1-2 short phrases max):
 
 Company: ${company.name} (${company.industry || 'Unknown industry'})
 
@@ -127,12 +128,13 @@ ${plannedInteractions.map(i =>
   `• ${new Date(i.follow_up_due_date).toLocaleDateString()}: ${i.interaction_type} - ${i.description}${i.contacts && i.contacts.first_name ? ` (with ${i.contacts.first_name} ${i.contacts.last_name || ''}${i.contacts.role ? `, ${i.contacts.role}` : ''})` : ''}`
 ).join('\n')}
 
-Provide a brief, professional summary focusing on:
-1. Current relationship status/momentum
-2. Key contacts engaged
-3. Next logical steps or follow-ups
+Write in note-like style with incomplete sentences. Examples:
+- "Early stage, LinkedIn outreach to CDO"
+- "Awaiting response from initial contact"
+- "Follow-up due next week"
+- "Active conversation with hiring manager"
 
-Keep it concise and actionable.`;
+Keep it very brief and actionable.`;
 
     console.log('Sending prompt to Gemini API for summary generation');
 
@@ -151,7 +153,7 @@ Keep it concise and actionable.`;
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 300,
+          maxOutputTokens: 150,
         }
       })
     });

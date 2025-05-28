@@ -95,13 +95,113 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Enhanced session validation
+  const validateSession = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Session validation error:", error);
+        return null;
+      }
+      
+      // Check if session is expired
+      if (session && session.expires_at) {
+        const expiresAt = new Date(session.expires_at * 1000);
+        const now = new Date();
+        
+        if (now >= expiresAt) {
+          console.log("Session expired, clearing user state");
+          return null;
+        }
+      }
+      
+      return session;
+    } catch (error) {
+      console.error("Session validation failed:", error);
+      return null;
+    }
+  };
+
+  // Enhanced signOut function with better error handling
+  const signOut = async () => {
+    try {
+      console.log("Starting sign out process...");
+      
+      // Clear user state immediately to prevent UI issues
+      setUser(null);
+      
+      // Attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Supabase signOut error:", error);
+        
+        // Even if Supabase signOut fails, we should clear local state
+        // This handles cases where the session is already invalid on the server
+        if (error.message?.includes("session_not_found") || 
+            error.message?.includes("Session not found")) {
+          console.log("Session already cleared on server, proceeding with local cleanup");
+        } else {
+          // For other errors, show user-friendly message but still clear local state
+          toast.error("Error signing out, but you have been logged out locally");
+        }
+      }
+      
+      // Clear all auth-related localStorage items
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.startsWith('sb-') || 
+          key.startsWith('supabase.') ||
+          key.startsWith('linked-profile-') ||
+          key === 'profile-session-id'
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`Cleared localStorage key: ${key}`);
+      });
+      
+      // Broadcast storage event to sync across tabs
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'auth-signout',
+        newValue: Date.now().toString(),
+        storageArea: localStorage
+      }));
+      
+      console.log("Sign out completed successfully");
+      toast.success("Signed out successfully");
+      
+    } catch (error: any) {
+      console.error("Unexpected error during sign out:", error);
+      
+      // Even on unexpected errors, clear local state
+      setUser(null);
+      
+      // Clear localStorage as fallback
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('profile-session-id');
+      } catch (storageError) {
+        console.error("Failed to clear localStorage:", storageError);
+      }
+      
+      toast.error("Signed out locally due to error");
+    }
+  };
+
   useEffect(() => {
     // Check active session
     const getUser = async () => {
       setIsLoading(true);
       
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const session = await validateSession();
         
         if (session?.user) {
           setUser(session.user);
@@ -111,9 +211,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (sessionId) {
             await linkUserProfile(session.user.id, sessionId);
           }
+        } else {
+          setUser(null);
         }
       } catch (error: any) {
         console.error("Authentication check failed:", error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -124,6 +227,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state change:", event, session?.user?.id);
+        
         if (session?.user) {
           setUser(session.user);
           
@@ -145,8 +250,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
+    // Listen for storage events to sync across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth-signout') {
+        console.log("Received signout event from another tab");
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -219,14 +335,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: any) {
       console.error("Sign up failed:", error);
       throw error;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error: any) {
-      console.error("Failed to sign out:", error);
     }
   };
 
