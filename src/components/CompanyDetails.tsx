@@ -1,22 +1,44 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil, ChevronDown, RefreshCw } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
-import { ContactDetails } from "@/components/ContactDetails";
+import { toast } from "@/components/ui/use-toast";
+import { 
+  Building, 
+  MapPin, 
+  Users, 
+  Star, 
+  Calendar,
+  MessageCircle,
+  Plus,
+  ExternalLink,
+  Save,
+  Trash,
+  Edit,
+  Check,
+  X,
+  RefreshCw
+} from "lucide-react";
+import { format } from "date-fns";
+import { ContactRecommendation } from "@/components/ContactRecommendation";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
-import { cn } from "@/lib/utils";
-import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
+import { useInteractionOverview } from "@/hooks/useInteractionOverview";
+import { FeedbackBox } from "@/components/FeedbackBox";
 
 interface ContactData {
   contact_id: string;
@@ -457,9 +479,18 @@ export function CompanyDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto relative">
+          <FeedbackBox viewName="Company Details Modal" variant="modal" />
+          
           <DialogHeader>
-            <DialogTitle className="text-xl">{company.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Building className="h-6 w-6" />
+              {company.name}
+              <Badge variant={company.user_priority === 'Top' ? 'default' : 
+                             company.user_priority === 'Medium' ? 'secondary' : 'outline'}>
+                {company.user_priority || 'Not Set'}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab}>

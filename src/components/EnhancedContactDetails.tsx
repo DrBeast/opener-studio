@@ -16,6 +16,7 @@ import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
+import { FeedbackBox } from "@/components/FeedbackBox";
 
 interface ContactData {
   contact_id: string;
@@ -380,7 +381,9 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto relative">
+          <FeedbackBox viewName="Contact Details Modal" variant="modal" />
+          
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
               {formData.first_name || ''} {formData.last_name || ''}
