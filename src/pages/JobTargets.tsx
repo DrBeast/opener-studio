@@ -15,7 +15,6 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -440,7 +439,7 @@ const JobTargets = () => {
     const locations = form.watch("target_locations") || [];
     return <FormField control={form.control} name="target_locations" render={() => <FormItem className="space-y-2">
             <FormLabel>Preferred Locations</FormLabel>
-            <FormDescription>Where would you like to work?</FormDescription>
+            <FormDescription>Where would you like to work and live? We will prioritize these locations for companies with Hybrid and On-site policies.</FormDescription>
             
             <div className="relative">
               <div className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background" onClick={() => {
@@ -632,5 +631,4 @@ const JobTargets = () => {
       </div>
     </div>;
 };
-
 export default JobTargets;
