@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
+import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 
 interface ContactData {
   contact_id: string;
@@ -64,12 +65,14 @@ interface CompanyDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onCompanyUpdated: () => void;
+  defaultTab?: string;
 }
 export function CompanyDetails({
   company,
   isOpen,
   onClose,
-  onCompanyUpdated
+  onCompanyUpdated,
+  defaultTab = "details"
 }: CompanyDetailsProps) {
   const {
     user
@@ -78,7 +81,7 @@ export function CompanyDetails({
     ...company
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [interactions, setInteractions] = useState<InteractionData[]>([]);
   const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
@@ -90,6 +93,7 @@ export function CompanyDetails({
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState<string>('');
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
+  const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const {
     overview,
     isLoading: isOverviewLoading,
@@ -443,263 +447,285 @@ export function CompanyDetails({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{company.name}</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="details">Company Details</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts ({contacts.length})</TabsTrigger>
-            <TabsTrigger value="interactions">Interactions</TabsTrigger>
-          </TabsList>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{company.name}</DialogTitle>
+          </DialogHeader>
           
-          {/* Company Details Tab */}
-          <TabsContent value="details" className="space-y-4 pt-4">
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Company Name</Label>
-                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <div className="flex h-10 w-full items-center">
-                    <PriorityDropdown />
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Company Details</TabsTrigger>
+              <TabsTrigger value="contacts">Contacts ({contacts.length})</TabsTrigger>
+              <TabsTrigger value="interactions">Interactions</TabsTrigger>
+            </TabsList>
+            
+            {/* Company Details Tab */}
+            <TabsContent value="details" className="space-y-4 pt-4">
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Company Name</Label>
+                    <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <div className="flex h-10 w-full items-center">
+                      <PriorityDropdown />
+                    </div>
+                  </div>
+                  
+                  {hasData(formData.industry) && <div className="space-y-2">
+                      <Label htmlFor="industry">Industry</Label>
+                      <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
+                    </div>}
+                  
+                  {hasData(formData.hq_location) && <div className="space-y-2">
+                      <Label htmlFor="hq_location">Location</Label>
+                      <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
+                    </div>}
+                  
+                  {hasData(formData.wfh_policy) && <div className="space-y-2">
+                      <Label htmlFor="wfh_policy">Work From Home Policy</Label>
+                      <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
+                    </div>}
+                  
+                  {hasData(formData.website_url) && <div className="space-y-2">
+                      <Label htmlFor="website_url">Website URL</Label>
+                      <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
+                    </div>}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
+                    <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} placeholder="e.g., 100-500" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
+                    <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} placeholder="e.g., $10M-50M" />
+                  </div>
+
+                  {hasData(formData.public_private) && <div className="space-y-2">
+                      <Label htmlFor="public_private">Company Type</Label>
+                      <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
+                    </div>}
+                  
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="user_notes">Notes</Label>
+                    <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
+                  </div>
+                  
+                  {hasData(formData.ai_description) && <div className="col-span-2 space-y-2">
+                      <Label>AI Description</Label>
+                      <div className="rounded-md border p-3 bg-muted/20 text-sm">
+                        {formData.ai_description}
+                      </div>
+                    </div>}
+
+                  {hasData(formData.ai_match_reasoning) && <div className="col-span-2 space-y-2">
+                      <Label>AI Match Reasoning</Label>
+                      <div className="rounded-md border p-3 bg-muted/20 text-sm">
+                        {formData.ai_match_reasoning}
+                      </div>
+                    </div>}
+                  
+                  {/* Interaction Summary Section */}
+                  <div className="col-span-2 space-y-2">
+                    <Label className="flex items-center justify-between">
+                      
+                    </Label>
+                    
                   </div>
                 </div>
                 
-                {hasData(formData.industry) && <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
-                  </div>}
-                
-                {hasData(formData.hq_location) && <div className="space-y-2">
-                    <Label htmlFor="hq_location">Location</Label>
-                    <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
-                  </div>}
-                
-                {hasData(formData.wfh_policy) && <div className="space-y-2">
-                    <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                    <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
-                  </div>}
-                
-                {hasData(formData.website_url) && <div className="space-y-2">
-                    <Label htmlFor="website_url">Website URL</Label>
-                    <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
-                  </div>}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                  <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} placeholder="e.g., 100-500" />
+                <div className="flex justify-end mt-6">
+                  <Button type="submit" disabled={isLoading}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {isLoading ? "Saving..." : "Save Changes"}
+                  </Button>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                  <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} placeholder="e.g., $10M-50M" />
-                </div>
-
-                {hasData(formData.public_private) && <div className="space-y-2">
-                    <Label htmlFor="public_private">Company Type</Label>
-                    <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
-                  </div>}
-                
-                <div className="col-span-2 space-y-2">
-                  <Label htmlFor="user_notes">Notes</Label>
-                  <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
-                </div>
-                
-                {hasData(formData.ai_description) && <div className="col-span-2 space-y-2">
-                    <Label>AI Description</Label>
-                    <div className="rounded-md border p-3 bg-muted/20 text-sm">
-                      {formData.ai_description}
-                    </div>
-                  </div>}
-
-                {hasData(formData.ai_match_reasoning) && <div className="col-span-2 space-y-2">
-                    <Label>AI Match Reasoning</Label>
-                    <div className="rounded-md border p-3 bg-muted/20 text-sm">
-                      {formData.ai_match_reasoning}
-                    </div>
-                  </div>}
-                
-                {/* Interaction Summary Section */}
-                <div className="col-span-2 space-y-2">
-                  <Label className="flex items-center justify-between">
-                    
-                  </Label>
-                  
-                </div>
-              </div>
-              
-              <div className="flex justify-end mt-6">
-                <Button type="submit" disabled={isLoading}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </form>
-          </TabsContent>
-          
-          {/* Contacts Tab */}
-          <TabsContent value="contacts" className="space-y-4 pt-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Company Contacts</h3>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Contact
-              </Button>
-            </div>
+              </form>
+            </TabsContent>
             
-            {contacts.length > 0 ? <div className="border rounded-md overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Role</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {contacts.map(contact => <tr key={contact.contact_id} className="border-b">
-                        <td className="p-3">
-                          {contact.first_name || ''} {contact.last_name || ''}
-                        </td>
-                        <td className="p-3">{contact.role || 'N/A'}</td>
-                        <td className="p-3 text-right">
-                          <Button variant="outline" size="sm" onClick={() => handleViewContact(contact)}>
-                            <FileText className="h-4 w-4 mr-1" />
-                            Details
-                          </Button>
-                        </td>
-                      </tr>)}
-                  </tbody>
-                </table>
-              </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
-                <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-muted-foreground mb-4">
-                  No contacts added for this company yet
-                </p>
+            {/* Contacts Tab */}
+            <TabsContent value="contacts" className="space-y-4 pt-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Company Contacts</h3>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
-              </div>}
-          </TabsContent>
-          
-          {/* Interactions Tab */}
-          <TabsContent value="interactions" className="space-y-4 pt-4">
-            {/* Interaction Summary Section */}
-            <div className="space-y-2">
-              <Label>Interaction Summary</Label>
-              <div className="rounded-md border p-3 bg-muted/20">
-                {renderInteractionSummary()}
               </div>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Interactions</h3>
-              <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Log Interaction
-              </Button>
-            </div>
+              
+              {contacts.length > 0 ? <div className="border rounded-md overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Role</th>
+                        <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contacts.map(contact => <tr key={contact.contact_id} className="border-b">
+                          <td className="p-3">
+                            {contact.first_name || ''} {contact.last_name || ''}
+                          </td>
+                          <td className="p-3">{contact.role || 'N/A'}</td>
+                          <td className="p-3 text-right">
+                            <Button variant="outline" size="sm" onClick={() => handleViewContact(contact)}>
+                              <FileText className="h-4 w-4 mr-1" />
+                              Details
+                            </Button>
+                          </td>
+                        </tr>)}
+                    </tbody>
+                  </table>
+                </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground mb-4">
+                    No contacts added for this company yet
+                  </p>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Contact
+                  </Button>
+                </div>}
+            </TabsContent>
             
-            {interactions.length > 0 ? (
-              <div className="space-y-3">
-                {interactions.map(interaction => (
-                  <div key={interaction.interaction_id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 space-y-2">
-                        <div className="text-sm font-medium text-muted-foreground">
-                          {formatDate(interaction.interaction_date)}
+            {/* Interactions Tab */}
+            <TabsContent value="interactions" className="space-y-4 pt-4">
+              {/* Interaction Summary Section */}
+              <div className="space-y-2">
+                <Label>Interaction Summary</Label>
+                <div className="rounded-md border p-3 bg-muted/20">
+                  {renderInteractionSummary()}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Interactions</h3>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Log Interaction
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Plan Interaction
+                  </Button>
+                </div>
+              </div>
+              
+              {interactions.length > 0 ? (
+                <div className="space-y-3">
+                  {interactions.map(interaction => (
+                    <div key={interaction.interaction_id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 space-y-2">
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {formatDate(interaction.interaction_date)}
+                          </div>
+                          
+                          {editingInteraction === interaction.interaction_id ? (
+                            <div className="space-y-3">
+                              <Textarea
+                                value={editingDescription}
+                                onChange={(e) => setEditingDescription(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)}>
+                                  Save
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={handleCancelInlineEdit}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div 
+                              className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
+                              onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
+                            >
+                              {interaction.description}
+                            </div>
+                          )}
                         </div>
                         
-                        {editingInteraction === interaction.interaction_id ? (
-                          <div className="space-y-3">
-                            <Textarea
-                              value={editingDescription}
-                              onChange={(e) => setEditingDescription(e.target.value)}
-                              rows={3}
-                            />
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)}>
-                                Save
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={handleCancelInlineEdit}>
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div 
-                            className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
-                            onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
+                        {editingInteraction !== interaction.interaction_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteInteraction(interaction.interaction_id)}
                           >
-                            {interaction.description}
-                          </div>
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
-                      
-                      {editingInteraction !== interaction.interaction_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteInteraction(interaction.interaction_id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-muted/30 rounded-lg p-6 text-center">
-                <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-muted-foreground mb-4">
-                  No interactions logged for this company yet
-                </p>
-                <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Log Interaction
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-      
-      {/* Contact Details Dialog */}
-      {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
-      
-      {/* Log Interaction Modal */}
-      <LogInteractionModal
-        isOpen={isLogInteractionOpen}
-        onClose={() => setIsLogInteractionOpen(false)}
-        companyId={company.company_id}
-        companyName={company.name}
-        availableContacts={contacts}
-        onSuccess={handleLogInteractionSuccess}
-      />
-      
-      {/* Legacy Interaction Form Dialog */}
-      <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} isPlanningMode={isPlanningMode} />
-      
-      {/* Edit Interaction Dialog */}
-      {selectedInteraction && <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isEditInteractionOpen} onClose={() => setIsEditInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} existingInteraction={{
-      interaction_id: selectedInteraction.interaction_id,
-      interaction_type: selectedInteraction.interaction_type,
-      description: selectedInteraction.description,
-      interaction_date: selectedInteraction.interaction_date,
-      contact_id: selectedInteraction.contact_id,
-      follow_up_due_date: selectedInteraction.follow_up_due_date,
-      medium: selectedInteraction.medium
-    }} />}
-    </Dialog>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground mb-4">
+                    No interactions logged for this company yet
+                  </p>
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Log Interaction
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+        
+        {/* Contact Details Dialog */}
+        {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
+        
+        {/* Log Interaction Modal */}
+        {company && (
+          <LogInteractionModal
+            isOpen={isLogInteractionOpen}
+            onClose={() => setIsLogInteractionOpen(false)}
+            companyId={company.company_id}
+            companyName={company.name || 'Unknown Company'}
+            availableContacts={contacts}
+            onSuccess={handleLogInteractionSuccess}
+          />
+        )}
+        
+        {/* Plan Interaction Modal */}
+        {company && (
+          <PlanInteractionModal
+            isOpen={isPlanInteractionOpen}
+            onClose={() => setIsPlanInteractionOpen(false)}
+            companyId={company.company_id}
+            companyName={company.name || 'Unknown Company'}
+            availableContacts={contacts}
+            onSuccess={handlePlanInteractionSuccess}
+          />
+        )}
+        
+        {/* Legacy Interaction Form Dialog */}
+        <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} isPlanningMode={isPlanningMode} />
+        
+        {/* Edit Interaction Dialog */}
+        {selectedInteraction && <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isEditInteractionOpen} onClose={() => setIsEditInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} existingInteraction={{
+        interaction_id: selectedInteraction.interaction_id,
+        interaction_type: selectedInteraction.interaction_type,
+        description: selectedInteraction.description,
+        interaction_date: selectedInteraction.interaction_date,
+        contact_id: selectedInteraction.contact_id,
+        follow_up_due_date: selectedInteraction.follow_up_due_date,
+        medium: selectedInteraction.medium
+      }} />}
+      </Dialog>
+    </>
   );
 }

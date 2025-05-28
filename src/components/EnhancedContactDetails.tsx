@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
+import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
@@ -70,6 +71,7 @@ export function EnhancedContactDetails({
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<{[key: string]: {date: string, description: string}}>({});
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
+  const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const [companyContacts, setCompanyContacts] = useState<ContactData[]>([]);
 
   const {
@@ -228,6 +230,14 @@ export function EnhancedContactDetails({
   const handleLogInteractionSuccess = async () => {
     await fetchContactInteractions();
     setIsLogInteractionOpen(false);
+    onContactUpdated();
+    // Regenerate interaction summary
+    await regenerateOverview();
+  };
+
+  const handlePlanInteractionSuccess = async () => {
+    await fetchContactInteractions();
+    setIsPlanInteractionOpen(false);
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
@@ -546,10 +556,16 @@ export function EnhancedContactDetails({
 
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Interactions</h3>
-                <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Log Interaction
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Log Interaction
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Plan Interaction
+                  </Button>
+                </div>
               </div>
 
               {interactions.length > 0 ? (
@@ -653,10 +669,16 @@ export function EnhancedContactDetails({
                   <p className="text-muted-foreground mb-4">
                     No interactions logged for this contact yet
                   </p>
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </Button>
+                  <div className="flex gap-2 justify-center">
+                    <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Log Interaction
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Plan Interaction
+                    </Button>
+                  </div>
                 </div>
               )}
             </TabsContent>
@@ -674,6 +696,19 @@ export function EnhancedContactDetails({
           availableContacts={companyContacts}
           preSelectedContact={contact}
           onSuccess={handleLogInteractionSuccess}
+        />
+      )}
+
+      {/* Plan Interaction Modal */}
+      {contact && (
+        <PlanInteractionModal
+          isOpen={isPlanInteractionOpen}
+          onClose={() => setIsPlanInteractionOpen(false)}
+          companyId={contact.company_id || ''}
+          companyName={contact.companies?.name || 'Unknown Company'}
+          availableContacts={companyContacts}
+          preSelectedContact={contact}
+          onSuccess={handlePlanInteractionSuccess}
         />
       )}
 
