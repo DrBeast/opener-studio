@@ -249,41 +249,42 @@ const Profile = () => {
       
       <div className="grid gap-6">
         <div className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-2xl font-bold">Professional Profile</CardTitle>
-              </div>
-              <div className="flex gap-2">
-                {!editMode && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setEditMode(true)} 
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Edit Profile
-                  </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  onClick={handleNavigateToTargets} 
-                  className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
-                >
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            
-            {/* New Info Box */}
-            <div className="mx-6 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800">
-                We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
-              </p>
+          {/* Page Header */}
+          <div className="flex flex-row items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Professional Profile</h1>
             </div>
-            
+            <div className="flex gap-2">
+              {!editMode && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setEditMode(true)} 
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+              )}
+              <Button 
+                size="sm" 
+                onClick={handleNavigateToTargets} 
+                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+              >
+                Next: Define Targets
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Info Box */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
+            </p>
+          </div>
+
+          <Card>
             <CardContent className="space-y-6">
               {/* Edit Form - Moved to the top when in edit mode */}
               {editMode && (
