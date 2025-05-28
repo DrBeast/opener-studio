@@ -5,7 +5,6 @@ import { Loader2, Edit, Save, X } from "lucide-react";
 import ProfileSummary from "@/components/profile/ProfileSummary";
 import EditableSummary from "@/components/profile/EditableSummary";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
-import CVUpload from "@/components/CVUpload";
 import DevOptions from "@/components/profile/DevOptions";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { FeedbackBox } from "@/components/FeedbackBox";
@@ -30,6 +29,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Form state for editing
   const [linkedinContent, setLinkedinContent] = useState(profile?.linkedin_content || "");
@@ -129,6 +129,23 @@ const Profile = () => {
     }));
   };
 
+  const handleResetUserData = async () => {
+    if (!user) return;
+    
+    setIsResetting(true);
+    try {
+      await resetUserData(user.id);
+      toast({
+        title: "Data reset",
+        description: "All user data has been reset successfully."
+      });
+    } catch (error) {
+      console.error("Error resetting data:", error);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -210,15 +227,11 @@ const Profile = () => {
           </div>
         )}
 
-        {/* CV Upload Section - always visible for now */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Upload Documents</h2>
-          <CVUpload />
-        </div>
-
         {/* Dev Options */}
         <DevOptions 
-          onResetData={() => resetUserData(user?.id || "")}
+          showDevOptions={true}
+          isResetting={isResetting}
+          onResetUserData={handleResetUserData}
         />
       </div>
     </div>
