@@ -608,7 +608,7 @@ const JobTargets = () => {
                   field
                 }) => <FormItem>
                         <FormLabel>Company Examples</FormLabel>
-                        <FormDescription>We will use this to generate more examples</FormDescription>
+                        <FormDescription>We will use your examples as inspiration to generate more options.</FormDescription>
                         <FormControl>
                           <Input placeholder="Google, Apple, Microsoft, etc." onChange={e => {
                       const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
