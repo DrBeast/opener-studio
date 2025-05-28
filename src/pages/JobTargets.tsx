@@ -15,7 +15,6 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
   target_locations: z.array(z.string()).optional(),
@@ -163,9 +162,10 @@ const ensureStringArray = (value: any): string[] => {
   if (Array.isArray(value)) return value.map(String);
   return [];
 };
-
 const JobTargets = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -179,7 +179,6 @@ const JobTargets = () => {
   const [locationSearchOpen, setLocationSearchOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
-  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -193,36 +192,29 @@ const JobTargets = () => {
       visa_sponsorship_required: false
     }
   });
-
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!user) return;
       setIsLoading(true);
-      
       try {
         // Clean up duplicate target criteria first and get the most recent one
         const cleanedCriteria = await cleanupDuplicateTargetCriteria(user.id);
-        
+
         // Fetch user profile to get location data - using the correct table name "user_profiles"
         const {
           data: profileData,
           error: profileError
-        } = await supabase
-          .from("user_profiles")
-          .select("location")
-          .eq("user_id", user.id)
-          .maybeSingle();
-          
+        } = await supabase.from("user_profiles").select("location").eq("user_id", user.id).maybeSingle();
         if (profileData && !profileError) {
           setUserProfile(profileData);
         }
-        
+
         // Use the returned cleaned criteria instead of making another query
         if (cleanedCriteria) {
           setExistingData(cleanedCriteria);
           setIsEditing(true);
           const targetLocations = ensureStringArray(cleanedCriteria.target_locations);
-          
+
           // If user has no locations set but we have their profile location, use that
           const userLocation = profileData?.location;
           const locations = targetLocations.length > 0 ? targetLocations : userLocation ? [userLocation] : [];
@@ -253,7 +245,6 @@ const JobTargets = () => {
     };
     fetchExistingData();
   }, [user, form]);
-
   const onSubmit = async (values: FormValues) => {
     if (!user) return;
     setIsSubmitting(true);
@@ -312,7 +303,7 @@ const JobTargets = () => {
     };
     return <FormField control={form.control} name={name} render={() => <FormItem className="space-y-2">
             <FormLabel>{label}</FormLabel>
-            <FormDescription>{description}</FormDescription>
+            
             
             <div className="relative">
               <div className="flex flex-wrap p-2 border rounded-md min-h-[80px] bg-background">
@@ -496,12 +487,9 @@ const JobTargets = () => {
             </div>
           </FormItem>} />;
   };
-
   const handleGenerateCompanies = async () => {
     if (!user) return;
-    
     setIsGenerating(true);
-    
     try {
       // First save the current form data
       const values = form.getValues();
@@ -509,16 +497,16 @@ const JobTargets = () => {
         user_id: user.id,
         ...values
       };
-      
-      const { error: saveError } = existingData 
-        ? await supabase.from("target_criteria").update(submissionData).eq("criteria_id", existingData.criteria_id)
-        : await supabase.from("target_criteria").insert([submissionData]);
-      
+      const {
+        error: saveError
+      } = existingData ? await supabase.from("target_criteria").update(submissionData).eq("criteria_id", existingData.criteria_id) : await supabase.from("target_criteria").insert([submissionData]);
       if (saveError) throw saveError;
 
       // Call the generate companies edge function
-      const { data, error } = await supabase.functions.invoke('generate_companies');
-      
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('generate_companies');
       if (error) {
         console.error('Error generating companies:', error);
         toast({
@@ -528,20 +516,18 @@ const JobTargets = () => {
         });
         return;
       }
-
       toast({
         title: "Success",
         description: `Generated ${data?.companies?.length || 0} new companies successfully!`
       });
 
       // Navigate to pipeline with a flag to highlight new companies
-      navigate("/pipeline", { 
-        state: { 
+      navigate("/pipeline", {
+        state: {
           newCompanies: data?.companies || [],
-          highlightNew: true 
-        } 
+          highlightNew: true
+        }
       });
-      
     } catch (error: any) {
       console.error("Error generating companies:", error);
       toast({
@@ -553,7 +539,6 @@ const JobTargets = () => {
       setIsGenerating(false);
     }
   };
-
   if (isLoading) {
     return <div className="flex min-h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -567,17 +552,12 @@ const JobTargets = () => {
       });
     })();
   };
-
   return <div className="container mx-auto py-8 max-w-4xl">
       <ProfileBreadcrumbs />
       
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Define Your Job & Company Targets</h1>
-        <Button 
-          onClick={handleGenerateCompanies} 
-          disabled={isSubmitting || isGenerating} 
-          className="bg-primary"
-        >
+        <Button onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating} className="bg-primary">
           {isGenerating ? "Generating..." : "Generate Companies"}
         </Button>
       </div>
@@ -602,9 +582,7 @@ const JobTargets = () => {
                   field
                 }) => <FormItem>
                         <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        <FormDescription>
-                          Tell us what matters to you about your next job - in your own words or using the criteria below.
-                        </FormDescription>
+                        
                         <FormControl>
                           <Textarea placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below." className="min-h-[150px]" {...field} />
                         </FormControl>
@@ -642,11 +620,7 @@ const JobTargets = () => {
                       </FormItem>} />
                   
                   <div className="flex justify-end space-x-4">
-                    <Button 
-                      type="button" 
-                      onClick={handleGenerateCompanies}
-                      disabled={isSubmitting || isGenerating}
-                    >
+                    <Button type="button" onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
                       {isGenerating ? "Generating..." : "Generate Companies"}
                     </Button>
                   </div>
@@ -658,5 +632,4 @@ const JobTargets = () => {
       </div>
     </div>;
 };
-
 export default JobTargets;
