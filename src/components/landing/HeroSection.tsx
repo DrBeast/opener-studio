@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -13,7 +14,7 @@ const HeroSection = () => {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              Break Through the Noise: <span className="text-primary">
+              Connect With a Human: <span className="text-primary">
                 Your AI Copilot</span> for Job Search Networking
             </h1>
             <p className="text-xl text-gray-600 mb-8">In today's market, getting seen is hard. ConnectorAI helps you build the meaningful connections and craft outreach that actually gets responses, without the awkwardness.</p>
