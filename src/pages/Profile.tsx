@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoBox } from "@/components/ui/info-box";
 import { toast } from "@/hooks/use-toast";
 import { Edit, ArrowRight, Save } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
@@ -278,11 +279,13 @@ const Profile = () => {
           </div>
 
           {/* Info Box */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
+          <InfoBox>
+            <p className="font-medium mb-1">AI-Generated Professional Summary</p>
+            <p>
+              We will use the AI-generated summary of your profile for company matching and message generation. 
+              You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
             </p>
-          </div>
+          </InfoBox>
 
           <Card>
             <CardContent className="space-y-6">
