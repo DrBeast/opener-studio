@@ -15,11 +15,6 @@ interface FeedbackEntry {
   created_at: string;
 }
 
-interface User {
-  id: string;
-  email?: string;
-}
-
 const FeedbackReview = () => {
   const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +31,8 @@ const FeedbackReview = () => {
   const fetchFeedback = async () => {
     setIsLoading(true);
     try {
-      // Get feedback with user emails
-      const { data, error } = await supabase
+      // Get feedback entries
+      const { data: feedbackData, error: feedbackError } = await supabase
         .from('user_feedback')
         .select(`
           feedback_id,
@@ -49,26 +44,31 @@ const FeedbackReview = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (feedbackError) throw feedbackError;
 
-      // Get user emails for each feedback entry
-      const userIds = [...new Set(data?.map(f => f.user_id).filter(Boolean))];
-      const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+      // Get current user's session to check if we can access user data
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-      }
-
+      // For each unique user_id, try to get the email from the session or profile
+      const uniqueUserIds = [...new Set(feedbackData?.map(f => f.user_id).filter(Boolean))];
       const userEmailMap: Record<string, string> = {};
-      if (users?.users) {
-        users.users.forEach((user: User) => {
-          userEmailMap[user.id] = user.email || 'Unknown';
-        });
+      
+      // If we have a session and it's the same user, we can get their email
+      if (session?.user) {
+        userEmailMap[session.user.id] = session.user.email || 'Unknown';
       }
+      
+      // For other users, we'll show the user_id truncated as we can't access their emails
+      // due to privacy/security restrictions
+      uniqueUserIds.forEach(userId => {
+        if (!userEmailMap[userId]) {
+          userEmailMap[userId] = `User-${userId.slice(0, 8)}...`;
+        }
+      });
 
-      const feedbackWithEmails = data?.map(entry => ({
+      const feedbackWithEmails = feedbackData?.map(entry => ({
         ...entry,
-        user_email: userEmailMap[entry.user_id] || 'Unknown'
+        user_email: userEmailMap[entry.user_id] || 'Unknown User'
       })) || [];
 
       setFeedback(feedbackWithEmails);
@@ -111,6 +111,9 @@ const FeedbackReview = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Beta Feedback Review</h1>
         <p className="text-muted-foreground">Review feedback collected from beta users</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Note: User emails are only shown for your own feedback due to privacy restrictions
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -164,7 +167,7 @@ const FeedbackReview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>User Email</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>View</TableHead>
                   <TableHead>Feedback</TableHead>
                 </TableRow>
