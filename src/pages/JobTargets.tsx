@@ -2,7 +2,6 @@
 import React from 'react';
 import { TargetCriteriaForm } from "@/components/TargetCriteriaForm";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { FeedbackBox } from "@/components/FeedbackBox";
 
 const JobTargets = () => {
   const handleCancel = () => {
@@ -26,8 +25,6 @@ const JobTargets = () => {
             Define your target roles, companies, and preferences to get personalized recommendations.
           </p>
         </div>
-
-        <FeedbackBox viewName="Job Targets Page" className="mb-6" />
 
         <TargetCriteriaForm onCancel={handleCancel} onSaved={handleSaved} />
       </div>

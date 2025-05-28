@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
@@ -13,31 +10,23 @@ import { toast } from "@/components/ui/use-toast";
 interface FeedbackBoxProps {
   viewName: string;
   className?: string;
+  variant?: 'header' | 'modal';
 }
 
-export const FeedbackBox = ({ viewName, className = "" }: FeedbackBoxProps) => {
+export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: FeedbackBoxProps) => {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  
-  const [feedback, setFeedback] = useState({
-    valuable: '',
-    irrelevant: '',
-    emotions: '',
-    emotionType: '',
-    otherComments: ''
-  });
+  const [feedback, setFeedback] = useState('');
 
   const handleSubmit = async () => {
     if (!user) return;
 
-    // Check if at least one field has content
-    const hasContent = Object.values(feedback).some(value => value.trim() !== '');
-    if (!hasContent) {
+    if (!feedback.trim()) {
       toast({
         title: "No feedback provided",
-        description: "Please fill in at least one field before submitting.",
+        description: "Please provide some feedback before submitting.",
         variant: "destructive"
       });
       return;
@@ -51,11 +40,7 @@ export const FeedbackBox = ({ viewName, className = "" }: FeedbackBoxProps) => {
           user_id: user.id,
           session_id: sessionId,
           view_name: viewName,
-          valuable: feedback.valuable || null,
-          irrelevant: feedback.irrelevant || null,
-          emotions: feedback.emotions || null,
-          emotion_type: feedback.emotionType || null,
-          other_comments: feedback.otherComments || null
+          feedback_text: feedback
         });
 
       if (error) throw error;
@@ -65,15 +50,8 @@ export const FeedbackBox = ({ viewName, className = "" }: FeedbackBoxProps) => {
         description: "Your feedback has been submitted successfully."
       });
 
-      // Reset form
-      setFeedback({
-        valuable: '',
-        irrelevant: '',
-        emotions: '',
-        emotionType: '',
-        otherComments: ''
-      });
-      setIsOpen(false);
+      setFeedback('');
+      setIsExpanded(false);
     } catch (error: any) {
       console.error("Error submitting feedback:", error);
       toast({
@@ -88,107 +66,110 @@ export const FeedbackBox = ({ viewName, className = "" }: FeedbackBoxProps) => {
 
   if (!user) return null;
 
-  return (
-    <Card className={`bg-amber-50 border-amber-200 ${className}`}>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-between p-3 h-auto text-amber-800 hover:bg-amber-100"
+  if (variant === 'header') {
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        {!isExpanded ? (
+          <Button
+            onClick={() => setIsExpanded(true)}
+            variant="outline"
+            size="sm"
+            className="text-xs"
           >
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span className="font-medium">Beta Feedback</span>
-            </div>
-            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <MessageSquare className="h-3 w-3 mr-1" />
+            Feedback
           </Button>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent>
-          <CardContent className="pt-0 p-3 space-y-3">
-            <p className="text-xs text-amber-700 mb-3">
-              Help us improve! Share your thoughts on this {viewName.toLowerCase()} experience:
-            </p>
-            
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor={`valuable-${viewName}`} className="text-xs text-amber-800">
-                  What did you find valuable?
-                </Label>
-                <Textarea
-                  id={`valuable-${viewName}`}
-                  value={feedback.valuable}
-                  onChange={(e) => setFeedback(prev => ({ ...prev, valuable: e.target.value }))}
-                  placeholder="What worked well for you?"
-                  className="min-h-[60px] text-xs"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`irrelevant-${viewName}`} className="text-xs text-amber-800">
-                  What felt irrelevant or unhelpful?
-                </Label>
-                <Textarea
-                  id={`irrelevant-${viewName}`}
-                  value={feedback.irrelevant}
-                  onChange={(e) => setFeedback(prev => ({ ...prev, irrelevant: e.target.value }))}
-                  placeholder="What didn't meet your needs?"
-                  className="min-h-[60px] text-xs"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`emotions-${viewName}`} className="text-xs text-amber-800">
-                  What emotions did this invoke?
-                </Label>
-                <Textarea
-                  id={`emotions-${viewName}`}
-                  value={feedback.emotions}
-                  onChange={(e) => setFeedback(prev => ({ ...prev, emotions: e.target.value }))}
-                  placeholder="How did this make you feel?"
-                  className="min-h-[60px] text-xs"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`emotionType-${viewName}`} className="text-xs text-amber-800">
-                  What kind of emotions? (positive, negative, neutral, mixed)
-                </Label>
-                <Textarea
-                  id={`emotionType-${viewName}`}
-                  value={feedback.emotionType}
-                  onChange={(e) => setFeedback(prev => ({ ...prev, emotionType: e.target.value }))}
-                  placeholder="e.g., excited, frustrated, confident, confused..."
-                  className="min-h-[40px] text-xs"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`otherComments-${viewName}`} className="text-xs text-amber-800">
-                  Any other thoughts or comments?
-                </Label>
-                <Textarea
-                  id={`otherComments-${viewName}`}
-                  value={feedback.otherComments}
-                  onChange={(e) => setFeedback(prev => ({ ...prev, otherComments: e.target.value }))}
-                  placeholder="Anything else you'd like to share?"
-                  className="min-h-[60px] text-xs"
-                />
-              </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-white border rounded-md p-2 shadow-sm">
+            <Textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder={`Share your thoughts on this ${viewName.toLowerCase()} - what's working well? What could be improved? What are you feeling?`}
+              className="min-h-[32px] max-h-[80px] text-xs resize-none border-0 p-0 focus-visible:ring-0 w-64"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setIsExpanded(false);
+                  setFeedback('');
+                }
+              }}
+            />
+            <div className="flex gap-1">
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                size="sm"
+                className="h-6 px-2 text-xs"
+              >
+                <Send className="h-3 w-3" />
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsExpanded(false);
+                  setFeedback('');
+                }}
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+              >
+                ×
+              </Button>
             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
-            <Button 
+  // Modal variant - top right corner
+  return (
+    <div className={`absolute top-4 right-4 z-10 ${className}`}>
+      {!isExpanded ? (
+        <Button
+          onClick={() => setIsExpanded(true)}
+          variant="outline"
+          size="sm"
+          className="text-xs bg-white/90 backdrop-blur-sm"
+        >
+          <MessageSquare className="h-3 w-3 mr-1" />
+          Feedback
+        </Button>
+      ) : (
+        <div className="bg-white border rounded-md p-3 shadow-lg w-72">
+          <Textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder={`Share your thoughts on this ${viewName.toLowerCase()} - what's working well? What could be improved? What are you feeling?`}
+            className="min-h-[60px] text-xs mb-2"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setIsExpanded(false);
+                setFeedback('');
+              }
+            }}
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              onClick={() => {
+                setIsExpanded(false);
+                setFeedback('');
+              }}
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
               size="sm"
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+              className="text-xs"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              {isSubmitting ? 'Sending...' : 'Send'}
             </Button>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

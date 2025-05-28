@@ -6,7 +6,6 @@ import ProfessionalBackground from "@/components/ProfessionalBackground";
 import CVUpload from "@/components/CVUpload";
 import DevOptions from "@/components/profile/DevOptions";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { FeedbackBox } from "@/components/FeedbackBox";
 
 const Profile = () => {
   return (
@@ -20,8 +19,6 @@ const Profile = () => {
             Build your professional profile to get better company and contact recommendations.
           </p>
         </div>
-
-        <FeedbackBox viewName="Profile Page" className="mb-6" />
 
         {/* Note: These components would need proper props integration */}
         {/* For now, just showing the structure until the profile hook is integrated */}

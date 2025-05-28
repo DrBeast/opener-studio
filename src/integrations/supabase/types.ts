@@ -324,41 +324,29 @@ export type Database = {
       user_feedback: {
         Row: {
           created_at: string
-          emotion_type: string | null
-          emotions: string | null
           feedback_id: string
-          irrelevant: string | null
-          other_comments: string | null
+          feedback_text: string | null
           session_id: string | null
           updated_at: string
           user_id: string | null
-          valuable: string | null
           view_name: string
         }
         Insert: {
           created_at?: string
-          emotion_type?: string | null
-          emotions?: string | null
           feedback_id?: string
-          irrelevant?: string | null
-          other_comments?: string | null
+          feedback_text?: string | null
           session_id?: string | null
           updated_at?: string
           user_id?: string | null
-          valuable?: string | null
           view_name: string
         }
         Update: {
           created_at?: string
-          emotion_type?: string | null
-          emotions?: string | null
           feedback_id?: string
-          irrelevant?: string | null
-          other_comments?: string | null
+          feedback_text?: string | null
           session_id?: string | null
           updated_at?: string
           user_id?: string | null
-          valuable?: string | null
           view_name?: string
         }
         Relationships: []

@@ -11,11 +11,7 @@ interface FeedbackEntry {
   user_email: string;
   session_id: string;
   view_name: string;
-  valuable: string | null;
-  irrelevant: string | null;
-  emotions: string | null;
-  emotion_type: string | null;
-  other_comments: string | null;
+  feedback_text: string | null;
   created_at: string;
 }
 
@@ -47,11 +43,7 @@ const FeedbackReview = () => {
           feedback_id,
           session_id,
           view_name,
-          valuable,
-          irrelevant,
-          emotions,
-          emotion_type,
-          other_comments,
+          feedback_text,
           created_at,
           user_id
         `)
@@ -101,7 +93,7 @@ const FeedbackReview = () => {
     }
   };
 
-  const truncateText = (text: string | null, maxLength: number = 100) => {
+  const truncateText = (text: string | null, maxLength: number = 200) => {
     if (!text) return '-';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
@@ -174,11 +166,7 @@ const FeedbackReview = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>User Email</TableHead>
                   <TableHead>View</TableHead>
-                  <TableHead>Valuable</TableHead>
-                  <TableHead>Irrelevant</TableHead>
-                  <TableHead>Emotions</TableHead>
-                  <TableHead>Emotion Type</TableHead>
-                  <TableHead>Other Comments</TableHead>
+                  <TableHead>Feedback</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,20 +183,8 @@ const FeedbackReview = () => {
                         {entry.view_name}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs max-w-[200px]" title={entry.valuable || ''}>
-                      {truncateText(entry.valuable)}
-                    </TableCell>
-                    <TableCell className="text-xs max-w-[200px]" title={entry.irrelevant || ''}>
-                      {truncateText(entry.irrelevant)}
-                    </TableCell>
-                    <TableCell className="text-xs max-w-[200px]" title={entry.emotions || ''}>
-                      {truncateText(entry.emotions)}
-                    </TableCell>
-                    <TableCell className="text-xs max-w-[150px]" title={entry.emotion_type || ''}>
-                      {truncateText(entry.emotion_type, 50)}
-                    </TableCell>
-                    <TableCell className="text-xs max-w-[200px]" title={entry.other_comments || ''}>
-                      {truncateText(entry.other_comments)}
+                    <TableCell className="text-xs max-w-[400px]" title={entry.feedback_text || ''}>
+                      {truncateText(entry.feedback_text)}
                     </TableCell>
                   </TableRow>
                 ))}

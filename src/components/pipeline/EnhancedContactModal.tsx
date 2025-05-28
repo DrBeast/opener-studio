@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,14 +7,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Info, Loader2, User, MapPin, Building, Mail, Linkedin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { LinkedInQuerySuggestions } from "./LinkedInQuerySuggestions";
+import { Loader2, User, Building, Sparkles } from "lucide-react";
 import { FeedbackBox } from "@/components/FeedbackBox";
 
 interface EnhancedContactModalProps {
@@ -25,53 +25,100 @@ interface EnhancedContactModalProps {
   onSuccess: () => void;
 }
 
-interface GeneratedContact {
-  name: string;
-  role?: string;
-  location?: string;
-  linkedin_url?: string;
-  email?: string;
-  bio_summary?: string;
-  how_i_can_help?: string;
+interface ContactData {
+  first_name: string;
+  last_name: string;
+  role: string;
+  location: string;
+  linkedin_url: string;
+  email: string;
+  bio_summary: string;
+  recent_activity_summary: string;
+  how_i_can_help: string;
+  user_notes: string;
 }
 
-export const EnhancedContactModal = ({
+export const EnhancedContactModal: React.FC<EnhancedContactModalProps> = ({
   isOpen,
   onClose,
   companyId,
   companyName,
   onSuccess
-}: EnhancedContactModalProps) => {
+}) => {
   const { user } = useAuth();
-  const [linkedinBio, setLinkedinBio] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [generatedContact, setGeneratedContact] = useState<GeneratedContact | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'input' | 'review'>('input');
+  const [linkedinBio, setLinkedinBio] = useState('');
+  const [generatedContact, setGeneratedContact] = useState<ContactData>({
+    first_name: '',
+    last_name: '',
+    role: '',
+    location: '',
+    linkedin_url: '',
+    email: '',
+    bio_summary: '',
+    recent_activity_summary: '',
+    how_i_can_help: '',
+    user_notes: ''
+  });
 
-  const handleGenerateContact = async () => {
-    if (!user || !linkedinBio.trim()) return;
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep('input');
+      setLinkedinBio('');
+      setGeneratedContact({
+        first_name: '',
+        last_name: '',
+        role: '',
+        location: '',
+        linkedin_url: '',
+        email: '',
+        bio_summary: '',
+        recent_activity_summary: '',
+        how_i_can_help: '',
+        user_notes: ''
+      });
+    }
+  }, [isOpen]);
+
+  const handleGenerate = async () => {
+    if (!user || !linkedinBio.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide LinkedIn profile information.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('add_contact_by_bio', {
-        body: { 
-          company_id: companyId,
-          linkedin_bio: linkedinBio.trim()
+        body: {
+          companyId,
+          linkedinBio: linkedinBio.trim()
         }
       });
 
       if (error) throw error;
 
-      if (data?.contact) {
+      if (data?.success && data.contact) {
         setGeneratedContact(data.contact);
+        setCurrentStep('review');
+        toast({
+          title: "Contact Generated",
+          description: "Please review the generated contact information."
+        });
       } else {
-        throw new Error('No contact data received');
+        throw new Error(data?.error || 'Failed to generate contact');
       }
     } catch (error: any) {
       console.error("Error generating contact:", error);
       toast({
-        title: "Error",
-        description: "Failed to generate contact information",
+        title: "Generation Failed",
+        description: error.message || "Failed to generate contact from bio.",
         variant: "destructive"
       });
     } finally {
@@ -79,206 +126,236 @@ export const EnhancedContactModal = ({
     }
   };
 
-  const handleCreateContact = async () => {
-    if (!user || !generatedContact) return;
+  const handleSave = async () => {
+    if (!user) return;
 
-    setIsCreating(true);
+    setIsSubmitting(true);
     try {
-      const nameParts = generatedContact.name.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      const { error } = await supabase
-        .from('contacts')
-        .insert({
-          user_id: user.id,
-          company_id: companyId,
-          first_name: firstName,
-          last_name: lastName,
-          role: generatedContact.role,
-          email: generatedContact.email,
-          linkedin_url: generatedContact.linkedin_url,
-          location: generatedContact.location,
-          bio_summary: generatedContact.bio_summary,
-          how_i_can_help: generatedContact.how_i_can_help,
-        });
+      const { error } = await supabase.from('contacts').insert({
+        user_id: user.id,
+        company_id: companyId,
+        ...generatedContact
+      });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Contact created successfully",
+        description: "Contact added successfully"
       });
 
       onSuccess();
       onClose();
-      resetForm();
     } catch (error: any) {
-      console.error("Error creating contact:", error);
+      console.error("Error saving contact:", error);
       toast({
         title: "Error",
-        description: "Failed to create contact",
+        description: "Failed to save contact",
         variant: "destructive"
       });
     } finally {
-      setIsCreating(false);
+      setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setLinkedinBio('');
-    setGeneratedContact(null);
-  };
-
-  const handleClose = () => {
-    onClose();
-    resetForm();
+  const handleInputChange = (field: keyof ContactData, value: string) => {
+    setGeneratedContact(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <FeedbackBox viewName="Enhanced Contact Modal" variant="modal" />
+        
         <DialogHeader>
-          <DialogTitle>Add New Contact - {companyName}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Add New Contact - {companyName}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <FeedbackBox viewName="Enhanced Contact Modal" />
-
-          {/* Info Box */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-2">How to Find the Right Contacts</p>
-                  <p className="mb-2">
-                    Start with your existing network. Provide their LinkedIn bios, and AI will do the rest. 
-                    To expand into new cold contacts, it works best to identify contacts by searching on LinkedIn 
-                    for people in your function around and above your level, recruiters who posted relevant roles, 
-                    or general business managers.
-                  </p>
-                  <p className="font-medium">Feel free to use the suggested queries below:</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* LinkedIn Query Suggestions */}
-          <LinkedInQuerySuggestions companyName={companyName} isModalOpen={isOpen} />
-
-          {/* LinkedIn Bio Input */}
+        {currentStep === 'input' && (
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="linkedinBio">LinkedIn Profile Content</Label>
-              <div className="mt-1 mb-2 text-sm text-muted-foreground">
-                It is essential to provide contact's professional background. We will use it to craft personalized 
-                messages to them. An easy way to do this is to go on their LinkedIn profile page, copy everything 
-                (Ctrl+A, Ctrl+C) and paste it here (Ctrl+V). Don't worry about formatting - AI will figure it out.
-              </div>
-              <Textarea
-                id="linkedinBio"
-                value={linkedinBio}
-                onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder="Paste the contact's LinkedIn profile content here..."
-                className="min-h-[150px]"
-              />
-            </div>
-
-            <Button 
-              onClick={handleGenerateContact} 
-              disabled={!linkedinBio.trim() || isGenerating}
-              className="w-full"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Contact...
-                </>
-              ) : (
-                'Generate Contact'
-              )}
-            </Button>
-          </div>
-
-          {/* Generated Contact Preview */}
-          {generatedContact && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <h3 className="font-medium mb-3 text-green-800">Generated Contact Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">{generatedContact.name}</span>
-                  </div>
-                  
-                  {generatedContact.role && (
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-green-600" />
-                      <span>{generatedContact.role}</span>
-                    </div>
-                  )}
-                  
-                  {generatedContact.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-green-600" />
-                      <span>{generatedContact.location}</span>
-                    </div>
-                  )}
-                  
-                  {generatedContact.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">{generatedContact.email}</span>
-                    </div>
-                  )}
-                  
-                  {generatedContact.linkedin_url && (
-                    <div className="flex items-center gap-2">
-                      <Linkedin className="h-4 w-4 text-green-600" />
-                      <span className="text-sm truncate">{generatedContact.linkedin_url}</span>
-                    </div>
-                  )}
-                  
-                  {generatedContact.bio_summary && (
-                    <div>
-                      <p className="font-medium text-sm text-green-800 mb-1">Background Summary:</p>
-                      <p className="text-sm">{generatedContact.bio_summary}</p>
-                    </div>
-                  )}
-                  
-                  {generatedContact.how_i_can_help && (
-                    <div>
-                      <p className="font-medium text-sm text-green-800 mb-1">How You Can Help:</p>
-                      <p className="text-sm">{generatedContact.how_i_can_help}</p>
-                    </div>
-                  )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  LinkedIn Profile Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="linkedin-bio">
+                    Paste LinkedIn profile information (bio, experience, etc.)
+                  </Label>
+                  <Textarea
+                    id="linkedin-bio"
+                    value={linkedinBio}
+                    onChange={(e) => setLinkedinBio(e.target.value)}
+                    placeholder="Copy and paste the person's LinkedIn profile information including their bio, current role, experience, location, etc."
+                    className="min-h-[200px]"
+                  />
                 </div>
 
-                <Button 
-                  onClick={handleCreateContact} 
-                  disabled={isCreating}
-                  className="w-full mt-4"
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Contact...
-                    </>
-                  ) : (
-                    'Create Contact'
-                  )}
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !linkedinBio.trim()}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Contact
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          )}
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
           </div>
-        </div>
+        )}
+
+        {currentStep === 'review' && (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Review Generated Contact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      value={generatedContact.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      value={generatedContact.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="role">Role</Label>
+                    <Input
+                      id="role"
+                      value={generatedContact.role}
+                      onChange={(e) => handleInputChange('role', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={generatedContact.location}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                    <Input
+                      id="linkedin_url"
+                      value={generatedContact.linkedin_url}
+                      onChange={(e) => handleInputChange('linkedin_url', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      value={generatedContact.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="bio_summary">Bio Summary</Label>
+                  <Textarea
+                    id="bio_summary"
+                    value={generatedContact.bio_summary}
+                    onChange={(e) => handleInputChange('bio_summary', e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="recent_activity_summary">Recent Activity Summary</Label>
+                  <Textarea
+                    id="recent_activity_summary"
+                    value={generatedContact.recent_activity_summary}
+                    onChange={(e) => handleInputChange('recent_activity_summary', e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="how_i_can_help">How I Can Help</Label>
+                  <Textarea
+                    id="how_i_can_help"
+                    value={generatedContact.how_i_can_help}
+                    onChange={(e) => handleInputChange('how_i_can_help', e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="user_notes">Your Notes</Label>
+                  <Textarea
+                    id="user_notes"
+                    value={generatedContact.user_notes}
+                    onChange={(e) => handleInputChange('user_notes', e.target.value)}
+                    placeholder="Add any personal notes about this contact..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setCurrentStep('input')}>
+                    Back
+                  </Button>
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSave}
+                    disabled={isSubmitting || !generatedContact.first_name || !generatedContact.last_name}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Contact'
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
