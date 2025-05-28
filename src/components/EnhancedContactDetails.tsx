@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -118,7 +117,11 @@ export function EnhancedContactDetails({
       }
     } catch (error) {
       console.error("Error fetching contact details:", error);
-      toast.error("Failed to load contact details");
+      toast({
+        title: "Error",
+        description: "Failed to load contact details",
+        variant: "destructive"
+      });
     }
   };
 
@@ -156,7 +159,11 @@ export function EnhancedContactDetails({
       setInteractions(data || []);
     } catch (error) {
       console.error("Error fetching contact interactions:", error);
-      toast.error("Failed to load interactions");
+      toast({
+        title: "Error",
+        description: "Failed to load interactions",
+        variant: "destructive"
+      });
     }
   };
 
@@ -189,12 +196,19 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast.success("Contact details updated successfully");
+      toast({
+        title: "Success",
+        description: "Contact details updated successfully"
+      });
       onContactUpdated();
       await fetchContactDetails();
     } catch (error: any) {
       console.error("Error updating contact:", error);
-      toast.error("Failed to update contact details: " + (error.message || "Unknown error"));
+      toast({
+        title: "Error",
+        description: "Failed to update contact details: " + (error.message || "Unknown error"),
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -212,12 +226,19 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast.success("Follow-up marked as completed");
+      toast({
+        title: "Success",
+        description: "Follow-up marked as completed"
+      });
       fetchContactInteractions();
       onContactUpdated();
     } catch (error) {
       console.error("Error completing follow-up:", error);
-      toast.error("Failed to update follow-up status");
+      toast({
+        title: "Error",
+        description: "Failed to update follow-up status",
+        variant: "destructive"
+      });
     }
   };
 
@@ -261,14 +282,21 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast.success("Interaction deleted");
+      toast({
+        title: "Success",
+        description: "Interaction deleted"
+      });
       await fetchContactInteractions();
       onContactUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
     } catch (error) {
       console.error("Error deleting interaction:", error);
-      toast.error("Failed to delete interaction");
+      toast({
+        title: "Error",
+        description: "Failed to delete interaction",
+        variant: "destructive"
+      });
     }
   };
 
@@ -298,7 +326,10 @@ export function EnhancedContactDetails({
       
       if (error) throw error;
       
-      toast.success("Interaction updated");
+      toast({
+        title: "Success",
+        description: "Interaction updated"
+      });
       setEditingInteraction(null);
       fetchContactInteractions();
       onContactUpdated();
@@ -306,7 +337,11 @@ export function EnhancedContactDetails({
       await regenerateOverview();
     } catch (error) {
       console.error("Error updating interaction:", error);
-      toast.error("Failed to update interaction");
+      toast({
+        title: "Error",
+        description: "Failed to update interaction",
+        variant: "destructive"
+      });
     }
   };
 
