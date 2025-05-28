@@ -250,12 +250,16 @@ const ProfileInput = () => {
         </TabsContent>
         
         <TabsContent value="cv" className="space-y-4">
-          <p className="text-sm text-muted-foreground">Copy and paste the content of your CV or resume into the text box below. This helps us extract your key skills and experience. Don't worry about formatting - the AI will sort it out.</p>
+          <InfoBox>
+            Copy your CV contents (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out. We will use the AI-generated summary of your profile for company matching and message generation.
+          </InfoBox>
           <Textarea placeholder="Paste your CV content here..." className="min-h-[200px]" value={cvContent} onChange={e => setCvContent(e.target.value)} />
         </TabsContent>
         
         <TabsContent value="freeform" className="space-y-4">
-          <p className="text-sm text-muted-foreground">Paste any information you have about your professional background here.</p>
+          <InfoBox>
+            Add any other written information about yourself - bio, success stories, blurbs, achievements. This can help enrich the profile with valuable details.
+          </InfoBox>
           <Textarea placeholder="Bio, education, key skills, success cases, STAR-stories for interviews, blurbs, cover letters - everything works!" className="min-h-[200px]" value={freeformContent} onChange={e => setFreeformContent(e.target.value)} />
         </TabsContent>
 
