@@ -39,9 +39,6 @@ const PipelineDashboard = () => {
 
   // State variables
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    priority: [] as string[]
-  });
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
@@ -93,7 +90,7 @@ const PipelineDashboard = () => {
     return 0;
   });
 
-  // Filter companies based on search term and filters
+  // Filter companies based on search term only
   const filteredCompanies = sortedCompanies.filter(company => {
     // Search filter
     const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -101,34 +98,8 @@ const PipelineDashboard = () => {
       company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) || 
       company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Priority filter
-    const matchesPriority = filters.priority.length === 0 || 
-      company.user_priority && filters.priority.includes(company.user_priority);
-    return matchesSearch && matchesPriority;
+    return matchesSearch;
   });
-
-  const handlePriorityFilter = (priority: string) => {
-    setFilters(prev => {
-      if (prev.priority.includes(priority)) {
-        return {
-          ...prev,
-          priority: prev.priority.filter(p => p !== priority)
-        };
-      } else {
-        return {
-          ...prev,
-          priority: [...prev.priority, priority]
-        };
-      }
-    });
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      ...filters,
-      priority: []
-    });
-  };
 
   const handleAddCompany = () => {
     setIsAddCompanyModalOpen(true);
@@ -271,9 +242,6 @@ const PipelineDashboard = () => {
           <SearchAndFilters 
             searchTerm={searchTerm} 
             onSearchChange={setSearchTerm} 
-            filters={filters} 
-            onPriorityFilter={handlePriorityFilter} 
-            onClearFilters={handleClearFilters} 
             selectedCount={selectedCompanies.size} 
             onBulkRemove={handleBulkRemove} 
           />
@@ -281,7 +249,7 @@ const PipelineDashboard = () => {
           {filteredCompanies.length === 0 ? 
             <EmptyState 
               searchTerm={searchTerm} 
-              hasFilters={filters.priority.length > 0} 
+              hasFilters={false} 
               onAddCompany={handleAddCompany} 
               onGenerateCompanies={handleGenerateCompanies} 
               isGeneratingCompanies={isGeneratingCompanies} 

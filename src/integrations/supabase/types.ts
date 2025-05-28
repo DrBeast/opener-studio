@@ -321,6 +321,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          created_at: string
+          feedback_id: string
+          feedback_text: string | null
+          session_id: string | null
+          updated_at: string
+          user_id: string | null
+          view_name: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_id?: string
+          feedback_text?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          view_name: string
+        }
+        Update: {
+          created_at?: string
+          feedback_id?: string
+          feedback_text?: string | null
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          view_name?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           additional_details: string | null
