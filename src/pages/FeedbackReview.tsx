@@ -19,6 +19,11 @@ interface FeedbackEntry {
   created_at: string;
 }
 
+interface User {
+  id: string;
+  email?: string;
+}
+
 const FeedbackReview = () => {
   const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,10 +67,12 @@ const FeedbackReview = () => {
         console.error('Error fetching users:', usersError);
       }
 
-      const userEmailMap = users?.users.reduce((acc, user) => {
-        acc[user.id] = user.email || 'Unknown';
-        return acc;
-      }, {} as Record<string, string>) || {};
+      const userEmailMap: Record<string, string> = {};
+      if (users?.users) {
+        users.users.forEach((user: User) => {
+          userEmailMap[user.id] = user.email || 'Unknown';
+        });
+      }
 
       const feedbackWithEmails = data?.map(entry => ({
         ...entry,

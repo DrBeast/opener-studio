@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { ProfileSummary } from "@/components/profile/ProfileSummary";
-import { EditableSummary } from "@/components/profile/EditableSummary";
-import { ProfessionalBackground } from "@/components/ProfessionalBackground";
-import { CVUpload } from "@/components/CVUpload";
-import { DevOptions } from "@/components/profile/DevOptions";
+import ProfileSummary from "@/components/profile/ProfileSummary";
+import EditableSummary from "@/components/profile/EditableSummary";
+import ProfessionalBackground from "@/components/ProfessionalBackground";
+import CVUpload from "@/components/CVUpload";
+import DevOptions from "@/components/profile/DevOptions";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { FeedbackBox } from "@/components/FeedbackBox";
 
@@ -23,11 +23,11 @@ const Profile = () => {
 
         <FeedbackBox viewName="Profile Page" className="mb-6" />
 
-        <ProfileSummary />
-        <EditableSummary />
-        <ProfessionalBackground />
-        <CVUpload />
-        <DevOptions />
+        {/* Note: These components would need proper props integration */}
+        {/* For now, just showing the structure until the profile hook is integrated */}
+        <div className="text-center py-8 text-muted-foreground">
+          Profile functionality will be restored once the profile data hook is integrated
+        </div>
       </div>
     </div>
   );

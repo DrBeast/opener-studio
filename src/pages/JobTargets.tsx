@@ -5,6 +5,16 @@ import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { FeedbackBox } from "@/components/FeedbackBox";
 
 const JobTargets = () => {
+  const handleCancel = () => {
+    // Handle cancel action if needed
+    console.log('Target criteria form cancelled');
+  };
+
+  const handleSaved = () => {
+    // Handle save action if needed
+    console.log('Target criteria saved');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <ProfileBreadcrumbs />
@@ -19,7 +29,7 @@ const JobTargets = () => {
 
         <FeedbackBox viewName="Job Targets Page" className="mb-6" />
 
-        <TargetCriteriaForm />
+        <TargetCriteriaForm onCancel={handleCancel} onSaved={handleSaved} />
       </div>
     </div>
   );
