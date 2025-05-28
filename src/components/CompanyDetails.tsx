@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
+import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ export function CompanyDetails({
   const [isEditInteractionOpen, setIsEditInteractionOpen] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState<string>('');
+  const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const {
     overview,
     isLoading: isOverviewLoading,
@@ -289,6 +291,14 @@ export function CompanyDetails({
     setIsAddInteractionOpen(false);
     setIsEditInteractionOpen(false);
     setSelectedInteraction(null);
+    onCompanyUpdated();
+    // Regenerate interaction summary
+    await regenerateOverview();
+  };
+
+  const handleLogInteractionSuccess = async () => {
+    await fetchInteractions();
+    setIsLogInteractionOpen(false);
     onCompanyUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
@@ -592,12 +602,9 @@ export function CompanyDetails({
 
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Interactions</h3>
-              <Button size="sm" onClick={() => {
-                setIsPlanningMode(false);
-                setIsAddInteractionOpen(true);
-              }}>
+              <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Interaction
+                Log Interaction
               </Button>
             </div>
             
@@ -657,12 +664,9 @@ export function CompanyDetails({
                 <p className="text-muted-foreground mb-4">
                   No interactions logged for this company yet
                 </p>
-                <Button size="sm" onClick={() => {
-                  setIsPlanningMode(false);
-                  setIsAddInteractionOpen(true);
-                }}>
+                <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Interaction
+                  Log Interaction
                 </Button>
               </div>
             )}
@@ -673,7 +677,17 @@ export function CompanyDetails({
       {/* Contact Details Dialog */}
       {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
       
-      {/* Interaction Form Dialog */}
+      {/* Log Interaction Modal */}
+      <LogInteractionModal
+        isOpen={isLogInteractionOpen}
+        onClose={() => setIsLogInteractionOpen(false)}
+        companyId={company.company_id}
+        companyName={company.name}
+        availableContacts={contacts}
+        onSuccess={handleLogInteractionSuccess}
+      />
+      
+      {/* Legacy Interaction Form Dialog */}
       <InteractionForm companyId={company.company_id} companyName={company.name} contacts={contacts} isOpen={isAddInteractionOpen} onClose={() => setIsAddInteractionOpen(false)} onInteractionCreated={handleInteractionCreated} isPlanningMode={isPlanningMode} />
       
       {/* Edit Interaction Dialog */}

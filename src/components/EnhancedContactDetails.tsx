@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
+import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
@@ -69,6 +69,8 @@ export function EnhancedContactDetails({
   const [isPlanningMode, setIsPlanningMode] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<{[key: string]: {date: string, description: string}}>({});
+  const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
+  const [companyContacts, setCompanyContacts] = useState<ContactData[]>([]);
 
   const {
     overview,
@@ -105,9 +107,32 @@ export function EnhancedContactDetails({
       
       setContact(data);
       setFormData(data);
+      
+      // Fetch other contacts from the same company
+      if (data.company_id) {
+        fetchCompanyContacts(data.company_id);
+      }
     } catch (error) {
       console.error("Error fetching contact details:", error);
       toast.error("Failed to load contact details");
+    }
+  };
+
+  const fetchCompanyContacts = async (companyId: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('contact_id, first_name, last_name, role')
+        .eq('company_id', companyId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setCompanyContacts(data || []);
+    } catch (error) {
+      console.error("Error fetching company contacts:", error);
     }
   };
 
@@ -195,6 +220,14 @@ export function EnhancedContactDetails({
   const handleInteractionCreated = async () => {
     await fetchContactInteractions();
     setIsAddInteractionOpen(false);
+    onContactUpdated();
+    // Regenerate interaction summary
+    await regenerateOverview();
+  };
+
+  const handleLogInteractionSuccess = async () => {
+    await fetchContactInteractions();
+    setIsLogInteractionOpen(false);
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
@@ -513,12 +546,9 @@ export function EnhancedContactDetails({
 
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">Interactions</h3>
-                <Button size="sm" onClick={() => {
-                  setIsPlanningMode(false);
-                  setIsAddInteractionOpen(true);
-                }}>
+                <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                   <MessageCircle className="h-4 w-4 mr-2" />
-                  Add Interaction
+                  Log Interaction
                 </Button>
               </div>
 
@@ -623,12 +653,9 @@ export function EnhancedContactDetails({
                   <p className="text-muted-foreground mb-4">
                     No interactions logged for this contact yet
                   </p>
-                  <Button size="sm" onClick={() => {
-                    setIsPlanningMode(false);
-                    setIsAddInteractionOpen(true);
-                  }}>
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Add Interaction
+                    Log Interaction
                   </Button>
                 </div>
               )}
@@ -637,7 +664,20 @@ export function EnhancedContactDetails({
         </DialogContent>
       </Dialog>
 
-      {/* Interaction Form Dialog */}
+      {/* Log Interaction Modal */}
+      {contact && (
+        <LogInteractionModal
+          isOpen={isLogInteractionOpen}
+          onClose={() => setIsLogInteractionOpen(false)}
+          companyId={contact.company_id || ''}
+          companyName={contact.companies?.name || 'Unknown Company'}
+          availableContacts={companyContacts}
+          preSelectedContact={contact}
+          onSuccess={handleLogInteractionSuccess}
+        />
+      )}
+
+      {/* Old Interaction Form Dialog - keeping for legacy support */}
       {contact && (
         <InteractionForm
           companyId={contact.company_id || ''}
