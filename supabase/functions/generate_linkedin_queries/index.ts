@@ -72,23 +72,24 @@ serve(async (req) => {
       .single();
 
     const prompt = `
-    Generate 4-5 LinkedIn search query suggestions for finding relevant contacts at "${company_name}".
+    Generate 5 simple LinkedIn search query suggestions for finding relevant contacts at "${company_name}".
     
     User's target criteria:
     - Target Functions: ${targetCriteria?.target_functions ? JSON.stringify(targetCriteria.target_functions) : 'Any'}
     - Target Role Description: ${targetCriteria?.free_form_role_and_company_description || 'General professional roles'}
     
-    Create queries that would help find:
+    Create SIMPLE queries that work well in LinkedIn search. Avoid complex operators like OR, quotes, or parentheses.
+    Focus on simple keyword combinations that would help find:
     1. People in the user's target function (1-2 levels above their current/target seniority)
-    2. Relevant executives (within 3 levels of user's target seniority)
+    2. Relevant executives  
     3. Potential peers in similar roles/teams
-    4. Recruiters or Talent Acquisition professionals
+    4. Recruiters or HR professionals
     5. General business managers
     
-    Return ONLY a JSON array of strings, like:
-    ["Product Manager ${company_name}", "VP Product ${company_name}", "Head of Engineering ${company_name}", "Recruiter ${company_name}", "CEO ${company_name}"]
+    Return ONLY a JSON array of simple strings, like:
+    ["${company_name} product manager", "${company_name} finance", "${company_name} recruiter", "${company_name} CEO", "${company_name} director"]
     
-    Make the queries specific and actionable for LinkedIn search.
+    Keep queries simple - just company name plus role/function keywords.
     `;
 
     const response = await fetch(GEMINI_API_URL, {
@@ -131,11 +132,11 @@ serve(async (req) => {
       console.error('Error parsing AI response:', parseError);
       // Fallback suggestions
       suggestions = [
-        `${company_name} hiring manager`,
+        `${company_name} finance`,
+        `${company_name} product manager`,
         `${company_name} recruiter`,
         `${company_name} CEO`,
-        `head of product ${company_name}`,
-        `director ${company_name}`
+        `${company_name} director`
       ];
     }
 

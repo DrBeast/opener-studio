@@ -8,20 +8,25 @@ import { toast } from "@/components/ui/use-toast";
 
 interface LinkedInQuerySuggestionsProps {
   companyName: string;
+  isModalOpen: boolean;
 }
 
-export const LinkedInQuerySuggestions = ({ companyName }: LinkedInQuerySuggestionsProps) => {
+export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQuerySuggestionsProps) => {
   const { user } = useAuth();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   useEffect(() => {
-    generateSuggestions();
-  }, [companyName]);
+    // Only generate suggestions once when modal opens and we haven't generated before
+    if (isModalOpen && !hasGenerated && companyName) {
+      generateSuggestions();
+    }
+  }, [isModalOpen, hasGenerated, companyName]);
 
   const generateSuggestions = async () => {
-    if (!user || !companyName) return;
+    if (!user || !companyName || hasGenerated) return;
 
     setIsLoading(true);
     try {
@@ -33,17 +38,19 @@ export const LinkedInQuerySuggestions = ({ companyName }: LinkedInQuerySuggestio
 
       if (data?.suggestions) {
         setSuggestions(data.suggestions);
+        setHasGenerated(true);
       }
     } catch (error: any) {
       console.error("Error generating LinkedIn queries:", error);
       // Fallback to basic suggestions if API fails
       setSuggestions([
-        `${companyName} hiring manager`,
+        `${companyName} finance`,
+        `${companyName} product manager`,
         `${companyName} recruiter`,
         `${companyName} CEO`,
-        `${companyName} head of product`,
         `${companyName} director`
       ]);
+      setHasGenerated(true);
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +74,19 @@ export const LinkedInQuerySuggestions = ({ companyName }: LinkedInQuerySuggestio
       });
     }
   };
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isModalOpen) {
+      setHasGenerated(false);
+      setSuggestions([]);
+      setIsLoading(false);
+    }
+  }, [isModalOpen]);
+
+  if (!isModalOpen) {
+    return null;
+  }
 
   if (isLoading) {
     return (

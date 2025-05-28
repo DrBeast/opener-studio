@@ -162,7 +162,7 @@ export const EnhancedContactModal = ({
           </Card>
 
           {/* LinkedIn Query Suggestions */}
-          <LinkedInQuerySuggestions companyName={companyName} />
+          <LinkedInQuerySuggestions companyName={companyName} isModalOpen={isOpen} />
 
           {/* LinkedIn Bio Input */}
           <div className="space-y-4">
