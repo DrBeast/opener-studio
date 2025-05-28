@@ -74,7 +74,7 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
             onClick={() => setIsExpanded(true)}
             variant="outline"
             size="sm"
-            className="text-xs bg-green-100"
+            className="text-xs"
           >
             <MessageSquare className="h-3 w-3 mr-1" />
             Feedback
@@ -129,7 +129,7 @@ export const FeedbackBox = ({ viewName, className = "", variant = 'header' }: Fe
           onClick={() => setIsExpanded(true)}
           variant="outline"
           size="sm"
-          className="text-xs bg-white/90 backdrop-blur-sm bg-green-100"
+          className="text-xs bg-white/90 backdrop-blur-sm"
         >
           <MessageSquare className="h-3 w-3 mr-1" />
           Feedback

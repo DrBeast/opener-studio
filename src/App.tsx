@@ -15,7 +15,7 @@ import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
-import ConsolidatedJobSearch from "@/pages/ConsolidatedJobSearch";
+import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/PipelineDashboard";
 import FeedbackReview from "@/pages/FeedbackReview";
@@ -44,7 +44,7 @@ const App = () => (
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/job-targets" element={<ConsolidatedJobSearch />} />
+                <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/feedback-review" element={<FeedbackReview />} />
               </Route>
