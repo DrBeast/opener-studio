@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -183,31 +184,29 @@ serve(async (req) => {
       try {
         console.log("Calling Gemini API to generate summary...");
         
-        // Updated prompt to use "you are" language
+        // Construct the prompt for Gemini API
         const prompt = `
         You are an AI assistant specializing in synthesizing and summarizing professional backgrounds from multiple sources.
         Below is a collection of text describing a user's professional background, potentially including LinkedIn profile text, resume content, additional details, etc. Each section is marked by its source (e.g., "--- linkedin_profile ---").
 
         Your task is to read this combined text and generate a single, structured JSON object that provides an overall summary and key highlights of the user's professional profile. Synthesize information across all sources.
 
-        IMPORTANT: Use second-person language ("you are", "you have", "your experience") throughout the summary as if speaking directly to the user, not third-person ("the user is", "they have").
-
         The JSON object should have the following structure:
         {
-          "overall_blurb": "A concise, 1-2 sentence overall summary using 'you are' language, highlighting your current status, seniority, and main area of expertise.",
-          "experience": "A paragraph summarizing your professional experience using 'you' language.",
-          "education": "A paragraph summarizing your education background using 'you' language.",
-          "expertise": "A paragraph summarizing your key areas of expertise using 'you' language.",
-          "achievements": "A paragraph summarizing your key achievements using 'you' language.",
-          "combined_experience_highlights": ["Synthesized bullet points summarizing your most significant roles, companies, and achievements from your entire work history using 'you' language."],
-          "combined_education_highlights": ["Synthesized bullet points summarizing your degrees, institutions, and relevant academic achievements using 'you' language."],
-          "key_skills": ["A synthesized list of your most prominent professional skills mentioned across all sources."],
-          "domain_expertise": ["A synthesized list of your key industry or domain expertise mentioned."],
-          "technical_expertise": ["A synthesized list of your key technical skills or areas of expertise mentioned."],
-          "value_proposition_summary": "A brief summary of your core professional value proposition based on your combined background, written in second person."
+          "overall_blurb": "A concise, 1-2 sentence overall summary of the user's professional profile, highlighting their current status, seniority, and main area of expertise.",
+          "experience": "A paragraph summarizing their professional experience.",
+          "education": "A paragraph summarizing their education background.",
+          "expertise": "A paragraph summarizing their key areas of expertise.",
+          "achievements": "A paragraph summarizing their key achievements.",
+          "combined_experience_highlights": ["Synthesized bullet points summarizing the most significant roles, companies, and achievements from their entire work history."],
+          "combined_education_highlights": ["Synthesized bullet points summarizing degrees, institutions, and relevant academic achievements from all educational entries."],
+          "key_skills": ["A synthesized list of the most prominent professional skills mentioned across all sources."],
+          "domain_expertise": ["A synthesized list of key industry or domain expertise mentioned."],
+          "technical_expertise": ["A synthesized list of key technical skills or areas of expertise mentioned."],
+          "value_proposition_summary": "A brief summary of the user's core professional value proposition based on their combined background."
         }
 
-        Ensure the output is valid JSON. Synthesize information across all provided sections. Focus on the most impactful and relevant details for an overall professional summary. Remember to consistently use "you", "your", and "you are" throughout all text fields.
+        Ensure the output is valid JSON. Synthesize information across all provided sections. Focus on the most impactful and relevant details for an overall professional summary.
 
         Combined Background Text:
         --- START ---
@@ -267,13 +266,13 @@ serve(async (req) => {
           console.error('Error parsing AI response:', parseError);
           console.error('Raw AI response data:', JSON.stringify(data)); // Log raw data for debugging
           
-          // Fallback to simpler summary generation using "you" language
+          // Fallback to simpler summary generation
           generatedSummary = {
-            experience: "You have generated professional experience based on your provided content.",
-            education: "You have education background based on your provided content.",
-            expertise: "You have expertise and skills based on your provided content.",
-            achievements: "You have key achievements based on your provided content.",
-            overall_blurb: "You are a professional with experience generated from your provided background information."
+            experience: "Generated summary of professional experience based on provided content.",
+            education: "Generated summary of education based on provided content.",
+            expertise: "Generated summary of expertise and skills based on provided content.",
+            achievements: "Generated summary of key achievements based on provided content.",
+            overall_blurb: "Professional profile generated from provided background information."
           };
         }
 
@@ -306,13 +305,13 @@ serve(async (req) => {
       } catch (aiError) {
         console.error("Error processing with Gemini AI:", aiError);
         
-        // Fallback to simplified summary generation using "you" language
+        // Fallback to simplified summary generation
         const fallbackSummary: GeneratedSummary = {
-          experience: "You have professional experience based on your provided content.",
-          education: "You have education background based on your provided content.",
-          expertise: "You have expertise and skills based on your provided content.",
-          achievements: "You have key achievements based on your provided content.",
-          overall_blurb: "Error generating detailed AI summary. You have a basic summary provided instead."
+          experience: "Generated summary of professional experience based on provided content.",
+          education: "Generated summary of education based on provided content.",
+          expertise: "Generated summary of expertise and skills based on provided content.",
+          achievements: "Generated summary of key achievements based on provided content.",
+          overall_blurb: "Error generating detailed AI summary. Basic summary provided instead."
         };
         
         // Create or update with fallback summary
@@ -331,12 +330,12 @@ serve(async (req) => {
         );
       }
     } else {
-      // If we don't have any content, return a basic response using "you" language
+      // If we don't have any content, return a basic response
       const emptySummary: GeneratedSummary = {
-        experience: "No professional experience data available for you yet.",
-        education: "No education data available for you yet.",
-        expertise: "No expertise data available for you yet.",
-        achievements: "No achievements data available for you yet.",
+        experience: "No professional experience data available.",
+        education: "No education data available.",
+        expertise: "No expertise data available.",
+        achievements: "No achievements data available.",
         overall_blurb: "Please add your professional information to generate a summary."
       };
       

@@ -6,15 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw } from "lucide-react";
+import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
-import { LogInteractionModal } from "@/components/LogInteractionModal";
-import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
-import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
 
 interface ContactData {
@@ -70,16 +67,6 @@ export function EnhancedContactDetails({
   const [isPlanningMode, setIsPlanningMode] = useState(false);
   const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<{[key: string]: {date: string, description: string}}>({});
-  const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
-  const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
-  const [companyContacts, setCompanyContacts] = useState<ContactData[]>([]);
-
-  const {
-    overview,
-    isLoading: isOverviewLoading,
-    error: overviewError,
-    regenerateOverview
-  } = useContactInteractionOverview(contactId);
 
   useEffect(() => {
     if (contactId && isOpen) {
@@ -109,32 +96,9 @@ export function EnhancedContactDetails({
       
       setContact(data);
       setFormData(data);
-      
-      // Fetch other contacts from the same company
-      if (data.company_id) {
-        fetchCompanyContacts(data.company_id);
-      }
     } catch (error) {
       console.error("Error fetching contact details:", error);
       toast.error("Failed to load contact details");
-    }
-  };
-
-  const fetchCompanyContacts = async (companyId: string) => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('contact_id, first_name, last_name, role')
-        .eq('company_id', companyId)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      
-      setCompanyContacts(data || []);
-    } catch (error) {
-      console.error("Error fetching company contacts:", error);
     }
   };
 
@@ -219,35 +183,15 @@ export function EnhancedContactDetails({
     }
   };
 
-  const handleInteractionCreated = async () => {
-    await fetchContactInteractions();
+  const handleInteractionCreated = () => {
+    fetchContactInteractions();
     setIsAddInteractionOpen(false);
     onContactUpdated();
-    // Regenerate interaction summary
-    await regenerateOverview();
   };
 
-  const handleLogInteractionSuccess = async () => {
-    await fetchContactInteractions();
-    setIsLogInteractionOpen(false);
+  const handleMessageSaved = () => {
+    fetchContactInteractions();
     onContactUpdated();
-    // Regenerate interaction summary
-    await regenerateOverview();
-  };
-
-  const handlePlanInteractionSuccess = async () => {
-    await fetchContactInteractions();
-    setIsPlanInteractionOpen(false);
-    onContactUpdated();
-    // Regenerate interaction summary
-    await regenerateOverview();
-  };
-
-  const handleMessageSaved = async () => {
-    await fetchContactInteractions();
-    onContactUpdated();
-    // Regenerate interaction summary
-    await regenerateOverview();
   };
 
   const handleDeleteInteraction = async (interactionId: string) => {
@@ -260,10 +204,8 @@ export function EnhancedContactDetails({
       if (error) throw error;
       
       toast.success("Interaction deleted");
-      await fetchContactInteractions();
+      fetchContactInteractions();
       onContactUpdated();
-      // Regenerate interaction summary
-      await regenerateOverview();
     } catch (error) {
       console.error("Error deleting interaction:", error);
       toast.error("Failed to delete interaction");
@@ -300,8 +242,6 @@ export function EnhancedContactDetails({
       setEditingInteraction(null);
       fetchContactInteractions();
       onContactUpdated();
-      // Regenerate interaction summary
-      await regenerateOverview();
     } catch (error) {
       console.error("Error updating interaction:", error);
       toast.error("Failed to update interaction");
@@ -316,61 +256,6 @@ export function EnhancedContactDetails({
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     return format(new Date(dateString), 'MMM d, yyyy');
-  };
-
-  const renderInteractionSummary = () => {
-    if (isOverviewLoading) {
-      return (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          Generating interaction summary...
-        </div>
-      );
-    }
-    
-    if (overviewError) {
-      return (
-        <div className="flex flex-col">
-          <div className="text-red-500">Error loading interaction summary</div>
-          <Button variant="outline" size="sm" onClick={regenerateOverview} className="mt-2 self-start">
-            <RefreshCw className="mr-2 h-3 w-3" /> Try again
-          </Button>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="flex flex-col">
-        <div className="flex items-start justify-between">
-          <div>
-            {overview?.overview ? (
-              <p className="text-sm">{overview.overview}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">No interaction summary available</p>
-            )}
-            
-            {overview?.interactionCount !== undefined && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {overview.interactionCount} total
-                {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
-                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
-                }
-              </p>
-            )}
-          </div>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={regenerateOverview} 
-            className="ml-2 h-8 w-8 p-0" 
-            title="Regenerate summary"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   if (!contact || !formData) {
@@ -547,27 +432,17 @@ export function EnhancedContactDetails({
             
             {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>Interaction Summary</Label>
-                <div className="rounded-md border p-3 bg-muted/20">
-                  {renderInteractionSummary()}
-                </div>
-              </div>
-
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Interactions</h3>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Plan Interaction
-                  </Button>
-                </div>
+                <h3 className="text-lg font-medium">Interaction History</h3>
+                <Button size="sm" onClick={() => {
+                  setIsPlanningMode(false);
+                  setIsAddInteractionOpen(true);
+                }}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Add Interaction
+                </Button>
               </div>
-
+              
               {interactions.length > 0 ? (
                 <div className="space-y-3">
                   {interactions.map(interaction => (
@@ -669,16 +544,13 @@ export function EnhancedContactDetails({
                   <p className="text-muted-foreground mb-4">
                     No interactions logged for this contact yet
                   </p>
-                  <div className="flex gap-2 justify-center">
-                    <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Log Interaction
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Plan Interaction
-                    </Button>
-                  </div>
+                  <Button size="sm" onClick={() => {
+                    setIsPlanningMode(false);
+                    setIsAddInteractionOpen(true);
+                  }}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Add Interaction
+                  </Button>
                 </div>
               )}
             </TabsContent>
@@ -686,33 +558,7 @@ export function EnhancedContactDetails({
         </DialogContent>
       </Dialog>
 
-      {/* Log Interaction Modal */}
-      {contact && (
-        <LogInteractionModal
-          isOpen={isLogInteractionOpen}
-          onClose={() => setIsLogInteractionOpen(false)}
-          companyId={contact.company_id || ''}
-          companyName={contact.companies?.name || 'Unknown Company'}
-          availableContacts={companyContacts}
-          preSelectedContact={contact}
-          onSuccess={handleLogInteractionSuccess}
-        />
-      )}
-
-      {/* Plan Interaction Modal */}
-      {contact && (
-        <PlanInteractionModal
-          isOpen={isPlanInteractionOpen}
-          onClose={() => setIsPlanInteractionOpen(false)}
-          companyId={contact.company_id || ''}
-          companyName={contact.companies?.name || 'Unknown Company'}
-          availableContacts={companyContacts}
-          preSelectedContact={contact}
-          onSuccess={handlePlanInteractionSuccess}
-        />
-      )}
-
-      {/* Old Interaction Form Dialog - keeping for legacy support */}
+      {/* Interaction Form Dialog */}
       {contact && (
         <InteractionForm
           companyId={contact.company_id || ''}
