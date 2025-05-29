@@ -404,7 +404,7 @@ export const EnhancedCompaniesTable = ({
                     </TableCell>
                     <TableCell className="">
                       <div className="space-y-2">
-                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <ContactRecommendation 
                             companyId={company.company_id} 
                             companyName={company.name}
@@ -420,7 +420,7 @@ export const EnhancedCompaniesTable = ({
                             }}
                             title="Add contact manually"
                           >
-                            <UserPlus className="h-4 w-4" />
+                            <UserPlus className="h-6 w-6" />
                           </Button>
                         </div>
                         
@@ -448,14 +448,14 @@ export const EnhancedCompaniesTable = ({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-6 w-6 p-0 shrink-0 hover:bg-primary/10"
+                                    className="h-8 w-8 p-0 shrink-0 hover:bg-primary/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onGenerateMessage(contact.id);
                                     }}
                                     title="Generate message for this contact"
                                   >
-                                    <MessageCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                    <MessageCircle className="h-6 w-6 text-muted-foreground hover:text-primary" />
                                   </Button>
                                 </div>
                               ))}
