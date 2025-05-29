@@ -420,7 +420,7 @@ export const EnhancedCompaniesTable = ({
                             }}
                             title="Add contact manually"
                           >
-                            <UserPlus className="h-6 w-6" />
+                            <UserPlus className="h-12 w-12 text-blue-500" />
                           </Button>
                         </div>
                         
@@ -435,7 +435,7 @@ export const EnhancedCompaniesTable = ({
                                         e.stopPropagation();
                                         onContactClick(contact.id);
                                       }}
-                                      className="block text-left text-sm font-medium text-primary hover:underline w-full truncate"
+                                      className="block text-left text-base font-medium text-primary hover:underline w-full truncate"
                                     >
                                       {contact.displayName}
                                     </button>
@@ -455,7 +455,7 @@ export const EnhancedCompaniesTable = ({
                                     }}
                                     title="Generate message for this contact"
                                   >
-                                    <MessageCircle className="h-6 w-6 text-muted-foreground hover:text-primary" />
+                                    <MessageCircle className="h-12 w-12 text-blue-500" />
                                   </Button>
                                 </div>
                               ))}
