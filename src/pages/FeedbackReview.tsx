@@ -31,7 +31,7 @@ const FeedbackReview = () => {
       try {
         console.log('Fetching feedback data with user emails...');
         
-        // Get feedback data
+        // First get the feedback data
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -49,24 +49,26 @@ const FeedbackReview = () => {
         if (feedbackError) throw feedbackError;
 
         // Get unique user IDs
-        const userIds = [...new Set(feedbackData?.map(item => item.user_id).filter(Boolean) || [])];
+        const userIds = [...new Set(feedbackData?.map(item => item.user_id) || [])];
         
-        // Fetch user emails using edge function
-        const { data: emailData, error: emailError } = await supabase.functions.invoke('get_user_emails', {
-          body: { userIds }
-        });
-
-        if (emailError) {
-          console.error('Error fetching emails:', emailError);
-          throw emailError;
+        // Fetch user emails using the admin API
+        const userEmails: Record<string, string> = {};
+        
+        for (const userId of userIds) {
+          if (userId) {
+            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+            if (!userError && userData.user) {
+              userEmails[userId] = userData.user.email || 'No email';
+            } else {
+              userEmails[userId] = 'Unknown email';
+            }
+          }
         }
-
-        const userEmails = emailData?.userEmails || {};
 
         // Map feedback data with emails
         const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
-          email: userEmails[item.user_id] || 'Anonymous',
+          email: userEmails[item.user_id] || 'Unknown email',
           view_name: item.view_name,
           feedback_text: item.feedback_text,
           created_at: item.created_at
@@ -124,7 +126,7 @@ const FeedbackReview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>User</TableHead>
+                  <TableHead>User Email</TableHead>
                   <TableHead>View</TableHead>
                   <TableHead>Feedback</TableHead>
                 </TableRow>
