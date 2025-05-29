@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -403,7 +404,7 @@ export const EnhancedCompaniesTable = ({
                     </TableCell>
                     <TableCell className="">
                       <div className="space-y-2">
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <ContactRecommendation 
                             companyId={company.company_id} 
                             companyName={company.name}
@@ -412,29 +413,29 @@ export const EnhancedCompaniesTable = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-6 w-6 p-0 shrink-0"
+                            className="h-8 w-8 p-0 shrink-0 hover:bg-primary/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               onCreateContact(company.company_id);
                             }}
                             title="Add contact manually"
                           >
-                            <UserPlus className="h-3 w-3" />
+                            <UserPlus className="h-4 w-4" />
                           </Button>
                         </div>
                         
-                        <div className="text-xs min-w-0">
+                        <div className="text-sm min-w-0">
                           {contactsData && contactsData.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               {contactsData.map((contact) => (
-                                <div key={contact.id} className="flex items-center gap-1">
+                                <div key={contact.id} className="flex items-center gap-2">
                                   <div className="flex-1 min-w-0">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onContactClick(contact.id);
                                       }}
-                                      className="block text-left text-xs text-primary hover:underline w-full truncate"
+                                      className="block text-left text-sm font-medium text-primary hover:underline w-full truncate"
                                     >
                                       {contact.displayName}
                                     </button>
@@ -447,14 +448,14 @@ export const EnhancedCompaniesTable = ({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-4 w-4 p-0 shrink-0"
+                                    className="h-6 w-6 p-0 shrink-0 hover:bg-primary/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onGenerateMessage(contact.id);
                                     }}
                                     title="Generate message for this contact"
                                   >
-                                    <MessageCircle className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                                    <MessageCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
                                   </Button>
                                 </div>
                               ))}
