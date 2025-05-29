@@ -31,7 +31,7 @@ const FeedbackReview = () => {
       try {
         console.log('Fetching feedback data with user emails...');
         
-        // First get the feedback data
+        // Get feedback data with user information from auth.users
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -48,33 +48,21 @@ const FeedbackReview = () => {
 
         if (feedbackError) throw feedbackError;
 
-        // Get unique user IDs
-        const userIds = [...new Set(feedbackData?.map(item => item.user_id) || [])];
+        // For now, we'll show user IDs since we can't access emails without admin permissions
+        // In a production environment, you'd need to either:
+        // 1. Create a server-side function with service role permissions
+        // 2. Store email addresses in the user_feedback table directly
+        // 3. Use a profiles table with email information
         
-        // Fetch user emails using the admin API
-        const userEmails: Record<string, string> = {};
-        
-        for (const userId of userIds) {
-          if (userId) {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-            if (!userError && userData.user) {
-              userEmails[userId] = userData.user.email || 'No email';
-            } else {
-              userEmails[userId] = 'Unknown email';
-            }
-          }
-        }
-
-        // Map feedback data with emails
-        const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
+        const feedbackWithUserInfo: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
-          email: userEmails[item.user_id] || 'Unknown email',
+          email: item.user_id ? `User ${item.user_id.substring(0, 8)}...` : 'Anonymous',
           view_name: item.view_name,
           feedback_text: item.feedback_text,
           created_at: item.created_at
         }));
 
-        setFeedback(feedbackWithEmails);
+        setFeedback(feedbackWithUserInfo);
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setError('Failed to load feedback data');
@@ -126,7 +114,7 @@ const FeedbackReview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>User Email</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>View</TableHead>
                   <TableHead>Feedback</TableHead>
                 </TableRow>
