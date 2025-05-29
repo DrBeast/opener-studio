@@ -39,7 +39,7 @@ const HeroSection = () => {
           
           <Alert className="mb-6 border-yellow-200 bg-yellow-50">
             <AlertDescription className="text-yellow-800">
-              <strong>Limited Early Access Beta:</strong> Thank you for being part of our early access! Please don't share this link yet as we're still refining the experience. We appreciate your patience and feedback using the feedback boxes above. Your data is privately and securely stored, though it may be used for product improvement purposes.
+              <strong>Limited Early Access DEV:</strong> Thank you for being part of our early access! Please don't share this link yet as we're still refining the experience. We appreciate your patience and feedback. Your data is privately and securely stored, though it may be used for product improvement purposes.
             </AlertDescription>
           </Alert>
           

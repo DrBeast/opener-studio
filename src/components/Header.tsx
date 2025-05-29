@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogIn, LogOut } from "lucide-react";
-import FeedbackBox from "@/components/FeedbackBox";
 
 const Header = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -20,21 +19,13 @@ const Header = () => {
   // Determine where the logo should link to
   const logoLinkPath = user ? "/profile" : "/";
 
-  // Get current view name for feedback
-  const getViewName = () => {
-    if (location.pathname === "/profile") return "Profile";
-    if (location.pathname === "/job-targets") return "Job Targets";
-    if (location.pathname === "/pipeline") return "Pipeline";
-    return "App";
-  };
-
   return (
     <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to={logoLinkPath} className="text-2xl font-bold">
             <span className="text-primary">Connector</span>AI
-            <span className="ml-1 text-xs bg-primary/10 text-primary px-1 py-0.5 rounded uppercase font-semibold">Beta</span>
+            <span className="ml-1 text-xs bg-red-600 text-white px-1 py-0.5 rounded uppercase font-semibold">DEV</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-4">
@@ -73,11 +64,6 @@ const Header = () => {
               </Button>
             </> : 
             <>
-              {user && !isLandingPage && (
-                <div className="relative">
-                  <FeedbackBox viewName={getViewName()} />
-                </div>
-              )}
               <Button variant="ghost" onClick={signOut} className="flex items-center">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
