@@ -357,6 +357,7 @@ export type Database = {
           created_at: string
           current_company: string | null
           cv_content: string | null
+          email: string | null
           first_name: string | null
           is_temporary: boolean | null
           job_role: string | null
@@ -374,6 +375,7 @@ export type Database = {
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
+          email?: string | null
           first_name?: string | null
           is_temporary?: boolean | null
           job_role?: string | null
@@ -391,6 +393,7 @@ export type Database = {
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
+          email?: string | null
           first_name?: string | null
           is_temporary?: boolean | null
           job_role?: string | null

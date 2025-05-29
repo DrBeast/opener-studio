@@ -31,7 +31,7 @@ const FeedbackReview = () => {
       try {
         console.log('Fetching feedback data with user emails from user_profiles...');
         
-        // Fetch feedback data with emails by joining user_profiles table
+        // Fetch feedback data with emails by joining user_profiles table manually
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -39,20 +39,37 @@ const FeedbackReview = () => {
             view_name,
             feedback_text,
             created_at,
-            user_id,
-            user_profiles!inner(email)
+            user_id
           `)
           .order('created_at', { ascending: false });
 
-        console.log('Feedback data received:', feedbackData);
-        console.log('Feedback error:', feedbackError);
-
         if (feedbackError) throw feedbackError;
 
-        // Map the data to include emails from the joined user_profiles
+        console.log('Feedback data received:', feedbackData);
+
+        // Get user emails separately
+        const userIds = feedbackData?.map(item => item.user_id).filter(Boolean) || [];
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('user_profiles')
+          .select('user_id, email')
+          .in('user_id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        console.log('Profiles data received:', profilesData);
+
+        // Create a map of user_id to email
+        const emailMap = new Map();
+        profilesData?.forEach(profile => {
+          if (profile.user_id && profile.email) {
+            emailMap.set(profile.user_id, profile.email);
+          }
+        });
+
+        // Map the data to include emails
         const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
-          email: item.user_profiles?.email || 'No email available',
+          email: emailMap.get(item.user_id) || 'No email available',
           view_name: item.view_name,
           feedback_text: item.feedback_text,
           created_at: item.created_at
