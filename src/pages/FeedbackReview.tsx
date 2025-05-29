@@ -30,7 +30,7 @@ const FeedbackReview = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        // Get feedback with user emails
+        // Get feedback with user emails by joining with auth.users
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -45,26 +45,11 @@ const FeedbackReview = () => {
 
         if (feedbackError) throw feedbackError;
 
-        // Get user emails for each feedback entry
-        const feedbackWithEmails: FeedbackEntry[] = [];
-        
-        for (const item of feedbackData || []) {
-          try {
-            // Get user data from auth.users table
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(item.user_id);
-            
-            feedbackWithEmails.push({
-              ...item,
-              user_email: userData?.user?.email || 'Unknown'
-            });
-          } catch (userError) {
-            console.error('Error fetching user:', userError);
-            feedbackWithEmails.push({
-              ...item,
-              user_email: 'Error loading email'
-            });
-          }
-        }
+        // For now, let's just display the user_id since we can't access auth.users from client
+        const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
+          ...item,
+          user_email: item.user_id || 'Unknown User'
+        }));
 
         setFeedback(feedbackWithEmails);
       } catch (err) {
@@ -118,7 +103,7 @@ const FeedbackReview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>User Email</TableHead>
+                  <TableHead>User ID</TableHead>
                   <TableHead>View</TableHead>
                   <TableHead>Feedback</TableHead>
                   <TableHead>Session ID</TableHead>
@@ -130,7 +115,7 @@ const FeedbackReview = () => {
                     <TableCell className="text-sm">
                       {format(new Date(entry.created_at), 'MMM dd, yyyy HH:mm')}
                     </TableCell>
-                    <TableCell className="text-sm font-medium">
+                    <TableCell className="text-sm font-mono text-xs">
                       {entry.user_email}
                     </TableCell>
                     <TableCell className="text-sm">
