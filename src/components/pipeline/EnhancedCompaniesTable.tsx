@@ -404,7 +404,7 @@ export const EnhancedCompaniesTable = ({
                     </TableCell>
                     <TableCell className="">
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                           <div className="text-blue-500" style={{ transform: 'scale(2)', transformOrigin: 'left center' }}>
                             <ContactRecommendation 
                               companyId={company.company_id} 
@@ -430,7 +430,7 @@ export const EnhancedCompaniesTable = ({
                           {contactsData && contactsData.length > 0 ? (
                             <div className="space-y-2">
                               {contactsData.map((contact) => (
-                                <div key={contact.id} className="flex items-center gap-2">
+                                <div key={contact.id} className="flex items-center gap-4">
                                   <div className="flex-1 min-w-0">
                                     <button
                                       onClick={(e) => {
