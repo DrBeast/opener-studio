@@ -405,22 +405,24 @@ export const EnhancedCompaniesTable = ({
                     <TableCell className="">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <ContactRecommendation 
-                            companyId={company.company_id} 
-                            companyName={company.name}
-                            existingContactsCount={existingContactsCount}
-                          />
+                          <div className="text-blue-500">
+                            <ContactRecommendation 
+                              companyId={company.company_id} 
+                              companyName={company.name}
+                              existingContactsCount={existingContactsCount}
+                            />
+                          </div>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 shrink-0 hover:bg-primary/10"
+                            className="p-3 shrink-0 hover:bg-primary/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               onCreateContact(company.company_id);
                             }}
                             title="Add contact manually"
                           >
-                            <UserPlus className="h-12 w-12 text-blue-500" />
+                            <UserPlus className="h-6 w-6 text-blue-500" style={{ transform: 'scale(2)' }} />
                           </Button>
                         </div>
                         
@@ -448,14 +450,14 @@ export const EnhancedCompaniesTable = ({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="h-8 w-8 p-0 shrink-0 hover:bg-primary/10"
+                                    className="p-3 shrink-0 hover:bg-primary/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onGenerateMessage(contact.id);
                                     }}
                                     title="Generate message for this contact"
                                   >
-                                    <MessageCircle className="h-12 w-12 text-blue-500" />
+                                    <MessageCircle className="h-6 w-6 text-blue-500" style={{ transform: 'scale(2)' }} />
                                   </Button>
                                 </div>
                               ))}
