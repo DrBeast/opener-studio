@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Linkedin } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -19,7 +18,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
-  const { signIn, signInWithLinkedIn } = useAuth();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,15 +47,6 @@ const Login = () => {
     }
   };
 
-  const handleLinkedInSignIn = async () => {
-    try {
-      await signInWithLinkedIn();
-      // Redirect happens automatically
-    } catch (error) {
-      // Error is handled in the useAuth hook
-    }
-  };
-
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
       <Card className="w-full max-w-md">
@@ -67,72 +57,49 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              type="button" 
-              onClick={handleLinkedInSignIn}
-            >
-              <Linkedin className="mr-2 h-4 w-4" />
-              Continue with LinkedIn
-            </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="you@example.com" 
-                          type="email" 
-                          disabled={isLoading} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="••••••••" 
-                          type="password" 
-                          disabled={isLoading} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button className="w-full" type="submit" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Log In"}
-                </Button>
-              </form>
-            </Form>
-          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="you@example.com" 
+                        type="email" 
+                        disabled={isLoading} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="••••••••" 
+                        type="password" 
+                        disabled={isLoading} 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button className="w-full" type="submit" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Log In"}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-center text-sm">
