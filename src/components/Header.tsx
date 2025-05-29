@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogIn, LogOut } from "lucide-react";
+import FeedbackBox from "@/components/FeedbackBox";
 
 const Header = () => {
   const { user, isLoading, signOut } = useAuth();
@@ -18,6 +19,14 @@ const Header = () => {
   
   // Determine where the logo should link to
   const logoLinkPath = user ? "/profile" : "/";
+
+  // Get current view name for feedback
+  const getViewName = () => {
+    if (location.pathname === "/profile") return "Profile";
+    if (location.pathname === "/job-targets") return "Job Targets";
+    if (location.pathname === "/pipeline") return "Pipeline";
+    return "App";
+  };
 
   return (
     <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
@@ -63,10 +72,17 @@ const Header = () => {
                 <Link to="/auth/signup">Sign Up</Link>
               </Button>
             </> : 
-            <Button variant="ghost" onClick={signOut} className="flex items-center">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
+            <>
+              {user && !isLandingPage && (
+                <div className="relative">
+                  <FeedbackBox viewName={getViewName()} />
+                </div>
+              )}
+              <Button variant="ghost" onClick={signOut} className="flex items-center">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </>
           }
         </div>
       </div>

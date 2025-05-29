@@ -18,6 +18,7 @@ import Profile from "@/pages/Profile";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/PipelineDashboard";
+import FeedbackReview from "@/pages/FeedbackReview";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -46,6 +47,9 @@ const App = () => (
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
               </Route>
+              
+              {/* Admin Routes (not linked anywhere) */}
+              <Route path="/admin/feedback-review" element={<FeedbackReview />} />
               
               {/* Redirect /profile/edit to /profile */}
               <Route path="/profile/edit" element={<Navigate to="/profile" replace />} />
