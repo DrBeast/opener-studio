@@ -29,9 +29,9 @@ const FeedbackReview = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        console.log('Fetching feedback data with user emails...');
+        console.log('Fetching feedback data with user emails from user_profiles...');
         
-        // First get the feedback data
+        // Fetch feedback data with emails by joining user_profiles table
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -39,7 +39,8 @@ const FeedbackReview = () => {
             view_name,
             feedback_text,
             created_at,
-            user_id
+            user_id,
+            user_profiles!inner(email)
           `)
           .order('created_at', { ascending: false });
 
@@ -48,27 +49,10 @@ const FeedbackReview = () => {
 
         if (feedbackError) throw feedbackError;
 
-        // Get unique user IDs
-        const userIds = [...new Set(feedbackData?.map(item => item.user_id) || [])];
-        
-        // Fetch user emails using the admin API
-        const userEmails: Record<string, string> = {};
-        
-        for (const userId of userIds) {
-          if (userId) {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-            if (!userError && userData.user) {
-              userEmails[userId] = userData.user.email || 'No email';
-            } else {
-              userEmails[userId] = 'Unknown email';
-            }
-          }
-        }
-
-        // Map feedback data with emails
+        // Map the data to include emails from the joined user_profiles
         const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
-          email: userEmails[item.user_id] || 'Unknown email',
+          email: item.user_profiles?.email || 'No email available',
           view_name: item.view_name,
           feedback_text: item.feedback_text,
           created_at: item.created_at
