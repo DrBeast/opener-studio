@@ -62,7 +62,7 @@ export function MessageGeneration({
     { id: "LinkedIn connection note", label: "LinkedIn Connection Note", maxLength: 300 },
     { id: "LinkedIn message to 1st connection", label: "LinkedIn Message to 1st Connection", maxLength: 400 },
     { id: "LinkedIn InMail", label: "LinkedIn InMail", maxLength: 400 },
-    { id: "Cold email", label: "Cold Email", maxLength: 500 },
+    { id: "Cold email", label: "Email", maxLength: 500 },
     { id: "Forwardable intro", label: "Forwardable Intro", maxLength: 1000 }
   ];
 
