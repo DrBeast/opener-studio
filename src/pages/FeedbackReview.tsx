@@ -15,11 +15,10 @@ import { Loader2 } from "lucide-react";
 
 interface FeedbackEntry {
   feedback_id: string;
-  user_id: string;
+  email: string;
   view_name: string;
   feedback_text: string;
   created_at: string;
-  session_id: string;
 }
 
 const FeedbackReview = () => {
@@ -30,8 +29,9 @@ const FeedbackReview = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        console.log('Fetching feedback data...');
+        console.log('Fetching feedback data with user emails...');
         
+        // First get the feedback data
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -39,7 +39,6 @@ const FeedbackReview = () => {
             view_name,
             feedback_text,
             created_at,
-            session_id,
             user_id
           `)
           .order('created_at', { ascending: false });
@@ -49,7 +48,33 @@ const FeedbackReview = () => {
 
         if (feedbackError) throw feedbackError;
 
-        setFeedback(feedbackData || []);
+        // Get unique user IDs
+        const userIds = [...new Set(feedbackData?.map(item => item.user_id) || [])];
+        
+        // Fetch user emails using the admin API
+        const userEmails: Record<string, string> = {};
+        
+        for (const userId of userIds) {
+          if (userId) {
+            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+            if (!userError && userData.user) {
+              userEmails[userId] = userData.user.email || 'No email';
+            } else {
+              userEmails[userId] = 'Unknown email';
+            }
+          }
+        }
+
+        // Map feedback data with emails
+        const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
+          feedback_id: item.feedback_id,
+          email: userEmails[item.user_id] || 'Unknown email',
+          view_name: item.view_name,
+          feedback_text: item.feedback_text,
+          created_at: item.created_at
+        }));
+
+        setFeedback(feedbackWithEmails);
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setError('Failed to load feedback data');
@@ -101,10 +126,9 @@ const FeedbackReview = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>User Email</TableHead>
                   <TableHead>View</TableHead>
                   <TableHead>Feedback</TableHead>
-                  <TableHead>Session ID</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,8 +137,8 @@ const FeedbackReview = () => {
                     <TableCell className="text-sm">
                       {format(new Date(entry.created_at), 'MMM dd, yyyy HH:mm')}
                     </TableCell>
-                    <TableCell className="text-sm font-mono text-xs">
-                      {entry.user_id}
+                    <TableCell className="text-sm">
+                      {entry.email}
                     </TableCell>
                     <TableCell className="text-sm">
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
@@ -125,9 +149,6 @@ const FeedbackReview = () => {
                       <div className="whitespace-pre-wrap break-words">
                         {entry.feedback_text}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-gray-500 font-mono">
-                      {entry.session_id?.substring(0, 8)}...
                     </TableCell>
                   </TableRow>
                 ))}
