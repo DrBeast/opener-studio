@@ -31,7 +31,7 @@ const FeedbackReview = () => {
       try {
         console.log('Fetching feedback data with user emails...');
         
-        // Get feedback data with user information from auth.users
+        // Get feedback data
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -48,21 +48,31 @@ const FeedbackReview = () => {
 
         if (feedbackError) throw feedbackError;
 
-        // For now, we'll show user IDs since we can't access emails without admin permissions
-        // In a production environment, you'd need to either:
-        // 1. Create a server-side function with service role permissions
-        // 2. Store email addresses in the user_feedback table directly
-        // 3. Use a profiles table with email information
+        // Get unique user IDs
+        const userIds = [...new Set(feedbackData?.map(item => item.user_id).filter(Boolean) || [])];
         
-        const feedbackWithUserInfo: FeedbackEntry[] = (feedbackData || []).map(item => ({
+        // Fetch user emails using edge function
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('get_user_emails', {
+          body: { userIds }
+        });
+
+        if (emailError) {
+          console.error('Error fetching emails:', emailError);
+          throw emailError;
+        }
+
+        const userEmails = emailData?.userEmails || {};
+
+        // Map feedback data with emails
+        const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
-          email: item.user_id ? `User ${item.user_id.substring(0, 8)}...` : 'Anonymous',
+          email: userEmails[item.user_id] || 'Anonymous',
           view_name: item.view_name,
           feedback_text: item.feedback_text,
           created_at: item.created_at
         }));
 
-        setFeedback(feedbackWithUserInfo);
+        setFeedback(feedbackWithEmails);
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setError('Failed to load feedback data');
