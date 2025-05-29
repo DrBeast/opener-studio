@@ -405,7 +405,7 @@ export const EnhancedCompaniesTable = ({
                     <TableCell className="">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <div className="text-blue-500">
+                          <div className="text-blue-500" style={{ transform: 'scale(2)', transformOrigin: 'left center' }}>
                             <ContactRecommendation 
                               companyId={company.company_id} 
                               companyName={company.name}
