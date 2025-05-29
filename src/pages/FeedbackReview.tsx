@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 
 interface FeedbackEntry {
   feedback_id: string;
-  user_email: string;
+  user_id: string;
   view_name: string;
   feedback_text: string;
   created_at: string;
@@ -30,7 +30,8 @@ const FeedbackReview = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        // Get feedback with user emails by joining with auth.users
+        console.log('Fetching feedback data...');
+        
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -43,15 +44,12 @@ const FeedbackReview = () => {
           `)
           .order('created_at', { ascending: false });
 
+        console.log('Feedback data received:', feedbackData);
+        console.log('Feedback error:', feedbackError);
+
         if (feedbackError) throw feedbackError;
 
-        // For now, let's just display the user_id since we can't access auth.users from client
-        const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
-          ...item,
-          user_email: item.user_id || 'Unknown User'
-        }));
-
-        setFeedback(feedbackWithEmails);
+        setFeedback(feedbackData || []);
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setError('Failed to load feedback data');
@@ -116,7 +114,7 @@ const FeedbackReview = () => {
                       {format(new Date(entry.created_at), 'MMM dd, yyyy HH:mm')}
                     </TableCell>
                     <TableCell className="text-sm font-mono text-xs">
-                      {entry.user_email}
+                      {entry.user_id}
                     </TableCell>
                     <TableCell className="text-sm">
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
