@@ -24,14 +24,17 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
               {user ? (
                 <Button size="lg" asChild className="group">
-                  <Link to="/profile">
+                  <Link to="/dashboard">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
               ) : (
                 <Button size="lg" asChild className="group">
-                  
+                  <Link to="/auth/signup">
+                    Get Started Free
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
                 </Button>
               )}
             </div>

@@ -14,6 +14,7 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
+import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
@@ -22,6 +23,7 @@ import FeedbackReview from "@/pages/FeedbackReview";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
+import FloatingActionButton from "@/components/FloatingActionButton";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,7 @@ const App = () => (
               
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 <Route path="/pipeline" element={<PipelineDashboard />} />
@@ -51,24 +54,17 @@ const App = () => (
               {/* Admin Routes (not linked anywhere) */}
               <Route path="/admin/feedback-review" element={<FeedbackReview />} />
               
-              {/* Redirect /profile/edit to /profile */}
+              {/* Redirect old routes */}
               <Route path="/profile/edit" element={<Navigate to="/profile" replace />} />
-              
-              {/* Redirect /companies to /pipeline */}
               <Route path="/companies" element={<Navigate to="/pipeline" replace />} />
-              
-              {/* Redirect /profile/enrichment to /profile */}
               <Route path="/profile/enrichment" element={<Navigate to="/profile" replace />} />
-              
-              {/* Redirect /job-search to /job-targets */}
               <Route path="/job-search" element={<Navigate to="/job-targets" replace />} />
-              
-              {/* Redirect for the current request to navigate to profile */}
               <Route path="/navigate-to-profile" element={<Navigate to="/profile" replace />} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <FloatingActionButton />
           </MainLayout>
         </BrowserRouter>
       </AuthProvider>

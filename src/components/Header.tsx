@@ -17,7 +17,7 @@ const Header = () => {
   const isLandingPage = location.pathname === "/";
   
   // Determine where the logo should link to
-  const logoLinkPath = user ? "/profile" : "/";
+  const logoLinkPath = user ? "/dashboard" : "/";
 
   return (
     <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
@@ -28,22 +28,25 @@ const Header = () => {
             <span className="ml-1 text-xs bg-red-600 text-white px-1 py-0.5 rounded uppercase font-semibold">DEV</span>
           </Link>
           
-          <nav className="hidden md:flex items-center gap-4">
+          <nav className="hidden md:flex items-center gap-6">
             {isLandingPage ?
-              // Landing page navigation
+              // Landing page navigation - simplified
               <>
                 
               </> :
-              // App navigation (only for logged-in users)
+              // App navigation (only for logged-in users) - simplified and reordered
               user && <>
-                <Link to="/profile" className={`text-sm transition-colors ${isActive("/profile") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Profile
+                <Link to="/dashboard" className={`text-sm transition-colors ${isActive("/dashboard") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
+                  Dashboard
+                </Link>
+                <Link to="/pipeline" className={`text-sm transition-colors ${isActive("/pipeline") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
+                  Pipeline
                 </Link>
                 <Link to="/job-targets" className={`text-sm transition-colors ${isActive("/job-targets") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
                   Targets
                 </Link>
-                <Link to="/pipeline" className={`text-sm transition-colors ${isActive("/pipeline") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Pipeline
+                <Link to="/profile" className={`text-sm transition-colors ${isActive("/profile") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
+                  Profile
                 </Link>
               </>
             }
