@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Table,
@@ -113,9 +112,6 @@ export const EnhancedCompaniesTable = ({
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
-                ref={(el: HTMLInputElement | null) => {
-                  if (el) el.indeterminate = someSelected;
-                }}
               />
             </TableHead>
             <TableHead className="min-w-[200px]">
