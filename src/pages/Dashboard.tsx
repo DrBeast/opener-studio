@@ -53,12 +53,12 @@ const Dashboard = () => {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
-        // Fetch recent interactions
+        // Fetch recent interactions with correct column name
         const { data: recentInteractions } = await supabase
           .from('interactions')
-          .select('interaction_type, description, created_at')
+          .select('interaction_type, description, interaction_date')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('interaction_date', { ascending: false })
           .limit(5);
 
         setStats({
@@ -67,8 +67,8 @@ const Dashboard = () => {
           messagesSent: messagesCount || 0,
           recentActivity: recentInteractions?.map(item => ({
             type: item.interaction_type,
-            description: item.description,
-            date: new Date(item.created_at).toLocaleDateString()
+            description: item.description || 'No description',
+            date: new Date(item.interaction_date).toLocaleDateString()
           })) || []
         });
       } catch (error) {
