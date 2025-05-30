@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageGeneration } from "@/components/MessageGeneration";
+import { createDefaultTargetCriteria } from "@/utils/defaultCriteria";
+import { Background } from "@/types/profile";
 
 interface Company {
   company_id: string;
@@ -26,6 +28,15 @@ interface CompanyGenerationStepProps {
   onMessageGenerated: () => void;
 }
 
+// Helper function to ensure we have a string array from Json type
+const ensureStringArray = (value: any): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map(item => String(item));
+  }
+  return [];
+};
+
 export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationStepProps) => {
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,19 +45,76 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
 
   useEffect(() => {
-    if (!hasGenerated) {
-      generateCompaniesAndContacts();
-    }
-  }, [hasGenerated]);
+    const loadBackgroundAndGenerate = async () => {
+      if (!user || hasGenerated) return;
 
-  const generateCompaniesAndContacts = async () => {
+      try {
+        // Load user background summary
+        const { data: summaryData } = await supabase
+          .from("user_summaries")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+          
+        if (summaryData) {
+          setBackgroundSummary({
+            experience: summaryData.experience,
+            education: summaryData.education,
+            expertise: summaryData.expertise,
+            achievements: summaryData.achievements,
+            overall_blurb: summaryData.overall_blurb,
+            combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
+            combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
+            key_skills: ensureStringArray(summaryData.key_skills),
+            domain_expertise: ensureStringArray(summaryData.domain_expertise),
+            technical_expertise: ensureStringArray(summaryData.technical_expertise),
+            value_proposition_summary: summaryData.value_proposition_summary
+          });
+        }
+
+        // Generate companies and contacts
+        await generateCompaniesAndContacts(summaryData);
+      } catch (error) {
+        console.error('Error in initial load:', error);
+      }
+    };
+
+    loadBackgroundAndGenerate();
+  }, [user, hasGenerated]);
+
+  const generateCompaniesAndContacts = async (summaryData: any) => {
     if (!user) return;
     
     setIsGenerating(true);
     try {
       console.log('Starting company generation for user:', user.id);
+      
+      // Check if user has target criteria, if not create default ones
+      const { data: existingCriteria } = await supabase
+        .from('target_criteria')
+        .select('criteria_id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (!existingCriteria || existingCriteria.length === 0) {
+        console.log('No target criteria found, creating default ones...');
+        await createDefaultTargetCriteria(user.id, summaryData ? {
+          experience: summaryData.experience,
+          education: summaryData.education,
+          expertise: summaryData.expertise,
+          achievements: summaryData.achievements,
+          overall_blurb: summaryData.overall_blurb,
+          combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
+          combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
+          key_skills: ensureStringArray(summaryData.key_skills),
+          domain_expertise: ensureStringArray(summaryData.domain_expertise),
+          technical_expertise: ensureStringArray(summaryData.technical_expertise),
+          value_proposition_summary: summaryData.value_proposition_summary
+        } : null);
+      }
       
       // Generate companies
       const { data: companiesData, error: companiesError } = await supabase.functions.invoke('generate_companies', {
@@ -73,6 +141,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
 
       if (fetchError) {
         console.error('Error fetching companies:', fetchError);
+        throw fetchError;
       }
 
       console.log('Fetched companies:', fetchedCompanies);
@@ -162,10 +231,10 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <div className="flex items-center justify-center mb-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
-            <span className="font-medium text-blue-800">Generating companies and contacts...</span>
+            <span className="font-medium text-blue-800">Setting up your preferences and generating companies...</span>
           </div>
           <p className="text-sm text-blue-700 text-center">
-            We're finding companies based on your current role, industry, and location preferences.
+            We're creating your job search criteria and finding companies based on your profile.
           </p>
         </div>
       </div>
@@ -184,56 +253,65 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
 
       <div className="space-y-4">
         <h4 className="font-medium">Companies Generated:</h4>
-        {companies.map((company) => (
-          <Card key={company.company_id} className="bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Building className="h-5 w-5 text-green-600" />
-                <div>
-                  <h5 className="font-medium">{company.name}</h5>
-                  {company.industry && (
-                    <p className="text-sm text-muted-foreground">{company.industry}</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        <h4 className="font-medium mt-6">Key Contacts:</h4>
-        {contacts.map((contact) => (
-          <Card key={contact.contact_id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+        {companies.length > 0 ? (
+          companies.map((company) => (
+            <Card key={company.company_id} className="bg-green-50 border-green-200">
+              <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-primary" />
+                  <Building className="h-5 w-5 text-green-600" />
                   <div>
-                    <h5 className="font-medium">
-                      {contact.first_name} {contact.last_name}
-                    </h5>
-                    {contact.role && (
-                      <p className="text-sm text-muted-foreground">{contact.role}</p>
+                    <h5 className="font-medium">{company.name}</h5>
+                    {company.industry && (
+                      <p className="text-sm text-muted-foreground">{company.industry}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">{contact.company_name}</p>
                   </div>
                 </div>
-                <Button 
-                  size="sm"
-                  onClick={() => handleMessageGeneration(contact)}
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Generate Message
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-muted-foreground text-center">No companies generated yet.</p>
+        )}
+
+        <h4 className="font-medium mt-6">Key Contacts:</h4>
+        {contacts.length > 0 ? (
+          contacts.map((contact) => (
+            <Card key={contact.contact_id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div>
+                      <h5 className="font-medium">
+                        {contact.first_name} {contact.last_name}
+                      </h5>
+                      {contact.role && (
+                        <p className="text-sm text-muted-foreground">{contact.role}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">{contact.company_name}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm"
+                    onClick={() => handleMessageGeneration(contact)}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Generate Message
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-muted-foreground text-center">No contacts generated yet.</p>
+        )}
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg">
         <p className="text-sm text-blue-800">
-          💡 <strong>Tip:</strong> You can change your search criteria and add companies/contacts manually later. 
+          💡 <strong>Tip:</strong> We've auto-generated your job search criteria based on your profile. 
+          You can customize these preferences later in the Job Targets section. 
           Click the message icon next to any contact to generate a personalized outreach message.
         </p>
       </div>
