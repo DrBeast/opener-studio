@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Building, Users, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageGeneration } from "@/components/MessageGeneration";
-import { ContactModal } from "@/components/pipeline/ContactModal";
+import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { createDefaultTargetCriteria } from "@/utils/defaultCriteria";
 import { Background } from "@/types/profile";
 
@@ -46,6 +47,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [selectedCompanyName, setSelectedCompanyName] = useState<string>("");
   const [hasGenerated, setHasGenerated] = useState(false);
   const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
   const [defaultFunctions, setDefaultFunctions] = useState<string[]>([]);
@@ -273,14 +275,16 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
     onMessageGenerated();
   };
   
-  const handleAddContactClick = (companyId: string) => {
+  const handleAddContactClick = (companyId: string, companyName: string) => {
     setSelectedCompanyId(companyId);
+    setSelectedCompanyName(companyName);
     setIsContactModalOpen(true);
   };
   
   const handleContactModalClose = () => {
     setIsContactModalOpen(false);
     setSelectedCompanyId("");
+    setSelectedCompanyName("");
   };
   
   const handleContactCreated = async () => {
@@ -321,11 +325,9 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
   };
 
   const getContactsForCompany = (companyId: string) => {
-    // Get all contacts for this company
+    // Get contacts for this company, limit to 1 for onboarding
     const companyContacts = contacts.filter(contact => contact.company_id === companyId);
-    
-    // Limit to 2 contacts for consistent display
-    return companyContacts.slice(0, 2);
+    return companyContacts.slice(0, 1);
   };
 
   const getDefaultFunction = (companyName: string) => {
@@ -396,7 +398,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
                         Key Contacts
                       </h6>
                       <div className="space-y-2">
-                        {/* Generated Contacts - limited to 2 */}
+                        {/* Generated Contact - exactly 1 */}
                         {companyContacts.map((contact) => (
                           <div 
                             key={contact.contact_id} 
@@ -437,7 +439,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
                           <Button 
                             size="sm"
                             variant="outline"
-                            onClick={() => handleAddContactClick(company.company_id)}
+                            onClick={() => handleAddContactClick(company.company_id, company.name)}
                             className="flex items-center gap-1 text-xs"
                           >
                             Add
@@ -473,10 +475,11 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
       )}
       
       {selectedCompanyId && (
-        <ContactModal
+        <EnhancedContactModal
           isOpen={isContactModalOpen}
           onClose={handleContactModalClose}
           companyId={selectedCompanyId}
+          companyName={selectedCompanyName}
           onSuccess={handleContactCreated}
         />
       )}
