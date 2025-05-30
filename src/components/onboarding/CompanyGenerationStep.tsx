@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Building, Users, MessageCircle } from "lucide-react";
+import { Building, Users, MessageCircle, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,8 @@ import { Background } from "@/types/profile";
 interface Company {
   company_id: string;
   name: string;
-  industry?: string;
+  match_quality_score?: number;
+  ai_match_reasoning?: string;
 }
 
 interface Contact {
@@ -134,7 +135,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
       // Fetch the generated companies
       const { data: fetchedCompanies, error: fetchError } = await supabase
         .from('companies')
-        .select('company_id, name, industry')
+        .select('company_id, name, match_quality_score, ai_match_reasoning')
         .eq('user_id', user.id)
         .order('added_at', { ascending: false })
         .limit(5);
@@ -152,19 +153,48 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
         // Generate contacts for each company
         for (const company of fetchedCompanies) {
           console.log('Generating contacts for company:', company.name);
-          const { data: contactsData, error: contactsError } = await supabase.functions.invoke('generate_contacts', {
-            body: { 
-              userId: user.id, 
-              companyId: company.company_id,
-              companyName: company.name,
-              count: 2 
-            }
-          });
+          try {
+            const { data: contactsData, error: contactsError } = await supabase.functions.invoke('generate_contacts', {
+              body: { 
+                company_id: company.company_id
+              }
+            });
 
-          if (contactsError) {
-            console.error('Error generating contacts for company:', company.name, contactsError);
-          } else {
-            console.log('Contacts generation response for', company.name, ':', contactsData);
+            if (contactsError) {
+              console.error('Error generating contacts for company:', company.name, contactsError);
+            } else {
+              console.log('Contacts generation response for', company.name, ':', contactsData);
+              
+              // Add contacts to database if the response contains suggested contacts
+              if (contactsData?.status === 'success' && contactsData?.contacts) {
+                for (const suggestedContact of contactsData.contacts) {
+                  try {
+                    const { error: insertError } = await supabase
+                      .from('contacts')
+                      .insert({
+                        user_id: user.id,
+                        company_id: company.company_id,
+                        first_name: suggestedContact.name.split(' ')[0] || '',
+                        last_name: suggestedContact.name.split(' ').slice(1).join(' ') || '',
+                        role: suggestedContact.role,
+                        location: suggestedContact.location,
+                        linkedin_url: suggestedContact.linkedin_url,
+                        email: suggestedContact.email,
+                        bio_summary: suggestedContact.bio_summary,
+                        how_i_can_help: suggestedContact.how_i_can_help
+                      });
+                    
+                    if (insertError) {
+                      console.error('Error inserting contact:', insertError);
+                    }
+                  } catch (insertError) {
+                    console.error('Error inserting contact for', suggestedContact.name, ':', insertError);
+                  }
+                }
+              }
+            }
+          } catch (contactError) {
+            console.error('Error in contact generation process for', company.name, ':', contactError);
           }
         }
 
@@ -220,6 +250,10 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
     onMessageGenerated();
   };
 
+  const getContactsForCompany = (companyId: string) => {
+    return contacts.filter(contact => contact.company_id === companyId);
+  };
+
   if (isGenerating) {
     return (
       <div className="space-y-6">
@@ -234,7 +268,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
             <span className="font-medium text-blue-800">Setting up your preferences and generating companies...</span>
           </div>
           <p className="text-sm text-blue-700 text-center">
-            We're creating your job search criteria and finding companies based on your profile.
+            We're creating your job search criteria and finding companies and contacts based on your profile.
           </p>
         </div>
       </div>
@@ -252,59 +286,78 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
       </div>
 
       <div className="space-y-4">
-        <h4 className="font-medium">Companies Generated:</h4>
         {companies.length > 0 ? (
-          companies.map((company) => (
-            <Card key={company.company_id} className="bg-green-50 border-green-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Building className="h-5 w-5 text-green-600" />
-                  <div>
-                    <h5 className="font-medium">{company.name}</h5>
-                    {company.industry && (
-                      <p className="text-sm text-muted-foreground">{company.industry}</p>
+          companies.map((company) => {
+            const companyContacts = getContactsForCompany(company.company_id);
+            return (
+              <Card key={company.company_id} className="bg-green-50 border-green-200">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Company Header */}
+                    <div className="flex items-start gap-3">
+                      <Building className="h-5 w-5 text-green-600 mt-1" />
+                      <div className="flex-1 space-y-2">
+                        <h5 className="font-medium text-lg">{company.name}</h5>
+                        
+                        {/* Match Quality Score */}
+                        {company.match_quality_score && (
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm font-medium">Match Score: {company.match_quality_score}%</span>
+                          </div>
+                        )}
+                        
+                        {/* AI Match Reasoning */}
+                        {company.ai_match_reasoning && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {company.ai_match_reasoning}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contacts Section */}
+                    {companyContacts.length > 0 && (
+                      <div className="border-t pt-4">
+                        <h6 className="font-medium text-sm mb-3 flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          Key Contacts ({companyContacts.length})
+                        </h6>
+                        <div className="space-y-2">
+                          {companyContacts.map((contact) => (
+                            <div 
+                              key={contact.contact_id} 
+                              className="flex items-center justify-between bg-white p-3 rounded-lg border"
+                            >
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {contact.first_name} {contact.last_name}
+                                </p>
+                                {contact.role && (
+                                  <p className="text-xs text-muted-foreground">{contact.role}</p>
+                                )}
+                              </div>
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleMessageGeneration(contact)}
+                                className="flex items-center gap-1 text-xs"
+                              >
+                                <MessageCircle className="h-3 w-3" />
+                                Message
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         ) : (
           <p className="text-muted-foreground text-center">No companies generated yet.</p>
-        )}
-
-        <h4 className="font-medium mt-6">Key Contacts:</h4>
-        {contacts.length > 0 ? (
-          contacts.map((contact) => (
-            <Card key={contact.contact_id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <h5 className="font-medium">
-                        {contact.first_name} {contact.last_name}
-                      </h5>
-                      {contact.role && (
-                        <p className="text-sm text-muted-foreground">{contact.role}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground">{contact.company_name}</p>
-                    </div>
-                  </div>
-                  <Button 
-                    size="sm"
-                    onClick={() => handleMessageGeneration(contact)}
-                    className="flex items-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Generate Message
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <p className="text-muted-foreground text-center">No contacts generated yet.</p>
         )}
       </div>
 
@@ -312,7 +365,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
         <p className="text-sm text-blue-800">
           💡 <strong>Tip:</strong> We've auto-generated your job search criteria based on your profile. 
           You can customize these preferences later in the Job Targets section. 
-          Click the message icon next to any contact to generate a personalized outreach message.
+          Click the message button next to any contact to generate a personalized outreach message.
         </p>
       </div>
 
