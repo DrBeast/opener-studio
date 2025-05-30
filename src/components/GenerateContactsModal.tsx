@@ -311,7 +311,7 @@ export const GenerateContactsModal = ({
                 ))}
               </div>
 
-              <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center">
                 <Button 
                   variant="outline"
                   onClick={handleGenerateContact} 
