@@ -11,6 +11,7 @@ import { CheckCircle, ArrowRight, Target, Users, MessageCircle } from "lucide-re
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 
 interface OnboardingFlowProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     location: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<{company_id: string, name: string} | null>(null);
+  const [isGenerateContactsOpen, setIsGenerateContactsOpen] = useState(false);
 
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
@@ -102,6 +105,11 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGenerateContactsSuccess = () => {
+    setIsGenerateContactsOpen(false);
+    toast.success("Contacts generated successfully! You can now start reaching out.");
   };
 
   const renderStep = () => {
@@ -259,56 +267,68 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
-          <DialogDescription>
-            Let's get you set up to start building meaningful professional connections.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={() => {}}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
+            <DialogDescription>
+              Let's get you set up to start building meaningful professional connections.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Step {currentStep} of {totalSteps}</span>
-              <span>{Math.round(progress)}% complete</span>
+          <div className="space-y-6">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Step {currentStep} of {totalSteps}</span>
+                <span>{Math.round(progress)}% complete</span>
+              </div>
+              <Progress value={progress} className="h-2" />
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
 
-          {/* Step Content */}
-          {renderStep()}
+            {/* Step Content */}
+            {renderStep()}
 
-          {/* Navigation */}
-          <div className="flex justify-between pt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Skip for now
-            </Button>
-            <Button
-              onClick={handleNext}
-              disabled={isLoading || (currentStep === 1 && !jobTarget.title)}
-            >
-              {isLoading ? (
-                "Setting up..."
-              ) : currentStep === totalSteps ? (
-                "Get Started!"
-              ) : (
-                <>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+            {/* Navigation */}
+            <div className="flex justify-between pt-4">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={isLoading}
+              >
+                Skip for now
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={isLoading || (currentStep === 1 && !jobTarget.title)}
+              >
+                {isLoading ? (
+                  "Setting up..."
+                ) : currentStep === totalSteps ? (
+                  "Get Started!"
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {selectedCompany && (
+        <GenerateContactsModal
+          isOpen={isGenerateContactsOpen}
+          onClose={() => setIsGenerateContactsOpen(false)}
+          companyId={selectedCompany.company_id}
+          companyName={selectedCompany.name}
+          onSuccess={handleGenerateContactsSuccess}
+        />
+      )}
+    </>
   );
 };
 
