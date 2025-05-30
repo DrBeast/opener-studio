@@ -295,6 +295,7 @@ serve(async (req) => {
     const data = await response.json();
 
     // 6. Process the Gemini response - UPDATED to handle both array and object formats
+    let suggestedContacts: SuggestedContactOutput[];
     try {
         const rawResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text
             ? JSON.parse(data.candidates[0].content.parts[0].text)
