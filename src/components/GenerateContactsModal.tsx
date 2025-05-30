@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, User, MapPin, Building, Mail, Linkedin, UserPlus, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +29,6 @@ interface GeneratedContact {
   email?: string;
   bio_summary?: string;
   how_i_can_help?: string;
-  selected?: boolean;
 }
 
 export const GenerateContactsModal = ({
@@ -43,7 +41,7 @@ export const GenerateContactsModal = ({
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [generatedContacts, setGeneratedContacts] = useState<GeneratedContact[]>([]);
+  const [generatedContact, setGeneratedContact] = useState<GeneratedContact | null>(null);
 
   const handleGenerateContact = async () => {
     if (!user) return;
@@ -57,8 +55,7 @@ export const GenerateContactsModal = ({
       if (error) throw error;
 
       if (data?.status === 'success' && data.contacts && data.contacts.length > 0) {
-        const newContact = { ...data.contacts[0], selected: true };
-        setGeneratedContacts(prev => [...prev, newContact]);
+        setGeneratedContact(data.contacts[0]);
       } else {
         throw new Error('No contact generated');
       }
@@ -74,73 +71,57 @@ export const GenerateContactsModal = ({
     }
   };
 
-  const handleContactSelect = (index: number, checked: boolean) => {
-    setGeneratedContacts(prev => 
-      prev.map((contact, i) => 
-        i === index ? { ...contact, selected: checked } : contact
-      )
-    );
-  };
-
-  const handleSaveSelected = async () => {
-    if (!user) return;
-
-    const selectedContacts = generatedContacts.filter(contact => contact.selected);
-    
-    if (selectedContacts.length === 0) {
-      toast({
-        title: "No contacts selected",
-        description: "Please select at least one contact to save",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleSaveContact = async () => {
+    if (!user || !generatedContact) return;
 
     setIsSaving(true);
     try {
-      const contactsToCreate = selectedContacts.map(contact => {
-        const nameParts = contact.name.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+      const nameParts = generatedContact.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
 
-        return {
-          user_id: user.id,
-          company_id: companyId,
-          first_name: firstName,
-          last_name: lastName,
-          role: contact.role,
-          email: contact.email,
-          linkedin_url: contact.linkedin_url,
-          location: contact.location,
-          bio_summary: contact.bio_summary,
-          how_i_can_help: contact.how_i_can_help,
-        };
-      });
+      const contactToCreate = {
+        user_id: user.id,
+        company_id: companyId,
+        first_name: firstName,
+        last_name: lastName,
+        role: generatedContact.role,
+        email: generatedContact.email,
+        linkedin_url: generatedContact.linkedin_url,
+        location: generatedContact.location,
+        bio_summary: generatedContact.bio_summary,
+        how_i_can_help: generatedContact.how_i_can_help,
+      };
 
       const { error } = await supabase
         .from('contacts')
-        .insert(contactsToCreate);
+        .insert([contactToCreate]);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''} saved successfully`,
+        description: "Contact saved successfully",
       });
 
       onSuccess();
       onClose();
       resetForm();
     } catch (error: any) {
-      console.error("Error saving contacts:", error);
+      console.error("Error saving contact:", error);
       toast({
         title: "Error",
-        description: "Failed to save contacts",
+        description: "Failed to save contact",
         variant: "destructive"
       });
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleGenerateOneMore = () => {
+    setGeneratedContact(null);
+    handleGenerateContact();
   };
 
   const handleDiscard = () => {
@@ -149,7 +130,7 @@ export const GenerateContactsModal = ({
   };
 
   const resetForm = () => {
-    setGeneratedContacts([]);
+    setGeneratedContact(null);
   };
 
   const handleClose = () => {
@@ -157,17 +138,15 @@ export const GenerateContactsModal = ({
     resetForm();
   };
 
-  const selectedCount = generatedContacts.filter(contact => contact.selected).length;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Generate Contacts at {companyName}</DialogTitle>
+          <DialogTitle>Generate Contact at {companyName}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {generatedContacts.length === 0 ? (
+          {!generatedContact ? (
             <div className="text-center py-8">
               <div className="mb-4">
                 <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -206,80 +185,66 @@ export const GenerateContactsModal = ({
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Generated Contacts</h3>
-                {selectedCount > 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    {selectedCount} selected
-                  </span>
-                )}
+                <h3 className="text-lg font-medium">Generated Contact</h3>
               </div>
 
-              <div className="space-y-3">
-                {generatedContacts.map((contact, index) => (
-                  <Card key={index} className="border-green-200 bg-green-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          <Checkbox
-                            checked={contact.selected || false}
-                            onCheckedChange={(checked) => handleContactSelect(index, checked as boolean)}
-                            className="mt-1"
-                          />
-                          <div className="p-2 rounded-lg bg-green-200">
-                            <User className="h-4 w-4 text-green-600" />
-                          </div>
-                          <div className="space-y-3 flex-1">
-                            <div>
-                              <h4 className="font-medium">{contact.name}</h4>
-                              {contact.role && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Building className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-sm text-muted-foreground">{contact.role}</span>
-                                </div>
-                              )}
-                              {contact.location && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs text-muted-foreground">{contact.location}</span>
-                                </div>
-                              )}
+              <Card className="border-green-200 bg-green-50">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="p-2 rounded-lg bg-green-200">
+                        <User className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <h4 className="font-medium">{generatedContact.name}</h4>
+                          {generatedContact.role && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Building className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">{generatedContact.role}</span>
                             </div>
-                            
-                            {contact.bio_summary && (
-                              <div>
-                                <p className="font-medium text-sm text-gray-800 mb-1">Background:</p>
-                                <p className="text-sm text-gray-600">{contact.bio_summary}</p>
-                              </div>
-                            )}
-                            
-                            {contact.how_i_can_help && (
-                              <div>
-                                <p className="font-medium text-sm text-blue-800 mb-1">How You Can Help:</p>
-                                <p className="text-sm text-blue-600">{contact.how_i_can_help}</p>
-                              </div>
-                            )}
-                            
-                            <div className="flex gap-4 text-xs text-muted-foreground">
-                              {contact.email && (
-                                <div className="flex items-center gap-1">
-                                  <Mail className="h-3 w-3" />
-                                  <span>{contact.email}</span>
-                                </div>
-                              )}
-                              {contact.linkedin_url && (
-                                <div className="flex items-center gap-1">
-                                  <Linkedin className="h-3 w-3" />
-                                  <span>LinkedIn</span>
-                                </div>
-                              )}
+                          )}
+                          {generatedContact.location && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <MapPin className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">{generatedContact.location}</span>
                             </div>
+                          )}
+                        </div>
+                        
+                        {generatedContact.bio_summary && (
+                          <div>
+                            <p className="font-medium text-sm text-gray-800 mb-1">Background:</p>
+                            <p className="text-sm text-gray-600">{generatedContact.bio_summary}</p>
                           </div>
+                        )}
+                        
+                        {generatedContact.how_i_can_help && (
+                          <div>
+                            <p className="font-medium text-sm text-blue-800 mb-1">How You Can Help:</p>
+                            <p className="text-sm text-blue-600">{generatedContact.how_i_can_help}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-4 text-xs text-muted-foreground">
+                          {generatedContact.email && (
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              <span>{generatedContact.email}</span>
+                            </div>
+                          )}
+                          {generatedContact.linkedin_url && (
+                            <div className="flex items-center gap-1">
+                              <Linkedin className="h-3 w-3" />
+                              <span>LinkedIn</span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="flex justify-between gap-4 pt-4">
                 <Button 
@@ -295,7 +260,7 @@ export const GenerateContactsModal = ({
                 <div className="flex gap-2">
                   <Button 
                     variant="outline"
-                    onClick={handleGenerateContact} 
+                    onClick={handleGenerateOneMore} 
                     disabled={isGenerating}
                     className="flex items-center gap-2"
                   >
@@ -307,14 +272,14 @@ export const GenerateContactsModal = ({
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4" />
-                        Generate More
+                        Generate One More
                       </>
                     )}
                   </Button>
                   
                   <Button 
-                    onClick={handleSaveSelected} 
-                    disabled={isSaving || selectedCount === 0}
+                    onClick={handleSaveContact} 
+                    disabled={isSaving}
                     className="flex items-center gap-2"
                   >
                     {isSaving ? (
@@ -325,7 +290,7 @@ export const GenerateContactsModal = ({
                     ) : (
                       <>
                         <UserPlus className="h-4 w-4" />
-                        Save Selected ({selectedCount})
+                        Save Contact
                       </>
                     )}
                   </Button>
