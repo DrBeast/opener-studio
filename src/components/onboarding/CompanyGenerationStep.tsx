@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Building, Users, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -101,7 +100,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
           .maybeSingle();
 
         if (criteria?.target_functions) {
-          setDefaultFunctions(criteria.target_functions);
+          setDefaultFunctions(ensureStringArray(criteria.target_functions));
         }
       } catch (error) {
         console.error('Error loading default functions:', error);
