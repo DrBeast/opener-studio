@@ -46,27 +46,44 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
     
     setIsGenerating(true);
     try {
+      console.log('Starting company generation for user:', user.id);
+      
       // Generate companies
       const { data: companiesData, error: companiesError } = await supabase.functions.invoke('generate_companies', {
         body: { userId: user.id, count: 5 }
       });
 
-      if (companiesError) throw companiesError;
+      if (companiesError) {
+        console.error('Error generating companies:', companiesError);
+        throw companiesError;
+      }
+
+      console.log('Companies generation response:', companiesData);
+
+      // Wait a moment for the data to be written
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Fetch the generated companies
-      const { data: fetchedCompanies } = await supabase
+      const { data: fetchedCompanies, error: fetchError } = await supabase
         .from('companies')
         .select('company_id, name, industry')
         .eq('user_id', user.id)
         .order('added_at', { ascending: false })
         .limit(5);
 
-      if (fetchedCompanies) {
+      if (fetchError) {
+        console.error('Error fetching companies:', fetchError);
+      }
+
+      console.log('Fetched companies:', fetchedCompanies);
+
+      if (fetchedCompanies && fetchedCompanies.length > 0) {
         setCompanies(fetchedCompanies);
 
         // Generate contacts for each company
         for (const company of fetchedCompanies) {
-          await supabase.functions.invoke('generate_contacts', {
+          console.log('Generating contacts for company:', company.name);
+          const { data: contactsData, error: contactsError } = await supabase.functions.invoke('generate_contacts', {
             body: { 
               userId: user.id, 
               companyId: company.company_id,
@@ -74,10 +91,19 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
               count: 2 
             }
           });
+
+          if (contactsError) {
+            console.error('Error generating contacts for company:', company.name, contactsError);
+          } else {
+            console.log('Contacts generation response for', company.name, ':', contactsData);
+          }
         }
 
+        // Wait for contacts to be written
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         // Fetch all generated contacts
-        const { data: fetchedContacts } = await supabase
+        const { data: fetchedContacts, error: contactsFetchError } = await supabase
           .from('contacts')
           .select(`
             contact_id,
@@ -91,12 +117,18 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
           .order('added_at', { ascending: false })
           .limit(10);
 
-        if (fetchedContacts) {
-          const contactsWithCompany = fetchedContacts.map(contact => ({
-            ...contact,
-            company_name: contact.companies?.name
-          }));
-          setContacts(contactsWithCompany);
+        if (contactsFetchError) {
+          console.error('Error fetching contacts:', contactsFetchError);
+        } else {
+          console.log('Fetched contacts:', fetchedContacts);
+          
+          if (fetchedContacts) {
+            const contactsWithCompany = fetchedContacts.map(contact => ({
+              ...contact,
+              company_name: contact.companies?.name
+            }));
+            setContacts(contactsWithCompany);
+          }
         }
       }
 

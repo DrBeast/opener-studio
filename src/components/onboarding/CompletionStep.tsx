@@ -1,8 +1,20 @@
 
-import { CheckCircle, Edit, Building, Users, BarChart3 } from "lucide-react";
+import { CheckCircle, Edit, Building, Users, BarChart3, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 
 export const CompletionStep = () => {
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  const handleNavigation = (path: string) => {
+    window.location.href = path;
+  };
+
+  const handleCraftMessages = () => {
+    setIsContactModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -22,7 +34,10 @@ export const CompletionStep = () => {
       <div className="space-y-4">
         <h4 className="font-medium text-center">What you can do next:</h4>
         
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleNavigation('/profile')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Edit className="h-5 w-5 text-blue-600" />
@@ -36,7 +51,10 @@ export const CompletionStep = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleNavigation('/job-targets')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Building className="h-5 w-5 text-green-600" />
@@ -50,7 +68,10 @@ export const CompletionStep = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleNavigation('/companies')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-purple-600" />
@@ -64,7 +85,27 @@ export const CompletionStep = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={handleCraftMessages}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <MessageCircle className="h-5 w-5 text-blue-600" />
+              <div>
+                <h5 className="font-medium">Craft Messages, Get Responses</h5>
+                <p className="text-sm text-muted-foreground">
+                  Generate personalized outreach messages for your contacts
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleNavigation('/pipeline')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5 text-orange-600" />
@@ -78,6 +119,11 @@ export const CompletionStep = () => {
           </CardContent>
         </Card>
       </div>
+
+      <ContactSelectionModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

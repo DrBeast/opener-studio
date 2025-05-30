@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, X } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -143,17 +143,10 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
-              <DialogDescription>
-                {getStepTitle()}
-              </DialogDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
+          <DialogDescription>
+            {getStepTitle()}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
