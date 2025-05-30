@@ -45,57 +45,32 @@ export const GenerateContactsModal = ({
   const [isSaving, setIsSaving] = useState(false);
   const [generatedContacts, setGeneratedContacts] = useState<GeneratedContact[]>([]);
 
-  // Debug logging for state changes
-  console.log("🔍 GenerateContactsModal Debug - generatedContacts:", generatedContacts);
-  console.log("🔍 GenerateContactsModal Debug - generatedContacts.length:", generatedContacts.length);
-
   const handleGenerateContact = async () => {
     if (!user) return;
 
-    console.log("🚀 Starting contact generation for company:", companyId);
     setIsGenerating(true);
-    
     try {
-      console.log("📞 Calling generate_contacts function...");
       const { data, error } = await supabase.functions.invoke('generate_contacts', {
         body: { company_id: companyId }
       });
 
-      console.log("📊 Raw response from generate_contacts:", data);
-      
-      if (error) {
-        console.error("❌ Error from generate_contacts:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (data?.status === 'success' && data.contacts && data.contacts.length > 0) {
         const newContact = { ...data.contacts[0], selected: true };
-        console.log("✅ Successfully received contact:", newContact);
-        
-        setGeneratedContacts(prev => {
-          const updated = [...prev, newContact];
-          console.log("🔄 Updating generatedContacts from:", prev, "to:", updated);
-          return updated;
-        });
-        
-        toast({
-          title: "Success",
-          description: "Contact generated successfully",
-        });
+        setGeneratedContacts(prev => [...prev, newContact]);
       } else {
-        console.error("❌ Invalid response structure:", data);
-        throw new Error('No contact generated or invalid response structure');
+        throw new Error('No contact generated');
       }
     } catch (error: any) {
-      console.error("💥 Error generating contact:", error);
+      console.error("Error generating contact:", error);
       toast({
         title: "Error",
-        description: `Failed to generate contact: ${error.message}`,
+        description: "Failed to generate contact",
         variant: "destructive"
       });
     } finally {
       setIsGenerating(false);
-      console.log("🏁 Contact generation finished");
     }
   };
 
@@ -181,28 +156,20 @@ export const GenerateContactsModal = ({
   };
 
   const handleDiscard = () => {
-    console.log("🗑️ Discarding and closing modal");
     onClose();
     resetForm();
   };
 
   const resetForm = () => {
-    console.log("🔄 Resetting form - clearing generatedContacts");
     setGeneratedContacts([]);
   };
 
   const handleClose = () => {
-    console.log("❌ Closing modal and resetting form");
     onClose();
     resetForm();
   };
 
   const selectedCount = generatedContacts.filter(contact => contact.selected).length;
-
-  // Debug render conditions
-  console.log("🎨 Render conditions:");
-  console.log("   - generatedContacts.length > 0:", generatedContacts.length > 0);
-  console.log("   - Will show contact list section:", generatedContacts.length > 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
