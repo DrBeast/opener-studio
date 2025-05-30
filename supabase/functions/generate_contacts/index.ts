@@ -294,19 +294,29 @@ serve(async (req) => {
 
     const data = await response.json();
 
-    // 6. Process the Gemini response - UPDATED to expect exactly 1 contact
-    let suggestedContacts: SuggestedContactOutput[];
+    // 6. Process the Gemini response - UPDATED to handle both array and object formats
     try {
-        suggestedContacts = data?.candidates?.[0]?.content?.parts?.[0]?.text
+        const rawResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text
             ? JSON.parse(data.candidates[0].content.parts[0].text)
             : data;
 
-        // Basic validation: Check if it's an array and contains objects with a 'name' field
-        if (!Array.isArray(suggestedContacts) || suggestedContacts.some(c => typeof c !== 'object' || !c.name)) {
-             throw new Error("AI response is not a valid array of contact objects.");
+        console.log('Raw AI response data:', JSON.stringify(rawResponse));
+
+        // Handle both array format and object with contacts property
+        if (Array.isArray(rawResponse)) {
+          suggestedContacts = rawResponse;
+        } else if (rawResponse && rawResponse.contacts && Array.isArray(rawResponse.contacts)) {
+          suggestedContacts = rawResponse.contacts;
+        } else {
+          throw new Error("AI response is not a valid array of contact objects or object with contacts property.");
         }
 
-        // Ensure exactly 1 contact - UPDATED from 3
+        // Basic validation: Check if contacts have required fields
+        if (suggestedContacts.some(c => typeof c !== 'object' || !c.name)) {
+             throw new Error("AI response contains invalid contact objects.");
+        }
+
+        // Ensure exactly 1 contact
         suggestedContacts = suggestedContacts.slice(0, 1);
         
         // Additional validation: Check for duplicates against existing contacts
