@@ -270,21 +270,21 @@ export const useCompanies = () => {
     }
   };
 
-  const handleSelectCompany = (companyId: string) => {
+  const handleSelectCompany = (companyId: string, selected: boolean) => {
     const newSelected = new Set(selectedCompanies);
-    if (newSelected.has(companyId)) {
-      newSelected.delete(companyId);
-    } else {
+    if (selected) {
       newSelected.add(companyId);
+    } else {
+      newSelected.delete(companyId);
     }
     setSelectedCompanies(newSelected);
   };
 
-  const handleSelectAll = () => {
-    if (selectedCompanies.size === companies.length) {
-      setSelectedCompanies(new Set());
-    } else {
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
       setSelectedCompanies(new Set(companies.map(c => c.company_id)));
+    } else {
+      setSelectedCompanies(new Set());
     }
   };
 
