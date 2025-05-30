@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { User, Building, MessageCircle, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageGeneration } from "@/components/MessageGeneration";
+import { CompanySelectionModal } from "@/components/CompanySelectionModal";
 
 interface Contact {
   contact_id: string;
@@ -28,6 +28,7 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
   const [loading, setLoading] = useState(true);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [isCompanySelectionOpen, setIsCompanySelectionOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -78,6 +79,15 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
     setSelectedContact(null);
   };
 
+  const handleAddContacts = () => {
+    setIsCompanySelectionOpen(true);
+    onClose();
+  };
+
+  const handleCloseCompanySelection = () => {
+    setIsCompanySelectionOpen(false);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -104,10 +114,7 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
               <p className="text-muted-foreground mb-4">
                 Add some contacts first to generate personalized messages
               </p>
-              <Button onClick={() => {
-                onClose();
-                window.location.href = '/pipeline';
-              }}>
+              <Button onClick={handleAddContacts}>
                 Add Contacts
               </Button>
             </div>
@@ -156,6 +163,11 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
           onClose={handleCloseMessageModal}
         />
       )}
+
+      <CompanySelectionModal
+        isOpen={isCompanySelectionOpen}
+        onClose={handleCloseCompanySelection}
+      />
     </>
   );
 };
