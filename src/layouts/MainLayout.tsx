@@ -23,15 +23,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       }
 
       try {
-        // Check if user has completed onboarding
+        // Check if user has completed onboarding by looking at their profile
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('onboarding_completed')
+          .select('*')
           .eq('user_id', user.id)
           .single();
 
-        // If onboarding is already completed, don't show it
-        if (profile?.onboarding_completed) {
+        // If profile exists and has onboarding_completed flag set to true, don't show onboarding
+        if (profile && (profile as any).onboarding_completed) {
           setIsCheckingOnboarding(false);
           return;
         }
@@ -59,22 +59,54 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   const handleOnboardingComplete = async () => {
     if (user) {
-      // Mark onboarding as completed
-      await supabase
-        .from('user_profiles')
-        .update({ onboarding_completed: true })
-        .eq('user_id', user.id);
+      try {
+        // Mark onboarding as completed
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (existingProfile) {
+          // Update existing profile
+          await supabase
+            .from('user_profiles')
+            .update({ 
+              ...(existingProfile as any),
+              onboarding_completed: true 
+            } as any)
+            .eq('user_id', user.id);
+        }
+      } catch (error) {
+        console.error('Error marking onboarding as completed:', error);
+      }
     }
     setShowOnboarding(false);
   };
 
   const handleOnboardingClose = async () => {
     if (user) {
-      // Mark onboarding as completed even if skipped
-      await supabase
-        .from('user_profiles')
-        .update({ onboarding_completed: true })
-        .eq('user_id', user.id);
+      try {
+        // Mark onboarding as completed even if skipped
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (existingProfile) {
+          // Update existing profile
+          await supabase
+            .from('user_profiles')
+            .update({ 
+              ...(existingProfile as any),
+              onboarding_completed: true 
+            } as any)
+            .eq('user_id', user.id);
+        }
+      } catch (error) {
+        console.error('Error marking onboarding as skipped:', error);
+      }
     }
     setShowOnboarding(false);
   };
