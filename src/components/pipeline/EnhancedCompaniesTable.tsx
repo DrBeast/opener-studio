@@ -113,7 +113,7 @@ export const EnhancedCompaniesTable = ({
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
-                ref={(el) => {
+                ref={(el: HTMLInputElement | null) => {
                   if (el) el.indeterminate = someSelected;
                 }}
               />
