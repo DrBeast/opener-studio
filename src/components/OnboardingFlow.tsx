@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, Target, Users, MessageCircle } from "lucide-react";
+import { CheckCircle, ArrowRight, Target, Users, MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,19 +28,21 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     industry: "",
     location: ""
   });
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<{company_id: string, name: string} | null>(null);
   const [isGenerateContactsOpen, setIsGenerateContactsOpen] = useState(false);
 
-  const totalSteps = 3;
+  const totalSteps = 4; // Added profile check step
   const progress = (currentStep / totalSteps) * 100;
 
   useEffect(() => {
-    // Auto-populate job target based on user profile
-    const loadUserProfile = async () => {
+    // Check for existing profile and auto-populate job target
+    const loadUserData = async () => {
       if (!user) return;
 
       try {
+        // Check if user has existing profile summary
         const { data: profile } = await supabase
           .from('user_summaries')
           .select('*')
@@ -48,6 +50,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
           .single();
 
         if (profile) {
+          setHasExistingProfile(true);
           // Extract likely job target from their current experience
           setJobTarget({
             title: profile.experience?.split(',')[0]?.trim() || "",
@@ -62,7 +65,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     };
 
     if (isOpen && currentStep === 1) {
-      loadUserProfile();
+      loadUserData();
     }
   }, [user, isOpen, currentStep]);
 
@@ -71,6 +74,12 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
+    }
+  };
+
+  const handleSkipProfile = () => {
+    if (currentStep === 1) {
+      setCurrentStep(2); // Skip to job target step
     }
   };
 
@@ -115,6 +124,46 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
   const renderStep = () => {
     switch (currentStep) {
       case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <User className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Welcome to ConnectorAI!</h3>
+              <p className="text-muted-foreground">
+                {hasExistingProfile 
+                  ? "We've detected your profile information. You can review it or continue to set up your job search."
+                  : "Let's get you set up to start building meaningful professional connections."
+                }
+              </p>
+            </div>
+
+            {hasExistingProfile && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-800">Profile Already Generated</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  We've already created your professional summary based on the information you provided. 
+                  You can edit this later in your profile section.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-center gap-4">
+              {hasExistingProfile && (
+                <Button variant="outline" onClick={handleSkipProfile}>
+                  Continue with existing profile
+                </Button>
+              )}
+              <Button onClick={() => window.open('/profile', '_blank')}>
+                {hasExistingProfile ? "Review Profile" : "Create Profile First"}
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 2:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -168,16 +217,18 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-800">
-                💡 <strong>Smart suggestion:</strong> We pre-filled this based on your profile. 
-                Feel free to adjust for your next career move!
-              </p>
-            </div>
+            {hasExistingProfile && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Smart suggestion:</strong> We pre-filled this based on your profile. 
+                  Feel free to adjust for your next career move!
+                </p>
+              </div>
+            )}
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -219,7 +270,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -301,7 +352,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
               </Button>
               <Button
                 onClick={handleNext}
-                disabled={isLoading || (currentStep === 1 && !jobTarget.title)}
+                disabled={isLoading || (currentStep === 2 && !jobTarget.title)}
               >
                 {isLoading ? (
                   "Setting up..."

@@ -10,8 +10,6 @@ import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
-import { supabase } from "@/integrations/supabase/client";
-import OnboardingFlow from "@/components/OnboardingFlow";
 
 // Import new components
 import ProfileSummary from "@/components/profile/ProfileSummary";
@@ -46,9 +44,6 @@ const Profile = () => {
 
   // State for editable summary fields
   const [editableSummary, setEditableSummary] = useState<Background | null>(null);
-  
-  // Onboarding state
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Navigate to job targets page
   const handleNavigateToTargets = () => {
@@ -85,31 +80,6 @@ const Profile = () => {
     }
     setExistingData(existingBackgrounds);
   }, [profile, user, navigate]);
-
-  // Check for onboarding after profile data is loaded
-  useEffect(() => {
-    const checkForOnboarding = async () => {
-      if (!user || !backgroundSummary) return;
-
-      try {
-        // Check if user has target criteria
-        const { data: criteria } = await supabase
-          .from('target_criteria')
-          .select('id')
-          .eq('user_id', user.id)
-          .limit(1);
-
-        // Show onboarding if they don't have criteria
-        if (!criteria || criteria.length === 0) {
-          setShowOnboarding(true);
-        }
-      } catch (error) {
-        console.error('Error checking for onboarding:', error);
-      }
-    };
-
-    checkForOnboarding();
-  }, [user, backgroundSummary]);
 
   // Initialize editable summary when backgroundSummary changes or edit mode is activated
   useEffect(() => {
@@ -221,15 +191,6 @@ const Profile = () => {
     // We keep the logic separate for future improvements
     navigate("/profile/enrichment");
   };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    // After onboarding, user is already on profile page, so just refresh or stay
-  };
-
-  const handleOnboardingClose = () => {
-    setShowOnboarding(false);
-  };
   
   if (isLoading) {
     return (
@@ -250,132 +211,123 @@ const Profile = () => {
   };
   
   return (
-    <>
-      <div className="container mx-auto py-8 max-w-4xl">
-        <ProfileBreadcrumbs />
-        
-        <div className="grid gap-6">
-          <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex flex-row items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">Professional Profile</h1>
-              </div>
-              <div className="flex gap-2">
-                {!editMode && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setEditMode(true)} 
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Edit Profile
-                  </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  onClick={handleNavigateToTargets} 
-                  className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
-                >
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+    <div className="container mx-auto py-8 max-w-4xl">
+      <ProfileBreadcrumbs />
+      
+      <div className="grid gap-6">
+        <div className="space-y-6">
+          {/* Page Header */}
+          <div className="flex flex-row items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Professional Profile</h1>
             </div>
-
-            {/* Info Box */}
-            <InfoBox>
-              <p className="font-medium mb-1">AI-Generated Professional Summary</p>
-              <p>
-                We will use the AI-generated summary of your profile for company matching and message generation. 
-                You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
-              </p>
-            </InfoBox>
-
-            <Card>
-              <CardContent className="space-y-6">
-                {/* Edit Form - Moved to the top when in edit mode */}
-                {editMode && (
-                  <div className="border-t pt-6">
-                    <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
-                    
-                    <ProfessionalBackground 
-                      linkedinContent={linkedinContent} 
-                      setLinkedinContent={setLinkedinContent} 
-                      additionalDetails={additionalDetails} 
-                      setAdditionalDetails={setAdditionalDetails} 
-                      cvContent={cvContent} 
-                      setCvContent={setCvContent} 
-                      isSubmitting={isSubmitting} 
-                      isEditing={Object.keys(existingData).length > 0} 
-                      existingData={existingData} 
-                    />
-                    
-                    {/* Editable AI Summary Section */}
-                    {editableSummary && (
-                      <EditableSummary 
-                        editableSummary={editableSummary} 
-                        onSummaryChange={handleSummaryChange} 
-                      />
-                    )}
-                    
-                    <div className="flex justify-end gap-4 mt-6">
-                      <Button variant="outline" onClick={() => setEditMode(false)} disabled={isSubmitting}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={handleSaveProfile} 
-                        disabled={!hasChanges || isSubmitting} 
-                        className="flex items-center gap-2"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            Processing... 
-                            <span className="ml-2 animate-spin">⟳</span>
-                          </>
-                        ) : (
-                          <>
-                            Save Changes
-                            <Save className="h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Professional Summary - Only visible when not in edit mode */}
-                {!editMode && (
-                  <ProfileSummary 
-                    backgroundSummary={backgroundSummary} 
-                    onRegenerateAISummary={handleRegenerateAISummary} 
-                  />
-                )}
-              </CardContent>
-              
-              {/* Bottom navigation button */}
-              <CardFooter className="flex justify-end pt-4 border-t">
+            <div className="flex gap-2">
+              {!editMode && (
                 <Button 
-                  onClick={handleNavigateToTargets} 
-                  className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setEditMode(true)} 
+                  className="flex items-center gap-2"
                 >
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
+                  <Edit className="h-4 w-4" />
+                  Edit Profile
                 </Button>
-              </CardFooter>
-            </Card>
+              )}
+              <Button 
+                size="sm" 
+                onClick={handleNavigateToTargets} 
+                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+              >
+                Next: Define Targets
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
+
+          {/* Info Box */}
+          <InfoBox>
+            <p className="font-medium mb-1">AI-Generated Professional Summary</p>
+            <p>
+              We will use the AI-generated summary of your profile for company matching and message generation. 
+              You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
+            </p>
+          </InfoBox>
+
+          <Card>
+            <CardContent className="space-y-6">
+              {/* Edit Form - Moved to the top when in edit mode */}
+              {editMode && (
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
+                  
+                  <ProfessionalBackground 
+                    linkedinContent={linkedinContent} 
+                    setLinkedinContent={setLinkedinContent} 
+                    additionalDetails={additionalDetails} 
+                    setAdditionalDetails={setAdditionalDetails} 
+                    cvContent={cvContent} 
+                    setCvContent={setCvContent} 
+                    isSubmitting={isSubmitting} 
+                    isEditing={Object.keys(existingData).length > 0} 
+                    existingData={existingData} 
+                  />
+                  
+                  {/* Editable AI Summary Section */}
+                  {editableSummary && (
+                    <EditableSummary 
+                      editableSummary={editableSummary} 
+                      onSummaryChange={handleSummaryChange} 
+                    />
+                  )}
+                  
+                  <div className="flex justify-end gap-4 mt-6">
+                    <Button variant="outline" onClick={() => setEditMode(false)} disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSaveProfile} 
+                      disabled={!hasChanges || isSubmitting} 
+                      className="flex items-center gap-2"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          Processing... 
+                          <span className="ml-2 animate-spin">⟳</span>
+                        </>
+                      ) : (
+                        <>
+                          Save Changes
+                          <Save className="h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Professional Summary - Only visible when not in edit mode */}
+              {!editMode && (
+                <ProfileSummary 
+                  backgroundSummary={backgroundSummary} 
+                  onRegenerateAISummary={handleRegenerateAISummary} 
+                />
+              )}
+            </CardContent>
+            
+            {/* Bottom navigation button */}
+            <CardFooter className="flex justify-end pt-4 border-t">
+              <Button 
+                onClick={handleNavigateToTargets} 
+                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+              >
+                Next: Define Targets
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
-
-      {/* Onboarding Flow */}
-      <OnboardingFlow 
-        isOpen={showOnboarding}
-        onClose={handleOnboardingClose}
-        onComplete={handleOnboardingComplete}
-      />
-    </>
+    </div>
   );
 };
 

@@ -27,9 +27,9 @@ const Signup = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check for redirect param
+  // Check for redirect param - default to dashboard instead of profile
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/profile';
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
 
   // Get session ID when component mounts
   useEffect(() => {
