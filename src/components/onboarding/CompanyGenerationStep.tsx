@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Building, Users, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,17 +50,30 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
   const [hasGenerated, setHasGenerated] = useState(false);
   const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
   const [defaultFunctions, setDefaultFunctions] = useState<string[]>([]);
+  
+  // Use ref to prevent multiple simultaneous calls
+  const isGeneratingRef = useRef(false);
 
   useEffect(() => {
     const loadBackgroundAndGenerate = async () => {
-      if (!user || hasGenerated) return;
+      const userId = user?.id;
+      
+      // Early return if no user, already generated, or currently generating
+      if (!userId || hasGenerated || isGeneratingRef.current) {
+        return;
+      }
+
+      // Set the ref to prevent concurrent calls
+      isGeneratingRef.current = true;
 
       try {
+        console.log('Starting onboarding generation for user:', userId);
+        
         // Load user background summary
         const { data: summaryData } = await supabase
           .from("user_summaries")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .maybeSingle();
           
         if (summaryData) {
@@ -81,18 +93,21 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
         }
 
         // Generate companies and contacts
-        await generateCompaniesAndContacts(summaryData);
+        await generateCompaniesAndContacts(summaryData, userId);
       } catch (error) {
         console.error('Error in initial load:', error);
+      } finally {
+        // Reset the ref after completion
+        isGeneratingRef.current = false;
       }
     };
 
     loadBackgroundAndGenerate();
-  }, [user, hasGenerated]);
+  }, [user?.id, hasGenerated]); // Stable dependency on user?.id
 
   useEffect(() => {
     const loadDefaultFunctions = async () => {
-      if (!user) return;
+      if (!user?.id) return;
 
       try {
         const { data: criteria } = await supabase
@@ -110,25 +125,29 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
     };
 
     loadDefaultFunctions();
-  }, [user]);
+  }, [user?.id]);
 
-  const generateCompaniesAndContacts = async (summaryData: any) => {
-    if (!user) return;
+  const generateCompaniesAndContacts = async (summaryData: any, userId: string) => {
+    // Additional safety check - if already generating or generated, return early
+    if (isGenerating || hasGenerated) {
+      console.log('Generation already in progress or completed, skipping...');
+      return;
+    }
     
     setIsGenerating(true);
     try {
-      console.log('Starting company generation for user:', user.id);
+      console.log('Starting company generation for user:', userId);
       
       // Check if user has target criteria, if not create default ones
       const { data: existingCriteria } = await supabase
         .from('target_criteria')
         .select('criteria_id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .limit(1);
 
       if (!existingCriteria || existingCriteria.length === 0) {
         console.log('No target criteria found, creating default ones...');
-        await createDefaultTargetCriteria(user.id, summaryData ? {
+        await createDefaultTargetCriteria(userId, summaryData ? {
           experience: summaryData.experience,
           education: summaryData.education,
           expertise: summaryData.expertise,
@@ -143,9 +162,10 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
         } : null);
       }
       
-      // Generate companies
+      // Generate companies (count is set to 5 in the edge function)
+      console.log('Calling generate_companies function...');
       const { data: companiesData, error: companiesError } = await supabase.functions.invoke('generate_companies', {
-        body: { userId: user.id, count: 5 }
+        body: { userId: userId, count: 5 }
       });
 
       if (companiesError) {
@@ -162,7 +182,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
       const { data: fetchedCompanies, error: fetchError } = await supabase
         .from('companies')
         .select('company_id, name, ai_match_reasoning')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('added_at', { ascending: false })
         .limit(5);
 
@@ -198,7 +218,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
                     const { error: insertError } = await supabase
                       .from('contacts')
                       .insert({
-                        user_id: user.id,
+                        user_id: userId,
                         company_id: company.company_id,
                         first_name: suggestedContact.name.split(' ')[0] || '',
                         last_name: suggestedContact.name.split(' ').slice(1).join(' ') || '',
@@ -238,7 +258,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
             company_id,
             companies!inner(name)
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('added_at', { ascending: false });
 
         if (contactsFetchError) {
@@ -257,6 +277,7 @@ export const CompanyGenerationStep = ({ onMessageGenerated }: CompanyGenerationS
       }
 
       setHasGenerated(true);
+      console.log('Company and contact generation completed successfully');
     } catch (error) {
       console.error('Error generating companies and contacts:', error);
     } finally {
