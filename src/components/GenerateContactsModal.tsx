@@ -82,6 +82,18 @@ export const GenerateContactsModal = ({
     );
   };
 
+  const handleSelectAll = () => {
+    setGeneratedContacts(prev => 
+      prev.map(contact => ({ ...contact, selected: true }))
+    );
+  };
+
+  const handleDeselectAll = () => {
+    setGeneratedContacts(prev => 
+      prev.map(contact => ({ ...contact, selected: false }))
+    );
+  };
+
   const handleSaveSelected = async () => {
     if (!user) return;
 
@@ -177,13 +189,9 @@ export const GenerateContactsModal = ({
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-2">How AI identifies the right contact:</p>
+                    <p className="font-medium mb-2">How AI helps:</p>
                     <p className="mb-2">
-                      Our AI analyzes your professional background, skills, and target criteria to identify an individual who would be most relevant for your networking goals. This goes beyond simple title matching to find decision-makers and influencers who align with your career objectives.
-                    </p>
-                    <p className="font-medium">Important limitations:</p>
-                    <p>
-                      We cannot access private LinkedIn profiles or proprietary databases. Suggested contacts are based on publicly available information only. Some companies may have limited public contact data.
+                      Contacts are selected based on your specific background and skills in relation to this company's needs, not just title matching. The AI considers your experience and identifies decision-makers and influencers who would be most relevant to your career goals.
                     </p>
                   </div>
                 </div>
@@ -206,12 +214,27 @@ export const GenerateContactsModal = ({
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Generated Contacts</h3>
-                {selectedCount > 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    {selectedCount} selected
-                  </span>
-                )}
+                <h3 className="text-lg font-medium">AI has identified key individuals who can potentially facilitate your application, provide insights into opportunities, or influence hiring decisions.</h3>
+              </div>
+
+              <div className="flex items-center gap-4 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                >
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeselectAll}
+                >
+                  Deselect All
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {selectedCount} of {generatedContacts.length} selected
+                </span>
               </div>
 
               <div className="space-y-3">
@@ -247,14 +270,14 @@ export const GenerateContactsModal = ({
                             
                             {contact.bio_summary && (
                               <div>
-                                <p className="font-medium text-sm text-gray-800 mb-1">Background:</p>
+                                <p className="font-medium text-sm text-gray-800 mb-1">Background Summary:</p>
                                 <p className="text-sm text-gray-600">{contact.bio_summary}</p>
                               </div>
                             )}
                             
                             {contact.how_i_can_help && (
                               <div>
-                                <p className="font-medium text-sm text-blue-800 mb-1">How You Can Help:</p>
+                                <p className="font-medium text-sm text-blue-800 mb-1">How I Can Help:</p>
                                 <p className="text-sm text-blue-600">{contact.how_i_can_help}</p>
                               </div>
                             )}
@@ -269,16 +292,44 @@ export const GenerateContactsModal = ({
                               {contact.linkedin_url && (
                                 <div className="flex items-center gap-1">
                                   <Linkedin className="h-3 w-3" />
-                                  <span>LinkedIn</span>
+                                  <span>LinkedIn Profile</span>
                                 </div>
                               )}
                             </div>
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="ml-4"
+                        >
+                          Generate Message
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+
+              <div className="flex items-center justify-center mb-4">
+                <Button 
+                  variant="outline"
+                  onClick={handleGenerateContact} 
+                  disabled={isGenerating}
+                  className="flex items-center gap-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate More
+                    </>
+                  )}
+                </Button>
               </div>
 
               <div className="flex justify-between gap-4 pt-4">
@@ -288,48 +339,26 @@ export const GenerateContactsModal = ({
                   onClick={handleDiscard}
                   className="flex items-center gap-2"
                 >
-                  <X className="h-4 w-4" />
-                  Discard
+                  Cancel
                 </Button>
                 
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline"
-                    onClick={handleGenerateContact} 
-                    disabled={isGenerating}
-                    className="flex items-center gap-2"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4" />
-                        Generate More
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleSaveSelected} 
-                    disabled={isSaving || selectedCount === 0}
-                    className="flex items-center gap-2"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="h-4 w-4" />
-                        Save Selected ({selectedCount})
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleSaveSelected} 
+                  disabled={isSaving || selectedCount === 0}
+                  className="flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      Save Selected Contacts ({selectedCount})
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           )}
