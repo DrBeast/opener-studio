@@ -45,7 +45,6 @@ interface EnhancedCompaniesTableProps {
   sortField: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (field: string) => void;
-  onAddContact: (companyId: string) => void;
   onCreateContact: (companyId: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
@@ -64,7 +63,6 @@ export const EnhancedCompaniesTable = ({
   sortField,
   sortDirection,
   onSort,
-  onAddContact,
   onCreateContact,
   onContactClick,
   onGenerateMessage
@@ -115,6 +113,9 @@ export const EnhancedCompaniesTable = ({
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
+                ref={(el: HTMLInputElement | null) => {
+                  if (el) el.indeterminate = someSelected;
+                }}
               />
             </TableHead>
             <TableHead className="min-w-[200px]">
@@ -197,7 +198,7 @@ export const EnhancedCompaniesTable = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => onAddContact(company.company_id)}
+                        onClick={() => onCreateContact(company.company_id)}
                         className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         <UserPlus className="h-3 w-3 mr-1" />
