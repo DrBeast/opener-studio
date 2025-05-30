@@ -7,7 +7,7 @@ import { Building, Users, UserPlus, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
-import { ContactModal } from "@/components/pipeline/ContactModal";
+import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 
 interface Company {
   company_id: string;
@@ -26,7 +26,7 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [contactMethod, setContactMethod] = useState<'ai' | 'manual' | null>(null);
+  const [contactMethod, setContactMethod] = useState<'generate' | 'manual' | null>(null);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
     }
   };
 
-  const handleCompanySelect = (company: Company, method: 'ai' | 'manual') => {
+  const handleCompanySelect = (company: Company, method: 'generate' | 'manual') => {
     setSelectedCompany(company);
     setContactMethod(method);
     setIsContactModalOpen(true);
@@ -130,7 +130,7 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleCompanySelect(company, 'ai')}
+                          onClick={() => handleCompanySelect(company, 'generate')}
                           className="flex items-center gap-1"
                         >
                           <Bot className="h-3 w-3" />
@@ -156,8 +156,8 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
 
       {selectedCompany && contactMethod && (
         <>
-          {contactMethod === 'ai' ? (
-            <EnhancedContactModal
+          {contactMethod === 'generate' ? (
+            <GenerateContactsModal
               isOpen={isContactModalOpen}
               onClose={handleCloseContactModal}
               companyId={selectedCompany.company_id}
@@ -165,10 +165,11 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
               onSuccess={handleSuccess}
             />
           ) : (
-            <ContactModal
+            <EnhancedContactModal
               isOpen={isContactModalOpen}
               onClose={handleCloseContactModal}
               companyId={selectedCompany.company_id}
+              companyName={selectedCompany.name}
               onSuccess={handleSuccess}
             />
           )}
