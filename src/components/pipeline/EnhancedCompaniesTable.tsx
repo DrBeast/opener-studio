@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Table,
@@ -44,6 +45,7 @@ interface EnhancedCompaniesTableProps {
   sortField: string | null;
   sortDirection: 'asc' | 'desc';
   onSort: (field: string) => void;
+  onAddContact: (companyId: string) => void;
   onCreateContact: (companyId: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
@@ -62,6 +64,7 @@ export const EnhancedCompaniesTable = ({
   sortField,
   sortDirection,
   onSort,
+  onAddContact,
   onCreateContact,
   onContactClick,
   onGenerateMessage
@@ -194,7 +197,7 @@ export const EnhancedCompaniesTable = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => onCreateContact(company.company_id)}
+                        onClick={() => onAddContact(company.company_id)}
                         className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         <UserPlus className="h-3 w-3 mr-1" />

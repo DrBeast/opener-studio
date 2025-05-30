@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -194,9 +193,6 @@ const PipelineDashboard = () => {
 
   const handleCreateContact = (companyId: string) => {
     const company = filteredCompanies.find(c => c.company_id === companyId);
-    
-    // Check if this is from the Generate button or Add button
-    // For now, we'll use the Enhanced Contact Modal for "Add" button
     setContactModal({
       isOpen: true,
       companyId,
@@ -289,6 +285,7 @@ const PipelineDashboard = () => {
               sortField={sortField} 
               sortDirection={sortDirection} 
               onSort={handleSort} 
+              onAddContact={handleCreateContact}
               onCreateContact={handleGenerateContacts}
               onContactClick={handleContactClick}
               onGenerateMessage={handleGenerateMessage}
