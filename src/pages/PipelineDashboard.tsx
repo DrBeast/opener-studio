@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,10 +14,9 @@ import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
-import { InteractionModal } from "@/components/pipeline/InteractionModal";
-import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
@@ -43,6 +43,15 @@ const PipelineDashboard = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
   const [contactModal, setContactModal] = useState<{
+    isOpen: boolean;
+    companyId: string;
+    companyName: string;
+  }>({
+    isOpen: false,
+    companyId: '',
+    companyName: ''
+  });
+  const [generateContactsModal, setGenerateContactsModal] = useState<{
     isOpen: boolean;
     companyId: string;
     companyName: string;
@@ -183,11 +192,24 @@ const PipelineDashboard = () => {
     await handleBulkBlacklist(Array.from(selectedCompanies));
   };
 
-  const handleCreateContact = (companyId: string, companyName: string) => {
+  const handleCreateContact = (companyId: string) => {
+    const company = filteredCompanies.find(c => c.company_id === companyId);
+    
+    // Check if this is from the Generate button or Add button
+    // For now, we'll use the Enhanced Contact Modal for "Add" button
     setContactModal({
       isOpen: true,
       companyId,
-      companyName
+      companyName: company?.name || ''
+    });
+  };
+
+  const handleGenerateContacts = (companyId: string) => {
+    const company = filteredCompanies.find(c => c.company_id === companyId);
+    setGenerateContactsModal({
+      isOpen: true,
+      companyId,
+      companyName: company?.name || ''
     });
   };
 
@@ -267,10 +289,7 @@ const PipelineDashboard = () => {
               sortField={sortField} 
               sortDirection={sortDirection} 
               onSort={handleSort} 
-              onCreateContact={(companyId) => {
-                const company = filteredCompanies.find(c => c.company_id === companyId);
-                handleCreateContact(companyId, company?.name || '');
-              }}
+              onCreateContact={handleGenerateContacts}
               onContactClick={handleContactClick}
               onGenerateMessage={handleGenerateMessage}
             />
@@ -304,7 +323,19 @@ const PipelineDashboard = () => {
         })} 
         companyId={contactModal.companyId}
         companyName={contactModal.companyName}
-        onSuccess={handleCompanyUpdated} 
+        onSuccess={handleContactUpdated} 
+      />
+
+      <GenerateContactsModal 
+        isOpen={generateContactsModal.isOpen} 
+        onClose={() => setGenerateContactsModal({
+          isOpen: false,
+          companyId: '',
+          companyName: ''
+        })} 
+        companyId={generateContactsModal.companyId}
+        companyName={generateContactsModal.companyName}
+        onSuccess={handleContactUpdated} 
       />
 
       {/* Enhanced Contact Details Modal */}
