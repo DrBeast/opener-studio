@@ -23,14 +23,27 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       }
 
       try {
-        // Check if user has any companies (this determines if they're a new user)
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('onboarding_completed')
+          .eq('user_id', user.id)
+          .single();
+
+        // If onboarding is already completed, don't show it
+        if (profile?.onboarding_completed) {
+          setIsCheckingOnboarding(false);
+          return;
+        }
+
+        // Check if user has any companies (fallback check)
         const { data: companies } = await supabase
           .from('companies')
           .select('company_id')
           .eq('user_id', user.id)
           .limit(1);
 
-        // Show onboarding if they don't have any companies
+        // Show onboarding if they don't have any companies and haven't completed onboarding
         if (!companies || companies.length === 0) {
           setShowOnboarding(true);
         }
@@ -44,13 +57,25 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     checkOnboardingStatus();
   }, [user]);
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
+    if (user) {
+      // Mark onboarding as completed
+      await supabase
+        .from('user_profiles')
+        .update({ onboarding_completed: true })
+        .eq('user_id', user.id);
+    }
     setShowOnboarding(false);
-    // Redirect to dashboard after onboarding
-    window.location.href = '/dashboard';
   };
 
-  const handleOnboardingClose = () => {
+  const handleOnboardingClose = async () => {
+    if (user) {
+      // Mark onboarding as completed even if skipped
+      await supabase
+        .from('user_profiles')
+        .update({ onboarding_completed: true })
+        .eq('user_id', user.id);
+    }
     setShowOnboarding(false);
   };
 

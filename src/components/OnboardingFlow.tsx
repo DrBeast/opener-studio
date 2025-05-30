@@ -2,16 +2,15 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, Target, Users, MessageCircle, User } from "lucide-react";
+import { ArrowRight, ArrowLeft, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+import { ProfileReviewStep } from "@/components/onboarding/ProfileReviewStep";
+import { CompanyGenerationStep } from "@/components/onboarding/CompanyGenerationStep";
+import { CompletionStep } from "@/components/onboarding/CompletionStep";
+import { Background } from "@/types/profile";
 
 interface OnboardingFlowProps {
   isOpen: boolean;
@@ -22,41 +21,38 @@ interface OnboardingFlowProps {
 const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [jobTarget, setJobTarget] = useState({
-    title: "",
-    level: "",
-    industry: "",
-    location: ""
-  });
-  const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<{company_id: string, name: string} | null>(null);
-  const [isGenerateContactsOpen, setIsGenerateContactsOpen] = useState(false);
+  const [messageGenerated, setMessageGenerated] = useState(false);
 
-  const totalSteps = 4; // Added profile check step
+  const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
 
   useEffect(() => {
-    // Check for existing profile and auto-populate job target
-    const loadUserData = async () => {
+    const loadUserProfile = async () => {
       if (!user) return;
 
       try {
-        // Check if user has existing profile summary
-        const { data: profile } = await supabase
-          .from('user_summaries')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profile) {
-          setHasExistingProfile(true);
-          // Extract likely job target from their current experience
-          setJobTarget({
-            title: profile.experience?.split(',')[0]?.trim() || "",
-            level: "Senior", // Default assumption
-            industry: profile.expertise?.split(',')[0]?.trim() || "",
-            location: "Remote"
+        // Fetch summary data from the user_summaries table
+        const { data: summaryData } = await supabase
+          .from("user_summaries")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+          
+        if (summaryData) {
+          setBackgroundSummary({
+            experience: summaryData.experience,
+            education: summaryData.education,
+            expertise: summaryData.expertise,
+            achievements: summaryData.achievements,
+            overall_blurb: summaryData.overall_blurb,
+            combined_experience_highlights: summaryData.combined_experience_highlights || [],
+            combined_education_highlights: summaryData.combined_education_highlights || [],
+            key_skills: summaryData.key_skills || [],
+            domain_expertise: summaryData.domain_expertise || [],
+            technical_expertise: summaryData.technical_expertise || [],
+            value_proposition_summary: summaryData.value_proposition_summary
           });
         }
       } catch (error) {
@@ -65,7 +61,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     };
 
     if (isOpen && currentStep === 1) {
-      loadUserData();
+      loadUserProfile();
     }
   }, [user, isOpen, currentStep]);
 
@@ -77,34 +73,15 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     }
   };
 
-  const handleSkipProfile = () => {
-    if (currentStep === 1) {
-      setCurrentStep(2); // Skip to job target step
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
   const handleComplete = async () => {
     setIsLoading(true);
     try {
-      // Save job target as criteria
-      if (user && jobTarget.title) {
-        const { error } = await supabase
-          .from('target_criteria')
-          .insert({
-            user_id: user.id,
-            desired_role: jobTarget.title,
-            desired_level: jobTarget.level,
-            desired_industry: jobTarget.industry,
-            desired_location: jobTarget.location,
-            company_size: "Any",
-            employment_type: "Full-time"
-          });
-
-        if (error) {
-          console.error('Error saving job target:', error);
-        }
-      }
-
       toast.success("Welcome to ConnectorAI! You're all set to start networking.");
       onComplete();
     } catch (error) {
@@ -116,233 +93,87 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     }
   };
 
-  const handleGenerateContactsSuccess = () => {
-    setIsGenerateContactsOpen(false);
-    toast.success("Contacts generated successfully! You can now start reaching out.");
+  const handleMessageGenerated = () => {
+    setMessageGenerated(true);
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <User className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Welcome to ConnectorAI!</h3>
-              <p className="text-muted-foreground">
-                {hasExistingProfile 
-                  ? "We've detected your profile information. You can review it or continue to set up your job search."
-                  : "Let's get you set up to start building meaningful professional connections."
-                }
-              </p>
-            </div>
-
-            {hasExistingProfile && (
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="font-medium text-green-800">Profile Already Generated</span>
-                </div>
-                <p className="text-sm text-green-700">
-                  We've already created your professional summary based on the information you provided. 
-                  You can edit this later in your profile section.
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-center gap-4">
-              {hasExistingProfile && (
-                <Button variant="outline" onClick={handleSkipProfile}>
-                  Continue with existing profile
-                </Button>
-              )}
-              <Button onClick={() => window.open('/profile', '_blank')}>
-                {hasExistingProfile ? "Review Profile" : "Create Profile First"}
-              </Button>
-            </div>
-          </div>
-        );
-
+        return <ProfileReviewStep backgroundSummary={backgroundSummary} />;
       case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Target className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">What's your job target?</h3>
-              <p className="text-muted-foreground">
-                We'll use this to find the perfect contacts and companies for you.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Job Title</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Software Engineer, Product Manager"
-                  value={jobTarget.title}
-                  onChange={(e) => setJobTarget({...jobTarget, title: e.target.value})}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="level">Level</Label>
-                  <Input
-                    id="level"
-                    placeholder="e.g., Senior, Mid-level"
-                    value={jobTarget.level}
-                    onChange={(e) => setJobTarget({...jobTarget, level: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    placeholder="e.g., San Francisco, Remote"
-                    value={jobTarget.location}
-                    onChange={(e) => setJobTarget({...jobTarget, location: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="industry">Industry</Label>
-                <Input
-                  id="industry"
-                  placeholder="e.g., Technology, Healthcare, Finance"
-                  value={jobTarget.industry}
-                  onChange={(e) => setJobTarget({...jobTarget, industry: e.target.value})}
-                />
-              </div>
-            </div>
-
-            {hasExistingProfile && (
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  💡 <strong>Smart suggestion:</strong> We pre-filled this based on your profile. 
-                  Feel free to adjust for your next career move!
-                </p>
-              </div>
-            )}
-          </div>
-        );
-
+        return <CompanyGenerationStep onMessageGenerated={handleMessageGenerated} />;
       case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <Users className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Find the right people</h3>
-              <p className="text-muted-foreground">
-                Our AI will identify key contacts at your target companies.
-              </p>
-            </div>
-
-            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Hiring managers and team leads</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Recruiters and talent teams</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Current employees in your field</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Industry influencers and decision makers</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="text-center">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                AI-powered contact discovery
-              </Badge>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <MessageCircle className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Craft perfect messages</h3>
-              <p className="text-muted-foreground">
-                Generate personalized outreach that gets responses.
-              </p>
-            </div>
-
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Personalized to each contact</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Professional but authentic tone</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Optimized for your goals</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Multiple versions to choose from</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="text-center">
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                High response rates
-              </Badge>
-            </div>
-          </div>
-        );
-
+        return <CompletionStep />;
       default:
         return null;
     }
   };
 
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1:
+        return "Profile Review";
+      case 2:
+        return "Generate Companies & Contacts";
+      case 3:
+        return "You're All Set!";
+      default:
+        return "";
+    }
+  };
+
+  const getNextButtonText = () => {
+    if (currentStep === 1) return "Discover Companies & Contacts";
+    if (currentStep === 2) return messageGenerated ? "Complete Setup" : "Complete Setup";
+    if (currentStep === 3) return "Get Started!";
+    return "Next";
+  };
+
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={() => {}}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
-            <DialogDescription>
-              Let's get you set up to start building meaningful professional connections.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Step {currentStep} of {totalSteps}</span>
-                <span>{Math.round(progress)}% complete</span>
-              </div>
-              <Progress value={progress} className="h-2" />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
+              <DialogDescription>
+                {getStepTitle()}
+              </DialogDescription>
             </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogHeader>
 
-            {/* Step Content */}
-            {renderStep()}
+        <div className="space-y-6">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{Math.round(progress)}% complete</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between pt-4">
+          {/* Step Content */}
+          {renderStep()}
+
+          {/* Navigation */}
+          <div className="flex justify-between pt-4">
+            <div className="flex gap-2">
+              {currentStep > 1 && (
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={onClose}
@@ -350,36 +181,24 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
               >
                 Skip for now
               </Button>
-              <Button
-                onClick={handleNext}
-                disabled={isLoading || (currentStep === 2 && !jobTarget.title)}
-              >
-                {isLoading ? (
-                  "Setting up..."
-                ) : currentStep === totalSteps ? (
-                  "Get Started!"
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
             </div>
+            <Button
+              onClick={handleNext}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                "Setting up..."
+              ) : (
+                <>
+                  {getNextButtonText()}
+                  {currentStep < totalSteps && <ArrowRight className="ml-2 h-4 w-4" />}
+                </>
+              )}
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {selectedCompany && (
-        <GenerateContactsModal
-          isOpen={isGenerateContactsOpen}
-          onClose={() => setIsGenerateContactsOpen(false)}
-          companyId={selectedCompany.company_id}
-          companyName={selectedCompany.name}
-          onSuccess={handleGenerateContactsSuccess}
-        />
-      )}
-    </>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
