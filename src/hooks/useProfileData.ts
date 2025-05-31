@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, Background } from "@/types/profile";
@@ -222,6 +223,7 @@ export const useProfileData = (userId: string | undefined) => {
     if (!userId) return;
     
     try {
+      console.log("Calling generate_profile function...");
       const { data, error } = await supabase.functions.invoke("generate_profile", {
         body: {
           userId: userId,
@@ -229,8 +231,19 @@ export const useProfileData = (userId: string | undefined) => {
         }
       });
       
+      console.log("Edge function response:", { data, error });
+      
       if (error) {
-        throw error;
+        console.error("Edge function error:", error);
+        throw new Error(`Edge function error: ${error.message || "Unknown error"}`);
+      }
+      
+      if (!data) {
+        throw new Error("No data returned from edge function");
+      }
+      
+      if (!data.success) {
+        throw new Error(data.message || "Edge function returned failure status");
       }
       
       if (data && data.summary) {
@@ -247,14 +260,21 @@ export const useProfileData = (userId: string | undefined) => {
         
         setBackgroundSummary(convertedSummary);
         return convertedSummary;
+      } else {
+        throw new Error("No summary data in response");
+      }
+    } catch (error: any) {
+      console.error("Error regenerating summary:", error);
+      
+      // Provide more specific error messaging
+      let errorMessage = "Failed to regenerate summary";
+      if (error.message) {
+        errorMessage = error.message;
       }
       
-      return null;
-    } catch (error: any) {
-      console.error("Error regenerating summary:", error.message);
       toast({
         title: "Error",
-        description: `Failed to regenerate summary: ${error.message}`,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
