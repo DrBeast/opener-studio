@@ -8,7 +8,37 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// Action Modal - for forms and actions
+// Standard Modal - based on the Dashboard "Find contacts" modal style
+interface StandardModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const StandardModal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  className 
+}: StandardModalProps) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={cn("sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-white border border-gray-200 shadow-lg", className)}>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Action Modal - for forms and actions (same styling as StandardModal)
 interface ActionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,18 +58,16 @@ const ActionModal = ({
 }: ActionModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("sm:max-w-md bg-white border-0 shadow-2xl", className)}>
-        <DialogHeader className="text-center pb-4">
-          {icon && (
-            <div className="flex items-center justify-center mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-green-600">
+      <DialogContent className={cn("sm:max-w-md bg-white border border-gray-200 shadow-lg", className)}>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            {icon && (
+              <div className="text-purple-600">
                 {React.cloneElement(icon as React.ReactElement, { 
-                  className: "h-6 w-6 text-white" 
+                  className: "h-5 w-5" 
                 })}
               </div>
-            </div>
-          )}
-          <DialogTitle className="text-2xl font-bold text-gray-900">
+            )}
             {title}
           </DialogTitle>
         </DialogHeader>
@@ -49,34 +77,4 @@ const ActionModal = ({
   );
 };
 
-// Info Modal - for displaying information
-interface InfoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}
-
-const InfoModal = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
-  className 
-}: InfoModalProps) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("sm:max-w-lg bg-white border-0 shadow-2xl", className)}>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">
-            {title}
-          </DialogTitle>
-        </DialogHeader>
-        {children}
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export { ActionModal, InfoModal }
+export { StandardModal, ActionModal }

@@ -290,7 +290,7 @@ const JobTargets = () => {
   }: {
     label: string;
     onRemove: () => void;
-  }) => <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-green-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
+  }) => <div className="inline-flex items-center bg-purple-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
       <span>{label}</span>
       <button type="button" onClick={onRemove} className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors">
         <X className="h-3 w-3" />
@@ -314,7 +314,7 @@ const JobTargets = () => {
     return <div className="space-y-4">
             <Label className="text-lg font-semibold text-gray-800">{label}</Label>
             <div className="relative">
-              <div className="flex flex-wrap p-4 border-2 border-purple-100 rounded-xl min-h-[80px] bg-gradient-to-r from-purple-50/50 to-green-50/50 shadow-sm">
+              <div className="flex flex-wrap p-4 border-2 border-gray-200 rounded-lg min-h-[80px] bg-gray-50 shadow-sm">
                 {values.map(value => {
             const option = options.find(o => o.value === value);
             const displayLabel = option ? option.label : value;
@@ -335,7 +335,7 @@ const JobTargets = () => {
               </div>
               
               <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {options.map(option => <button key={option.value} type="button" onClick={() => handleOptionClick(option.value)} className={cn("text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm", values.includes(option.value) ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200")}>
+                {options.map(option => <button key={option.value} type="button" onClick={() => handleOptionClick(option.value)} className={cn("text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm", values.includes(option.value) ? "bg-purple-600 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300")}>
                     {option.label}
                   </button>)}
               </div>
@@ -407,8 +407,8 @@ const JobTargets = () => {
                   className={cn(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm",
                     values.includes(option.value) 
-                      ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" 
-                      : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200"
+                      ? "bg-purple-600 text-white shadow-md" 
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
                   )}
                 >
                   {option.label}
@@ -454,8 +454,8 @@ const JobTargets = () => {
                   className={cn(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm",
                     values.includes(option.value) 
-                      ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" 
-                      : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200"
+                      ? "bg-purple-600 text-white shadow-md" 
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
                   )}
                 >
                   {option.label}
@@ -487,7 +487,7 @@ const JobTargets = () => {
             
             <div className="relative">
               <div 
-                className="flex flex-wrap p-4 border-2 border-purple-100 rounded-xl min-h-[50px] bg-gradient-to-r from-purple-50/50 to-green-50/50 shadow-sm" 
+                className="flex flex-wrap p-4 border-2 border-gray-200 rounded-lg min-h-[50px] bg-gray-50 shadow-sm" 
                 onClick={() => {
                   setLocationSearchOpen(true);
                   setTimeout(() => {
@@ -513,20 +513,20 @@ const JobTargets = () => {
                 addCustomLocation();
               }
             }} />
-                  <button type="button" className="p-1 text-purple-600 hover:text-purple-700 transition-colors" onClick={() => setLocationSearchOpen(!locationSearchOpen)}>
+                  <button type="button" className="p-1 text-gray-600 hover:text-gray-700 transition-colors" onClick={() => setLocationSearchOpen(!locationSearchOpen)}>
                     <ChevronsUpDown className="h-4 w-4" />
                   </button>
                 </div>
               </div>
               
               {locationSearchOpen && (
-                <div className="absolute z-10 w-full mt-1 bg-white border-2 border-purple-100 rounded-xl shadow-lg max-h-[200px] overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
                   {filteredLocations.length > 0 ? (
                     filteredLocations.map(location => (
                       <button 
                         key={location.value} 
                         type="button" 
-                        className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 text-sm transition-all duration-200" 
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm transition-all duration-200" 
                         onClick={() => handleLocationSelect(location.value)}
                       >
                         {location.label}
@@ -603,7 +603,7 @@ const JobTargets = () => {
   };
   if (isLoading) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
+      <div className="flex min-h-[80vh] items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -617,7 +617,7 @@ const JobTargets = () => {
     })();
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 max-w-4xl">
         <ProfileBreadcrumbs />
         
@@ -655,7 +655,7 @@ const JobTargets = () => {
                     <Label className="text-lg font-semibold text-gray-800">Describe Your Ideal Role and Company</Label>
                     <Textarea 
                       placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below." 
-                      className="min-h-[120px] border-2 border-purple-100 rounded-xl bg-gradient-to-r from-purple-50/30 to-green-50/30 focus:border-purple-300 transition-colors shadow-sm"
+                      className="min-h-[120px] border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-purple-300 transition-colors shadow-sm"
                       value={form.watch("free_form_role_and_company_description") || ""}
                       onChange={(e) => form.setValue("free_form_role_and_company_description", e.target.value)}
                     />
@@ -682,7 +682,7 @@ const JobTargets = () => {
                     <p className="text-gray-600 text-sm">We will use your examples as inspiration to generate more options.</p>
                     <Input 
                       placeholder="Google, Apple, Microsoft, etc." 
-                      className="border-2 border-purple-100 rounded-xl bg-gradient-to-r from-purple-50/30 to-green-50/30 focus:border-purple-300 transition-colors shadow-sm"
+                      className="border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-purple-300 transition-colors shadow-sm"
                       onChange={e => {
                         const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
                         form.setValue("similar_companies", companies);

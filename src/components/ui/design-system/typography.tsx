@@ -10,7 +10,7 @@ const PageTitle = React.forwardRef<
   <h1
     ref={ref}
     className={cn(
-      "text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent",
+      "text-3xl font-bold text-gray-900",
       className
     )}
     {...props}
@@ -55,20 +55,20 @@ const InfoBox = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "bg-gradient-to-r from-purple-100/50 to-green-100/50 p-6 rounded-xl border border-purple-200 shadow-sm",
+      "bg-blue-50 p-6 rounded-lg border border-blue-200 shadow-sm",
       className
     )}
     {...props}
   >
     <div className="flex items-start gap-3">
       {icon && (
-        <div className="text-purple-600 mt-0.5 shrink-0">
+        <div className="text-blue-600 mt-0.5 shrink-0">
           {React.cloneElement(icon as React.ReactElement, { 
             className: "h-6 w-6" 
           })}
         </div>
       )}
-      <div className="text-purple-800">
+      <div className="text-blue-800">
         {children}
       </div>
     </div>

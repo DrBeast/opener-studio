@@ -2,8 +2,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-// Base Card Component
-const BaseCard = React.forwardRef<
+// Standard Card - consistent across all pages
+const StandardCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
@@ -16,17 +16,17 @@ const BaseCard = React.forwardRef<
     {...props}
   />
 ))
-BaseCard.displayName = "BaseCard"
+StandardCard.displayName = "StandardCard"
 
-// Primary Content Card
+// Primary Content Card - for main content areas
 const PrimaryCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <BaseCard
+  <StandardCard
     ref={ref}
     className={cn(
-      "shadow-xl border-0 bg-white/80 backdrop-blur-sm",
+      "shadow-sm border border-gray-200 bg-white",
       className
     )}
     {...props}
@@ -34,15 +34,15 @@ const PrimaryCard = React.forwardRef<
 ))
 PrimaryCard.displayName = "PrimaryCard"
 
-// Modal Card
+// Modal Card (for consistency within modals)
 const ModalCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <BaseCard
+  <StandardCard
     ref={ref}
     className={cn(
-      "bg-white border-0 shadow-2xl",
+      "bg-white border-0 shadow-none",
       className
     )}
     {...props}
@@ -115,7 +115,7 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter"
 
 export { 
-  BaseCard,
+  StandardCard,
   PrimaryCard, 
   ModalCard,
   CardHeader, 

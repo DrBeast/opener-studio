@@ -9,7 +9,7 @@ const actionButtonVariants = cva(
   {
     variants: {
       intent: {
-        primary: "bg-gradient-to-r from-purple-600 to-green-600 text-white hover:from-purple-700 hover:to-green-700 shadow-lg hover:shadow-xl",
+        primary: "bg-purple-600 text-white hover:bg-purple-700 shadow-sm hover:shadow-md",
         secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-200 hover:border-gray-300 shadow-sm",
         outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm",
         ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
