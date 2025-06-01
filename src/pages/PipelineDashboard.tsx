@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ActionButton } from "@/components/ui/action-button";
+import { AirtableCard, AirtableCardContent } from "@/components/ui/airtable-card";
 import { toast } from "@/components/ui/use-toast";
 import { Plus, Sparkles } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
@@ -215,7 +214,7 @@ const PipelineDashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="flex h-[80vh] items-center justify-center bg-white">
+    return <div className="flex h-[80vh] items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>;
   }
@@ -226,34 +225,34 @@ const PipelineDashboard = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-display text-gray-900 mb-1">
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
               Company Targets and Contacts
             </h1>
-            <p className="text-body">Manage your target companies and track your networking progress</p>
+            <p className="text-gray-600">Manage your target companies and track your networking progress</p>
           </div>
           <div className="flex gap-3">
-            <Button 
+            <ActionButton 
               onClick={handleGenerateCompanies} 
               disabled={isGeneratingCompanies} 
               variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              icon={Sparkles}
             >
-              <Sparkles className="mr-2 h-4 w-4" />
               {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
-            </Button>
-            <Button 
+            </ActionButton>
+            <ActionButton 
               onClick={handleAddCompany} 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              variant="primary"
+              icon={Plus}
             >
-              <Plus className="mr-2 h-4 w-4" /> Add Company
-            </Button>
+              Add Company
+            </ActionButton>
           </div>
         </div>
 
         <ContactInfoBox />
 
-        <Card className="airtable-card">
-          <CardContent className="airtable-card-content">
+        <AirtableCard className="mt-6">
+          <AirtableCardContent>
             <SearchAndFilters 
               searchTerm={searchTerm} 
               onSearchChange={setSearchTerm} 
@@ -278,8 +277,8 @@ const PipelineDashboard = () => {
                 highlightNew={highlightNew} 
               />
             }
-          </CardContent>
-        </Card>
+          </AirtableCardContent>
+        </AirtableCard>
 
         {/* Modals */}
         <AddCompanyModal 
