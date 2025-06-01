@@ -1,0 +1,35 @@
+// filepath: [devcontainer.json](http://_vscodecontentref_/2)
+{
+  "name": "ConnectorAI Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/universal:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.wordWrap": "on",
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "files.eol": "\n"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "ms-azuretools.vscode-azurefunctions",
+        "vscode.github-authentication",
+        "github.vscode-pull-request-github",
+        "supabase.supabase"
+      ]
+    }
+  },
+  "forwardPorts": [5173, 3000],
+  "postCreateCommand": "npm install && curl -sL https://supabase.com/cli/install | sh"
+}
