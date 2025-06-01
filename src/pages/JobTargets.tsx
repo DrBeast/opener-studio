@@ -18,6 +18,7 @@ import {
   PrimaryCard, 
   CardContent,
   PrimaryAction,
+  GhostAction,
   PageTitle,
   PageDescription,
   InfoBox
@@ -536,9 +537,9 @@ const JobTargets = () => {
                       <div className="flex justify-between items-center">
                         <span>No locations found</span>
                         {newLocation.trim() && (
-                          <PrimaryAction variant="ghost" size="sm" onClick={addCustomLocation}>
+                          <GhostAction size="sm" onClick={addCustomLocation}>
                             Add "{newLocation}"
-                          </PrimaryAction>
+                          </GhostAction>
                         )}
                       </div>
                     </div>
