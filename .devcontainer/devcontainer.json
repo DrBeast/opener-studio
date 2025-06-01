@@ -1,4 +1,3 @@
-// filepath: [devcontainer.json](http://_vscodecontentref_/2)
 {
   "name": "ConnectorAI Development Environment",
   "image": "mcr.microsoft.com/devcontainers/universal:latest",
@@ -31,5 +30,5 @@
     }
   },
   "forwardPorts": [5173, 3000],
-  "postCreateCommand": "npm install && curl -sL https://supabase.com/cli/install | sh"
+  "postCreateCommand": "npm install"
 }
