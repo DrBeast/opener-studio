@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -6,10 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { AirtableCard, AirtableCardContent } from "@/components/ui/airtable-card";
 import { Info, Loader2, User, MapPin, Building, Mail, Linkedin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -136,15 +135,15 @@ export const EnhancedContactModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-0 shadow-2xl">
         <DialogHeader>
-          <DialogTitle>Add New Contact - {companyName}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">Add New Contact - {companyName}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Info Box */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
+          <AirtableCard className="bg-blue-50 border-blue-200">
+            <AirtableCardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                 <div className="text-sm text-blue-800">
@@ -158,8 +157,8 @@ export const EnhancedContactModal = ({
                   <p className="font-medium">Feel free to use the suggested queries below:</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </AirtableCardContent>
+          </AirtableCard>
 
           {/* LinkedIn Query Suggestions */}
           <LinkedInQuerySuggestions companyName={companyName} isModalOpen={isOpen} />
@@ -167,8 +166,8 @@ export const EnhancedContactModal = ({
           {/* LinkedIn Bio Input */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="linkedinBio">LinkedIn Profile Content</Label>
-              <div className="mt-1 mb-2 text-sm text-muted-foreground">
+              <Label htmlFor="linkedinBio" className="text-sm font-medium text-gray-700">LinkedIn Profile Content</Label>
+              <div className="mt-1 mb-2 text-sm text-gray-600">
                 It is essential to provide contact's professional background. We will use it to craft personalized 
                 messages to them. An easy way to do this is to go on their LinkedIn profile page, copy everything 
                 (Ctrl+A, Ctrl+C) and paste it here (Ctrl+V). Don't worry about formatting - AI will figure it out.
@@ -178,14 +177,15 @@ export const EnhancedContactModal = ({
                 value={linkedinBio}
                 onChange={(e) => setLinkedinBio(e.target.value)}
                 placeholder="Paste the contact's LinkedIn profile content here..."
-                className="min-h-[150px]"
+                className="min-h-[150px] border-gray-300 focus:border-purple-500 focus:ring-purple-500"
               />
             </div>
 
-            <Button 
+            <EnhancedButton 
               onClick={handleGenerateContact} 
               disabled={!linkedinBio.trim() || isGenerating}
               className="w-full"
+              variant="primary"
             >
               {isGenerating ? (
                 <>
@@ -195,13 +195,13 @@ export const EnhancedContactModal = ({
               ) : (
                 'Generate Contact'
               )}
-            </Button>
+            </EnhancedButton>
           </div>
 
           {/* Generated Contact Preview */}
           {generatedContact && (
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
+            <AirtableCard className="border-green-200 bg-green-50">
+              <AirtableCardContent className="p-4">
                 <h3 className="font-medium mb-3 text-green-800">Generated Contact Information</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -252,10 +252,11 @@ export const EnhancedContactModal = ({
                   )}
                 </div>
 
-                <Button 
+                <EnhancedButton 
                   onClick={handleCreateContact} 
                   disabled={isCreating}
                   className="w-full mt-4"
+                  variant="primary"
                 >
                   {isCreating ? (
                     <>
@@ -265,15 +266,15 @@ export const EnhancedContactModal = ({
                   ) : (
                     'Create Contact'
                   )}
-                </Button>
-              </CardContent>
-            </Card>
+                </EnhancedButton>
+              </AirtableCardContent>
+            </AirtableCard>
           )}
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
+          <div className="flex justify-end gap-3 pt-4">
+            <EnhancedButton type="button" variant="outline" onClick={handleClose}>
               Cancel
-            </Button>
+            </EnhancedButton>
           </div>
         </div>
       </DialogContent>

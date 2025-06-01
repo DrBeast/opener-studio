@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -6,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -113,7 +112,7 @@ export const InteractionModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl">
         <DialogHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-4">
             <div className={`p-3 rounded-full ${
@@ -139,7 +138,7 @@ export const InteractionModal = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={mode === 'log' ? "Describe what happened..." : "What action needs to be taken?"}
-              className="min-h-[100px] border-2 border-gray-200 focus:border-primary focus:ring-primary/20 resize-none"
+              className="min-h-[100px] border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 resize-none"
               required
             />
           </div>
@@ -149,12 +148,12 @@ export const InteractionModal = ({
               Type
             </Label>
             <Select value={interactionType} onValueChange={setInteractionType} required>
-              <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+              <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500">
                 <SelectValue placeholder="Select type..." />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">
+              <SelectContent className="bg-white border-gray-200 shadow-xl">
                 {suggestionOptions.map((option) => (
-                  <SelectItem key={option} value={option} className="hover:bg-primary/5">
+                  <SelectItem key={option} value={option} className="hover:bg-purple-50">
                     {option}
                   </SelectItem>
                 ))}
@@ -172,28 +171,25 @@ export const InteractionModal = ({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+              className="h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
               required
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button 
+            <EnhancedButton 
               type="button" 
               variant="outline" 
               onClick={handleClose}
-              className="px-6 hover:bg-gray-50"
+              className="px-6"
             >
               Cancel
-            </Button>
-            <Button 
+            </EnhancedButton>
+            <EnhancedButton 
               type="submit" 
               disabled={isLoading}
-              className={`px-6 text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
-                mode === 'log'
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-              }`}
+              variant={mode === 'log' ? 'primary' : 'primary'}
+              className="px-6"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -203,7 +199,7 @@ export const InteractionModal = ({
               ) : (
                 mode === 'log' ? 'Log Interaction' : 'Schedule Action'
               )}
-            </Button>
+            </EnhancedButton>
           </div>
         </form>
       </DialogContent>

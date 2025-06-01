@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -6,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,69 +83,74 @@ export const ContactModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl">
         <DialogHeader>
-          <DialogTitle>Create New Contact</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">Create New Contact</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
               <Input
                 id="firstName"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
               <Input
                 id="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
             <Input
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="e.g., Software Engineer, HR Manager"
+              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Optional"
+              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <Label htmlFor="linkedin">LinkedIn URL</Label>
+            <Label htmlFor="linkedin" className="text-sm font-medium text-gray-700">LinkedIn URL</Label>
             <Input
               id="linkedin"
               value={linkedinUrl}
               onChange={(e) => setLinkedinUrl(e.target.value)}
               placeholder="Optional"
+              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-4">
+            <EnhancedButton type="button" variant="outline" onClick={onClose}>
               Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
+            </EnhancedButton>
+            <EnhancedButton type="submit" disabled={isLoading} variant="primary">
               {isLoading ? 'Creating...' : 'Create Contact'}
-            </Button>
+            </EnhancedButton>
           </div>
         </form>
       </DialogContent>

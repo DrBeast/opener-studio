@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,8 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { AirtableCard, AirtableCardContent, AirtableCardHeader, AirtableCardTitle } from "@/components/ui/airtable-card";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { format } from "date-fns";
 import { Loader2, MessageSquare, Users, Calendar } from "lucide-react";
 
@@ -32,7 +31,6 @@ const FeedbackReview = () => {
       try {
         console.log('Fetching feedback data with user emails from user_profiles...');
         
-        // Fetch feedback data with emails by joining user_profiles table manually
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('user_feedback')
           .select(`
@@ -48,7 +46,6 @@ const FeedbackReview = () => {
 
         console.log('Feedback data received:', feedbackData);
 
-        // Get user emails separately
         const userIds = feedbackData?.map(item => item.user_id).filter(Boolean) || [];
         const { data: profilesData, error: profilesError } = await supabase
           .from('user_profiles')
@@ -59,7 +56,6 @@ const FeedbackReview = () => {
 
         console.log('Profiles data received:', profilesData);
 
-        // Create a map of user_id to email
         const emailMap = new Map();
         profilesData?.forEach(profile => {
           if (profile.user_id && profile.email) {
@@ -67,7 +63,6 @@ const FeedbackReview = () => {
           }
         });
 
-        // Map the data to include emails
         const feedbackWithEmails: FeedbackEntry[] = (feedbackData || []).map(item => ({
           feedback_id: item.feedback_id,
           email: emailMap.get(item.user_id) || 'No email available',
@@ -90,13 +85,13 @@ const FeedbackReview = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/60 rounded-full animate-ping mx-auto"></div>
+                <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-300 rounded-full animate-ping mx-auto"></div>
               </div>
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-gray-900">Loading feedback data</h3>
@@ -111,25 +106,25 @@ const FeedbackReview = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardContent className="pt-6">
+          <AirtableCard>
+            <AirtableCardContent className="pt-6">
               <div className="text-center space-y-4">
                 <div className="p-3 bg-red-100 rounded-full w-fit mx-auto">
                   <MessageSquare className="h-6 w-6 text-red-600" />
                 </div>
                 <p className="text-red-600 font-medium">{error}</p>
               </div>
-            </CardContent>
-          </Card>
+            </AirtableCardContent>
+          </AirtableCard>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -142,53 +137,53 @@ const FeedbackReview = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg">
-            <CardContent className="p-6">
+          <AirtableCard className="bg-gradient-to-r from-purple-500 to-purple-600 border-purple-300">
+            <AirtableCardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Total Feedback</h3>
-                  <p className="text-2xl font-bold">{feedback.length}</p>
+                  <h3 className="text-lg font-semibold mb-1 text-white">Total Feedback</h3>
+                  <p className="text-2xl font-bold text-white">{feedback.length}</p>
                 </div>
-                <MessageSquare className="h-8 w-8 opacity-80" />
+                <MessageSquare className="h-8 w-8 text-white opacity-80" />
               </div>
-            </CardContent>
-          </Card>
+            </AirtableCardContent>
+          </AirtableCard>
 
-          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
-            <CardContent className="p-6">
+          <AirtableCard className="bg-gradient-to-r from-green-500 to-green-600 border-green-300">
+            <AirtableCardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Unique Users</h3>
-                  <p className="text-2xl font-bold">{new Set(feedback.map(f => f.email)).size}</p>
+                  <h3 className="text-lg font-semibold mb-1 text-white">Unique Users</h3>
+                  <p className="text-2xl font-bold text-white">{new Set(feedback.map(f => f.email)).size}</p>
                 </div>
-                <Users className="h-8 w-8 opacity-80" />
+                <Users className="h-8 w-8 text-white opacity-80" />
               </div>
-            </CardContent>
-          </Card>
+            </AirtableCardContent>
+          </AirtableCard>
 
-          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg">
-            <CardContent className="p-6">
+          <AirtableCard className="bg-gradient-to-r from-blue-500 to-blue-600 border-blue-300">
+            <AirtableCardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Latest Entry</h3>
-                  <p className="text-sm font-medium">
+                  <h3 className="text-lg font-semibold mb-1 text-white">Latest Entry</h3>
+                  <p className="text-sm font-medium text-white">
                     {feedback.length > 0 ? format(new Date(feedback[0].created_at), 'MMM dd') : 'N/A'}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 opacity-80" />
+                <Calendar className="h-8 w-8 text-white opacity-80" />
               </div>
-            </CardContent>
-          </Card>
+            </AirtableCardContent>
+          </AirtableCard>
         </div>
 
-        <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="border-b border-gray-100">
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
+        <AirtableCard>
+          <AirtableCardHeader className="border-b border-gray-100">
+            <AirtableCardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-purple-600" />
               Feedback Entries
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+            </AirtableCardTitle>
+          </AirtableCardHeader>
+          <AirtableCardContent className="p-0">
             {feedback.length === 0 ? (
               <div className="text-center py-12">
                 <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
@@ -226,12 +221,9 @@ const FeedbackReview = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        <Badge 
-                          variant="secondary" 
-                          className="bg-blue-100 text-blue-800 border-blue-200"
-                        >
+                        <StatusBadge variant="info">
                           {entry.view_name}
-                        </Badge>
+                        </StatusBadge>
                       </TableCell>
                       <TableCell className="text-sm max-w-md">
                         <div className="whitespace-pre-wrap break-words leading-relaxed text-gray-700">
@@ -243,8 +235,8 @@ const FeedbackReview = () => {
                 </TableBody>
               </Table>
             )}
-          </CardContent>
-        </Card>
+          </AirtableCardContent>
+        </AirtableCard>
       </div>
     </div>
   );

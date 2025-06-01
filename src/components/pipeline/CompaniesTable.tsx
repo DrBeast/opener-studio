@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   Table, 
   TableBody, 
@@ -46,7 +47,7 @@ export const CompaniesTable = ({
 }: CompaniesTableProps) => {
   const highlightAnimation = `
     @keyframes highlightFade {
-      0% { background-color: rgba(var(--primary-rgb), 0.3); }
+      0% { background-color: rgba(139, 92, 246, 0.1); }
       100% { background-color: transparent; }
     }
   `;
@@ -54,15 +55,15 @@ export const CompaniesTable = ({
   return (
     <>
       <style>{highlightAnimation}</style>
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-lg border border-gray-200 overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[300px]">Name</TableHead>
-              <TableHead className="hidden md:table-cell">Industry</TableHead>
-              <TableHead className="hidden lg:table-cell">Location</TableHead>
-              <TableHead className="hidden lg:table-cell">Description</TableHead>
-              <TableHead className="w-[100px]">Priority</TableHead>
+            <TableRow className="bg-gray-50/50">
+              <TableHead className="w-[300px] font-semibold text-gray-700">Name</TableHead>
+              <TableHead className="hidden md:table-cell font-semibold text-gray-700">Industry</TableHead>
+              <TableHead className="hidden lg:table-cell font-semibold text-gray-700">Location</TableHead>
+              <TableHead className="hidden lg:table-cell font-semibold text-gray-700">Description</TableHead>
+              <TableHead className="w-[100px] font-semibold text-gray-700">Priority</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -73,70 +74,64 @@ export const CompaniesTable = ({
                 <TableRow 
                   key={company.company_id} 
                   className={cn(
-                    "cursor-pointer hover:bg-muted/50",
+                    "cursor-pointer hover:bg-gray-50/80 transition-colors border-b border-gray-100",
                     isNewCompany && highlightNew ? "animate-[highlightFade_3s_ease-out]" : ""
                   )}
                   onClick={() => onCompanyClick(company)}
                 >
-                  <TableCell>{company.name}</TableCell>
-                  <TableCell className="hidden md:table-cell">{company.industry || "-"}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{company.hq_location || "-"}</TableCell>
-                  <TableCell className="hidden lg:table-cell max-w-xs truncate">{company.ai_description || "-"}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium text-gray-900 py-4">{company.name}</TableCell>
+                  <TableCell className="hidden md:table-cell text-gray-600 py-4">{company.industry || "-"}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-gray-600 py-4">{company.hq_location || "-"}</TableCell>
+                  <TableCell className="hidden lg:table-cell max-w-xs truncate text-gray-600 py-4">{company.ai_description || "-"}</TableCell>
+                  <TableCell className="py-4">
                     <div className="flex items-center">
                       {company.user_priority === "Top" && (
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                          Top
-                        </span>
+                        <StatusBadge variant="success">Top</StatusBadge>
                       )}
                       {company.user_priority === "Medium" && (
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                          Medium
-                        </span>
+                        <StatusBadge variant="info">Medium</StatusBadge>
                       )}
                       {company.user_priority === "Maybe" && (
-                        <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                          Maybe
-                        </span>
+                        <StatusBadge variant="outline">Maybe</StatusBadge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <EnhancedButton variant="ghost" size="icon" className="h-8 w-8 p-0">
                           <MoreVertical className="h-4 w-4" />
-                        </Button>
+                        </EnhancedButton>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
+                      <DropdownMenuContent align="end" className="bg-white shadow-xl border-gray-200">
+                        <DropdownMenuLabel className="text-gray-900">Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-gray-100" />
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           onSetPriority(company.company_id, "Top");
-                        }}>
+                        }} className="hover:bg-gray-50">
                           <Star className="mr-2 h-4 w-4 text-yellow-500" />
                           Mark as Top
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           onSetPriority(company.company_id, "Medium");
-                        }}>
+                        }} className="hover:bg-gray-50">
                           <CircleDot className="mr-2 h-4 w-4 text-blue-500" />
                           Mark as Medium
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           onSetPriority(company.company_id, "Maybe");
-                        }}>
+                        }} className="hover:bg-gray-50">
                           <CircleDashed className="mr-2 h-4 w-4 text-gray-500" />
                           Mark as Maybe
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
+                        <DropdownMenuSeparator className="bg-gray-100" />
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
                           onBlacklist(company.company_id);
-                        }}>
+                        }} className="hover:bg-gray-50">
                           <Trash className="mr-2 h-4 w-4 text-red-500" />
                           Remove
                         </DropdownMenuItem>
