@@ -53,7 +53,7 @@ const PipelineDashboard = () => {
   });
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
-  const [contactDetailsTab, setContactDetailsTab = useState<string>('details');
+  const [contactDetailsTab, setContactDetailsTab] = useState<string>('details');
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
