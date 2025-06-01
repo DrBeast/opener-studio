@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,51 +61,6 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Airtable design system colors
-				gray: {
-					50: 'hsl(var(--gray-50))',
-					100: 'hsl(var(--gray-100))',
-					200: 'hsl(var(--gray-200))',
-					300: 'hsl(var(--gray-300))',
-					400: 'hsl(var(--gray-400))',
-					500: 'hsl(var(--gray-500))',
-					600: 'hsl(var(--gray-600))',
-					700: 'hsl(var(--gray-700))',
-					800: 'hsl(var(--gray-800))',
-					900: 'hsl(var(--gray-900))'
-				},
-				blue: {
-					50: 'hsl(var(--blue-50))',
-					100: 'hsl(var(--blue-100))',
-					500: 'hsl(var(--blue-500))',
-					600: 'hsl(var(--blue-600))',
-					700: 'hsl(var(--blue-700))'
-				},
-				green: {
-					50: 'hsl(var(--green-50))',
-					100: 'hsl(var(--green-100))',
-					500: 'hsl(var(--green-500))',
-					600: 'hsl(var(--green-600))',
-					700: 'hsl(var(--green-700))'
-				},
-				yellow: {
-					50: 'hsl(var(--yellow-50))',
-					100: 'hsl(var(--yellow-100))',
-					500: 'hsl(var(--yellow-500))',
-					600: 'hsl(var(--yellow-600))'
-				},
-				red: {
-					50: 'hsl(var(--red-50))',
-					100: 'hsl(var(--red-100))',
-					500: 'hsl(var(--red-500))',
-					600: 'hsl(var(--red-600))'
-				},
-				orange: {
-					50: 'hsl(var(--orange-50))',
-					100: 'hsl(var(--orange-100))',
-					500: 'hsl(var(--orange-500))',
-					600: 'hsl(var(--orange-600))'
 				}
 			},
 			borderRadius: {

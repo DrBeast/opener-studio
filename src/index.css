@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,86 +13,26 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Enhanced Airtable-inspired brand colors */
-    --primary: 217 91% 60%;
+    --primary: 258 75% 74%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
+    --secondary: 240 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 217 91% 94%;
-    --accent-foreground: 217 91% 35%;
+    --accent: 258 75% 94%;
+    --accent-foreground: 258 75% 37%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --ring: 258 75% 74%;
 
     --radius: 0.5rem;
-
-    /* Enhanced Airtable design tokens with better contrast */
-    /* Neutral grays with improved hierarchy */
-    --gray-50: 210 40% 98%;
-    --gray-100: 210 40% 96%;
-    --gray-200: 214 32% 91%;
-    --gray-300: 213 27% 84%;
-    --gray-400: 215 20% 65%;
-    --gray-500: 215 16% 47%;
-    --gray-600: 215 19% 35%;
-    --gray-700: 215 25% 27%;
-    --gray-800: 217 33% 17%;
-    --gray-900: 222 84% 5%;
-
-    /* Enhanced status colors inspired by Airtable's Record Cards */
-    --blue-50: 214 100% 97%;
-    --blue-100: 214 95% 93%;
-    --blue-500: 217 91% 60%;
-    --blue-600: 221 83% 53%;
-    --blue-700: 224 76% 48%;
-
-    --emerald-50: 151 81% 96%;
-    --emerald-100: 149 80% 90%;
-    --emerald-500: 160 84% 39%;
-    --emerald-600: 158 64% 52%;
-    --emerald-700: 158 64% 42%;
-
-    --green-50: 138 76% 97%;
-    --green-100: 141 84% 93%;
-    --green-500: 142 76% 36%;
-    --green-600: 142 72% 29%;
-    --green-700: 142 69% 25%;
-
-    --yellow-50: 55 92% 95%;
-    --yellow-100: 55 97% 88%;
-    --yellow-500: 48 96% 53%;
-    --yellow-600: 45 93% 47%;
-
-    --red-50: 0 86% 97%;
-    --red-100: 0 93% 94%;
-    --red-500: 0 84% 60%;
-    --red-600: 0 72% 51%;
-
-    --orange-50: 34 100% 97%;
-    --orange-100: 34 100% 92%;
-    --orange-500: 25 95% 53%;
-    --orange-600: 21 90% 48%;
-
-    --purple-50: 270 100% 98%;
-    --purple-100: 269 100% 95%;
-    --purple-500: 258 90% 66%;
-    --purple-600: 258 85% 60%;
-    --purple-700: 258 80% 55%;
-
-    --indigo-50: 225 100% 97%;
-    --indigo-100: 226 100% 94%;
-    --indigo-500: 239 84% 67%;
-    --indigo-600: 238 75% 65%;
-    --indigo-700: 237 70% 60%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -106,7 +45,41 @@
   }
 
   .dark {
-    /* ... keep existing code (dark mode variables) */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -116,116 +89,6 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-
-  /* Enhanced typography with better hierarchy */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-  }
-
-  h1 {
-    @apply text-3xl text-gray-900;
-  }
-
-  h2 {
-    @apply text-2xl text-gray-900;
-  }
-
-  h3 {
-    @apply text-xl text-gray-900;
-  }
-}
-
-/* Enhanced Airtable-inspired utility classes */
-@layer utilities {
-  /* Enhanced status badges with improved visual hierarchy */
-  .status-badge-enhanced {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset shadow-sm transition-all;
-  }
-
-  /* Enhanced card system inspired by Airtable Record Cards */
-  .airtable-record-card {
-    @apply bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-6;
-  }
-
-  .airtable-record-card-header {
-    @apply flex items-center justify-between mb-4 pb-4 border-b border-gray-100;
-  }
-
-  .airtable-record-card-content {
-    @apply space-y-4;
-  }
-
-  .airtable-record-field {
-    @apply flex flex-col space-y-1;
-  }
-
-  .airtable-record-field-label {
-    @apply text-xs font-medium text-gray-500 uppercase tracking-wider;
-  }
-
-  .airtable-record-field-value {
-    @apply text-sm text-gray-900;
-  }
-
-  /* Enhanced table system with better visual hierarchy */
-  .airtable-table-enhanced {
-    @apply w-full border-separate border-spacing-0 bg-white rounded-lg overflow-hidden shadow-sm;
-  }
-
-  .airtable-table-enhanced th {
-    @apply bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 border-b border-gray-200 first:rounded-tl-lg last:rounded-tr-lg;
-  }
-
-  .airtable-table-enhanced td {
-    @apply px-6 py-4 text-sm text-gray-900 border-b border-gray-200;
-  }
-
-  .airtable-table-enhanced tr:hover td {
-    @apply bg-gray-50;
-  }
-
-  .airtable-table-enhanced tr.selected td {
-    @apply bg-blue-50;
-  }
-
-  .airtable-table-enhanced tr.new td {
-    @apply bg-blue-50/50;
-  }
-
-  /* Enhanced form elements */
-  .airtable-input-enhanced {
-    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all;
-  }
-
-  .airtable-select-enhanced {
-    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all;
-  }
-
-  /* Enhanced button system */
-  .airtable-button-primary {
-    @apply inline-flex items-center px-4 py-2 rounded-md border border-transparent text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all;
-  }
-
-  .airtable-button-secondary {
-    @apply inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm transition-all;
-  }
-
-  /* Enhanced spacing and layout */
-  .airtable-container {
-    @apply max-w-7xl mx-auto px-6;
-  }
-
-  .airtable-page-header {
-    @apply flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4;
-  }
-
-  .airtable-page-title {
-    @apply text-3xl font-semibold text-gray-900 mb-2;
-  }
-
-  .airtable-page-description {
-    @apply text-gray-600;
+    @apply bg-background text-foreground;
   }
 }
