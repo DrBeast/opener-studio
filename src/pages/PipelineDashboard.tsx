@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +11,10 @@ import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
-import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
+import { CompaniesTable } from "@/components/pipeline/CompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { InteractionModal } from "@/components/pipeline/InteractionModal";
-import { ContactModal } from "@/components/pipeline/ContactModal";
+import { ContactModal } from "@/components/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 
@@ -54,7 +53,7 @@ const PipelineDashboard = () => {
   });
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
-  const [contactDetailsTab, setContactDetailsTab] = useState<string>('details');
+  const [contactDetailsTab, setContactDetailsTab = useState<string>('details');
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -215,35 +214,35 @@ const PipelineDashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+    return <div className="flex h-[80vh] items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>;
   }
 
-  return <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
-      <div className="container mx-auto px-4 py-8 max-w-full">
+  return <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-6 py-6 max-w-full">
         <ProfileBreadcrumbs />
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-display text-gray-900 mb-1">
               Company Targets and Contacts
             </h1>
-            <p className="text-gray-600">Manage your target companies and track your networking progress</p>
+            <p className="text-body">Manage your target companies and track your networking progress</p>
           </div>
           <div className="flex gap-3">
             <Button 
               onClick={handleGenerateCompanies} 
               disabled={isGeneratingCompanies} 
               variant="outline"
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
             >
               <Sparkles className="mr-2 h-4 w-4" />
               {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
             </Button>
             <Button 
               onClick={handleAddCompany} 
-              className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Company
             </Button>
@@ -252,8 +251,8 @@ const PipelineDashboard = () => {
 
         <ContactInfoBox />
 
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-8">
+        <Card className="airtable-card">
+          <CardContent className="airtable-card-content">
             <SearchAndFilters 
               searchTerm={searchTerm} 
               onSearchChange={setSearchTerm} 
@@ -269,25 +268,13 @@ const PipelineDashboard = () => {
                 onGenerateCompanies={handleGenerateCompanies} 
                 isGeneratingCompanies={isGeneratingCompanies} 
               /> : 
-              <EnhancedCompaniesTable 
+              <CompaniesTable 
                 companies={filteredCompanies} 
                 onCompanyClick={handleCompanyClick} 
                 onSetPriority={handleSetPriority} 
                 onBlacklist={handleBlacklist} 
                 newCompanyIds={newCompanyIds} 
                 highlightNew={highlightNew} 
-                selectedCompanies={selectedCompanies} 
-                onSelectCompany={handleSelectCompany} 
-                onSelectAll={handleSelectAll} 
-                sortField={sortField} 
-                sortDirection={sortDirection} 
-                onSort={handleSort} 
-                onCreateContact={(companyId) => {
-                  const company = filteredCompanies.find(c => c.company_id === companyId);
-                  handleCreateContact(companyId, company?.name || '');
-                }}
-                onContactClick={handleContactClick}
-                onGenerateMessage={handleGenerateMessage}
               />
             }
           </CardContent>
