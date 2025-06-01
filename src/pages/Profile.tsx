@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { AirtableCard, AirtableCardContent, AirtableCardDescription, AirtableCardFooter, AirtableCardHeader, AirtableCardTitle } from "@/components/ui/airtable-card";
 import { InfoBox } from "@/components/ui/info-box";
 import { toast } from "@/hooks/use-toast";
 import { Edit, ArrowRight, Save } from "lucide-react";
@@ -194,8 +196,8 @@ const Profile = () => {
   
   if (isLoading) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex min-h-[80vh] items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -211,120 +213,129 @@ const Profile = () => {
   };
   
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <ProfileBreadcrumbs />
-      
-      <div className="grid gap-6">
-        <div className="space-y-6">
-          {/* Page Header */}
-          <div className="flex flex-row items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Professional Profile</h1>
-            </div>
-            <div className="flex gap-2">
-              {!editMode && (
-                <Button 
-                  variant="outline" 
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto py-8 max-w-4xl">
+        <ProfileBreadcrumbs />
+        
+        <div className="grid gap-8">
+          <div className="space-y-8">
+            {/* Page Header */}
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Professional Profile</h1>
+                <p className="text-gray-600 mt-1">Manage your professional information and AI-generated summaries</p>
+              </div>
+              <div className="flex gap-3">
+                {!editMode && (
+                  <EnhancedButton 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditMode(true)} 
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit Profile
+                  </EnhancedButton>
+                )}
+                <EnhancedButton 
+                  variant="primary"
                   size="sm" 
-                  onClick={() => setEditMode(true)} 
+                  onClick={handleNavigateToTargets} 
                   className="flex items-center gap-2"
                 >
-                  <Edit className="h-4 w-4" />
-                  Edit Profile
-                </Button>
-              )}
-              <Button 
-                size="sm" 
-                onClick={handleNavigateToTargets} 
-                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
-              >
-                Next: Define Targets
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+                  Next: Define Targets
+                  <ArrowRight className="h-4 w-4" />
+                </EnhancedButton>
+              </div>
             </div>
-          </div>
 
-          {/* Info Box */}
-          <InfoBox>
-            <p className="font-medium mb-1">AI-Generated Professional Summary</p>
-            <p>
-              We will use the AI-generated summary of your profile for company matching and message generation. 
-              You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
-            </p>
-          </InfoBox>
+            {/* Info Box */}
+            <InfoBox>
+              <p className="font-medium mb-1">AI-Generated Professional Summary</p>
+              <p>
+                We will use the AI-generated summary of your profile for company matching and message generation. 
+                You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here.
+              </p>
+            </InfoBox>
 
-          <Card>
-            <CardContent className="space-y-6">
-              {/* Edit Form - Moved to the top when in edit mode */}
-              {editMode && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium mb-4">Edit Profile Information</h3>
-                  
-                  <ProfessionalBackground 
-                    linkedinContent={linkedinContent} 
-                    setLinkedinContent={setLinkedinContent} 
-                    additionalDetails={additionalDetails} 
-                    setAdditionalDetails={setAdditionalDetails} 
-                    cvContent={cvContent} 
-                    setCvContent={setCvContent} 
-                    isSubmitting={isSubmitting} 
-                    isEditing={Object.keys(existingData).length > 0} 
-                    existingData={existingData} 
-                  />
-                  
-                  {/* Editable AI Summary Section */}
-                  {editableSummary && (
-                    <EditableSummary 
-                      editableSummary={editableSummary} 
-                      onSummaryChange={handleSummaryChange} 
+            <AirtableCard>
+              <AirtableCardContent className="space-y-8">
+                {/* Edit Form - Moved to the top when in edit mode */}
+                {editMode && (
+                  <div className="border-t border-gray-100 pt-8">
+                    <h3 className="text-xl font-semibold mb-6 text-gray-900">Edit Profile Information</h3>
+                    
+                    <ProfessionalBackground 
+                      linkedinContent={linkedinContent} 
+                      setLinkedinContent={setLinkedinContent} 
+                      additionalDetails={additionalDetails} 
+                      setAdditionalDetails={setAdditionalDetails} 
+                      cvContent={cvContent} 
+                      setCvContent={setCvContent} 
+                      isSubmitting={isSubmitting} 
+                      isEditing={Object.keys(existingData).length > 0} 
+                      existingData={existingData} 
                     />
-                  )}
-                  
-                  <div className="flex justify-end gap-4 mt-6">
-                    <Button variant="outline" onClick={() => setEditMode(false)} disabled={isSubmitting}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSaveProfile} 
-                      disabled={!hasChanges || isSubmitting} 
-                      className="flex items-center gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          Processing... 
-                          <span className="ml-2 animate-spin">⟳</span>
-                        </>
-                      ) : (
-                        <>
-                          Save Changes
-                          <Save className="h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
+                    
+                    {/* Editable AI Summary Section */}
+                    {editableSummary && (
+                      <EditableSummary 
+                        editableSummary={editableSummary} 
+                        onSummaryChange={handleSummaryChange} 
+                      />
+                    )}
+                    
+                    <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
+                      <EnhancedButton 
+                        variant="outline" 
+                        onClick={() => setEditMode(false)} 
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </EnhancedButton>
+                      <EnhancedButton 
+                        onClick={handleSaveProfile} 
+                        disabled={!hasChanges || isSubmitting} 
+                        className="flex items-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            Processing... 
+                            <span className="ml-2 animate-spin">⟳</span>
+                          </>
+                        ) : (
+                          <>
+                            Save Changes
+                            <Save className="h-4 w-4" />
+                          </>
+                        )}
+                      </EnhancedButton>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                
+                {/* Professional Summary - Only visible when not in edit mode */}
+                {!editMode && (
+                  <ProfileSummary 
+                    backgroundSummary={backgroundSummary} 
+                    onRegenerateAISummary={handleRegenerateAISummary} 
+                  />
+                )}
+              </AirtableCardContent>
               
-              {/* Professional Summary - Only visible when not in edit mode */}
-              {!editMode && (
-                <ProfileSummary 
-                  backgroundSummary={backgroundSummary} 
-                  onRegenerateAISummary={handleRegenerateAISummary} 
-                />
-              )}
-            </CardContent>
-            
-            {/* Bottom navigation button */}
-            <CardFooter className="flex justify-end pt-4 border-t">
-              <Button 
-                onClick={handleNavigateToTargets} 
-                className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
-              >
-                Next: Define Targets
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
+              {/* Bottom navigation button */}
+              <AirtableCardFooter className="flex justify-end">
+                <EnhancedButton 
+                  variant="primary"
+                  onClick={handleNavigateToTargets} 
+                  className="flex items-center gap-2"
+                >
+                  Next: Define Targets
+                  <ArrowRight className="h-4 w-4" />
+                </EnhancedButton>
+              </AirtableCardFooter>
+            </AirtableCard>
+          </div>
         </div>
       </div>
     </div>
