@@ -14,6 +14,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -30,21 +31,34 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           .eq('user_id', user.id)
           .single();
 
-        // If profile exists and has onboarding_completed flag set to true, don't show onboarding
-        if (profile && (profile as any).onboarding_completed) {
+        // Check if onboarding_completed flag exists and is true
+        const onboardingCompleted = profile && (profile as any).onboarding_completed;
+        
+        if (onboardingCompleted) {
+          // User has completed onboarding, don't show it
           setIsCheckingOnboarding(false);
           return;
         }
 
-        // Check if user has any companies (fallback check)
+        // Check if this is the user's first time logging in
+        // We can check if they have any companies or if their profile was just created
         const { data: companies } = await supabase
           .from('companies')
           .select('company_id')
           .eq('user_id', user.id)
           .limit(1);
 
-        // Show onboarding if they don't have any companies and haven't completed onboarding
-        if (!companies || companies.length === 0) {
+        const { data: summaryData } = await supabase
+          .from('user_summaries')
+          .select('*')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        // If they don't have companies or summaries, this is likely their first login
+        const isFirstTime = (!companies || companies.length === 0) && (!summaryData || summaryData.length === 0);
+        
+        if (isFirstTime) {
+          setIsFirstLogin(true);
           setShowOnboarding(true);
         }
       } catch (error) {
@@ -76,6 +90,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               onboarding_completed: true 
             } as any)
             .eq('user_id', user.id);
+        } else {
+          // Create new profile with onboarding completed
+          await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              onboarding_completed: true
+            } as any);
         }
       } catch (error) {
         console.error('Error marking onboarding as completed:', error);
@@ -103,12 +125,25 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               onboarding_completed: true 
             } as any)
             .eq('user_id', user.id);
+        } else {
+          // Create new profile with onboarding completed
+          await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              onboarding_completed: true
+            } as any);
         }
       } catch (error) {
         console.error('Error marking onboarding as skipped:', error);
       }
     }
     setShowOnboarding(false);
+  };
+
+  // Function to manually open onboarding (for the header button)
+  const openOnboarding = () => {
+    setShowOnboarding(true);
   };
 
   // If we're still checking onboarding status, show a loading state
@@ -126,7 +161,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header onOpenOnboarding={openOnboarding} />
       <main className="flex-1">
         {children}
       </main>

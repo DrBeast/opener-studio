@@ -1,78 +1,133 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, User, BookOpen } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const Header = () => {
-  const { user, isLoading, signOut } = useAuth();
+interface HeaderProps {
+  onOpenOnboarding?: () => void;
+}
+
+const Header = ({ onOpenOnboarding }: HeaderProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  // Function to determine if a link is active
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
-  // Check if we're on the landing page
-  const isLandingPage = location.pathname === "/";
-  
-  // Determine where the logo should link to
-  const logoLinkPath = user ? "/dashboard" : "/";
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
-    <header className={`border-b shadow-sm ${isLandingPage ? 'bg-white/95 backdrop-blur-sm sticky top-0 z-50' : ''}`}>
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link to={logoLinkPath} className="text-2xl font-bold">
-            <span className="text-primary">Connector</span>AI
-            <span className="ml-1 text-xs bg-red-600 text-white px-1 py-0.5 rounded uppercase font-semibold">DEV</span>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to={user ? "/dashboard" : "/"} className="text-xl font-bold text-primary">
+            ConnectorAI
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            {isLandingPage ?
-              // Landing page navigation - simplified
-              <>
-                
-              </> :
-              // App navigation (only for logged-in users) - simplified and reordered
-              user && <>
-                <Link to="/dashboard" className={`text-sm transition-colors ${isActive("/dashboard") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Dashboard
-                </Link>
-                <Link to="/pipeline" className={`text-sm transition-colors ${isActive("/pipeline") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Pipeline
-                </Link>
-                <Link to="/job-targets" className={`text-sm transition-colors ${isActive("/job-targets") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Targets
-                </Link>
-                <Link to="/profile" className={`text-sm transition-colors ${isActive("/profile") ? "text-primary font-medium underline underline-offset-4" : "hover:text-primary hover:underline"}`}>
-                  Profile
-                </Link>
-              </>
-            }
-          </nav>
-        </div>
 
-        <div className="flex items-center gap-4">
-          {!isLoading && !user ? 
-            <>
-              <Button asChild variant="ghost">
-                <Link to="/auth/login">
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Log In
-                </Link>
-              </Button>
-              <Button asChild>
+          {/* Navigation */}
+          {user ? (
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link
+                to="/dashboard"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive("/dashboard") ? "text-primary" : "text-gray-600"
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/profile"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive("/profile") ? "text-primary" : "text-gray-600"
+                }`}
+              >
+                Profile
+              </Link>
+              <Link
+                to="/job-targets"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive("/job-targets") ? "text-primary" : "text-gray-600"
+                }`}
+              >
+                Job Targets
+              </Link>
+              <Link
+                to="/pipeline"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive("/pipeline") ? "text-primary" : "text-gray-600"
+                }`}
+              >
+                Pipeline
+              </Link>
+            </nav>
+          ) : (
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link to="/auth/login" className="text-sm font-medium text-gray-600 hover:text-primary">
+                Login
+              </Link>
+              <Button asChild size="sm">
                 <Link to="/auth/signup">Sign Up</Link>
               </Button>
-            </> : 
-            <>
-              <Button variant="ghost" onClick={signOut} className="flex items-center">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+            </nav>
+          )}
+
+          {/* User Menu */}
+          {user && (
+            <div className="flex items-center space-x-4">
+              {onOpenOnboarding && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onOpenOnboarding}
+                  className="flex items-center gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Onboarding
+                </Button>
+              )}
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">Account</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
+          {/* Mobile Menu (simplified for now) */}
+          {!user && (
+            <div className="md:hidden">
+              <Button asChild size="sm">
+                <Link to="/auth/login">Login</Link>
               </Button>
-            </>
-          }
+            </div>
+          )}
         </div>
       </div>
     </header>

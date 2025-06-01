@@ -25,7 +25,7 @@ const Login = () => {
   
   // Check for redirect param
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/profile';
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

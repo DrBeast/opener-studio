@@ -102,6 +102,11 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     }
   };
 
+  const handleSkip = () => {
+    // Mark as completed and close
+    onClose();
+  };
+
   const handleMessageGenerated = () => {
     setMessageGenerated(true);
   };
@@ -178,7 +183,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
               )}
               <Button
                 variant="outline"
-                onClick={onClose}
+                onClick={handleSkip}
                 disabled={isLoading}
               >
                 Skip for now
