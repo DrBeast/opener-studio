@@ -1,16 +1,18 @@
+
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
+import { UserPlus } from "lucide-react";
+
+// Design System Imports
+import {
+  ActionModal,
+  PrimaryAction,
+  OutlineAction
+} from "@/components/ui/design-system";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -82,78 +84,78 @@ export const ContactModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">Create New Contact</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-              />
-            </div>
-          </div>
-
+    <ActionModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create New Contact"
+      icon={<UserPlus />}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
+            <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
             <Input
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="e.g., Software Engineer, HR Manager"
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+            <Input
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
+        </div>
 
-          <div>
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Optional"
-              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-            />
-          </div>
+        <div>
+          <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
+          <Input
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            placeholder="e.g., Software Engineer, HR Manager"
+            className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="linkedin" className="text-sm font-medium text-gray-700">LinkedIn URL</Label>
-            <Input
-              id="linkedin"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="Optional"
-              className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-            />
-          </div>
+        <div>
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Optional"
+            className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          />
+        </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <EnhancedButton type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </EnhancedButton>
-            <EnhancedButton type="submit" disabled={isLoading} variant="primary">
-              {isLoading ? 'Creating...' : 'Create Contact'}
-            </EnhancedButton>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div>
+          <Label htmlFor="linkedin" className="text-sm font-medium text-gray-700">LinkedIn URL</Label>
+          <Input
+            id="linkedin"
+            value={linkedinUrl}
+            onChange={(e) => setLinkedinUrl(e.target.value)}
+            placeholder="Optional"
+            className="mt-1 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <OutlineAction type="button" onClick={onClose}>
+            Cancel
+          </OutlineAction>
+          <PrimaryAction type="submit" disabled={isLoading}>
+            {isLoading ? 'Creating...' : 'Create Contact'}
+          </PrimaryAction>
+        </div>
+      </form>
+    </ActionModal>
   );
 };
