@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { X, Plus, ChevronsUpDown } from "lucide-react";
+import { X, Plus, ChevronsUpDown, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -282,9 +283,9 @@ const JobTargets = () => {
   }: {
     label: string;
     onRemove: () => void;
-  }) => <div className="inline-flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 text-sm mr-2 mb-2">
+  }) => <div className="inline-flex items-center bg-gradient-to-r from-purple-100 to-green-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
       <span>{label}</span>
-      <button type="button" onClick={onRemove} className="ml-2 rounded-full hover:bg-primary/20 p-0.5">
+      <button type="button" onClick={onRemove} className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors">
         <X className="h-3 w-3" />
       </button>
     </div>;
@@ -303,12 +304,12 @@ const JobTargets = () => {
         form.setValue(name, [...currentValues, option]);
       }
     };
-    return <FormField control={form.control} name={name} render={() => <FormItem className="space-y-2">
-            <FormLabel>{label}</FormLabel>
+    return <FormField control={form.control} name={name} render={() => <FormItem className="space-y-4">
+            <FormLabel className="text-lg font-semibold text-gray-800">{label}</FormLabel>
             
             
             <div className="relative">
-              <div className="flex flex-wrap p-2 border rounded-md min-h-[80px] bg-background">
+              <div className="flex flex-wrap p-4 border-2 border-purple-100 rounded-xl min-h-[80px] bg-gradient-to-r from-purple-50/50 to-green-50/50 shadow-sm">
                 {values.map(value => {
             const option = options.find(o => o.value === value);
             const displayLabel = option ? option.label : value;
@@ -322,14 +323,14 @@ const JobTargets = () => {
                 addCustomValue();
               }
             }} />
-                  {newValue.trim() && <button type="button" onClick={addCustomValue} className="p-1 ml-1 text-primary">
+                  {newValue.trim() && <button type="button" onClick={addCustomValue} className="p-1 ml-1 text-purple-600 hover:text-purple-700 transition-colors">
                       <Plus className="h-4 w-4" />
                     </button>}
                 </div>
               </div>
               
-              <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {options.map(option => <button key={option.value} type="button" onClick={() => handleOptionClick(option.value)} className={cn("text-left px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {options.map(option => <button key={option.value} type="button" onClick={() => handleOptionClick(option.value)} className={cn("text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm", values.includes(option.value) ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200")}>
                     {option.label}
                   </button>)}
               </div>
@@ -381,11 +382,11 @@ const JobTargets = () => {
   };
   const renderWFHPreference = () => {
     const values = form.watch("target_wfh_preference") || [];
-    return <FormField control={form.control} name="target_wfh_preference" render={() => <FormItem className="space-y-2">
-            <FormLabel>Work From Home Preference</FormLabel>
-            <FormDescription>What is your preferred working arrangement?</FormDescription>
+    return <FormField control={form.control} name="target_wfh_preference" render={() => <FormItem className="space-y-4">
+            <FormLabel className="text-lg font-semibold text-gray-800">Work From Home Preference</FormLabel>
+            <FormDescription className="text-gray-600">What is your preferred working arrangement?</FormDescription>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {wfhOptions.map(option => <button key={option.value} type="button" onClick={() => {
           const currentValues = form.getValues("target_wfh_preference") || [];
           if (currentValues.includes(option.value)) {
@@ -393,7 +394,7 @@ const JobTargets = () => {
           } else {
             form.setValue("target_wfh_preference", [...currentValues, option.value]);
           }
-        }} className={cn("px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
+        }} className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm", values.includes(option.value) ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200")}>
                   {option.label}
                 </button>)}
             </div>
@@ -410,11 +411,11 @@ const JobTargets = () => {
   };
   const renderSizePreference = () => {
     const values = form.watch("target_sizes") || [];
-    return <FormField control={form.control} name="target_sizes" render={() => <FormItem className="space-y-2">
-            <FormLabel>Company Size Preference</FormLabel>
-            <FormDescription>What size of company would you prefer?</FormDescription>
+    return <FormField control={form.control} name="target_sizes" render={() => <FormItem className="space-y-4">
+            <FormLabel className="text-lg font-semibold text-gray-800">Company Size Preference</FormLabel>
+            <FormDescription className="text-gray-600">What size of company would you prefer?</FormDescription>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {sizeOptions.map(option => <button key={option.value} type="button" onClick={() => {
           const currentValues = form.getValues("target_sizes") || [];
           if (currentValues.includes(option.value)) {
@@ -422,7 +423,7 @@ const JobTargets = () => {
           } else {
             form.setValue("target_sizes", [...currentValues, option.value]);
           }
-        }} className={cn("px-3 py-1.5 rounded-md text-sm", values.includes(option.value) ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80")}>
+        }} className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm", values.includes(option.value) ? "bg-gradient-to-r from-purple-600 to-green-600 text-white shadow-md" : "bg-white text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 border border-gray-200 hover:border-purple-200")}>
                   {option.label}
                 </button>)}
             </div>
@@ -439,12 +440,12 @@ const JobTargets = () => {
   };
   const renderLocationSelector = () => {
     const locations = form.watch("target_locations") || [];
-    return <FormField control={form.control} name="target_locations" render={() => <FormItem className="space-y-2">
-            <FormLabel>Preferred Locations</FormLabel>
-            <FormDescription>Where would you like to work and live? We will prioritize these locations for companies with Hybrid and On-site policies.</FormDescription>
+    return <FormField control={form.control} name="target_locations" render={() => <FormItem className="space-y-4">
+            <FormLabel className="text-lg font-semibold text-gray-800">Preferred Locations</FormLabel>
+            <FormDescription className="text-gray-600">Where would you like to work and live? We will prioritize these locations for companies with Hybrid and On-site policies.</FormDescription>
             
             <div className="relative">
-              <div className="flex flex-wrap p-2 border rounded-md min-h-[42px] bg-background" onClick={() => {
+              <div className="flex flex-wrap p-4 border-2 border-purple-100 rounded-xl min-h-[50px] bg-gradient-to-r from-purple-50/50 to-green-50/50 shadow-sm" onClick={() => {
           setLocationSearchOpen(true);
           setTimeout(() => {
             locationInputRef.current?.focus();
@@ -468,19 +469,19 @@ const JobTargets = () => {
                 addCustomLocation();
               }
             }} />
-                  <button type="button" className="p-1 text-muted-foreground" onClick={() => setLocationSearchOpen(!locationSearchOpen)}>
+                  <button type="button" className="p-1 text-purple-600 hover:text-purple-700 transition-colors" onClick={() => setLocationSearchOpen(!locationSearchOpen)}>
                     <ChevronsUpDown className="h-4 w-4" />
                   </button>
                 </div>
               </div>
               
-              {locationSearchOpen && <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
-                  {filteredLocations.length > 0 ? filteredLocations.map(location => <button key={location.value} type="button" className="w-full text-left px-3 py-2 hover:bg-accent text-sm" onClick={() => handleLocationSelect(location.value)}>
+              {locationSearchOpen && <div className="absolute z-10 w-full mt-1 bg-white border-2 border-purple-100 rounded-xl shadow-lg max-h-[200px] overflow-y-auto">
+                  {filteredLocations.length > 0 ? filteredLocations.map(location => <button key={location.value} type="button" className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-green-50 text-sm transition-all duration-200" onClick={() => handleLocationSelect(location.value)}>
                         {location.label}
-                      </button>) : <div className="p-3 text-sm text-muted-foreground">
+                      </button>) : <div className="p-4 text-sm text-gray-600">
                       <div className="flex justify-between items-center">
                         <span>No locations found</span>
-                        {newLocation.trim() && <Button type="button" variant="ghost" size="sm" onClick={addCustomLocation}>
+                        {newLocation.trim() && <Button type="button" variant="ghost" size="sm" className="text-purple-600 hover:text-purple-700" onClick={addCustomLocation}>
                             Add "{newLocation}"
                           </Button>}
                       </div>
@@ -542,8 +543,8 @@ const JobTargets = () => {
     }
   };
   if (isLoading) {
-    return <div className="flex min-h-[80vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    return <div className="flex min-h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>;
   }
   const handleSaveAndContinue = () => {
@@ -554,81 +555,113 @@ const JobTargets = () => {
       });
     })();
   };
-  return <div className="container mx-auto py-8 max-w-4xl">
-      <ProfileBreadcrumbs />
-      
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Define Your Job & Company Targets</h1>
-        <Button onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating} className="bg-primary">
-          {isGenerating ? "Generating..." : "Generate Companies"}
-        </Button>
-      </div>
-      
-      <InfoBox className="mb-6">
-        <p className="font-medium mb-1">Why This Matters</p>
-        <p>
-          The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
-          Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
-        </p>
-      </InfoBox>
-      
-      <div className="grid grid-cols-1 gap-8">
-        <div className="space-y-8">
-          <Card>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  {/* Describe Your Ideal Role and Company */}
-                  <FormField control={form.control} name="free_form_role_and_company_description" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Describe Your Ideal Role and Company</FormLabel>
-                        
-                        <FormControl>
-                          <Textarea placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below." className="min-h-[150px]" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
-                
-                  {/* Target Job Functions with Custom Options */}
-                  {renderChipSelector("target_functions", functionOptions, "Target Job Functions", "What job functions are you interested in?", "Add function...", newFunction, setNewFunction, addCustomFunction)}
+  return <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
+      <div className="container mx-auto py-8 max-w-4xl">
+        <ProfileBreadcrumbs />
+        
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent mb-2">
+              Define Your Job & Company Targets
+            </h1>
+            <p className="text-gray-600">Tell us about your ideal role and company preferences</p>
+          </div>
+          <Button 
+            onClick={handleGenerateCompanies} 
+            disabled={isSubmitting || isGenerating} 
+            className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {isGenerating ? "Generating..." : "Generate Companies"}
+          </Button>
+        </div>
+        
+        <div className="bg-gradient-to-r from-purple-100/50 to-green-100/50 p-6 rounded-xl border border-purple-200 mb-8 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Target className="h-6 w-6 text-purple-600 mt-0.5 shrink-0" />
+            <div className="text-purple-800">
+              <p className="font-semibold mb-1">Why This Matters</p>
+              <p className="text-sm">
+                The more specific you are about your preferences, the better we can help you find relevant companies and contacts.
+                Your preferences aren't set in stone - you can always come back and update them as your job search evolves.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-8">
+          <div className="space-y-8">
+            <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-8">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+                    {/* Describe Your Ideal Role and Company */}
+                    <FormField control={form.control} name="free_form_role_and_company_description" render={({
+                    field
+                  }) => <FormItem className="space-y-4">
+                          <FormLabel className="text-lg font-semibold text-gray-800">Describe Your Ideal Role and Company</FormLabel>
+                          
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below." 
+                              className="min-h-[120px] border-2 border-purple-100 rounded-xl bg-gradient-to-r from-purple-50/30 to-green-50/30 focus:border-purple-300 transition-colors shadow-sm" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>} />
                   
-                  {/* Target Industries with Custom Options */}
-                  {renderChipSelector("target_industries", industryOptions, "Target Industries", "What industries are you interested in?", "Add industry...", newIndustry, setNewIndustry, addCustomIndustry)}
-                  
-                  {/* Preferred Locations */}
-                  {renderLocationSelector()}
-                  
-                  {/* Work From Home Preference */}
-                  {renderWFHPreference()}
-                  
-                  {/* Company Size Preference */}
-                  {renderSizePreference()}
-                  
-                  {/* Similar Companies */}
-                  <FormField control={form.control} name="similar_companies" render={({
-                  field
-                }) => <FormItem>
-                        <FormLabel>Company Examples</FormLabel>
-                        <FormDescription>We will use your examples as inspiration to generate more options.</FormDescription>
-                        <FormControl>
-                          <Input placeholder="Google, Apple, Microsoft, etc." onChange={e => {
-                      const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
-                      field.onChange(companies);
-                    }} value={Array.isArray(field.value) ? field.value.join(", ") : ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>} />
-                  
-                  <div className="flex justify-end space-x-4">
-                    <Button type="button" onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
-                      {isGenerating ? "Generating..." : "Generate Companies"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                    {/* Target Job Functions with Custom Options */}
+                    {renderChipSelector("target_functions", functionOptions, "Target Job Functions", "What job functions are you interested in?", "Add function...", newFunction, setNewFunction, addCustomFunction)}
+                    
+                    {/* Target Industries with Custom Options */}
+                    {renderChipSelector("target_industries", industryOptions, "Target Industries", "What industries are you interested in?", "Add industry...", newIndustry, setNewIndustry, addCustomIndustry)}
+                    
+                    {/* Preferred Locations */}
+                    {renderLocationSelector()}
+                    
+                    {/* Work From Home Preference */}
+                    {renderWFHPreference()}
+                    
+                    {/* Company Size Preference */}
+                    {renderSizePreference()}
+                    
+                    {/* Similar Companies */}
+                    <FormField control={form.control} name="similar_companies" render={({
+                    field
+                  }) => <FormItem className="space-y-4">
+                          <FormLabel className="text-lg font-semibold text-gray-800">Company Examples</FormLabel>
+                          <FormDescription className="text-gray-600">We will use your examples as inspiration to generate more options.</FormDescription>
+                          <FormControl>
+                            <Input 
+                              placeholder="Google, Apple, Microsoft, etc." 
+                              className="border-2 border-purple-100 rounded-xl bg-gradient-to-r from-purple-50/30 to-green-50/30 focus:border-purple-300 transition-colors shadow-sm"
+                              onChange={e => {
+                        const companies = e.target.value.split(",").map(company => company.trim()).filter(company => company);
+                        field.onChange(companies);
+                      }} 
+                              value={Array.isArray(field.value) ? field.value.join(", ") : ""} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>} />
+                    
+                    <div className="flex justify-end space-x-4 pt-6">
+                      <Button 
+                        type="button" 
+                        onClick={handleGenerateCompanies} 
+                        disabled={isSubmitting || isGenerating}
+                        className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {isGenerating ? "Generating..." : "Generate Companies"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>;

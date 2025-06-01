@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -214,109 +215,124 @@ const PipelineDashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="flex h-[80vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    return <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>;
   }
 
-  return <div className="container mx-auto px-4 py-8 max-w-full">
-      <ProfileBreadcrumbs />
+  return <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
+      <div className="container mx-auto px-4 py-8 max-w-full">
+        <ProfileBreadcrumbs />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">Company Targets and Contacts</h1>
-        <div className="flex gap-2">
-          <Button onClick={handleGenerateCompanies} disabled={isGeneratingCompanies} variant="outline">
-            <Sparkles className="mr-2 h-4 w-4" />
-            {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
-          </Button>
-          <Button onClick={handleAddCompany} className="shrink-0">
-            <Plus className="mr-2 h-4 w-4" /> Add Company
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent mb-2">
+              Company Targets and Contacts
+            </h1>
+            <p className="text-gray-600">Manage your target companies and track your networking progress</p>
+          </div>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleGenerateCompanies} 
+              disabled={isGeneratingCompanies} 
+              variant="outline"
+              className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
+            </Button>
+            <Button 
+              onClick={handleAddCompany} 
+              className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add Company
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <ContactInfoBox />
+        <ContactInfoBox />
 
-      <Card>
-        <CardContent className="p-6">
-          <SearchAndFilters 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm} 
-            selectedCount={selectedCompanies.size} 
-            onBulkRemove={handleBulkRemove} 
-          />
-
-          {filteredCompanies.length === 0 ? 
-            <EmptyState 
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-8">
+            <SearchAndFilters 
               searchTerm={searchTerm} 
-              hasFilters={false} 
-              onAddCompany={handleAddCompany} 
-              onGenerateCompanies={handleGenerateCompanies} 
-              isGeneratingCompanies={isGeneratingCompanies} 
-            /> : 
-            <EnhancedCompaniesTable 
-              companies={filteredCompanies} 
-              onCompanyClick={handleCompanyClick} 
-              onSetPriority={handleSetPriority} 
-              onBlacklist={handleBlacklist} 
-              newCompanyIds={newCompanyIds} 
-              highlightNew={highlightNew} 
-              selectedCompanies={selectedCompanies} 
-              onSelectCompany={handleSelectCompany} 
-              onSelectAll={handleSelectAll} 
-              sortField={sortField} 
-              sortDirection={sortDirection} 
-              onSort={handleSort} 
-              onCreateContact={(companyId) => {
-                const company = filteredCompanies.find(c => c.company_id === companyId);
-                handleCreateContact(companyId, company?.name || '');
-              }}
-              onContactClick={handleContactClick}
-              onGenerateMessage={handleGenerateMessage}
+              onSearchChange={setSearchTerm} 
+              selectedCount={selectedCompanies.size} 
+              onBulkRemove={handleBulkRemove} 
             />
-          }
-        </CardContent>
-      </Card>
 
-      {/* Modals */}
-      <AddCompanyModal 
-        isOpen={isAddCompanyModalOpen} 
-        onClose={() => setIsAddCompanyModalOpen(false)} 
-        onAddCompany={handleCompanyAdded} 
-        isLoading={false} 
-      />
-      
-      {selectedCompany && 
-        <CompanyDetails 
-          company={selectedCompany} 
-          isOpen={!!selectedCompany} 
-          onClose={handleCompanyDetailClose} 
-          onCompanyUpdated={handleCompanyUpdated} 
+            {filteredCompanies.length === 0 ? 
+              <EmptyState 
+                searchTerm={searchTerm} 
+                hasFilters={false} 
+                onAddCompany={handleAddCompany} 
+                onGenerateCompanies={handleGenerateCompanies} 
+                isGeneratingCompanies={isGeneratingCompanies} 
+              /> : 
+              <EnhancedCompaniesTable 
+                companies={filteredCompanies} 
+                onCompanyClick={handleCompanyClick} 
+                onSetPriority={handleSetPriority} 
+                onBlacklist={handleBlacklist} 
+                newCompanyIds={newCompanyIds} 
+                highlightNew={highlightNew} 
+                selectedCompanies={selectedCompanies} 
+                onSelectCompany={handleSelectCompany} 
+                onSelectAll={handleSelectAll} 
+                sortField={sortField} 
+                sortDirection={sortDirection} 
+                onSort={handleSort} 
+                onCreateContact={(companyId) => {
+                  const company = filteredCompanies.find(c => c.company_id === companyId);
+                  handleCreateContact(companyId, company?.name || '');
+                }}
+                onContactClick={handleContactClick}
+                onGenerateMessage={handleGenerateMessage}
+              />
+            }
+          </CardContent>
+        </Card>
+
+        {/* Modals */}
+        <AddCompanyModal 
+          isOpen={isAddCompanyModalOpen} 
+          onClose={() => setIsAddCompanyModalOpen(false)} 
+          onAddCompany={handleCompanyAdded} 
+          isLoading={false} 
         />
-      }
+        
+        {selectedCompany && 
+          <CompanyDetails 
+            company={selectedCompany} 
+            isOpen={!!selectedCompany} 
+            onClose={handleCompanyDetailClose} 
+            onCompanyUpdated={handleCompanyUpdated} 
+          />
+        }
 
-      <EnhancedContactModal 
-        isOpen={contactModal.isOpen} 
-        onClose={() => setContactModal({
-          isOpen: false,
-          companyId: '',
-          companyName: ''
-        })} 
-        companyId={contactModal.companyId}
-        companyName={contactModal.companyName}
-        onSuccess={handleCompanyUpdated} 
-      />
-
-      {/* Enhanced Contact Details Modal */}
-      {selectedContactId && (
-        <EnhancedContactDetails
-          contactId={selectedContactId}
-          isOpen={isContactDetailsOpen}
-          onClose={handleContactDetailClose}
-          onContactUpdated={handleContactUpdated}
-          defaultTab={contactDetailsTab}
+        <EnhancedContactModal 
+          isOpen={contactModal.isOpen} 
+          onClose={() => setContactModal({
+            isOpen: false,
+            companyId: '',
+            companyName: ''
+          })} 
+          companyId={contactModal.companyId}
+          companyName={contactModal.companyName}
+          onSuccess={handleCompanyUpdated} 
         />
-      )}
+
+        {/* Enhanced Contact Details Modal */}
+        {selectedContactId && (
+          <EnhancedContactDetails
+            contactId={selectedContactId}
+            isOpen={isContactDetailsOpen}
+            onClose={handleContactDetailClose}
+            onContactUpdated={handleContactUpdated}
+            defaultTab={contactDetailsTab}
+          />
+        )}
+      </div>
     </div>;
 };
 
