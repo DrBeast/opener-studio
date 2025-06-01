@@ -2,13 +2,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, BookOpen } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { LogOut, BookOpen } from "lucide-react";
 
 interface HeaderProps {
   onOpenOnboarding?: () => void;
@@ -88,7 +82,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             </nav>
           )}
 
-          {/* User Menu */}
+          {/* User Actions */}
           {user && (
             <div className="flex items-center space-x-4">
               {onOpenOnboarding && (
@@ -103,20 +97,15 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
                 </Button>
               )}
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">Account</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Log Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Log Out
+              </Button>
             </div>
           )}
 
