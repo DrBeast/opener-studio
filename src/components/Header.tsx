@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
   onOpenOnboarding?: () => void;
@@ -27,45 +28,58 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to={user ? "/dashboard" : "/"} className="text-xl font-bold text-primary">
-            ConnectorAI
+          <Link to={user ? "/dashboard" : "/"} className="flex items-center space-x-2">
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              ConnectorAI
+            </span>
+            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 text-xs font-medium">
+              DEV
+            </Badge>
           </Link>
 
           {/* Navigation */}
           {user ? (
-            <nav className="hidden md:flex items-center space-x-6">
+            <nav className="hidden md:flex items-center space-x-8">
               <Link
                 to="/dashboard"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/dashboard") ? "text-primary" : "text-gray-600"
+                className={`text-sm font-medium transition-all duration-200 hover:text-primary relative ${
+                  isActive("/dashboard") 
+                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full" 
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 Dashboard
               </Link>
               <Link
                 to="/profile"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/profile") ? "text-primary" : "text-gray-600"
+                className={`text-sm font-medium transition-all duration-200 hover:text-primary relative ${
+                  isActive("/profile") 
+                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full" 
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 Profile
               </Link>
               <Link
                 to="/job-targets"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/job-targets") ? "text-primary" : "text-gray-600"
+                className={`text-sm font-medium transition-all duration-200 hover:text-primary relative ${
+                  isActive("/job-targets") 
+                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full" 
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 Job Targets
               </Link>
               <Link
                 to="/pipeline"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/pipeline") ? "text-primary" : "text-gray-600"
+                className={`text-sm font-medium transition-all duration-200 hover:text-primary relative ${
+                  isActive("/pipeline") 
+                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full" 
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 Pipeline
@@ -73,10 +87,10 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             </nav>
           ) : (
             <nav className="hidden md:flex items-center space-x-6">
-              <Link to="/auth/login" className="text-sm font-medium text-gray-600 hover:text-primary">
+              <Link to="/auth/login" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
                 Login
               </Link>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
                 <Link to="/auth/signup">Sign Up</Link>
               </Button>
             </nav>
@@ -84,16 +98,16 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
 
           {/* User Actions */}
           {user && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {onOpenOnboarding && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onOpenOnboarding}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-primary/20 text-primary hover:bg-primary/10"
                 >
                   <BookOpen className="h-4 w-4" />
-                  Onboarding
+                  <span className="hidden sm:inline">Onboarding</span>
                 </Button>
               )}
               
@@ -101,10 +115,10 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
                 variant="outline"
                 size="sm"
                 onClick={handleSignOut}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
-                Log Out
+                <span className="hidden sm:inline">Log Out</span>
               </Button>
             </div>
           )}
@@ -112,7 +126,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
           {/* Mobile Menu (simplified for now) */}
           {!user && (
             <div className="md:hidden">
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="bg-gradient-to-r from-primary to-primary/80">
                 <Link to="/auth/login">Login</Link>
               </Button>
             </div>

@@ -10,8 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageSquare, Users, Calendar } from "lucide-react";
 
 interface FeedbackEntry {
   feedback_id: string;
@@ -89,10 +90,20 @@ const FeedbackReview = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading feedback...</span>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/60 rounded-full animate-ping mx-auto"></div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">Loading feedback data</h3>
+                <p className="text-sm text-gray-600">Please wait while we gather user insights...</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -100,64 +111,141 @@ const FeedbackReview = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-red-600">{error}</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="container mx-auto px-4 py-8">
+          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div className="p-3 bg-red-100 rounded-full w-fit mx-auto">
+                  <MessageSquare className="h-6 w-6 text-red-600" />
+                </div>
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Beta User Feedback Review</CardTitle>
-          <p className="text-sm text-gray-600">
-            Total feedback entries: {feedback.length}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Beta User Feedback Review
+          </h1>
+          <p className="text-lg text-gray-600">
+            Insights and suggestions from our beta testing community
           </p>
-        </CardHeader>
-        <CardContent>
-          {feedback.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No feedback entries found.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>User Email</TableHead>
-                  <TableHead>View</TableHead>
-                  <TableHead>Feedback</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feedback.map((entry) => (
-                  <TableRow key={entry.feedback_id}>
-                    <TableCell className="text-sm">
-                      {format(new Date(entry.created_at), 'MMM dd, yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {entry.email}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                        {entry.view_name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm max-w-md">
-                      <div className="whitespace-pre-wrap break-words">
-                        {entry.feedback_text}
-                      </div>
-                    </TableCell>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Total Feedback</h3>
+                  <p className="text-2xl font-bold">{feedback.length}</p>
+                </div>
+                <MessageSquare className="h-8 w-8 opacity-80" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Unique Users</h3>
+                  <p className="text-2xl font-bold">{new Set(feedback.map(f => f.email)).size}</p>
+                </div>
+                <Users className="h-8 w-8 opacity-80" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Latest Entry</h3>
+                  <p className="text-sm font-medium">
+                    {feedback.length > 0 ? format(new Date(feedback[0].created_at), 'MMM dd') : 'N/A'}
+                  </p>
+                </div>
+                <Calendar className="h-8 w-8 opacity-80" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Feedback Entries
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {feedback.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
+                  <MessageSquare className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-500 font-medium">No feedback entries found</p>
+                <p className="text-sm text-gray-400 mt-1">Check back later for user insights</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/50">
+                    <TableHead className="font-semibold text-gray-700">Date & Time</TableHead>
+                    <TableHead className="font-semibold text-gray-700">User Email</TableHead>
+                    <TableHead className="font-semibold text-gray-700">View</TableHead>
+                    <TableHead className="font-semibold text-gray-700">Feedback</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {feedback.map((entry) => (
+                    <TableRow key={entry.feedback_id} className="hover:bg-gray-50/50 transition-colors">
+                      <TableCell className="text-sm">
+                        <div className="space-y-1">
+                          <div className="font-medium text-gray-900">
+                            {format(new Date(entry.created_at), 'MMM dd, yyyy')}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {format(new Date(entry.created_at), 'HH:mm')}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <div className="font-medium text-gray-900">
+                          {entry.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-blue-100 text-blue-800 border-blue-200"
+                        >
+                          {entry.view_name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm max-w-md">
+                        <div className="whitespace-pre-wrap break-words leading-relaxed text-gray-700">
+                          {entry.feedback_text}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

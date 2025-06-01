@@ -149,10 +149,19 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // If we're still checking onboarding status, show a loading state
   if (isCheckingOnboarding && user) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="text-center space-y-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-primary/60 rounded-full animate-ping mx-auto"></div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">Setting up your workspace</h3>
+              <p className="text-sm text-gray-600">This will just take a moment...</p>
+            </div>
+          </div>
         </main>
         <Footer />
       </div>

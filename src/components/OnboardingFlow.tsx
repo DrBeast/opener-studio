@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -137,6 +137,19 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
     }
   };
 
+  const getStepDescription = () => {
+    switch (currentStep) {
+      case 1:
+        return "Review your professional background and let AI optimize your profile";
+      case 2:
+        return "Discover target companies and key contacts in your industry";
+      case 3:
+        return "Your networking workspace is ready to help you succeed";
+      default:
+        return "";
+    }
+  };
+
   const getNextButtonText = () => {
     if (currentStep === 1) return "Discover Companies & Contacts";
     if (currentStep === 2) return messageGenerated ? "Complete Setup" : "Complete Setup";
@@ -146,45 +159,73 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Welcome to ConnectorAI!</DialogTitle>
-          <DialogDescription>
-            {getStepTitle()}
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <DialogHeader className="text-center pb-6">
+          <div className="flex items-center justify-center mb-4">
+            <div className="p-3 bg-gradient-to-r from-primary to-primary/80 rounded-full">
+              <Sparkles className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Welcome to ConnectorAI!
+          </DialogTitle>
+          <DialogDescription className="text-lg text-gray-600 mt-2">
+            {getStepDescription()}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Step {currentStep} of {totalSteps}</span>
-              <span>{Math.round(progress)}% complete</span>
+        <div className="space-y-8">
+          {/* Progress Section */}
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  {currentStep === 3 ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">{currentStep}</span>
+                    </div>
+                  )}
+                  <span className="font-semibold text-gray-900">{getStepTitle()}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium text-gray-600">
+                  Step {currentStep} of {totalSteps}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {Math.round(progress)}% complete
+                </div>
+              </div>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-3 bg-white/50" />
           </div>
 
           {/* Step Content */}
-          {renderStep()}
+          <div className="min-h-[400px]">
+            {renderStep()}
+          </div>
 
           {/* Navigation */}
-          <div className="flex justify-between pt-4">
-            <div className="flex gap-2">
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+            <div className="flex gap-3">
               {currentStep > 1 && (
                 <Button
                   variant="outline"
                   onClick={handleBack}
                   disabled={isLoading}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 hover:bg-gray-50"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
               )}
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleSkip}
                 disabled={isLoading}
+                className="text-gray-600 hover:text-gray-800"
               >
                 Skip for now
               </Button>
@@ -192,14 +233,19 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
             <Button
               onClick={handleNext}
               disabled={isLoading}
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8"
             >
               {isLoading ? (
-                "Setting up..."
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Setting up...
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-2">
                   {getNextButtonText()}
-                  {currentStep < totalSteps && <ArrowRight className="ml-2 h-4 w-4" />}
-                </>
+                  {currentStep < totalSteps && <ArrowRight className="h-4 w-4" />}
+                  {currentStep === 3 && <Sparkles className="h-4 w-4" />}
+                </div>
               )}
             </Button>
           </div>
