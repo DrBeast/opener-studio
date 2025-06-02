@@ -364,14 +364,14 @@ const JobTargets = () => {
   }) => (
     <div className="inline-flex items-center bg-purple-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
       <span>{label}</span>
-      <Button
+      <Buttons
        type="button"
        // variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
         <X className="h-3 w-3" />
-      </button>
+      </Button>
     </div>
   );
 
