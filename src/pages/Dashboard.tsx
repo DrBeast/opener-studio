@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Design System Imports
 import {

@@ -265,10 +265,10 @@ const Profile = () => {
             <div className="flex flex-row items-center justify-between">
               <div>
                 <PageTitle>Professional Profile</PageTitle>
-                <p>
+                <PageDescription>
                   Manage your professional information and AI-generated
                   summaries
-                </p>
+                </PageDescription>
               </div>
               <div className="flex gap-3">
                 {!editMode && (
