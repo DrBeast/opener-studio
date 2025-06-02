@@ -105,7 +105,7 @@ export const CollapsibleWide = React.forwardRef<
       expanded,
       children,
       className = "",
-      variant = "primary",
+      variant = "outline",
       size = "default",
       ...props
     },
@@ -130,4 +130,4 @@ export const CollapsibleWide = React.forwardRef<
     </Button>
   )
 );
-CollapsibleWide.displayName = "CollapsibleTriggerButton";
+CollapsibleWide.displayName = "CollapsibleWide";
