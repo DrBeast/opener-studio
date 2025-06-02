@@ -320,17 +320,16 @@ const Profile = () => {
                     )}
 
                     <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
-                      <EnhancedButton
-                        variant="outline"
+                      <OutlineAction
                         onClick={() => setEditMode(false)}
                         disabled={isSubmitting}
                       >
                         Cancel
-                      </EnhancedButton>
-                      <EnhancedButton
+                      </OutlineAction>
+                      <Button
+                        variant="success"
                         onClick={handleSaveProfile}
                         disabled={!hasChanges || isSubmitting}
-                        className="flex items-center gap-2"
                       >
                         {isSubmitting ? (
                           <>
