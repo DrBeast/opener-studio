@@ -53,7 +53,6 @@ Button.displayName = "Button";
 
 // Action Button Variants
 const PrimaryAction = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  "inline-flex items-center gap-2",
   ({ className, ...props }, ref) => (
     <Button ref={ref} variant="primary" className={className} {...props} />
   )
