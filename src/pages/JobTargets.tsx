@@ -23,7 +23,7 @@ import {
   GhostAction,
   PageTitle,
   PageDescription,
-  Buttons,
+  Button,
 } from "@/components/ui/design-system";
 import { InfoBox } from "@/components/ui/info-box";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
