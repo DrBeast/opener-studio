@@ -128,8 +128,8 @@ const ProfileSummary = ({
       {/* Expandable detailed sections */}
       <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
         <CollapsibleTrigger asChild>
-          <CollapsibleWide expanded={isDetailsExpanded}>
-            variant="success" View Detailed Breakdown
+          <CollapsibleWide expanded={isDetailsExpanded} variant="success">
+            View Detailed Breakdown
           </CollapsibleWide>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
