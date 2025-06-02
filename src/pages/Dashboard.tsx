@@ -1,9 +1,15 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { MessageCircle, Users, Building, Target, ArrowRight, Zap } from "lucide-react";
+import {
+  MessageCircle,
+  Users,
+  Building,
+  Target,
+  ArrowRight,
+  Zap,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
@@ -11,14 +17,15 @@ import { CompanySelectionModal } from "@/components/CompanySelectionModal";
 
 // Design System Imports
 import {
-  Card,
+  PrimaryCard,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Button,
+  PrimaryAction,
+  OutlineAction,
+  GhostAction,
   PageTitle,
-  PageDescription
+  SectionTitle,
+  PageDescription,
+  Button,
 } from "@/components/ui/design-system";
 
 interface DashboardStats {
@@ -38,7 +45,7 @@ const Dashboard = () => {
     totalContacts: 0,
     totalCompanies: 0,
     messagesSent: 0,
-    recentActivity: []
+    recentActivity: [],
   });
   const [loading, setLoading] = useState(true);
   const [isContactSelectionOpen, setIsContactSelectionOpen] = useState(false);
@@ -51,42 +58,43 @@ const Dashboard = () => {
       try {
         // Fetch contacts count
         const { count: contactsCount } = await supabase
-          .from('contacts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .from("contacts")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
 
         // Fetch companies count
         const { count: companiesCount } = await supabase
-          .from('companies')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .from("companies")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
 
         // Fetch messages count
         const { count: messagesCount } = await supabase
-          .from('saved_message_versions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .from("saved_message_versions")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
 
         // Fetch recent interactions with correct column name
         const { data: recentInteractions } = await supabase
-          .from('interactions')
-          .select('interaction_type, description, interaction_date')
-          .eq('user_id', user.id)
-          .order('interaction_date', { ascending: false })
+          .from("interactions")
+          .select("interaction_type, description, interaction_date")
+          .eq("user_id", user.id)
+          .order("interaction_date", { ascending: false })
           .limit(5);
 
         setStats({
           totalContacts: contactsCount || 0,
           totalCompanies: companiesCount || 0,
           messagesSent: messagesCount || 0,
-          recentActivity: recentInteractions?.map(item => ({
-            type: item.interaction_type,
-            description: item.description || 'No description',
-            date: new Date(item.interaction_date).toLocaleDateString()
-          })) || []
+          recentActivity:
+            recentInteractions?.map((item) => ({
+              type: item.interaction_type,
+              description: item.description || "No description",
+              date: new Date(item.interaction_date).toLocaleDateString(),
+            })) || [],
         });
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
       } finally {
         setLoading(false);
       }
@@ -106,7 +114,7 @@ const Dashboard = () => {
   const handleGetStarted = () => {
     if (stats.totalCompanies === 0) {
       // Guide to add companies first
-      window.location.href = '/job-targets';
+      window.location.href = "/job-targets";
     } else if (stats.totalContacts === 0) {
       // Guide to add contacts
       setIsCompanySelectionOpen(true);
@@ -117,9 +125,10 @@ const Dashboard = () => {
   };
 
   const completionPercentage = Math.min(
-    ((stats.totalContacts > 0 ? 25 : 0) + 
-     (stats.totalCompanies > 0 ? 25 : 0) + 
-     (stats.messagesSent > 0 ? 50 : 0)), 100
+    (stats.totalContacts > 0 ? 25 : 0) +
+      (stats.totalCompanies > 0 ? 25 : 0) +
+      (stats.messagesSent > 0 ? 50 : 0),
+    100
   );
 
   if (loading) {
@@ -136,11 +145,10 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-8">
           {/* Welcome Header */}
           <div className="mb-8">
-            <PageTitle className="mb-2">
-              Welcome back! Ready to expand your network?
-            </PageTitle>
-            <PageDescription className="text-lg">
-              Your AI-powered networking assistant is here to help you connect with the right people.
+            <PageTitle>Welcome back! Ready to expand your network?</PageTitle>
+            <PageDescription>
+              Your AI-powered networking assistant is here to help you connect
+              with the right people.
             </PageDescription>
           </div>
 
@@ -150,14 +158,18 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">Generate Message</h3>
-                    <p className="text-sm text-purple-100">AI-crafted outreach messages</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">
+                      Generate Message
+                    </h3>
+                    <p className="text-sm text-purple-100">
+                      AI-crafted outreach messages
+                    </p>
                   </div>
                   <MessageCircle className="h-8 w-8" />
                 </div>
-                <Button 
+                <Button
                   onClick={handleGenerateMessage}
-                  variant="secondary" 
+                  variant="secondary"
                   className="w-full mt-4"
                 >
                   Start Writing
@@ -170,14 +182,18 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">Find Contacts</h3>
-                    <p className="text-sm text-green-100">AI-recommended people to reach</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">
+                      Find Contacts
+                    </h3>
+                    <p className="text-sm text-green-100">
+                      AI-recommended people to reach
+                    </p>
                   </div>
                   <Users className="h-8 w-8" />
                 </div>
-                <Button 
+                <Button
                   onClick={handleFindContacts}
-                  variant="secondary" 
+                  variant="secondary"
                   className="w-full mt-4"
                 >
                   Discover People
@@ -190,8 +206,12 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">Target Companies</h3>
-                    <p className="text-sm text-blue-100">Find your ideal employers</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">
+                      Target Companies
+                    </h3>
+                    <p className="text-sm text-blue-100">
+                      Find your ideal employers
+                    </p>
                   </div>
                   <Building className="h-8 w-8" />
                 </div>
@@ -214,29 +234,44 @@ const Dashboard = () => {
                   Your Networking Progress
                 </CardTitle>
                 <CardDescription>
-                  Track your journey to building meaningful professional connections
+                  Track your journey to building meaningful professional
+                  connections
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Overall Progress</span>
-                    <span className="text-sm text-gray-500">{completionPercentage}%</span>
+                    <span className="text-sm font-medium">
+                      Overall Progress
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {completionPercentage}%
+                    </span>
                   </div>
                   <Progress value={completionPercentage} className="h-2" />
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{stats.totalCompanies}</div>
-                      <div className="text-sm text-gray-500">Target Companies</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {stats.totalCompanies}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Target Companies
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{stats.totalContacts}</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {stats.totalContacts}
+                      </div>
                       <div className="text-sm text-gray-500">Key Contacts</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{stats.messagesSent}</div>
-                      <div className="text-sm text-gray-500">Messages Crafted</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {stats.messagesSent}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Messages Crafted
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -254,16 +289,26 @@ const Dashboard = () => {
                       <div key={index} className="flex items-start gap-3">
                         <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900 truncate">{activity.description}</p>
-                          <p className="text-xs text-gray-500">{activity.date}</p>
+                          <p className="text-sm text-gray-900 truncate">
+                            {activity.description}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {activity.date}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-gray-500 mb-2">No recent activity</p>
-                    <Button onClick={handleGetStarted} size="sm" variant="outline">
+                    <p className="text-sm text-gray-500 mb-2">
+                      No recent activity
+                    </p>
+                    <Button
+                      onClick={handleGetStarted}
+                      size="sm"
+                      variant="outline"
+                    >
                       Get Started
                     </Button>
                   </div>
@@ -280,15 +325,33 @@ const Dashboard = () => {
                   <Zap className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">💡 Pro Tip</h3>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    💡 Pro Tip
+                  </h3>
                   <p className="text-blue-800 mb-3">
-                    Start by adding your target companies, then let AI find the perfect contacts for you. 
-                    Our message generator creates personalized outreach that gets responses.
+                    Start by adding your target companies, then let AI find the
+                    perfect contacts for you. Our message generator creates
+                    personalized outreach that gets responses.
                   </p>
                   <div className="flex gap-2">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">Quick Setup</Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">AI-Powered</Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">High Success Rate</Badge>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-100 text-blue-800"
+                    >
+                      Quick Setup
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-100 text-blue-800"
+                    >
+                      AI-Powered
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-100 text-blue-800"
+                    >
+                      High Success Rate
+                    </Badge>
                   </div>
                 </div>
               </div>

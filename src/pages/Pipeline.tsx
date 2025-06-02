@@ -17,8 +17,19 @@ import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
-import { OutlineAction } from "@/components/ui/design-system/buttons";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
+
+// Design System Imports
+import {
+  PrimaryCard,
+  CardContent,
+  PrimaryAction,
+  OutlineAction,
+  GhostAction,
+  PageTitle,
+  SectionTitle,
+  PageDescription,
+  Button,
+} from "@/components/ui/design-system";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
@@ -244,7 +255,7 @@ const PipelineDashboard = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1>Company Targets and Contacts</h1>
+            <PageTitle>Company Targets and Contacts</PageTitle>
             <p>
               Manage your target companies and track your networking progress
             </p>

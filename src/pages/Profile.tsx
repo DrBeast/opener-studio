@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/design-system/buttons";
-// import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { OutlineAction } from "@/components/ui/design-system/buttons";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import {
   AirtableCard,
   AirtableCardContent,
@@ -26,8 +22,10 @@ import {
   PrimaryCard,
   CardContent,
   PrimaryAction,
+  OutlineAction,
   GhostAction,
   PageTitle,
+  SectionTitle,
   PageDescription,
   Button,
 } from "@/components/ui/design-system";
