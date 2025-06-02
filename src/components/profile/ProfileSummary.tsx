@@ -78,12 +78,8 @@ const ProfileSummary = ({
             <Star className="h-6 w-6 text-purple-600" />
           </div>
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900">
-              AI-Generated Profile Summary
-            </h3>
-            <p className="text-gray-600">
-              Intelligent analysis of your professional background
-            </p>
+            <h2>AI-Generated Profile Summary</h2>
+            <p>Intelligent analysis of your professional background</p>
           </div>
         </div>
         <OutlineAction onClick={onRegenerateAISummary}>

@@ -255,10 +255,10 @@ const Profile = () => {
             {/* Page Header */}
             <div className="flex flex-row items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1">
                   Professional Profile
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p>
                   Manage your professional information and AI-generated
                   summaries
                 </p>
@@ -295,9 +295,9 @@ const Profile = () => {
                 {/* Edit Form - Moved to the top when in edit mode */}
                 {editMode && (
                   <div className="border-t border-gray-100 pt-8">
-                    <h3 className="text-xl font-semibold mb-6 text-gray-900">
+                    <h2>
                       Edit Profile Information
-                    </h3>
+                    </h2>
 
                     <ProfessionalBackground
                       linkedinContent={linkedinContent}
