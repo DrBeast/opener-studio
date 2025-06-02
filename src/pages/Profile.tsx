@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/design-system/buttons";
+import { Button } from "@/components/ui/design-system/buttons";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { OutlineAction } from "@/components/ui/design-system/buttons";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
