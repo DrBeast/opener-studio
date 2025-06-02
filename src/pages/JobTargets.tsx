@@ -860,7 +860,7 @@ const JobTargets = () => {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-10"
                 >
-                  {/* Describe Your Ideal Role and Company */}
+                  {/* Describe Your Ideal Role and Company NOW BLYAT */}
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold text-gray-800">
                       Describe Your Ideal Role and Company
