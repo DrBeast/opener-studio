@@ -25,7 +25,7 @@ const SectionTitle = React.forwardRef<
   <h2
     ref={ref}
     className={cn(
-      "text-xl font-semibold text-[hsl(var(--normaltext))]",
+      "text-xl font-semibold text-[hsl(var(--normaltext))] mb-2",
       className
     )}
     {...props}
