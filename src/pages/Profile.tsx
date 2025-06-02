@@ -302,7 +302,7 @@ const Profile = () => {
                 {/* Edit Form - Moved to the top when in edit mode */}
                 {editMode && (
                   <div className="border-t border-gray-100 pt-8">
-                    <h2>Edit Profile Information</h2>
+                    <SectionTitle>Edit Profile Information</SectionTitle>
 
                     <ProfessionalBackground
                       linkedinContent={linkedinContent}

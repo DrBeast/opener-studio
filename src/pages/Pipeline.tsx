@@ -256,9 +256,9 @@ const PipelineDashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <PageTitle>Company Targets and Contacts</PageTitle>
-            <p>
+            <PageDescription>
               Manage your target companies and track your networking progress
-            </p>
+            </PageDescription>
           </div>
           <div className="flex gap-3">
             <OutlineAction

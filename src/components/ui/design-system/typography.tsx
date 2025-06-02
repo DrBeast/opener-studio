@@ -25,7 +25,7 @@ const SectionTitle = React.forwardRef<
   <h2
     ref={ref}
     className={cn(
-      "text-xl font-semibold text-[hsl(var(--foreground))]",
+      "text-xl font-semibold text-[hsl(var(--normaltext))]",
       className
     )}
     {...props}
@@ -40,7 +40,7 @@ const PageDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-[hsl(var(--foreground))]", className)}
+    className={cn("text-[hsl(var(--normaltext))]", className)}
     {...props}
   />
 ));

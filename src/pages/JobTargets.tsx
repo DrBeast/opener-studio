@@ -865,7 +865,7 @@ const JobTargets = () => {
                     </Label>
                     <Textarea
                       placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below."
-                      className="min-h-[120px] border-2 border-gray-200 rounded-lg bg-gray-50 focus:hsl(var(-foreground)) transition-colors shadow-sm"
+                      className="min-h-[120px] border-2 border-gray-200 rounded-lg bg-gray-50 focus:hsl(var(-normaltext)) transition-colors shadow-sm"
                       value={
                         form.watch("free_form_role_and_company_description") ||
                         ""
