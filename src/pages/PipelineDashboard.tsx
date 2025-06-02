@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,11 +34,11 @@ const PipelineDashboard = () => {
     handleSelectAll,
     sortField,
     sortDirection,
-    handleSort
+    handleSort,
   } = useCompanies();
 
   // State variables
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
@@ -49,54 +48,67 @@ const PipelineDashboard = () => {
     companyName: string;
   }>({
     isOpen: false,
-    companyId: '',
-    companyName: ''
+    companyId: "",
+    companyName: "",
   });
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(
+    null
+  );
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
-  const [contactDetailsTab, setContactDetailsTab] = useState<string>('details');
+  const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
     if (!sortField) return 0;
-    let aValue: any = '';
-    let bValue: any = '';
+    let aValue: any = "";
+    let bValue: any = "";
     switch (sortField) {
-      case 'name':
+      case "name":
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
         break;
-      case 'priority':
+      case "priority":
         const priorityOrder = {
-          'Top': 1,
-          'Medium': 2,
-          'Maybe': 3
+          Top: 1,
+          Medium: 2,
+          Maybe: 3,
         };
-        aValue = priorityOrder[a.user_priority as keyof typeof priorityOrder] || 4;
-        bValue = priorityOrder[b.user_priority as keyof typeof priorityOrder] || 4;
+        aValue =
+          priorityOrder[a.user_priority as keyof typeof priorityOrder] || 4;
+        bValue =
+          priorityOrder[b.user_priority as keyof typeof priorityOrder] || 4;
         break;
-      case 'latest_update':
-        aValue = a.latest_update?.interaction_date ? new Date(a.latest_update.interaction_date).getTime() : 0;
-        bValue = b.latest_update?.interaction_date ? new Date(b.latest_update.interaction_date).getTime() : 0;
+      case "latest_update":
+        aValue = a.latest_update?.interaction_date
+          ? new Date(a.latest_update.interaction_date).getTime()
+          : 0;
+        bValue = b.latest_update?.interaction_date
+          ? new Date(b.latest_update.interaction_date).getTime()
+          : 0;
         break;
-      case 'next_followup':
-        aValue = a.next_followup?.follow_up_due_date ? new Date(a.next_followup.follow_up_due_date).getTime() : 0;
-        bValue = b.next_followup?.follow_up_due_date ? new Date(b.next_followup.follow_up_due_date).getTime() : 0;
+      case "next_followup":
+        aValue = a.next_followup?.follow_up_due_date
+          ? new Date(a.next_followup.follow_up_due_date).getTime()
+          : 0;
+        bValue = b.next_followup?.follow_up_due_date
+          ? new Date(b.next_followup.follow_up_due_date).getTime()
+          : 0;
         break;
       default:
         return 0;
     }
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
   // Filter companies based on search term only
-  const filteredCompanies = sortedCompanies.filter(company => {
+  const filteredCompanies = sortedCompanies.filter((company) => {
     // Search filter
-    const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch =
+      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesSearch;
@@ -109,27 +121,27 @@ const PipelineDashboard = () => {
   const handleCompanyAdded = async (companyName: string) => {
     if (!user) return;
     try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('add_company_by_name', {
-        body: {
-          companyName
+      const { data, error } = await supabase.functions.invoke(
+        "add_company_by_name",
+        {
+          body: {
+            companyName,
+          },
         }
-      });
+      );
       if (error) throw error;
       await fetchCompanies();
       setIsAddCompanyModalOpen(false);
       toast({
         title: "Success",
-        description: "Company added successfully"
+        description: "Company added successfully",
       });
     } catch (error: any) {
       console.error("Error adding company:", error);
       toast({
         title: "Error",
         description: "Failed to add company",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -138,21 +150,22 @@ const PipelineDashboard = () => {
     if (!user) return;
     setIsGeneratingCompanies(true);
     try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('generate_companies');
+      const { data, error } = await supabase.functions.invoke(
+        "generate_companies"
+      );
       if (error) throw error;
-      if (data?.status === 'success') {
+      if (data?.status === "success") {
         await fetchCompanies();
         toast({
           title: "Success",
-          description: `Generated ${data.companies?.length || 0} new companies successfully`
+          description: `Generated ${
+            data.companies?.length || 0
+          } new companies successfully`,
         });
-      } else if (data?.status === 'warning') {
+      } else if (data?.status === "warning") {
         toast({
           title: "Notice",
-          description: data.message
+          description: data.message,
         });
       }
     } catch (error: any) {
@@ -160,7 +173,7 @@ const PipelineDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to generate companies",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsGeneratingCompanies(false);
@@ -188,61 +201,68 @@ const PipelineDashboard = () => {
     setContactModal({
       isOpen: true,
       companyId,
-      companyName
+      companyName,
     });
   };
 
   const handleContactClick = (contactId: string) => {
     setSelectedContactId(contactId);
-    setContactDetailsTab('details');
+    setContactDetailsTab("details");
     setIsContactDetailsOpen(true);
   };
-  
+
   const handleGenerateMessage = (contactId: string) => {
     setSelectedContactId(contactId);
-    setContactDetailsTab('messages');
+    setContactDetailsTab("messages");
     setIsContactDetailsOpen(true);
   };
-  
+
   const handleContactDetailClose = () => {
     setIsContactDetailsOpen(false);
     setSelectedContactId(null);
-    setContactDetailsTab('details');
+    setContactDetailsTab("details");
   };
-  
+
   const handleContactUpdated = async () => {
     await fetchCompanies();
   };
 
   if (isLoading) {
-    return <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
+    return (
+      <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>;
+      </div>
+    );
   }
 
-  return <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-8 max-w-full">
         <ProfileBreadcrumbs />
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent mb-2">
-              Company Targets and Contacts
+              Company Targets and Contacts TMP
             </h1>
-            <p className="text-gray-600">Manage your target companies and track your networking progress</p>
+            <p className="text-gray-600">
+              Manage your target companies and track your networking progress
+            </p>
           </div>
           <div className="flex gap-3">
-            <Button 
-              onClick={handleGenerateCompanies} 
-              disabled={isGeneratingCompanies} 
+            <Button
+              onClick={handleGenerateCompanies}
+              disabled={isGeneratingCompanies}
               variant="outline"
               className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              {isGeneratingCompanies ? "Generating..." : "Generate More Companies"}
+              {isGeneratingCompanies
+                ? "Generating..."
+                : "Generate More Companies"}
             </Button>
-            <Button 
-              onClick={handleAddCompany} 
+            <Button
+              onClick={handleAddCompany}
               className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Company
@@ -254,72 +274,77 @@ const PipelineDashboard = () => {
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-8">
-            <SearchAndFilters 
-              searchTerm={searchTerm} 
-              onSearchChange={setSearchTerm} 
-              selectedCount={selectedCompanies.size} 
-              onBulkRemove={handleBulkRemove} 
+            <SearchAndFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCount={selectedCompanies.size}
+              onBulkRemove={handleBulkRemove}
             />
 
-            {filteredCompanies.length === 0 ? 
-              <EmptyState 
-                searchTerm={searchTerm} 
-                hasFilters={false} 
-                onAddCompany={handleAddCompany} 
-                onGenerateCompanies={handleGenerateCompanies} 
-                isGeneratingCompanies={isGeneratingCompanies} 
-              /> : 
-              <EnhancedCompaniesTable 
-                companies={filteredCompanies} 
-                onCompanyClick={handleCompanyClick} 
-                onSetPriority={handleSetPriority} 
-                onBlacklist={handleBlacklist} 
-                newCompanyIds={newCompanyIds} 
-                highlightNew={highlightNew} 
-                selectedCompanies={selectedCompanies} 
-                onSelectCompany={handleSelectCompany} 
-                onSelectAll={handleSelectAll} 
-                sortField={sortField} 
-                sortDirection={sortDirection} 
-                onSort={handleSort} 
+            {filteredCompanies.length === 0 ? (
+              <EmptyState
+                searchTerm={searchTerm}
+                hasFilters={false}
+                onAddCompany={handleAddCompany}
+                onGenerateCompanies={handleGenerateCompanies}
+                isGeneratingCompanies={isGeneratingCompanies}
+              />
+            ) : (
+              <EnhancedCompaniesTable
+                companies={filteredCompanies}
+                onCompanyClick={handleCompanyClick}
+                onSetPriority={handleSetPriority}
+                onBlacklist={handleBlacklist}
+                newCompanyIds={newCompanyIds}
+                highlightNew={highlightNew}
+                selectedCompanies={selectedCompanies}
+                onSelectCompany={handleSelectCompany}
+                onSelectAll={handleSelectAll}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
                 onCreateContact={(companyId) => {
-                  const company = filteredCompanies.find(c => c.company_id === companyId);
-                  handleCreateContact(companyId, company?.name || '');
+                  const company = filteredCompanies.find(
+                    (c) => c.company_id === companyId
+                  );
+                  handleCreateContact(companyId, company?.name || "");
                 }}
                 onContactClick={handleContactClick}
                 onGenerateMessage={handleGenerateMessage}
               />
-            }
+            )}
           </CardContent>
         </Card>
 
         {/* Modals */}
-        <AddCompanyModal 
-          isOpen={isAddCompanyModalOpen} 
-          onClose={() => setIsAddCompanyModalOpen(false)} 
-          onAddCompany={handleCompanyAdded} 
-          isLoading={false} 
+        <AddCompanyModal
+          isOpen={isAddCompanyModalOpen}
+          onClose={() => setIsAddCompanyModalOpen(false)}
+          onAddCompany={handleCompanyAdded}
+          isLoading={false}
         />
-        
-        {selectedCompany && 
-          <CompanyDetails 
-            company={selectedCompany} 
-            isOpen={!!selectedCompany} 
-            onClose={handleCompanyDetailClose} 
-            onCompanyUpdated={handleCompanyUpdated} 
-          />
-        }
 
-        <EnhancedContactModal 
-          isOpen={contactModal.isOpen} 
-          onClose={() => setContactModal({
-            isOpen: false,
-            companyId: '',
-            companyName: ''
-          })} 
+        {selectedCompany && (
+          <CompanyDetails
+            company={selectedCompany}
+            isOpen={!!selectedCompany}
+            onClose={handleCompanyDetailClose}
+            onCompanyUpdated={handleCompanyUpdated}
+          />
+        )}
+
+        <EnhancedContactModal
+          isOpen={contactModal.isOpen}
+          onClose={() =>
+            setContactModal({
+              isOpen: false,
+              companyId: "",
+              companyName: "",
+            })
+          }
           companyId={contactModal.companyId}
           companyName={contactModal.companyName}
-          onSuccess={handleCompanyUpdated} 
+          onSuccess={handleCompanyUpdated}
         />
 
         {/* Enhanced Contact Details Modal */}
@@ -333,7 +358,8 @@ const PipelineDashboard = () => {
           />
         )}
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default PipelineDashboard;

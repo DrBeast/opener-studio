@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageCircle, User, Search, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +25,7 @@ import {
   CardTitle,
   Button,
   PageTitle,
-  PageDescription
+  PageDescription,
 } from "@/components/ui/design-system";
 
 interface ContactData {
@@ -48,56 +47,69 @@ interface ContactData {
 
 const TrackingDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
+  const [selectedContact, setSelectedContact] = useState<ContactData | null>(
+    null
+  );
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
-  
+
   // Fetch contacts from Supabase
-  const { data: contacts, isLoading, error, refetch } = useQuery({
-    queryKey: ['contacts'],
+  const {
+    data: contacts,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["contacts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('contacts')
-        .select(`
+        .from("contacts")
+        .select(
+          `
           *,
           companies (
             name
           )
-        `)
-        .order('updated_at', { ascending: false });
-        
+        `
+        )
+        .order("updated_at", { ascending: false });
+
       if (error) throw error;
       return data as ContactData[];
-    }
+    },
   });
-  
+
   // Filter contacts based on search query
-  const filteredContacts = contacts?.filter(contact => {
-    const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
-    const companyName = contact.companies?.name?.toLowerCase() || '';
-    const role = contact.role?.toLowerCase() || '';
+  const filteredContacts = contacts?.filter((contact) => {
+    const fullName = `${contact.first_name || ""} ${
+      contact.last_name || ""
+    }`.toLowerCase();
+    const companyName = contact.companies?.name?.toLowerCase() || "";
+    const role = contact.role?.toLowerCase() || "";
     const query = searchQuery.toLowerCase();
-    
-    return fullName.includes(query) || 
-           companyName.includes(query) || 
-           role.includes(query);
+
+    return (
+      fullName.includes(query) ||
+      companyName.includes(query) ||
+      role.includes(query)
+    );
   });
-  
+
   const handleViewDetails = (contact: ContactData) => {
     setSelectedContact(contact);
     setIsDetailsOpen(true);
   };
-  
+
   const handleGenerateMessage = (contact: ContactData) => {
     setSelectedContact(contact);
     setIsMessageOpen(true);
   };
-  
+
   const handleContactUpdated = () => {
     refetch();
     setIsDetailsOpen(false);
   };
-  
+
   if (error) {
     toast.error("Failed to load contacts");
   }
@@ -106,18 +118,18 @@ const TrackingDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-8 max-w-4xl">
         <ProfileBreadcrumbs />
-        
+
         <div className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
                 <CardTitle>Contacts</CardTitle>
                 <CardDescription>
-                  View and manage your saved contacts
+                  View and manage your saved contacts - TrackingDashboard.tsx
                 </CardDescription>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <div className="mb-6 flex items-center justify-between">
                 <div className="relative w-full max-w-sm">
@@ -130,7 +142,7 @@ const TrackingDashboard = () => {
                   />
                 </div>
               </div>
-              
+
               {isLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -151,10 +163,12 @@ const TrackingDashboard = () => {
                       {filteredContacts.map((contact) => (
                         <TableRow key={contact.contact_id}>
                           <TableCell className="font-medium">
-                            {contact.first_name || ''} {contact.last_name || ''}
+                            {contact.first_name || ""} {contact.last_name || ""}
                           </TableCell>
-                          <TableCell>{contact.companies?.name || 'N/A'}</TableCell>
-                          <TableCell>{contact.role || 'N/A'}</TableCell>
+                          <TableCell>
+                            {contact.companies?.name || "N/A"}
+                          </TableCell>
+                          <TableCell>{contact.role || "N/A"}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               <Button
@@ -183,31 +197,35 @@ const TrackingDashboard = () => {
               ) : (
                 <div className="bg-gray-50 rounded-lg p-8 text-center">
                   <User className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                  <h3 className="text-lg font-medium mb-1 text-gray-900">No contacts found</h3>
+                  <h3 className="text-lg font-medium mb-1 text-gray-900">
+                    No contacts found
+                  </h3>
                   <p className="text-gray-600 mb-4">
-                    {searchQuery ? "No contacts match your search criteria" : "You haven't saved any contacts yet"}
+                    {searchQuery
+                      ? "No contacts match your search criteria"
+                      : "You haven't saved any contacts yet"}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Contact Details Dialog */}
         {selectedContact && (
-          <ContactDetails 
+          <ContactDetails
             contact={selectedContact}
             isOpen={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
             onContactUpdated={handleContactUpdated}
           />
         )}
-        
+
         {/* Message Generation Dialog */}
         {selectedContact && selectedContact.companies && (
           <MessageGeneration
             contact={selectedContact}
-            companyName={selectedContact.companies.name || ''}
+            companyName={selectedContact.companies.name || ""}
             isOpen={isMessageOpen}
             onClose={() => setIsMessageOpen(false)}
           />

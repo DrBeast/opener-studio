@@ -4,29 +4,58 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 
 // UI Components
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 // Icons
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Search, 
-  Plus, 
-  Filter, 
-  RefreshCw, 
-  Trash2, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Plus,
+  Filter,
+  RefreshCw,
+  Trash2,
   ArrowUpDown,
   FileText,
   UserRound,
@@ -36,7 +65,7 @@ import {
   CheckCircle,
   X,
   Edit,
-  Target
+  Target,
 } from "lucide-react";
 
 // Job Target Components
@@ -55,7 +84,7 @@ interface CompanyData {
   ai_description?: string;
   match_quality_score?: number;
   ai_match_reasoning?: string;
-  user_priority?: 'Top' | 'Medium' | 'Maybe'; // This aligns with the database values
+  user_priority?: "Top" | "Medium" | "Maybe"; // This aligns with the database values
   latest_update: {
     interaction_id: string;
     description: string;
@@ -113,13 +142,17 @@ const ConsolidatedJobSearch = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  
+
   // State
   const [searchQuery, setSearchQuery] = useState("");
   const [openCriteria, setOpenCriteria] = useState(false);
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
-  const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
+    null
+  );
+  const [selectedContact, setSelectedContact] = useState<ContactData | null>(
+    null
+  );
   const [filterPriority, setFilterPriority] = useState<string | null>(null);
   const [sortField, setSortField] = useState("user_priority");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -134,7 +167,7 @@ const ConsolidatedJobSearch = () => {
 
   // Target criteria Form state
   const [showTargetForm, setShowTargetForm] = useState(false);
-  
+
   // Navigation handlers
   const handleEditProfile = () => {
     navigate("/profile/edit");
@@ -145,115 +178,131 @@ const ConsolidatedJobSearch = () => {
   };
 
   // Fetch companies overview
-  const { data: companiesData, isLoading, error, refetch } = useQuery({
-    queryKey: ['companies-overview', filterPriority, sortField, sortDirection],
+  const {
+    data: companiesData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["companies-overview", filterPriority, sortField, sortDirection],
     queryFn: async () => {
       try {
         // Call the get_companies_overview edge function
-        const { data, error } = await supabase.functions.invoke('get_companies_overview', {});
-        
+        const { data, error } = await supabase.functions.invoke(
+          "get_companies_overview",
+          {}
+        );
+
         if (error) throw error;
         return data.companies;
       } catch (error) {
-        console.error('Error fetching companies:', error);
+        console.error("Error fetching companies:", error);
         throw error;
       }
     },
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Fetch target criteria
   const { data: targetCriteria } = useQuery({
-    queryKey: ['target-criteria'],
+    queryKey: ["target-criteria"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('target_criteria')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("target_criteria")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      
+
       if (error) throw error;
       return data as TargetCriteriaData;
     },
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Remove companies mutation
   const removeCompaniesMutation = useMutation({
     mutationFn: async (companyIds: string[]) => {
-      const { data, error } = await supabase.functions.invoke('remove_companies', {
-        body: { companyIds }
-      });
-      
+      const { data, error } = await supabase.functions.invoke(
+        "remove_companies",
+        {
+          body: { companyIds },
+        }
+      );
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: 'Selected companies removed'
+        description: "Selected companies removed",
       });
       setSelectedCompanyIds([]);
-      queryClient.invalidateQueries({ queryKey: ['companies-overview'] });
+      queryClient.invalidateQueries({ queryKey: ["companies-overview"] });
     },
     onError: (error) => {
-      console.error('Error removing companies:', error);
+      console.error("Error removing companies:", error);
       toast({
         title: "Error",
-        description: 'Failed to remove companies',
-        variant: "destructive"
+        description: "Failed to remove companies",
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Add company by name mutation
   const addCompanyMutation = useMutation({
     mutationFn: async (companyName: string) => {
-      const { data, error } = await supabase.functions.invoke('add_company_by_name', {
-        body: { companyName }
-      });
-      
+      const { data, error } = await supabase.functions.invoke(
+        "add_company_by_name",
+        {
+          body: { companyName },
+        }
+      );
+
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
       toast({
         title: "Success",
-        description: `Company ${data.company.name} added successfully`
+        description: `Company ${data.company.name} added successfully`,
       });
-      queryClient.invalidateQueries({ queryKey: ['companies-overview'] });
+      queryClient.invalidateQueries({ queryKey: ["companies-overview"] });
     },
     onError: (error: any) => {
-      console.error('Error adding company:', error);
-      if (error.message === 'Company already exists') {
+      console.error("Error adding company:", error);
+      if (error.message === "Company already exists") {
         toast({
           title: "Error",
-          description: 'This company already exists in your list',
-          variant: "destructive"
+          description: "This company already exists in your list",
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Error",
-          description: 'Failed to add company',
-          variant: "destructive"
+          description: "Failed to add company",
+          variant: "destructive",
         });
       }
-    }
+    },
   });
 
   // Filter companies based on search query
   const filteredCompanies = companiesData?.filter((company: CompanyData) => {
     if (!searchQuery) return true;
-    
+
     // Apply priority filter if set
-    if (filterPriority && company.user_priority !== filterPriority) return false;
-    
+    if (filterPriority && company.user_priority !== filterPriority)
+      return false;
+
     const query = searchQuery.toLowerCase();
-    const contactNames = company.contacts
-      ?.map(c => `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase())
-      .join(' ') || '';
-    
+    const contactNames =
+      company.contacts
+        ?.map((c) => `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase())
+        .join(" ") || "";
+
     return (
       company.name.toLowerCase().includes(query) ||
       (company.industry || "").toLowerCase().includes(query) ||
@@ -267,18 +316,18 @@ const ConsolidatedJobSearch = () => {
   const handleSort = (field: string) => {
     if (sortField === field) {
       // Toggle direction
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   // Handle company selection
   const handleSelectCompany = (companyId: string) => {
-    setSelectedCompanyIds(prev => {
+    setSelectedCompanyIds((prev) => {
       if (prev.includes(companyId)) {
-        return prev.filter(id => id !== companyId);
+        return prev.filter((id) => id !== companyId);
       } else {
         return [...prev, companyId];
       }
@@ -290,7 +339,9 @@ const ConsolidatedJobSearch = () => {
     if (selectedCompanyIds.length === (filteredCompanies?.length || 0)) {
       setSelectedCompanyIds([]);
     } else {
-      const allIds = filteredCompanies?.map((company: CompanyData) => company.company_id) || [];
+      const allIds =
+        filteredCompanies?.map((company: CompanyData) => company.company_id) ||
+        [];
       setSelectedCompanyIds(allIds);
     }
   };
@@ -300,12 +351,12 @@ const ConsolidatedJobSearch = () => {
     if (selectedCompanyIds.length === 0) {
       toast({
         title: "Error",
-        description: 'No companies selected',
-        variant: "destructive"
+        description: "No companies selected",
+        variant: "destructive",
       });
       return;
     }
-    
+
     removeCompaniesMutation.mutate(selectedCompanyIds);
   };
 
@@ -329,34 +380,34 @@ const ConsolidatedJobSearch = () => {
 
   // Handle generate more companies
   const handleGenerateMoreCompanies = async (useDifferentCriteria = false) => {
-    // This is a placeholder - in a real implementation, you would call 
+    // This is a placeholder - in a real implementation, you would call
     // the generate_companies edge function with the current criteria
     setIsGeneratingCompanies(true);
     toast({
-      title: "Info", 
-      description: 'Generating more companies...'
+      title: "Info",
+      description: "Generating more companies...",
     });
-    
+
     try {
       // Mock delay to simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       if (useDifferentCriteria) {
         setShowTargetForm(true);
       } else {
         // In real implementation, call generate_companies
         toast({
           title: "Success",
-          description: '10 more companies generated'
+          description: "10 more companies generated",
         });
         refetch();
       }
     } catch (error) {
-      console.error('Error generating companies:', error);
+      console.error("Error generating companies:", error);
       toast({
         title: "Error",
-        description: 'Failed to generate companies',
-        variant: "destructive"
+        description: "Failed to generate companies",
+        variant: "destructive",
       });
     } finally {
       setIsGeneratingCompanies(false);
@@ -365,26 +416,31 @@ const ConsolidatedJobSearch = () => {
 
   // Format a date nicely
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
   };
 
   // Format contact name with initial
-  const formatContactName = (contact: { first_name?: string, last_name?: string }) => {
-    const firstName = contact.first_name || '';
-    const lastInitial = contact.last_name ? `${contact.last_name.charAt(0)}.` : '';
-    return firstName + (lastInitial ? ` ${lastInitial}` : '');
+  const formatContactName = (contact: {
+    first_name?: string;
+    last_name?: string;
+  }) => {
+    const firstName = contact.first_name || "";
+    const lastInitial = contact.last_name
+      ? `${contact.last_name.charAt(0)}.`
+      : "";
+    return firstName + (lastInitial ? ` ${lastInitial}` : "");
   };
 
   // Get priority badge class
   const getPriorityBadgeClass = (priority?: string) => {
     switch (priority) {
-      case 'Top':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'Medium':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case "Top":
+        return "bg-purple-100 text-purple-800 border-purple-300";
+      case "Medium":
+        return "bg-indigo-100 text-indigo-800 border-indigo-300";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
 
@@ -392,7 +448,7 @@ const ConsolidatedJobSearch = () => {
     toast({
       title: "Error",
       description: "Failed to load companies",
-      variant: "destructive"
+      variant: "destructive",
     });
     console.error(error);
   }
@@ -400,7 +456,7 @@ const ConsolidatedJobSearch = () => {
   return (
     <div className="container mx-auto py-8 max-w-full">
       <ProfileBreadcrumbs />
-      
+
       <div className="space-y-6">
         {/* Navigation Buttons */}
         <div className="flex flex-wrap gap-3 mb-4">
@@ -419,9 +475,12 @@ const ConsolidatedJobSearch = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
-                <CardTitle className="text-2xl font-bold">Target Criteria</CardTitle>
+                <CardTitle className="text-2xl font-bold">
+                  Target Criteria
+                </CardTitle>
                 <CardDescription>
-                  Define your target role and company criteria
+                  Define your target role and company criteria - -
+                  ConsolidatedJobSearch.tsx
                 </CardDescription>
               </div>
               <CollapsibleTrigger asChild>
@@ -430,7 +489,7 @@ const ConsolidatedJobSearch = () => {
                 </Button>
               </CollapsibleTrigger>
             </CardHeader>
-            
+
             <CollapsibleContent>
               <CardContent>
                 {!showTargetForm ? (
@@ -439,18 +498,23 @@ const ConsolidatedJobSearch = () => {
                       <div>
                         <div className="space-y-4">
                           <div>
-                            <h3 className="font-medium text-lg">Role & Company Description</h3>
+                            <h3 className="font-medium text-lg">
+                              Role & Company Description
+                            </h3>
                             <p className="text-muted-foreground">
-                              {targetCriteria.free_form_role_and_company_description || 'No description provided'}
+                              {targetCriteria.free_form_role_and_company_description ||
+                                "No description provided"}
                             </p>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 gap-4">
                             {targetCriteria.target_industries && (
                               <div>
                                 <h4 className="font-medium">Industries</h4>
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(targetCriteria.target_industries).map((industry) => (
+                                  {Object.keys(
+                                    targetCriteria.target_industries
+                                  ).map((industry) => (
                                     <Badge key={industry} variant="secondary">
                                       {industry}
                                     </Badge>
@@ -458,12 +522,14 @@ const ConsolidatedJobSearch = () => {
                                 </div>
                               </div>
                             )}
-                            
+
                             {targetCriteria.target_locations && (
                               <div>
                                 <h4 className="font-medium">Locations</h4>
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(targetCriteria.target_locations).map((location) => (
+                                  {Object.keys(
+                                    targetCriteria.target_locations
+                                  ).map((location) => (
                                     <Badge key={location} variant="secondary">
                                       {location}
                                     </Badge>
@@ -472,7 +538,7 @@ const ConsolidatedJobSearch = () => {
                               </div>
                             )}
                           </div>
-                          
+
                           <div className="flex justify-end space-x-2">
                             <Button onClick={() => setShowTargetForm(true)}>
                               Edit Criteria
@@ -483,7 +549,8 @@ const ConsolidatedJobSearch = () => {
                     ) : (
                       <div className="flex flex-col items-center justify-center py-10 space-y-4">
                         <p className="text-muted-foreground">
-                          No target criteria defined yet. Define your job search criteria to get started.
+                          No target criteria defined yet. Define your job search
+                          criteria to get started.
                         </p>
                         <Button onClick={() => setShowTargetForm(true)}>
                           Define Target Criteria
@@ -492,11 +559,13 @@ const ConsolidatedJobSearch = () => {
                     )}
                   </div>
                 ) : (
-                  <TargetCriteriaForm 
+                  <TargetCriteriaForm
                     onCancel={() => setShowTargetForm(false)}
                     onSaved={() => {
                       setShowTargetForm(false);
-                      queryClient.invalidateQueries({ queryKey: ['target-criteria'] });
+                      queryClient.invalidateQueries({
+                        queryKey: ["target-criteria"],
+                      });
                     }}
                     initialData={targetCriteria}
                   />
@@ -505,18 +574,20 @@ const ConsolidatedJobSearch = () => {
             </CollapsibleContent>
           </Card>
         </Collapsible>
-        
+
         {/* Companies Table */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle className="text-2xl font-bold">Target Companies</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Target Companies
+              </CardTitle>
               <CardDescription>
                 Manage your target companies and interactions
               </CardDescription>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
@@ -528,11 +599,13 @@ const ConsolidatedJobSearch = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
+
               <div className="flex gap-2">
                 <Select
                   value={filterPriority || "none"}
-                  onValueChange={(value) => setFilterPriority(value === "none" ? null : value)}
+                  onValueChange={(value) =>
+                    setFilterPriority(value === "none" ? null : value)
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <div className="flex items-center">
@@ -548,33 +621,39 @@ const ConsolidatedJobSearch = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex justify-end gap-2">
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setIsAddCompanyOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Company
                 </Button>
-                <Button 
+                <Button
                   variant="action"
                   onClick={() => handleGenerateMoreCompanies()}
                   disabled={isGeneratingCompanies || !targetCriteria}
                 >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${
+                      isGeneratingCompanies ? "animate-spin" : ""
+                    }`}
+                  />
                   Generate More
                 </Button>
               </div>
             </div>
-            
+
             {selectedCompanyIds.length > 0 && (
               <div className="flex items-center justify-between mb-4 bg-muted/20 p-2 rounded">
                 <div className="text-sm">
-                  {selectedCompanyIds.length} {selectedCompanyIds.length === 1 ? 'company' : 'companies'} selected
+                  {selectedCompanyIds.length}{" "}
+                  {selectedCompanyIds.length === 1 ? "company" : "companies"}{" "}
+                  selected
                 </div>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedCompanyIds([])}
@@ -582,7 +661,7 @@ const ConsolidatedJobSearch = () => {
                     <X className="h-4 w-4 mr-1" />
                     Clear
                   </Button>
-                  <Button 
+                  <Button
                     variant="destructive"
                     size="sm"
                     onClick={handleRemoveSelected}
@@ -594,7 +673,7 @@ const ConsolidatedJobSearch = () => {
                 </div>
               </div>
             )}
-            
+
             {isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-8 w-full" />
@@ -608,22 +687,26 @@ const ConsolidatedJobSearch = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-[50px]">
-                        <Checkbox 
-                          checked={selectedCompanyIds.length === filteredCompanies.length && filteredCompanies.length > 0}
+                        <Checkbox
+                          checked={
+                            selectedCompanyIds.length ===
+                              filteredCompanies.length &&
+                            filteredCompanies.length > 0
+                          }
                           onCheckedChange={handleSelectAll}
                           aria-label="Select all companies"
                         />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="cursor-pointer w-[100px]"
-                        onClick={() => handleSort('user_priority')}
+                        onClick={() => handleSort("user_priority")}
                       >
                         Priority
                         <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="cursor-pointer"
-                        onClick={() => handleSort('name')}
+                        onClick={() => handleSort("name")}
                       >
                         Company
                         <ArrowUpDown className="ml-2 h-4 w-4 inline" />
@@ -642,32 +725,40 @@ const ConsolidatedJobSearch = () => {
                       <TableRow key={company.company_id}>
                         <TableCell>
                           <Checkbox
-                            checked={selectedCompanyIds.includes(company.company_id)}
-                            onCheckedChange={() => handleSelectCompany(company.company_id)}
+                            checked={selectedCompanyIds.includes(
+                              company.company_id
+                            )}
+                            onCheckedChange={() =>
+                              handleSelectCompany(company.company_id)
+                            }
                             aria-label={`Select ${company.name}`}
                           />
                         </TableCell>
                         <TableCell>
-                          <Select 
-                            value={company.user_priority || "Maybe"} 
+                          <Select
+                            value={company.user_priority || "Maybe"}
                             onValueChange={async (value) => {
                               const { error } = await supabase
-                                .from('companies')
+                                .from("companies")
                                 .update({ user_priority: value })
-                                .eq('company_id', company.company_id);
-                              
+                                .eq("company_id", company.company_id);
+
                               if (error) {
                                 toast({
                                   title: "Error",
                                   description: "Failed to update priority",
-                                  variant: "destructive"
+                                  variant: "destructive",
                                 });
                               } else {
                                 refetch();
                               }
                             }}
                           >
-                            <SelectTrigger className={`w-full border ${getPriorityBadgeClass(company.user_priority)}`}>
+                            <SelectTrigger
+                              className={`w-full border ${getPriorityBadgeClass(
+                                company.user_priority
+                              )}`}
+                            >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -678,7 +769,7 @@ const ConsolidatedJobSearch = () => {
                           </Select>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <div 
+                          <div
                             className="font-medium hover:underline cursor-pointer"
                             onClick={() => handleViewCompany(company)}
                           >
@@ -690,15 +781,19 @@ const ConsolidatedJobSearch = () => {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>{company.hq_location || 'Unknown'}</TableCell>
-                        <TableCell>{company.wfh_policy || 'Unknown'}</TableCell>
+                        <TableCell>
+                          {company.hq_location || "Unknown"}
+                        </TableCell>
+                        <TableCell>{company.wfh_policy || "Unknown"}</TableCell>
                         <TableCell className="max-w-[200px]">
                           {company.ai_match_reasoning ? (
                             <div className="text-xs text-muted-foreground line-clamp-2">
                               {company.ai_match_reasoning}
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">No match reasoning</span>
+                            <span className="text-xs text-muted-foreground">
+                              No match reasoning
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -707,16 +802,33 @@ const ConsolidatedJobSearch = () => {
                               {/* Show only top 3 contacts, sorted by latest interaction */}
                               {[...company.contacts]
                                 .sort((a, b) => {
-                                  const dateA = a.latest_interaction?.interaction_date ? new Date(a.latest_interaction.interaction_date).getTime() : 0;
-                                  const dateB = b.latest_interaction?.interaction_date ? new Date(b.latest_interaction.interaction_date).getTime() : 0;
+                                  const dateA = a.latest_interaction
+                                    ?.interaction_date
+                                    ? new Date(
+                                        a.latest_interaction.interaction_date
+                                      ).getTime()
+                                    : 0;
+                                  const dateB = b.latest_interaction
+                                    ?.interaction_date
+                                    ? new Date(
+                                        b.latest_interaction.interaction_date
+                                      ).getTime()
+                                    : 0;
                                   return dateB - dateA;
                                 })
                                 .slice(0, 3)
                                 .map((contact) => (
-                                  <div key={contact.contact_id} className="group flex items-center gap-1">
+                                  <div
+                                    key={contact.contact_id}
+                                    className="group flex items-center gap-1"
+                                  >
                                     <div className="text-sm">
                                       {formatContactName(contact)}
-                                      {contact.role && <span className="text-xs text-muted-foreground ml-1">({contact.role})</span>}
+                                      {contact.role && (
+                                        <span className="text-xs text-muted-foreground ml-1">
+                                          ({contact.role})
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 ))}
@@ -728,43 +840,55 @@ const ConsolidatedJobSearch = () => {
                             </div>
                           ) : (
                             <div className="flex items-center group">
-                              <span className="text-muted-foreground text-sm">No contacts</span>
+                              <span className="text-muted-foreground text-sm">
+                                No contacts
+                              </span>
                             </div>
                           )}
                         </TableCell>
                         <TableCell>
-                          {company.latest_update && company.latest_update.description ? (
+                          {company.latest_update &&
+                          company.latest_update.description ? (
                             <div className="flex flex-col">
                               <div className="text-xs text-muted-foreground flex items-center">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(company.latest_update.interaction_date)}
+                                {formatDate(
+                                  company.latest_update.interaction_date
+                                )}
                               </div>
                               <div className="text-sm line-clamp-2">
                                 {company.latest_update.description}
                               </div>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground text-sm">No interactions</div>
+                            <div className="text-muted-foreground text-sm">
+                              No interactions
+                            </div>
                           )}
                         </TableCell>
                         <TableCell>
-                          {company.next_followup && company.next_followup.description ? (
+                          {company.next_followup &&
+                          company.next_followup.description ? (
                             <div className="flex flex-col">
                               <div className="text-xs flex items-center font-medium">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {formatDate(company.next_followup.follow_up_due_date)}
+                                {formatDate(
+                                  company.next_followup.follow_up_due_date
+                                )}
                               </div>
                               <div className="text-sm line-clamp-2">
                                 {company.next_followup.description}
                               </div>
                             </div>
                           ) : (
-                            <div className="text-muted-foreground text-sm">No follow-ups</div>
+                            <div className="text-muted-foreground text-sm">
+                              No follow-ups
+                            </div>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            <Button 
+                            <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handlePlanInteraction(company)}
@@ -772,7 +896,7 @@ const ConsolidatedJobSearch = () => {
                               <MessageCircle className="h-4 w-4 mr-1" />
                               Plan
                             </Button>
-                            <Button 
+                            <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewCompany(company)}
@@ -802,7 +926,10 @@ const ConsolidatedJobSearch = () => {
                     Add Company
                   </Button>
                   {targetCriteria && (
-                    <Button variant="action" onClick={() => handleGenerateMoreCompanies()}>
+                    <Button
+                      variant="action"
+                      onClick={() => handleGenerateMoreCompanies()}
+                    >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Generate Companies
                     </Button>
@@ -810,14 +937,15 @@ const ConsolidatedJobSearch = () => {
                 </div>
               </div>
             )}
-            
+
             {filteredCompanies?.length > 0 && (
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  Showing {filteredCompanies.length} {filteredCompanies.length === 1 ? 'company' : 'companies'}
+                  Showing {filteredCompanies.length}{" "}
+                  {filteredCompanies.length === 1 ? "company" : "companies"}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsAddCompanyOpen(true)}
@@ -825,16 +953,20 @@ const ConsolidatedJobSearch = () => {
                     <Plus className="h-4 w-4 mr-1" />
                     Add Company
                   </Button>
-                  <Button 
+                  <Button
                     variant="action"
                     size="sm"
                     onClick={() => handleGenerateMoreCompanies()}
                     disabled={isGeneratingCompanies || !targetCriteria}
                   >
-                    <RefreshCw className={`h-4 w-4 mr-1 ${isGeneratingCompanies ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${
+                        isGeneratingCompanies ? "animate-spin" : ""
+                      }`}
+                    />
                     Generate More
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleGenerateMoreCompanies(true)}
@@ -849,10 +981,10 @@ const ConsolidatedJobSearch = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Company Details Dialog */}
       {selectedCompany && (
-        <CompanyDetails 
+        <CompanyDetails
           company={selectedCompany}
           isOpen={isDetailsOpen}
           onClose={() => setIsDetailsOpen(false)}
@@ -875,22 +1007,22 @@ const ConsolidatedJobSearch = () => {
           isPlanningMode={true}
         />
       )}
-      
+
       {/* Contact Details Dialog */}
       {selectedContact && (
-        <ContactDetails 
+        <ContactDetails
           contact={selectedContact}
           isOpen={isContactDetailsOpen}
           onClose={() => setIsContactDetailsOpen(false)}
           onContactUpdated={() => refetch()}
         />
       )}
-      
+
       {/* Message Generation Dialog */}
       {selectedContact && selectedContact.companies && (
         <MessageGeneration
           contact={selectedContact}
-          companyName={selectedContact.companies.name || ''}
+          companyName={selectedContact.companies.name || ""}
           isOpen={isMessageOpen}
           onClose={() => setIsMessageOpen(false)}
         />
