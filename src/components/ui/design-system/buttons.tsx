@@ -66,7 +66,12 @@ PrimaryAction.displayName = "PrimaryAction";
 
 const OutlineAction = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, ...props }, ref) => (
-    <Button ref={ref} variant="outline" className={className} {...props} />
+    <Button
+      ref={ref}
+      variant="outline"
+      className={cn("flex items-center gap-2", className)}
+      {...props}
+    />
   )
 );
 OutlineAction.displayName = "OutlineAction";
