@@ -242,15 +242,15 @@ const PipelineDashboard = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-[hsl(var(--foreground))] bg-clip-text text-transparent mb-2">
-              Company Targets and Contacts TMP
+            <h1 className="text-3xl font-bold text-[hsl(var(--foreground))] bg-clip-text mb-2">
+              Company Targets and Contacts TMP nontr
             </h1>
             <p className="text-[hsl(var(--foreground))]">
               Manage your target companies and track your networking progress
             </p>
           </div>
           <div className="flex gap-3">
-            <Button
+            <OutlineAction
               onClick={handleGenerateCompanies}
               disabled={isGeneratingCompanies}
               variant="outline"
@@ -259,7 +259,7 @@ const PipelineDashboard = () => {
               {isGeneratingCompanies
                 ? "Generating..."
                 : "Generate More Companies"}
-            </Button>
+            </OutlineAction>
             <Button
               onClick={handleAddCompany}
               className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
