@@ -9,7 +9,7 @@ const PageTitle = React.forwardRef<
   <h1
     ref={ref}
     className={cn(
-      "text-3xl font-bold text-[hsl(var(--foreground))]",
+      "text-3xl font-bold text-[hsl(var(--foreground))] mb-2",
       className
     )}
     {...props}
