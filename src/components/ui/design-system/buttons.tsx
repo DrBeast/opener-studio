@@ -60,7 +60,6 @@ const PrimaryAction = React.forwardRef<HTMLButtonElement, ButtonProps>(
 PrimaryAction.displayName = "PrimaryAction";
 
 const OutlineAction = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  "inline-flex items-center gap-2",
   ({ className, ...props }, ref) => (
     <Button ref={ref} variant="outline" className={className} {...props} />
   )
