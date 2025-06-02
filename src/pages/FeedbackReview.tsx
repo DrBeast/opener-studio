@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -8,10 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AirtableCard, AirtableCardContent, AirtableCardHeader, AirtableCardTitle } from "@/components/ui/airtable-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { format } from "date-fns";
-import { Loader2, MessageSquare, Users, Calendar } from "lucide-react";
+import { MessageSquare, Users, Calendar } from "lucide-react";
+
+// Design System Imports
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  PageTitle,
+  PageDescription
+} from "@/components/ui/design-system";
 
 interface FeedbackEntry {
   feedback_id: string;
@@ -90,7 +100,7 @@ const FeedbackReview = () => {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
+                <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
                 <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-300 rounded-full animate-ping mx-auto"></div>
               </div>
               <div className="space-y-2">
@@ -108,16 +118,16 @@ const FeedbackReview = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <AirtableCard>
-            <AirtableCardContent className="pt-6">
+          <Card>
+            <CardContent className="pt-6">
               <div className="text-center space-y-4">
                 <div className="p-3 bg-red-100 rounded-full w-fit mx-auto">
                   <MessageSquare className="h-6 w-6 text-red-600" />
                 </div>
                 <p className="text-red-600 font-medium">{error}</p>
               </div>
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -127,18 +137,18 @@ const FeedbackReview = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <PageTitle className="mb-2">
             Beta User Feedback Review
-          </h1>
-          <p className="text-lg text-gray-600">
+          </PageTitle>
+          <PageDescription className="text-lg">
             Insights and suggestions from our beta testing community
-          </p>
+          </PageDescription>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <AirtableCard className="bg-gradient-to-r from-purple-500 to-purple-600 border-purple-300">
-            <AirtableCardContent className="p-6">
+          <Card className="bg-purple-600 border-purple-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold mb-1 text-white">Total Feedback</h3>
@@ -146,11 +156,11 @@ const FeedbackReview = () => {
                 </div>
                 <MessageSquare className="h-8 w-8 text-white opacity-80" />
               </div>
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </Card>
 
-          <AirtableCard className="bg-gradient-to-r from-green-500 to-green-600 border-green-300">
-            <AirtableCardContent className="p-6">
+          <Card className="bg-green-600 border-green-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold mb-1 text-white">Unique Users</h3>
@@ -158,11 +168,11 @@ const FeedbackReview = () => {
                 </div>
                 <Users className="h-8 w-8 text-white opacity-80" />
               </div>
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </Card>
 
-          <AirtableCard className="bg-gradient-to-r from-blue-500 to-blue-600 border-blue-300">
-            <AirtableCardContent className="p-6">
+          <Card className="bg-blue-600 border-blue-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold mb-1 text-white">Latest Entry</h3>
@@ -172,18 +182,18 @@ const FeedbackReview = () => {
                 </div>
                 <Calendar className="h-8 w-8 text-white opacity-80" />
               </div>
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </Card>
         </div>
 
-        <AirtableCard>
-          <AirtableCardHeader className="border-b border-gray-100">
-            <AirtableCardTitle className="flex items-center gap-2">
+        <Card>
+          <CardHeader className="border-b border-gray-100">
+            <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-purple-600" />
               Feedback Entries
-            </AirtableCardTitle>
-          </AirtableCardHeader>
-          <AirtableCardContent className="p-0">
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
             {feedback.length === 0 ? (
               <div className="text-center py-12">
                 <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
@@ -235,8 +245,8 @@ const FeedbackReview = () => {
                 </TableBody>
               </Table>
             )}
-          </AirtableCardContent>
-        </AirtableCard>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

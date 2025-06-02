@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
-import { AirtableCard, AirtableCardContent, AirtableCardDescription, AirtableCardHeader, AirtableCardTitle } from "@/components/ui/airtable-card";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
+
+import { useState } from "react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, MessageCircle, User, Search, Pencil } from "lucide-react";
+import { MessageCircle, User, Search, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   Table,
@@ -17,6 +16,18 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { ContactDetails } from "@/components/ContactDetails";
 import { MessageGeneration } from "@/components/MessageGeneration";
+
+// Design System Imports
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  PageTitle,
+  PageDescription
+} from "@/components/ui/design-system";
 
 interface ContactData {
   contact_id: string;
@@ -97,20 +108,20 @@ const TrackingDashboard = () => {
         <ProfileBreadcrumbs />
         
         <div className="space-y-6">
-          <AirtableCard>
-            <AirtableCardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
-                <AirtableCardTitle className="text-2xl font-bold">Contacts</AirtableCardTitle>
-                <AirtableCardDescription>
+                <CardTitle>Contacts</CardTitle>
+                <CardDescription>
                   View and manage your saved contacts
-                </AirtableCardDescription>
+                </CardDescription>
               </div>
-            </AirtableCardHeader>
+            </CardHeader>
             
-            <AirtableCardContent>
+            <CardContent>
               <div className="mb-6 flex items-center justify-between">
                 <div className="relative w-full max-w-sm">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                   <Input
                     placeholder="Search contacts..."
                     className="pl-8"
@@ -122,8 +133,8 @@ const TrackingDashboard = () => {
               
               {isLoading ? (
                 <div className="flex items-center justify-center p-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                  <p className="text-muted-foreground ml-3">Loading contacts...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <p className="text-gray-500 ml-3">Loading contacts...</p>
                 </div>
               ) : filteredContacts && filteredContacts.length > 0 ? (
                 <div className="rounded-md border">
@@ -146,22 +157,22 @@ const TrackingDashboard = () => {
                           <TableCell>{contact.role || 'N/A'}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <EnhancedButton
+                              <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleViewDetails(contact)}
                               >
                                 <Pencil className="h-4 w-4 mr-1" />
                                 Details
-                              </EnhancedButton>
-                              <EnhancedButton
+                              </Button>
+                              <Button
                                 size="sm"
                                 variant="primary"
                                 onClick={() => handleGenerateMessage(contact)}
                               >
                                 <MessageCircle className="h-4 w-4 mr-1" />
                                 Message
-                              </EnhancedButton>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -178,8 +189,8 @@ const TrackingDashboard = () => {
                   </p>
                 </div>
               )}
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </Card>
         </div>
         
         {/* Contact Details Dialog */}

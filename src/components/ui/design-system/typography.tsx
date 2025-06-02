@@ -47,33 +47,4 @@ const PageDescription = React.forwardRef<
 ))
 PageDescription.displayName = "PageDescription"
 
-// Info Box
-const InfoBox = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { icon?: React.ReactNode }
->(({ className, icon, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "bg-blue-50 p-6 rounded-lg border border-blue-200 shadow-sm",
-      className
-    )}
-    {...props}
-  >
-    <div className="flex items-start gap-3">
-      {icon && (
-        <div className="text-blue-600 mt-0.5 shrink-0">
-          {React.cloneElement(icon as React.ReactElement, { 
-            className: "h-6 w-6" 
-          })}
-        </div>
-      )}
-      <div className="text-blue-800">
-        {children}
-      </div>
-    </div>
-  </div>
-))
-InfoBox.displayName = "InfoBox"
-
-export { PageTitle, SectionTitle, PageDescription, InfoBox }
+export { PageTitle, SectionTitle, PageDescription }

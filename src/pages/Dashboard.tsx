@@ -1,7 +1,6 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { MessageCircle, Users, Building, Target, ArrowRight, Zap } from "lucide-react";
@@ -9,6 +8,18 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
+
+// Design System Imports
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+  PageTitle,
+  PageDescription
+} from "@/components/ui/design-system";
 
 interface DashboardStats {
   totalContacts: number;
@@ -121,26 +132,26 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           {/* Welcome Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <PageTitle className="mb-2">
               Welcome back! Ready to expand your network?
-            </h1>
-            <p className="text-lg text-gray-600">
+            </PageTitle>
+            <PageDescription className="text-lg">
               Your AI-powered networking assistant is here to help you connect with the right people.
-            </p>
+            </PageDescription>
           </div>
 
           {/* Quick Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gradient-to-r from-primary to-primary/80 text-white hover:shadow-lg transition-shadow">
+            <Card className="bg-purple-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Generate Message</h3>
-                    <p className="text-sm opacity-90">AI-crafted outreach messages</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Generate Message</h3>
+                    <p className="text-sm text-purple-100">AI-crafted outreach messages</p>
                   </div>
                   <MessageCircle className="h-8 w-8" />
                 </div>
@@ -155,12 +166,12 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg transition-shadow">
+            <Card className="bg-green-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Find Contacts</h3>
-                    <p className="text-sm opacity-90">AI-recommended people to reach</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Find Contacts</h3>
+                    <p className="text-sm text-green-100">AI-recommended people to reach</p>
                   </div>
                   <Users className="h-8 w-8" />
                 </div>
@@ -175,12 +186,12 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:shadow-lg transition-shadow">
+            <Card className="bg-blue-600 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Target Companies</h3>
-                    <p className="text-sm opacity-90">Find your ideal employers</p>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Target Companies</h3>
+                    <p className="text-sm text-blue-100">Find your ideal employers</p>
                   </div>
                   <Building className="h-8 w-8" />
                 </div>
@@ -199,7 +210,7 @@ const Dashboard = () => {
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
+                  <Target className="h-5 w-5 text-purple-600" />
                   Your Networking Progress
                 </CardTitle>
                 <CardDescription>
@@ -210,22 +221,22 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Overall Progress</span>
-                    <span className="text-sm text-muted-foreground">{completionPercentage}%</span>
+                    <span className="text-sm text-gray-500">{completionPercentage}%</span>
                   </div>
                   <Progress value={completionPercentage} className="h-2" />
                   
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">{stats.totalCompanies}</div>
-                      <div className="text-sm text-muted-foreground">Target Companies</div>
+                      <div className="text-2xl font-bold text-purple-600">{stats.totalCompanies}</div>
+                      <div className="text-sm text-gray-500">Target Companies</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">{stats.totalContacts}</div>
-                      <div className="text-sm text-muted-foreground">Key Contacts</div>
+                      <div className="text-sm text-gray-500">Key Contacts</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{stats.messagesSent}</div>
-                      <div className="text-sm text-muted-foreground">Messages Crafted</div>
+                      <div className="text-2xl font-bold text-blue-600">{stats.messagesSent}</div>
+                      <div className="text-sm text-gray-500">Messages Crafted</div>
                     </div>
                   </div>
                 </div>
@@ -241,17 +252,17 @@ const Dashboard = () => {
                   <div className="space-y-3">
                     {stats.recentActivity.slice(0, 4).map((activity, index) => (
                       <div key={index} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900 truncate">{activity.description}</p>
-                          <p className="text-xs text-muted-foreground">{activity.date}</p>
+                          <p className="text-xs text-gray-500">{activity.date}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground mb-2">No recent activity</p>
+                    <p className="text-sm text-gray-500 mb-2">No recent activity</p>
                     <Button onClick={handleGetStarted} size="sm" variant="outline">
                       Get Started
                     </Button>
@@ -262,7 +273,7 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Tips */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="p-2 bg-blue-100 rounded-lg">

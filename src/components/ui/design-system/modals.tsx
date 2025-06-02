@@ -8,57 +8,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// Standard Modal - based on the Dashboard "Find contacts" modal style
-interface StandardModalProps {
+// Standard Modal - consistent with Dashboard "Find contacts" modal style
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
   className?: string;
+  icon?: React.ReactNode;
 }
 
-const StandardModal = ({ 
+const Modal = ({ 
   isOpen, 
   onClose, 
   title, 
+  icon,
   children, 
   className 
-}: StandardModalProps) => {
+}: ModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={cn("sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-white border border-gray-200 shadow-lg", className)}>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            {title}
-          </DialogTitle>
-        </DialogHeader>
-        {children}
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// Action Modal - for forms and actions (same styling as StandardModal)
-interface ActionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-}
-
-const ActionModal = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  icon, 
-  children, 
-  className 
-}: ActionModalProps) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("sm:max-w-md bg-white border border-gray-200 shadow-lg", className)}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             {icon && (
@@ -77,4 +47,4 @@ const ActionModal = ({
   );
 };
 
-export { StandardModal, ActionModal }
+export { Modal }
