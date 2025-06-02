@@ -3,7 +3,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Button } from "@/components/ui/design-system/buttons";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { OutlineAction } from "@/components/ui/design-system/buttons";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
 
@@ -77,20 +76,20 @@ const EditableSummary = ({
               variant="destructive"
               size="sm"
               onClick={() => handleRemoveArrayItem(field, index)}
-//              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              //              className="text-red-500 hover:text-red-700 hover:bg-red-50"
             >
               Remove
             </Button>
           </div>
         ))}
         <Button
-          variant="outline"
+          variant="success"
           size="sm"
           onClick={() => handleAddArrayItem(field)}
-//          className="mt-3"
+          //          className="mt-3"
         >
           Add Item
-        </EnhancedButton>
+        </Button>
       </div>
     );
   };
