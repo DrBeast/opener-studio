@@ -826,9 +826,7 @@ const JobTargets = () => {
 
         <div className="flex justify-between items-start mb-8">
           <div>
-            <PageTitle className="mb-2">
-              Define Your Job & Company Targets
-            </PageTitle>
+            <PageTitle>Define Your Job & Company Targets</PageTitle>
             <PageDescription>
               Tell us about your ideal role and company preferences
             </PageDescription>
