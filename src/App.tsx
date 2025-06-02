@@ -21,6 +21,7 @@ import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/PipelineDashboard";
 import FeedbackReview from "@/pages/FeedbackReview";
 import DesignSystemDemo from "@/pages/admin/DesignSystemDemo";
+import AirtableDesignSystem from "@/pages/admin/AirtableDesignSystem";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -55,6 +56,7 @@ const App = () => (
               {/* Admin Routes (not linked anywhere) */}
               <Route path="/admin/feedback-review" element={<FeedbackReview />} />
               <Route path="/admin/design-system" element={<DesignSystemDemo />} />
+              <Route path="/admin/airtable-design-system" element={<AirtableDesignSystem />} />
               
               {/* Redirect old routes */}
               <Route path="/profile/edit" element={<Navigate to="/profile" replace />} />
