@@ -12,24 +12,21 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-//import { Button } from "@/components/ui/design-system/buttons";
+import { Button } from "@/components/ui/design-system/buttons";
 // import { InfoBox } from "@/components/ui/design-system/info-box";
 
 // Design System Imports
 import {
   PrimaryCard,
   CardContent,
-//  PrimaryAction,
+  //  PrimaryAction,
   GhostAction,
   PageTitle,
   PageDescription,
- // Button,
+  // Button,
 } from "@/components/ui/design-system";
 import { InfoBox } from "@/components/ui/info-box";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
-import { Button } from "@/components/ui/design-system/buttons";
-
-
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -366,9 +363,9 @@ const JobTargets = () => {
   }) => (
     <div className="inline-flex items-center bg-purple-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
       <span>{label}</span>
-      <Buttons
-       type="button"
-       // variant="option"
+      <Button
+        type="button"
+        // variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
