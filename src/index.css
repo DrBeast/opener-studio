@@ -4,85 +4,140 @@
 
 @layer base {
   :root {
+    /* White */
     --background: 0 0% 100%;
+    /* Very dark blue (almost black) */
     --foreground: 222.2 84% 4.9%;
 
+    /* White */
     --card: 0 0% 100%;
+    /* Very dark blue (almost black) */
     --card-foreground: 222.2 84% 4.9%;
 
+    /* White */
     --popover: 0 0% 100%;
+    /* Very dark blue (almost black) */
     --popover-foreground: 222.2 84% 4.9%;
 
+    /* Light purple (primary accent) */
     --primary: 258 75% 74%;
+    /* White */
     --primary-foreground: 0 0% 100%;
 
+    /* Very light blue-gray */
     --secondary: 240 40% 96.1%;
+    /* Dark blue-gray */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
+    /* Very light blue */
     --muted: 210 40% 96.1%;
+    /* Medium gray-blue */
     --muted-foreground: 215.4 16.3% 46.9%;
 
+    /* Very pale purple (accent) */
     --accent: 258 75% 94%;
+    /* Medium purple */
     --accent-foreground: 258 75% 37%;
 
+    /* Bright red */
     --destructive: 0 84.2% 60.2%;
+    /* Very light blue */
     --destructive-foreground: 210 40% 98%;
 
+    /* Very light gray-blue */
     --border: 214.3 31.8% 91.4%;
+    /* Very light gray-blue */
     --input: 214.3 31.8% 91.4%;
+    /* Light purple (primary accent ring) */
     --ring: 258 75% 74%;
 
+    /* Medium border radius */
     --radius: 0.5rem;
 
+    /* Very pale gray */
     --sidebar-background: 0 0% 98%;
+    /* Medium gray-blue */
     --sidebar-foreground: 240 5.3% 26.1%;
+    /* Very dark blue */
     --sidebar-primary: 240 5.9% 10%;
+    /* Very pale gray */
     --sidebar-primary-foreground: 0 0% 98%;
+    /* Very pale blue-gray */
     --sidebar-accent: 240 4.8% 95.9%;
+    /* Very dark blue */
     --sidebar-accent-foreground: 240 5.9% 10%;
+    /* Very light blue-gray */
     --sidebar-border: 220 13% 91%;
+    /* Bright blue */
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
+    /* Very dark blue (almost black) */
     --background: 222.2 84% 4.9%;
+    /* Very light blue */
     --foreground: 210 40% 98%;
 
+    /* Very dark blue (almost black) */
     --card: 222.2 84% 4.9%;
+    /* Very light blue */
     --card-foreground: 210 40% 98%;
 
+    /* Very dark blue (almost black) */
     --popover: 222.2 84% 4.9%;
+    /* Very light blue */
     --popover-foreground: 210 40% 98%;
 
+    /* Very light blue (primary accent) */
     --primary: 210 40% 98%;
+    /* Dark blue-gray */
     --primary-foreground: 222.2 47.4% 11.2%;
 
+    /* Dark blue-gray */
     --secondary: 217.2 32.6% 17.5%;
+    /* Very light blue */
     --secondary-foreground: 210 40% 98%;
 
+    /* Dark blue-gray */
     --muted: 217.2 32.6% 17.5%;
+    /* Muted blue-gray */
     --muted-foreground: 215 20.2% 65.1%;
 
+    /* Dark blue-gray (accent) */
     --accent: 217.2 32.6% 17.5%;
+    /* Very light blue */
     --accent-foreground: 210 40% 98%;
 
+    /* Dark red */
     --destructive: 0 62.8% 30.6%;
+    /* Very light blue */
     --destructive-foreground: 210 40% 98%;
 
+    /* Dark blue-gray */
     --border: 217.2 32.6% 17.5%;
+    /* Dark blue-gray */
     --input: 217.2 32.6% 17.5%;
+    /* Light blue */
     --ring: 212.7 26.8% 83.9%;
+
+    /* Very dark blue */
     --sidebar-background: 240 5.9% 10%;
+    /* Very pale blue-gray */
     --sidebar-foreground: 240 4.8% 95.9%;
+    /* Bright blue */
     --sidebar-primary: 224.3 76.3% 48%;
+    /* White */
     --sidebar-primary-foreground: 0 0% 100%;
+    /* Very dark blue-gray */
     --sidebar-accent: 240 3.7% 15.9%;
+    /* Very pale blue-gray */
     --sidebar-accent-foreground: 240 4.8% 95.9%;
+    /* Very dark blue-gray */
     --sidebar-border: 240 3.7% 15.9%;
+    /* Bright blue */
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
-
 @layer base {
   * {
     @apply border-border;
