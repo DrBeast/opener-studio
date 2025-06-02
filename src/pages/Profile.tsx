@@ -255,7 +255,7 @@ const Profile = () => {
             {/* Page Header */}
             <div className="flex flex-row items-center justify-between">
               <div>
-                <h1>Professional Profile</h1>
+                <PageTitle>Professional Profile</PageTitle>
                 <p>
                   Manage your professional information and AI-generated
                   summaries
