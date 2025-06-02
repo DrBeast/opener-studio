@@ -1,7 +1,5 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/design-system";
-import { Badge } from "@/components/ui/badge";
 
 // Standard Card - consistent across all pages
 const Card = React.forwardRef<
@@ -31,8 +29,6 @@ const PrimaryCard = React.forwardRef<
   />
 ));
 PrimaryCard.displayName = "PrimaryCard";
-
-// Info box card variant
 
 // Card Header
 const CardHeader = React.forwardRef<
