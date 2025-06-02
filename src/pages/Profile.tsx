@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { OutlineAction } from "@/components/ui/enhanced-button";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import {
   AirtableCard,
