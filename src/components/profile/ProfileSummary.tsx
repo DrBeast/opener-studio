@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Button } from "@/components/ui/design-system/buttons";
 import { OutlineAction } from "@/components/ui/design-system/buttons";
+import { CollapsibleWide } from "@/components/ui/design-system/buttons";
 
 import {
   AirtableCard,
@@ -91,7 +91,6 @@ const ProfileSummary = ({
           Regenerate
         </OutlineAction>
       </div>
-
       {/* Main Summary Cards */}
       <div className="grid gap-6 md:grid-cols-2">
         {backgroundSummary.overall_blurb && (
@@ -126,21 +125,12 @@ const ProfileSummary = ({
           </AirtableCard>
         )}
       </div>
-
       {/* Expandable detailed sections */}
       <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
         <CollapsibleTrigger asChild>
-          <EnhancedButton
-            variant="outline"
-            className="w-full flex items-center justify-between h-14 text-base font-medium border-2"
-          >
-            <span>View Detailed Breakdown</span>
-            {isDetailsExpanded ? (
-              <ChevronUp className="h-5 w-5" />
-            ) : (
-              <ChevronDown className="h-5 w-5" />
-            )}
-          </EnhancedButton>
+          <CollapsibleWide expanded={isDetailsExpanded}>
+            View Detailed Breakdown
+          </CollapsibleWide>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
           <div className="grid gap-6 md:grid-cols-2">

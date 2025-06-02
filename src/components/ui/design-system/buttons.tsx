@@ -2,6 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2",
@@ -84,3 +85,49 @@ const GhostAction = React.forwardRef<HTMLButtonElement, ButtonProps>(
 GhostAction.displayName = "GhostAction";
 
 export { Button, PrimaryAction, OutlineAction, GhostAction, buttonVariants };
+
+// Collapsible Trigger Button Component
+interface CollapsibleTriggerButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  expanded: boolean;
+  children: React.ReactNode;
+  className?: string;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
+}
+
+export const CollapsibleWide = React.forwardRef<
+  HTMLButtonElement,
+  CollapsibleTriggerButtonProps
+>(
+  (
+    {
+      expanded,
+      children,
+      className = "",
+      variant = "outline",
+      size = "default",
+      ...props
+    },
+    ref
+  ) => (
+    <Button
+      ref={ref}
+      variant={variant}
+      size={size}
+      className={cn(
+        "w-full flex items-center justify-between h-14 text-base font-medium border-2",
+        className
+      )}
+      {...props}
+    >
+      <span>{children}</span>
+      {expanded ? (
+        <ChevronUp className="h-5 w-5" />
+      ) : (
+        <ChevronDown className="h-5 w-5" />
+      )}
+    </Button>
+  )
+);
+CollapsibleWide.displayName = "CollapsibleTriggerButton";
