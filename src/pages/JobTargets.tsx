@@ -12,6 +12,7 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoBox } from "@/components/ui/design-system/info-box";
 
 // Design System Imports
 import {
@@ -363,7 +364,7 @@ const JobTargets = () => {
         type="button"
         variant="option"
         onClick={onRemove}
-        className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
+        //       className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
         <X className="h-3 w-3" />
       </button>
