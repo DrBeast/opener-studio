@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary:
           // Tailwind: bg-purple-600 (#9333ea, hsl(262, 83%, 58%)), text-white (#fff), hover:bg-purple-700 (#7e22ce, hsl(262, 84%, 48%))
-          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))] hover:brightness-50",
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))] hover:brightness-80",
 
         secondary:
           // Tailwind: bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%)), text-gray-900 (#111827, hsl(222, 47%, 11%)), hover:bg-gray-200 (#e5e7eb, hsl(220, 13%, 91%)), border-gray-300 (#d1d5db, hsl(220, 13%, 91%))

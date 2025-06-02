@@ -13,13 +13,13 @@
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */
 
-    --primary: 262, 83%, 58%; /* Light purple (primary accent) */
+    --primary: 280 90% 50.9; /* Light purple (primary accent) */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 220, 14%, 96%; /* Light gray */
     --secondary-foreground: 222, 47%, 11%; /* Dark gray */
 
-    --muted: 220, 20%, 98%; /* Very light blue */
+    --muted: 220 20% 92.7%; /* Very light blue */
     --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray-blue */
 
     --accent: 258 75% 94%; /* Very pale purple (accent) */
@@ -34,7 +34,7 @@
     --option: 221, 83%, 53%; /* Bright blue */
     --option-foreground: 0, 0%, 100%; /* White */
 
-    --border: 220, 13%, 91%; /* Very light gray-blue */
+    --border: 220 58.1% 90.3%; /* Very light gray-blue */
     --input: 214.3 31.8% 91.4%; /* Very light gray-blue */
     --ring: 258 75% 74%; /* Light purple (primary accent ring) */
 
