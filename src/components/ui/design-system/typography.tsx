@@ -1,6 +1,5 @@
-
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // Page Title
 const PageTitle = React.forwardRef<
@@ -10,13 +9,13 @@ const PageTitle = React.forwardRef<
   <h1
     ref={ref}
     className={cn(
-      "text-3xl font-bold text-gray-900",
+      "text-3xl font-bold text-[hsl(var(--foreground))]",
       className
     )}
     {...props}
   />
-))
-PageTitle.displayName = "PageTitle"
+));
+PageTitle.displayName = "PageTitle";
 
 // Section Title
 const SectionTitle = React.forwardRef<
@@ -26,13 +25,13 @@ const SectionTitle = React.forwardRef<
   <h2
     ref={ref}
     className={cn(
-      "text-xl font-semibold text-gray-900",
+      "text-xl font-semibold text-[hsl(var(--foreground))]",
       className
     )}
     {...props}
   />
-))
-SectionTitle.displayName = "SectionTitle"
+));
+SectionTitle.displayName = "SectionTitle";
 
 // Page Description
 const PageDescription = React.forwardRef<
@@ -41,10 +40,10 @@ const PageDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-gray-600", className)}
+    className={cn("text-[hsl(var(--foreground))]", className)}
     {...props}
   />
-))
-PageDescription.displayName = "PageDescription"
+));
+PageDescription.displayName = "PageDescription";
 
-export { PageTitle, SectionTitle, PageDescription }
+export { PageTitle, SectionTitle, PageDescription };

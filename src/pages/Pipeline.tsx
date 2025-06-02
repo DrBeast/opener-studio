@@ -244,10 +244,8 @@ const PipelineDashboard = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-[hsl(var(--foreground))] bg-clip-text mb-2">
-              Company Targets and Contacts
-            </h1>
-            <p className="text-[hsl(var(--foreground))]">
+            <h1>Company Targets and Contacts</h1>
+            <p>
               Manage your target companies and track your networking progress
             </p>
           </div>
