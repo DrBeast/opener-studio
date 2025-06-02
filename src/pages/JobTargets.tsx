@@ -843,7 +843,7 @@ const JobTargets = () => {
         </div>
 
         <InfoBox icon={<Target />} className="mb-8">
-          <p className="font-semibold mb-1">Why This Matters NEW CSS</p>
+          <p className="font-semibold mb-1">Why This Matters</p>
           <p className="text-sm">
             The more specific you are about your preferences, the better we can
             help you find relevant companies and contacts. Your preferences
@@ -860,7 +860,7 @@ const JobTargets = () => {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-10"
                 >
-                  {/* Describe Your Ideal Role and Company NOW BLYAT */}
+                  {/* Describe Your Ideal Role and Company */}
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold text-gray-800">
                       Describe Your Ideal Role and Company

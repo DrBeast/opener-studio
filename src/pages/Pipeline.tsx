@@ -245,7 +245,7 @@ const PipelineDashboard = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-green-600 bg-clip-text text-transparent mb-2">
               Company Targets and Contacts TMP
             </h1>
-            <p className="text-gray-600">
+            <p className="hsl(var(--foreground))">
               Manage your target companies and track your networking progress
             </p>
           </div>
