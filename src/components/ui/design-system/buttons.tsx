@@ -105,7 +105,7 @@ export const CollapsibleWide = React.forwardRef<
       expanded,
       children,
       className = "",
-      variant = "outline",
+      variant = "primary",
       size = "default",
       ...props
     },
