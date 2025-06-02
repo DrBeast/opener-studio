@@ -33,60 +33,6 @@ const PrimaryCard = React.forwardRef<
 PrimaryCard.displayName = "PrimaryCard";
 
 // Info box card variant
-interface InfoBoxProps {
-  icon?: React.ReactNode;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  badges?: Array<{ label: string; className?: string }>;
-  className?: string;
-  children?: React.ReactNode;
-}
-
-export const InfoBox: React.FC<InfoBoxProps> = ({
-  icon,
-  title,
-  description,
-  badges,
-  className = "",
-  children,
-}) => (
-  <Card className={`bg-blue-50 border-blue-200 ${className}`}>
-    <CardContent className="p-6">
-      <div className="flex items-start gap-4">
-        {icon && (
-          <div className="p-2 bg-blue-100 rounded-lg flex items-center justify-center">
-            {icon}
-          </div>
-        )}
-        <div>
-          {title && (
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">
-              {title}
-            </h3>
-          )}
-          {description && <p className="text-blue-800 mb-3">{description}</p>}
-          {children}
-          {badges && badges.length > 0 && (
-            <div className="flex gap-2 mt-2">
-              {badges.map((badge, idx) => (
-                <Badge
-                  key={idx}
-                  variant="secondary"
-                  className={`bg-blue-100 text-blue-800 ${
-                    badge.className || ""
-                  }`}
-                >
-                  {badge.label}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-InfoBox.displayName = "InfoBox";
 
 // Card Header
 const CardHeader = React.forwardRef<
