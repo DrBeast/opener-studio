@@ -19,14 +19,13 @@ import { cn } from "@/lib/utils";
 import {
   PrimaryCard,
   CardContent,
-  //  PrimaryAction,
+  PrimaryAction,
   GhostAction,
   PageTitle,
   PageDescription,
   Button,
 } from "@/components/ui/design-system";
 import { InfoBox } from "@/components/ui/info-box";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
@@ -365,7 +364,7 @@ const JobTargets = () => {
       <span>{label}</span>
       <Button
         type="button"
-        // variant="option"
+        variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
@@ -845,7 +844,7 @@ const JobTargets = () => {
         </div>
 
         <InfoBox icon={<Target />} className="mb-8">
-          <p className="font-semibold mb-1">Why This Matters again</p>
+          <p className="font-semibold mb-1">Why This Matters NOT again</p>
           <p className="text-sm">
             The more specific you are about your preferences, the better we can
             help you find relevant companies and contacts. Your preferences
