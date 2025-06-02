@@ -361,6 +361,7 @@ const JobTargets = () => {
       <span>{label}</span>
       <button
         type="button"
+        variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
@@ -944,9 +945,7 @@ const JobTargets = () => {
                       disabled={isSubmitting || isGenerating}
                     >
                       <Sparkles className="mr-2 h-4 w-4" />
-                      {isGenerating
-                        ? "Generating..."
-                        : "Generate Companies tmp"}
+                      {isGenerating ? "Generating..." : "Generate Companies"}
                     </PrimaryAction>
                   </div>
                 </form>
