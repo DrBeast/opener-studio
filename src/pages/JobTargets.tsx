@@ -362,7 +362,7 @@ const JobTargets = () => {
       <span>{label}</span>
       <button
         type="button"
-        variant="option"
+        //        variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-blue-200 p-0.5 transition-colors"
       >
@@ -842,7 +842,7 @@ const JobTargets = () => {
         </div>
 
         <InfoBox icon={<Target />} className="mb-8">
-          <p className="font-semibold mb-1">Why This Matters</p>
+          <p className="font-semibold mb-1">Why This Matters tmp</p>
           <p className="text-sm">
             The more specific you are about your preferences, the better we can
             help you find relevant companies and contacts. Your preferences
