@@ -262,12 +262,9 @@ const PipelineDashboard = () => {
                 ? "Generating..."
                 : "Generate More Companies"}
             </OutlineAction>
-            <Button
-              onClick={handleAddCompany}
-              className="bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
-            >
+            <PrimaryAction onClick={handleAddCompany}>
               <Plus className="mr-2 h-4 w-4" /> Add Company
-            </Button>
+            </PrimaryAction>
           </div>
         </div>
 
