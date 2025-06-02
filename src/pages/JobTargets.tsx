@@ -360,13 +360,12 @@ const JobTargets = () => {
     label: string;
     onRemove: () => void;
   }) => (
-    <div className="inline-flex items-center bg-purple-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
+    <div className="inline-flex items-center bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-blue-200 shadow-sm">
       <span>{label}</span>
       <Button
         type="button"
-        variant="option"
         onClick={onRemove}
-        // className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
+        className="ml-2 rounded-full hover:bg-blue-200 p-0.5 transition-colors"
       >
         <X className="h-3 w-3" />
       </Button>
@@ -844,7 +843,7 @@ const JobTargets = () => {
         </div>
 
         <InfoBox icon={<Target />} className="mb-8">
-          <p className="font-semibold mb-1">Why This Matters</p>
+          <p className="font-semibold mb-1">Why This Matters again</p>
           <p className="text-sm">
             The more specific you are about your preferences, the better we can
             help you find relevant companies and contacts. Your preferences
