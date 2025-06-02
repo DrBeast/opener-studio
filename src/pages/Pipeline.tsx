@@ -17,6 +17,8 @@ import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { OutlineAction } from "@/components/ui/design-system/buttons";
+import { PrimaryAction } from "@/components/ui/design-system/buttons";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
