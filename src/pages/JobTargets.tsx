@@ -362,7 +362,7 @@ const JobTargets = () => {
       <span>{label}</span>
       <button
         type="button"
-        //        variant="option"
+        //variant="option"
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-blue-200 p-0.5 transition-colors"
       >
