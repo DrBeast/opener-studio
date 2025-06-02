@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary:
           // Tailwind: bg-purple-600 (#9333ea, hsl(262, 83%, 58%)), text-white (#fff), hover:bg-purple-700 (#7e22ce, hsl(262, 84%, 48%))
-          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))] hover:brightness-90",
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))] hover:brightness-50",
 
         secondary:
           // Tailwind: bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%)), text-gray-900 (#111827, hsl(222, 47%, 11%)), hover:bg-gray-200 (#e5e7eb, hsl(220, 13%, 91%)), border-gray-300 (#d1d5db, hsl(220, 13%, 91%))
@@ -27,15 +27,15 @@ const buttonVariants = cva(
 
         destructive:
           // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
-          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-90",
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80",
 
         success:
           // Tailwind: bg-green-600 (#16a34a, hsl(142, 71%, 36%)), text-white (#fff), hover:bg-green-700 (#15803d, hsl(142, 76%, 26%))
-          "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))] hover:brightness-90",
+          "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))] hover:brightness-80",
 
         option:
           // Tailwind: bg-blue-600 (#2563eb, hsl(221, 83%, 53%)), text-white (#fff), hover:bg-blue-700 (#1d4ed8, hsl(221, 77%, 44%))
-          "bg-[hsl(var(--option))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--option))] hover:brightness-90",
+          "bg-[hsl(var(--option))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--option))] hover:brightness-80",
       },
       size: {
         default: "h-10 px-4 py-2",

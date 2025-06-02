@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* White */
-    --foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */
+    --foreground: 222, 9%, 46%; /* Very dark blue (almost black) */
 
     --card: 0 0% 100%; /* White */
     --card-foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */
@@ -16,19 +16,25 @@
     --primary: 262, 83%, 58%; /* Light purple (primary accent) */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 240 40% 96.1%; /* Very light blue-gray */
-    --secondary-foreground: 222.2 47.4% 11.2%; /* Dark blue-gray */
+    --secondary: 220, 14%, 96%; /* Light gray */
+    --secondary-foreground: 222, 47%, 11%; /* Dark gray */
 
-    --muted: 210 40% 96.1%; /* Very light blue */
+    --muted: 220, 20%, 98%; /* Very light blue */
     --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray-blue */
 
     --accent: 258 75% 94%; /* Very pale purple (accent) */
     --accent-foreground: 258 75% 37%; /* Medium purple */
 
-    --destructive: 0 84.2% 60.2%; /* Bright red */
-    --destructive-foreground: 210 40% 98%; /* Very light blue */
+    --destructive: 0, 84%, 60%; /* Bright red */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 214.3 31.8% 91.4%; /* Very light gray-blue */
+    --success: 142, 71%, 36%; /* Bright green */
+    --success-foreground: 0, 0%, 100%; /* White */
+
+    --option: 221, 83%, 53%; /* Bright blue */
+    --option-foreground: 0, 0%, 100%; /* White */
+
+    --border: 220, 13%, 91%; /* Very light gray-blue */
     --input: 214.3 31.8% 91.4%; /* Very light gray-blue */
     --ring: 258 75% 74%; /* Light purple (primary accent ring) */
 
