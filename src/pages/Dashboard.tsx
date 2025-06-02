@@ -14,19 +14,17 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
-import { Card, CardContent } from "@/components/ui/card";
 
 // Design System Imports
 import {
-  PrimaryCard,
+  Card,
   CardContent,
-  PrimaryAction,
-  OutlineAction,
-  GhostAction,
-  PageTitle,
-  SectionTitle,
-  PageDescription,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Button,
+  PageTitle,
+  PageDescription,
 } from "@/components/ui/design-system";
 
 interface DashboardStats {
@@ -146,8 +144,10 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-8">
           {/* Welcome Header */}
           <div className="mb-8">
-            <PageTitle>Welcome back! Ready to expand your network?</PageTitle>
-            <PageDescription>
+            <PageTitle className="mb-2">
+              Welcome back! Ready to expand your network?
+            </PageTitle>
+            <PageDescription className="text-lg">
               Your AI-powered networking assistant is here to help you connect
               with the right people.
             </PageDescription>
