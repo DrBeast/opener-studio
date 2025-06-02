@@ -265,18 +265,12 @@ const Profile = () => {
               </div>
               <div className="flex gap-3">
                 {!editMode && (
-                  <OutlineAction
-                    onClick={() => setEditMode(true)}
-                    className="flex items-center gap-2"
-                  >
+                  <OutlineAction onClick={() => setEditMode(true)}>
                     <Edit className="h-4 w-4" />
                     Edit Profile
                   </OutlineAction>
                 )}
-                <PrimaryAction
-                  onClick={handleNavigateToTargets}
-                  className="flex items-center gap-2"
-                >
+                <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
                 </PrimaryAction>
@@ -365,10 +359,7 @@ const Profile = () => {
 
               {/* Bottom navigation button */}
               <AirtableCardFooter className="flex justify-end">
-                <PrimaryAction
-                  onClick={handleNavigateToTargets}
-                  className="flex items-center gap-2"
-                >
+                <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
                 </PrimaryAction>
