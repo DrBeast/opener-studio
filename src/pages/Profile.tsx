@@ -342,7 +342,7 @@ const Profile = () => {
                             <Save className="h-4 w-4" />
                           </>
                         )}
-                      </EnhancedButton>
+                      </Button>
                     </div>
                   </div>
                 )}
