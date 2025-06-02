@@ -18,6 +18,19 @@ const Card = React.forwardRef<
 ))
 Card.displayName = "Card"
 
+// Primary Card variant
+const PrimaryCard = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <Card
+    ref={ref}
+    className={cn("border-gray-200 shadow-sm", className)}
+    {...props}
+  />
+))
+PrimaryCard.displayName = "PrimaryCard"
+
 // Card Header
 const CardHeader = React.forwardRef<
   HTMLDivElement,
@@ -84,6 +97,7 @@ CardFooter.displayName = "CardFooter"
 
 export { 
   Card,
+  PrimaryCard,
   CardHeader, 
   CardFooter, 
   CardTitle, 

@@ -47,4 +47,34 @@ const Modal = ({
   );
 };
 
-export { Modal }
+// Action Modal - same styling as Modal but with ActionModal name for consistency
+const ActionModal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  icon,
+  children, 
+  className 
+}: ModalProps) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={cn("sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-white border border-gray-200 shadow-lg", className)}>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            {icon && (
+              <div className="text-purple-600">
+                {React.cloneElement(icon as React.ReactElement, { 
+                  className: "h-5 w-5" 
+                })}
+              </div>
+            )}
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export { Modal, ActionModal }
