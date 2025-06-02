@@ -147,7 +147,7 @@ const Dashboard = () => {
             <PageTitle className="mb-2">
               Welcome back! Ready to expand your network?
             </PageTitle>
-            <PageDescription className="text-lg">
+            <PageDescription>
               Your AI-powered networking assistant is here to help you connect
               with the right people.
             </PageDescription>
