@@ -242,7 +242,7 @@ const PipelineDashboard = () => {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold hsl(var(--foreground)) bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-hsl(var(--foreground)) bg-clip-text text-transparent mb-2">
               Company Targets and Contacts TMP
             </h1>
             <p className="hsl(var(--foreground))">
@@ -254,7 +254,6 @@ const PipelineDashboard = () => {
               onClick={handleGenerateCompanies}
               disabled={isGeneratingCompanies}
               variant="outline"
-              className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm"
             >
               <Sparkles className="mr-2 h-4 w-4" />
               {isGeneratingCompanies
