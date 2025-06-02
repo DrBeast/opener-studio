@@ -273,15 +273,13 @@ const Profile = () => {
                     Edit Profile
                   </EnhancedButton>
                 )}
-                <Button
-                  variant="primary"
-                  size="sm"
+                <PrimaryAction
                   onClick={handleNavigateToTargets}
                   className="flex items-center gap-2"
                 >
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
-                </Button>
+                </PrimaryAction>
               </div>
             </div>
 
