@@ -264,15 +264,13 @@ const Profile = () => {
               </div>
               <div className="flex gap-3">
                 {!editMode && (
-                  <EnhancedButton
-                    variant="outline"
-                    size="sm"
+                  <OutlineAction
                     onClick={() => setEditMode(true)}
                     className="flex items-center gap-2"
                   >
                     <Edit className="h-4 w-4" />
                     Edit Profile
-                  </EnhancedButton>
+                  </OutlineAction>
                 )}
                 <PrimaryAction
                   onClick={handleNavigateToTargets}
@@ -366,14 +364,13 @@ const Profile = () => {
 
               {/* Bottom navigation button */}
               <AirtableCardFooter className="flex justify-end">
-                <EnhancedButton
-                  variant="primary"
+                <PrimaryAction
                   onClick={handleNavigateToTargets}
                   className="flex items-center gap-2"
                 >
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
-                </EnhancedButton>
+                </PrimaryAction>
               </AirtableCardFooter>
             </AirtableCard>
           </div>
