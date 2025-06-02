@@ -360,15 +360,15 @@ const JobTargets = () => {
     label: string;
     onRemove: () => void;
   }) => (
-    <div className="inline-flex items-center  text-blue-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-blue-200 shadow-sm">
+    <div className="inline-flex items-center bg-purple-100 text-purple-700 rounded-full px-3 py-1 text-sm mr-2 mb-2 border border-purple-200 shadow-sm">
       <span>{label}</span>
-      <Button
-        variant="option"
+      <button
+        type="button"
         onClick={onRemove}
-        className="ml-2 rounded-full hover:bg-blue-600 p-0.5 transition-colors"
+        className="ml-2 rounded-full hover:bg-purple-200 p-0.5 transition-colors"
       >
-        <X className="h-3 w-3 bg-blue-200" />
-      </Button>
+        <X className="h-3 w-3" />
+      </button>
     </div>
   );
 
