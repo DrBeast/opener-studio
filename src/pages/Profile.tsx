@@ -280,7 +280,7 @@ const Profile = () => {
             {/* Info Box */}
             <InfoBox>
               <p className="font-medium mb-1">
-                AI-Generated Professional Summary CSS
+                AI-Generated Professional Summary
               </p>
               <p>
                 We will use the AI-generated summary of your profile for company
