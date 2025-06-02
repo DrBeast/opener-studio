@@ -23,8 +23,8 @@ import {
   GhostAction,
   PageTitle,
   PageDescription,
-  //InfoBox,
 } from "@/components/ui/design-system";
+import { InfoBox } from "@/components/ui/info-box";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
