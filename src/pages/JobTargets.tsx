@@ -19,13 +19,15 @@ import { cn } from "@/lib/utils";
 import {
   PrimaryCard,
   CardContent,
-  PrimaryAction,
+//  PrimaryAction,
   GhostAction,
   PageTitle,
   PageDescription,
-  Button,
+  Buttons,
 } from "@/components/ui/design-system";
 import { InfoBox } from "@/components/ui/info-box";
+import { PrimaryAction } from "@/components/ui/design-system/buttons";
+
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
