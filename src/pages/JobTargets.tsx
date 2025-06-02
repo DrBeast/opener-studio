@@ -367,7 +367,7 @@ const JobTargets = () => {
         onClick={onRemove}
         className="ml-2 rounded-full hover:bg-blue-200 p-0.5 transition-colors"
       >
-        <X className="h-3 w-3" />
+        <X className="h-3 w-3 bg-blue-100" />
       </Button>
     </div>
   );
