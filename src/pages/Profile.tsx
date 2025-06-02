@@ -21,6 +21,17 @@ import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
 
+// Design System Imports
+import {
+  PrimaryCard,
+  CardContent,
+  PrimaryAction,
+  GhostAction,
+  PageTitle,
+  PageDescription,
+  Button,
+} from "@/components/ui/design-system";
+
 // Import new components
 import ProfileSummary from "@/components/profile/ProfileSummary";
 import EditableSummary from "@/components/profile/EditableSummary";
