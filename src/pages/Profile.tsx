@@ -90,16 +90,20 @@ const Profile = () => {
     } else {
       // For backward compatibility, combine the legacy fields
       const legacyData = [
-        profile.linkedin_content && `LinkedIn Profile:\n${profile.linkedin_content}`,
+        profile.linkedin_content &&
+          `LinkedIn Profile:\n${profile.linkedin_content}`,
         profile.cv_content && `CV Content:\n${profile.cv_content}`,
-        profile.additional_details && `Additional Details:\n${profile.additional_details}`
-      ].filter(Boolean).join('\n\n');
-      
+        profile.additional_details &&
+          `Additional Details:\n${profile.additional_details}`,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       if (legacyData) {
         existingBackgrounds.background = legacyData;
         setBackgroundInput(legacyData);
       }
-      
+
       // Also store individual legacy fields for reference
       if (profile.linkedin_content) {
         existingBackgrounds.linkedin = profile.linkedin_content;
@@ -111,7 +115,7 @@ const Profile = () => {
         existingBackgrounds.cv = profile.cv_content;
       }
     }
-    
+
     setExistingData(existingBackgrounds);
   }, [profile, user, navigate]);
 
@@ -124,7 +128,8 @@ const Profile = () => {
 
   useEffect(() => {
     // Check if any changes were made compared to existing data
-    const hasBackgroundChanges = backgroundInput !== (existingData.background || "");
+    const hasBackgroundChanges =
+      backgroundInput !== (existingData.background || "");
 
     // Check if any summary fields have changed
     let hasSummaryChanges = false;
@@ -150,12 +155,7 @@ const Profile = () => {
     }
 
     setHasChanges(hasBackgroundChanges || hasSummaryChanges);
-  }, [
-    backgroundInput,
-    editableSummary,
-    backgroundSummary,
-    existingData,
-  ]);
+  }, [backgroundInput, editableSummary, backgroundSummary, existingData]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -271,12 +271,6 @@ const Profile = () => {
                 </PageDescription>
               </div>
               <div className="flex gap-3">
-                {!editMode && (
-                  <OutlineAction onClick={() => setEditMode(true)}>
-                    <Edit className="h-4 w-4" />
-                    Edit Profile
-                  </OutlineAction>
-                )}
                 <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />

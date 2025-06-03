@@ -82,6 +82,12 @@ const ProfileSummary = ({
             <p>Intelligent analysis of your professional background</p>
           </div>
         </div>
+        {!editMode && (
+          <OutlineAction onClick={() => setEditMode(true)}>
+            <Edit className="h-4 w-4" />
+            Edit Profile
+          </OutlineAction>
+        )}
         <OutlineAction onClick={onRegenerateAISummary}>
           <RefreshCcw className="h-4 w-4" />
           Regenerate
