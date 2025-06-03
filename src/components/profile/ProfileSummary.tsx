@@ -24,6 +24,8 @@ import {
 import { Background } from "@/types/profile";
 import { useState } from "react";
 
+const [editMode, setEditMode] = useState(false);
+
 interface ProfileSummaryProps {
   backgroundSummary: Background | null;
   onRegenerateAISummary: () => void;
