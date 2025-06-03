@@ -5,7 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 // Define CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 
 // Define the Gemini API endpoint
@@ -17,42 +17,10 @@ const supabaseClient = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
-interface ProfileData {
-  linkedinContent?: string;
-  additionalDetails?: string;
-  cvContent?: string;
-}
-
-// Interface for extracted profile fields
-interface ExtractedProfileFields {
-  first_name?: string;
-  last_name?: string;
-  job_role?: string;
-  current_company?: string;
-  location?: string;
-}
-
-// Updated interface to match our data structure
-interface GeneratedSummary {
-  experience: string;
-  education: string;
-  expertise: string;
-  achievements: string;
-  overall_blurb?: string;
-  combined_experience_highlights?: string[];
-  combined_education_highlights?: string[];
-  key_skills?: string[];
-  domain_expertise?: string[];
-  technical_expertise?: string[];
-  value_proposition_summary?: string;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -60,597 +28,177 @@ serve(async (req) => {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    // Parse the request body
-    const { sessionId, linkedinContent, cvContent, additionalDetails, userId } = await req.json();
+    // Parse the request body - now accepts unified backgroundInput plus legacy fields
+    const { 
+      sessionId, 
+      backgroundInput,
+      linkedinContent, 
+      cvContent, 
+      additionalDetails 
+    } = await req.json();
 
-    if (!sessionId && !userId) {
-      return new Response(
-        JSON.stringify({ error: "Missing required field: either sessionId or userId must be provided" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (!sessionId) {
+      return new Response(JSON.stringify({ error: "Missing required field: sessionId" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    console.log(`Processing${userId ? " user" : " guest"} profile data for ${userId ? `user: ${userId}` : `session: ${sessionId}`}`);
+    console.log(`Processing guest profile data for session: ${sessionId}`);
 
     // Get the Gemini API Key
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-
     if (!geminiApiKey) {
       console.error('Gemini API key not set in Supabase secrets.');
       return new Response(JSON.stringify({ error: 'Gemini API key not configured.' }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
 
-    // Determine if we're updating a guest profile or a user profile
-    const isGuestProfile = !userId && sessionId;
-    const identifierField = isGuestProfile ? "session_id" : "user_id";
-    const identifierValue = isGuestProfile ? sessionId : userId;
-
-    // Store the provided content if it was passed directly
-    if ((linkedinContent || cvContent || additionalDetails) && identifierValue) {
-      // Update or insert profile data first
-      const upsertData: Record<string, any> = {
-        updated_at: new Date().toISOString(),
-      };
-      
-      if (linkedinContent) upsertData.linkedin_content = linkedinContent;
-      if (cvContent) upsertData.cv_content = cvContent;
-      if (additionalDetails) upsertData.additional_details = additionalDetails;
-      
-      if (isGuestProfile) {
-        upsertData.session_id = sessionId;
-        upsertData.is_temporary = true;
-        upsertData.temp_created_at = new Date().toISOString();
-      } else {
-        upsertData.user_id = userId;
-        upsertData.is_temporary = false;
-      }
-      
-      // Check if profile exists
-      const { data: existingProfile, error: checkError } = await supabaseClient
-        .from("user_profiles")
-        .select("profile_id")
-        .eq(identifierField, identifierValue)
-        .maybeSingle();
-        
-      if (checkError && checkError.code !== "PGRST116") {
-        console.error("Error checking for existing profile:", checkError);
-      }
-      
-      // Insert or update profile
-      if (existingProfile) {
-        const { error: updateError } = await supabaseClient
-          .from("user_profiles")
-          .update(upsertData)
-          .eq(identifierField, identifierValue);
-          
-        if (updateError) {
-          console.error("Error updating profile:", updateError);
-        } else {
-          console.log(`Profile successfully updated for ${isGuestProfile ? "session" : "user"}: ${identifierValue}`);
-        }
-      } else {
-        const { error: insertError } = await supabaseClient
-          .from("user_profiles")
-          .insert(upsertData);
-          
-        if (insertError) {
-          console.error("Error inserting profile:", insertError);
-        } else {
-          console.log(`New profile successfully created for ${isGuestProfile ? "session" : "user"}: ${identifierValue}`);
-        }
-      }
+    // Check if any content is provided
+    if (!backgroundInput && !linkedinContent && !cvContent && !additionalDetails) {
+      return new Response(JSON.stringify({ error: "No background content provided" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    // Fetch the profile data, either from the just-saved data or from existing data
-    const { data: profileData, error: profileError } = await supabaseClient
+    // Store profile data in user_profiles with session_id and is_temporary = true
+    const { error: profileError } = await supabaseClient
       .from("user_profiles")
-      .select("*")
-      .eq(identifierField, identifierValue)
-      .single();
+      .upsert({
+        session_id: sessionId,
+        is_temporary: true,
+        temp_created_at: new Date().toISOString(),
+        background_input: backgroundInput || null,
+        linkedin_content: linkedinContent || null,
+        cv_content: cvContent || null,
+        additional_details: additionalDetails || null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "session_id"
+      });
 
     if (profileError) {
-      console.error("Error fetching profile data:", profileError);
-      
-      if (profileError.code === "PGRST116") {
-        // Profile not found - this is not necessarily an error
-        console.log(`No profile data found for ${isGuestProfile ? "session" : "user"}. Creating default summary.`);
-        
-        // Create a default summary
-        const defaultSummary: GeneratedSummary = {
-          experience: "No experience data available yet.",
-          education: "No education data available yet.",
-          expertise: "No expertise data available yet.",
-          achievements: "No achievements data available yet.",
-          overall_blurb: "Please add more information to your profile to generate a complete summary.",
-        };
-        
-        // Insert default summary
-        await createOrUpdateSummary(identifierField, identifierValue, defaultSummary);
-        
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Default profile summary created. Please add more information to your profile.",
-            summary: defaultSummary,
-          }),
+      console.error("Error storing profile data:", profileError);
+      throw new Error(`Failed to store profile data: ${profileError.message}`);
+    }
+
+    // Combine all available content for AI processing
+    const combinedContent = [
+      backgroundInput && `Background Information: ${backgroundInput}`,
+      linkedinContent && `LinkedIn Profile: ${linkedinContent}`,
+      additionalDetails && `Additional Details: ${additionalDetails}`,
+      cvContent && `CV Content: ${cvContent}`
+    ].filter(Boolean).join("\n\n");
+
+    console.log("Calling Gemini API to generate summary...");
+
+    // Call Gemini API to process the profile
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': geminiApiKey
+      },
+      body: JSON.stringify({
+        contents: [
           {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            parts: [
+              {
+                text: `
+You are an AI assistant helping professionals create comprehensive profile summaries for job search networking. 
+
+Please analyze the following profile information and generate a structured summary:
+
+${combinedContent}
+
+Generate a comprehensive analysis in the following JSON format:
+
+{
+  "experience": "A detailed summary of professional experience, highlighting key roles, responsibilities, and career progression",
+  "education": "Summary of educational background, including degrees, certifications, and relevant coursework",
+  "expertise": "Key areas of expertise, technical skills, and domain knowledge",
+  "achievements": "Notable accomplishments, awards, and quantifiable results",
+  "overall_blurb": "A concise 2-3 sentence professional summary that captures the essence of this person's background",
+  "combined_experience_highlights": ["Array of 5-7 specific experience highlights as bullet points"],
+  "combined_education_highlights": ["Array of 3-5 education highlights as bullet points"],
+  "key_skills": ["Array of 10-15 key technical and professional skills"],
+  "domain_expertise": ["Array of 5-8 domain/industry expertise areas"],
+  "technical_expertise": ["Array of 5-10 specific technical competencies"],
+  "value_proposition_summary": "A 2-3 sentence summary of the unique value this person brings to organizations"
+}
+
+Focus on creating content that would be valuable for job search networking. Be specific and highlight transferable skills, quantifiable achievements, and unique value propositions. Address the user - use phrases like "You are..." / "You have..."
+            `
+              }
+            ]
           }
-        );
-      }
-      
-      throw new Error(`Failed to fetch profile data: ${profileError.message}`);
-    }
-
-    if (!profileData || (!profileData.linkedin_content && !profileData.additional_details && !profileData.cv_content)) {
-      console.log("Profile data found but empty or incomplete");
-      
-      // Create a basic summary with what we have
-      const basicSummary: GeneratedSummary = {
-        experience: "Your professional experience will appear here once you provide more information.",
-        education: "Your education details will appear here once you provide more information.",
-        expertise: "Your expertise areas will appear here once you provide more information.",
-        achievements: "Your key achievements will appear here once you provide more information.",
-        overall_blurb: "Add your LinkedIn profile, CV, or additional details to generate a comprehensive summary.",
-      };
-      
-      // Insert basic summary
-      await createOrUpdateSummary(identifierField, identifierValue, basicSummary);
-      
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Basic profile summary created. Please add more information to your profile.",
-          summary: basicSummary,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+          responseMimeType: "application/json"
         }
-      );
-    }
-
-    console.log("Profile data found:", {
-      hasLinkedinContent: !!profileData.linkedin_content,
-      hasAdditionalDetails: !!profileData.additional_details,
-      hasCvContent: !!profileData.cv_content
+      })
     });
 
-    // Organize the profile data
-    const profileContent: ProfileData = {
-      linkedinContent: profileData.linkedin_content,
-      additionalDetails: profileData.additional_details,
-      cvContent: profileData.cv_content
-    };
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
 
-    // Extract profile fields from content using Gemini AI
-    let extractedProfileFields: ExtractedProfileFields = {};
+    console.log("Received response from Gemini API");
+    const data = await response.json();
     
-    // Only attempt to extract profile fields if we have some content
-    if (profileContent.linkedinContent || profileContent.cvContent) {
-      try {
-        console.log("Calling Gemini API to extract profile fields...");
-        
-        // Combine relevant content for field extraction
-        let contentForExtraction = '';
-        if (profileContent.linkedinContent) {
-          contentForExtraction += `LINKEDIN CONTENT:\n${profileContent.linkedinContent}\n\n`;
-        }
-        if (profileContent.cvContent) {
-          contentForExtraction += `CV CONTENT:\n${profileContent.cvContent}\n\n`;
-        }
-        
-        // Only proceed if we have content to extract from
-        if (contentForExtraction) {
-          // Construct the prompt for Gemini API field extraction
-          const extractionPrompt = `
-          You are an AI assistant specializing in extracting structured information from professional profiles.
-          
-          Please analyze the following professional content (which may include LinkedIn profile text and/or resume content) 
-          and extract the following information in a structured JSON format:
-          
-          1. first_name: The person's first name only
-          2. last_name: The person's last name only
-          3. job_role: Their current job title/role
-          4. current_company: The name of their current company or organization
-          5. location: Their current location (city, state, country format if available)
-          
-          Return ONLY a valid JSON object with these fields. If you cannot determine a particular field with confidence, 
-          omit that field from the JSON response rather than guessing. Do not include any explanation or additional text.
-          
-          Professional content to analyze:
-          ${contentForExtraction}
-          `;
-          
-          // Make the API call to Gemini for field extraction
-          const extractionResponse = await fetch(GEMINI_API_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': geminiApiKey,
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{ text: extractionPrompt }]
-              }],
-              generationConfig: {
-                temperature: 0.1,
-                responseMimeType: "application/json"
-              },
-            }),
-          });
-          
-          if (!extractionResponse.ok) {
-            const errorBody = await extractionResponse.text();
-            console.error(`Gemini API error during field extraction: ${extractionResponse.status} - ${errorBody}`);
-            // Continue with summary generation even if field extraction fails
-          } else {
-            const extractionData = await extractionResponse.json();
-            const rawExtractedText = extractionData?.candidates?.[0]?.content?.parts?.[0]?.text;
-            
-            if (rawExtractedText) {
-              try {
-                extractedProfileFields = JSON.parse(rawExtractedText);
-                console.log("Successfully extracted profile fields:", Object.keys(extractedProfileFields).join(", "));
-              } catch (parseError) {
-                console.error("Error parsing extracted profile fields:", parseError);
-              }
-            }
-          }
-        }
-      } catch (extractionError) {
-        console.error("Error during profile field extraction:", extractionError);
-        // Continue with summary generation even if field extraction fails
-      }
-      
-      // Update user profile with extracted fields (only if fields are currently empty)
-      if (Object.keys(extractedProfileFields).length > 0) {
-        try {
-          // Get current profile data to check which fields are empty
-          const { data: currentProfileData, error: currentProfileError } = await supabaseClient
-            .from("user_profiles")
-            .select("first_name, last_name, job_role, current_company, location")
-            .eq(identifierField, identifierValue)
-            .single();
-            
-          if (currentProfileError && currentProfileError.code !== "PGRST116") {
-            console.error("Error fetching current profile data for field update:", currentProfileError);
-          } else {
-            // Prepare update data, only including fields that are currently empty
-            const fieldUpdateData: Record<string, any> = {
-              updated_at: new Date().toISOString()
-            };
-            
-            // Only update fields that are currently empty and we have extracted values for
-            if (extractedProfileFields.first_name && (!currentProfileData || !currentProfileData.first_name)) {
-              fieldUpdateData.first_name = extractedProfileFields.first_name;
-            }
-            
-            if (extractedProfileFields.last_name && (!currentProfileData || !currentProfileData.last_name)) {
-              fieldUpdateData.last_name = extractedProfileFields.last_name;
-            }
-            
-            if (extractedProfileFields.job_role && (!currentProfileData || !currentProfileData.job_role)) {
-              fieldUpdateData.job_role = extractedProfileFields.job_role;
-            }
-            
-            if (extractedProfileFields.current_company && (!currentProfileData || !currentProfileData.current_company)) {
-              fieldUpdateData.current_company = extractedProfileFields.current_company;
-            }
-            
-            if (extractedProfileFields.location && (!currentProfileData || !currentProfileData.location)) {
-              fieldUpdateData.location = extractedProfileFields.location;
-            }
-            
-            // Only update if we have fields to update
-            if (Object.keys(fieldUpdateData).length > 1) {
-              console.log("Updating profile with extracted fields:", Object.keys(fieldUpdateData).filter(k => k !== 'updated_at').join(", "));
-              
-              const { error: updateFieldsError } = await supabaseClient
-                .from("user_profiles")
-                .update(fieldUpdateData)
-                .eq(identifierField, identifierValue);
-                
-              if (updateFieldsError) {
-                console.error("Error updating profile with extracted fields:", updateFieldsError);
-              } else {
-                console.log("Successfully updated profile with extracted fields");
-              }
-            } else {
-              console.log("No empty profile fields to update");
-            }
-          }
-        } catch (updateError) {
-          console.error("Error during profile field update process:", updateError);
-          // Continue with summary generation even if field update fails
-        }
-      }
+    let summary;
+    try {
+      const generatedText = data.candidates[0].content.parts[0].text;
+      summary = JSON.parse(generatedText);
+    } catch (parseError) {
+      console.error("Error parsing Gemini response:", parseError);
+      throw new Error("Failed to parse AI response");
     }
 
-    // Combine all content into a single text block with labels
-    let combinedBackgroundText = '';
-    
-    if (profileContent.linkedinContent) {
-      combinedBackgroundText += `--- linkedin_profile ---\n${profileContent.linkedinContent}\n\n`;
+    // Store the summary in the database with session_id
+    const { error: summaryError } = await supabaseClient
+      .from("user_summaries")
+      .upsert({
+        session_id: sessionId,
+        ...summary,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "session_id"
+      });
+
+    if (summaryError) {
+      console.error("Error saving summary:", summaryError);
+      throw new Error(`Failed to save summary: ${summaryError.message}`);
     }
-    
-    if (profileContent.additionalDetails) {
-      combinedBackgroundText += `--- additional_details ---\n${profileContent.additionalDetails}\n\n`;
-    }
-    
-    if (profileContent.cvContent) {
-      combinedBackgroundText += `--- cv_content ---\n${profileContent.cvContent}\n\n`;
-    }
 
-    // If we have data, call the Gemini API for summary generation
-    if (combinedBackgroundText) {
-      try {
-        console.log("Calling Gemini API to generate summary...");
-        
-        // Construct the prompt for Gemini API
-        const prompt = `
-        You are an AI assistant specializing in synthesizing and summarizing professional backgrounds from multiple sources.
-        Below is a collection of text describing a user's professional background, potentially including LinkedIn profile text, resume content, additional details, etc. Each section is marked by its source (e.g., "--- linkedin_profile ---").
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Profile summary generated successfully!",
+      summary: summary
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
 
-        Your task is to read this combined text and generate a single, structured JSON object that provides an overall summary and key highlights of the user's professional profile. Synthesize information across all sources.
-
-        The JSON object should have the following structure:
-        {
-          "overall_blurb": "A concise, 1-2 sentence overall summary of the user's professional profile, highlighting their current status, seniority, and main area of expertise.",
-          "experience": "A paragraph summarizing their professional experience.",
-          "education": "A paragraph summarizing their education background.",
-          "expertise": "A paragraph summarizing their key areas of expertise.",
-          "achievements": "A paragraph summarizing their key achievements.",
-          "combined_experience_highlights": ["Synthesized bullet points summarizing the most significant roles, companies, and achievements from their entire work history."],
-          "combined_education_highlights": ["Synthesized bullet points summarizing degrees, institutions, and relevant academic achievements from all educational entries."],
-          "key_skills": ["A synthesized list of the most prominent professional skills mentioned across all sources."],
-          "domain_expertise": ["A synthesized list of key industry or domain expertise mentioned."],
-          "technical_expertise": ["A synthesized list of key technical skills or areas of expertise mentioned."],
-          "value_proposition_summary": "A brief summary of the user's core professional value proposition based on their combined background."
-        }
-
-        Ensure the output is valid JSON. Synthesize information across all provided sections. Focus on the most impactful and relevant details for an overall professional summary.
-
-        Combined Background Text:
-        --- START ---
-        ${combinedBackgroundText}
-        --- END ---
-
-        Generate the JSON object:
-        `;
-
-        // Make the API call to Gemini
-        const response = await fetch(GEMINI_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': geminiApiKey,
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: prompt }]
-            }],
-            generationConfig: {
-              temperature: 0.1, // Lower temperature for consistent synthesis
-              responseMimeType: "application/json" // Request JSON output directly
-            },
-          }),
-        });
-
-        if (!response.ok) {
-          const errorBody = await response.text();
-          console.error(`Gemini API error: ${response.status} - ${errorBody}`);
-          throw new Error(`Error from Gemini API: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Received response from Gemini API");
-
-        // Process the Gemini response to extract the structured data
-        let generatedSummary: GeneratedSummary;
-        try {
-          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!rawText) {
-            throw new Error("Empty or invalid response from Gemini API");
-          }
-          
-          generatedSummary = JSON.parse(rawText);
-
-          // Basic validation of the structure
-          if (typeof generatedSummary !== 'object' || 
-              typeof generatedSummary.experience !== 'string' || 
-              typeof generatedSummary.education !== 'string' ||
-              typeof generatedSummary.expertise !== 'string' ||
-              typeof generatedSummary.achievements !== 'string') {
-            throw new Error("AI response structure is incomplete or missing required fields");
-          }
-
-        } catch (parseError) {
-          console.error('Error parsing AI response:', parseError);
-          console.error('Raw AI response data:', JSON.stringify(data)); // Log raw data for debugging
-          
-          // Fallback to simpler summary generation
-          generatedSummary = {
-            experience: "Generated summary of professional experience based on provided content.",
-            education: "Generated summary of education based on provided content.",
-            expertise: "Generated summary of expertise and skills based on provided content.",
-            achievements: "Generated summary of key achievements based on provided content.",
-            overall_blurb: "Professional profile generated from provided background information."
-          };
-        }
-
-        // Create or update the summary in the user_summaries table
-        await createOrUpdateSummary(identifierField, identifierValue, generatedSummary);
-        
-        // Update the processed status for the user profile
-        const { error: updateError } = await supabaseClient
-          .from("user_profiles")
-          .update({
-            updated_at: new Date().toISOString(),
-          })
-          .eq(identifierField, identifierValue);
-          
-        if (updateError) {
-          console.error(`Error updating user profile:`, updateError);
-        }
-
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Profile data processed successfully using Gemini AI",
-            summary: generatedSummary,
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      } catch (aiError) {
-        console.error("Error processing with Gemini AI:", aiError);
-        
-        // Fallback to simplified summary generation
-        const fallbackSummary: GeneratedSummary = {
-          experience: "Generated summary of professional experience based on provided content.",
-          education: "Generated summary of education based on provided content.",
-          expertise: "Generated summary of expertise and skills based on provided content.",
-          achievements: "Generated summary of key achievements based on provided content.",
-          overall_blurb: "Error generating detailed AI summary. Basic summary provided instead."
-        };
-        
-        // Create or update with fallback summary
-        await createOrUpdateSummary(identifierField, identifierValue, fallbackSummary);
-        
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Generated fallback profile summary due to AI processing error",
-            summary: fallbackSummary,
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-    } else {
-      // If we don't have any content, return a basic response
-      const emptySummary: GeneratedSummary = {
-        experience: "No professional experience data available.",
-        education: "No education data available.",
-        expertise: "No expertise data available.",
-        achievements: "No achievements data available.",
-        overall_blurb: "Please add your professional information to generate a summary."
-      };
-      
-      // Create or update with empty summary
-      await createOrUpdateSummary(identifierField, identifierValue, emptySummary);
-      
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "No content found to process. Please add professional information to your profile.",
-          summary: emptySummary,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
   } catch (error) {
-    console.error("Unexpected error:", error);
-    
-    return new Response(
-      JSON.stringify({
-        error: `Unexpected error: ${error.message}`,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error("Error in generate_guest_profile function:", error);
+    return new Response(JSON.stringify({
+      error: "Failed to generate profile summary",
+      message: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   }
 });
-
-/**
- * Create or update the summary in the user_summaries table
- */
-async function createOrUpdateSummary(identifierField: string, identifierValue: string, summary: GeneratedSummary): Promise<void> {
-  try {
-    // Check if a summary already exists
-    const { data: existingSummary, error: checkError } = await supabaseClient
-      .from("user_summaries")
-      .select("summary_id")
-      .eq(identifierField, identifierValue)
-      .maybeSingle();
-      
-    if (checkError && checkError.code !== "PGRST116") {
-      throw new Error(`Error checking for existing summary: ${checkError.message}`);
-    }
-    
-    if (existingSummary) {
-      // Update the existing summary
-      const { error: updateError } = await supabaseClient
-        .from("user_summaries")
-        .update({
-          experience: summary.experience,
-          education: summary.education,
-          expertise: summary.expertise,
-          achievements: summary.achievements,
-          overall_blurb: summary.overall_blurb || null,
-          combined_experience_highlights: summary.combined_experience_highlights || null,
-          combined_education_highlights: summary.combined_education_highlights || null,
-          key_skills: summary.key_skills || null,
-          domain_expertise: summary.domain_expertise || null,
-          technical_expertise: summary.technical_expertise || null,
-          value_proposition_summary: summary.value_proposition_summary || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq(identifierField, identifierValue);
-        
-      if (updateError) {
-        throw new Error(`Error updating summary: ${updateError.message}`);
-      }
-    } else {
-      // Insert a new summary
-      const summaryData: Record<string, any> = {
-        experience: summary.experience,
-        education: summary.education,
-        expertise: summary.expertise,
-        achievements: summary.achievements,
-        overall_blurb: summary.overall_blurb || null,
-        combined_experience_highlights: summary.combined_experience_highlights || null,
-        combined_education_highlights: summary.combined_education_highlights || null,
-        key_skills: summary.key_skills || null,
-        domain_expertise: summary.domain_expertise || null,
-        technical_expertise: summary.technical_expertise || null,
-        value_proposition_summary: summary.value_proposition_summary || null
-      };
-      
-      // Set the appropriate identifier field
-      summaryData[identifierField] = identifierValue;
-      
-      const { error: insertError } = await supabaseClient
-        .from("user_summaries")
-        .insert(summaryData);
-        
-      if (insertError) {
-        throw new Error(`Error inserting summary: ${insertError.message}`);
-      }
-    }
-  } catch (error) {
-    console.error("Error in createOrUpdateSummary:", error);
-    throw error;
-  }
-}

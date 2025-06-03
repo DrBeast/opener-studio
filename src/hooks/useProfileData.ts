@@ -119,8 +119,9 @@ export const useProfileData = (userId: string | undefined) => {
     fetchUserProfile();
   }, [userId]);
 
-  // Function to save profile data
+  // Function to save profile data - now handles the unified background_input field
   const saveUserProfile = async (userId: string, profileData: {
+    background_input?: string;
     linkedin_content?: string;
     additional_details?: string;
     cv_content?: string;
@@ -145,6 +146,7 @@ export const useProfileData = (userId: string | undefined) => {
         const { error } = await supabase
           .from("user_profiles")
           .update({
+            background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
             additional_details: profileData.additional_details || null,
             cv_content: profileData.cv_content || null,
@@ -159,6 +161,7 @@ export const useProfileData = (userId: string | undefined) => {
           .from("user_profiles")
           .insert({
             user_id: userId,
+            background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
             additional_details: profileData.additional_details || null,
             cv_content: profileData.cv_content || null

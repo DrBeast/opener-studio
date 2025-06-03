@@ -4,12 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   AirtableCard,
   AirtableCardContent,
-  AirtableCardDescription,
   AirtableCardFooter,
-  AirtableCardHeader,
-  AirtableCardTitle,
 } from "@/components/ui/airtable-card";
-import { InfoBox } from "@/components/ui/info-box";
+import { InfoBox } from "@/components/ui/design-system";
 import { toast } from "@/hooks/use-toast";
 import { Edit, ArrowRight, Save } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
@@ -23,7 +20,6 @@ import {
   CardContent,
   PrimaryAction,
   OutlineAction,
-  GhostAction,
   PageTitle,
   SectionTitle,
   PageDescription,
@@ -48,14 +44,13 @@ const Profile = () => {
     setBackgroundSummary,
   } = useProfileData(user?.id);
 
-  // Form state
-  const [linkedinContent, setLinkedinContent] = useState("");
-  const [additionalDetails, setAdditionalDetails] = useState("");
-  const [cvContent, setCvContent] = useState("");
+  // Form state - now using unified background input
+  const [backgroundInput, setBackgroundInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [existingData, setExistingData] = useState<{
+    background?: string;
     linkedin?: string;
     additional?: string;
     cv?: string;
@@ -80,25 +75,43 @@ const Profile = () => {
     // If no profile is loaded yet, return
     if (!profile) return;
 
-    // Process retrieved data for form
+    // Process retrieved data for form - prioritize background_input, fallback to combined legacy fields
     const existingBackgrounds: {
+      background?: string;
       linkedin?: string;
       additional?: string;
       cv?: string;
     } = {};
 
-    if (profile.linkedin_content) {
-      existingBackgrounds.linkedin = profile.linkedin_content;
-      setLinkedinContent(profile.linkedin_content);
+    if (profile.background_input) {
+      // Use the unified background input if available
+      existingBackgrounds.background = profile.background_input;
+      setBackgroundInput(profile.background_input);
+    } else {
+      // For backward compatibility, combine the legacy fields
+      const legacyData = [
+        profile.linkedin_content && `LinkedIn Profile:\n${profile.linkedin_content}`,
+        profile.cv_content && `CV Content:\n${profile.cv_content}`,
+        profile.additional_details && `Additional Details:\n${profile.additional_details}`
+      ].filter(Boolean).join('\n\n');
+      
+      if (legacyData) {
+        existingBackgrounds.background = legacyData;
+        setBackgroundInput(legacyData);
+      }
+      
+      // Also store individual legacy fields for reference
+      if (profile.linkedin_content) {
+        existingBackgrounds.linkedin = profile.linkedin_content;
+      }
+      if (profile.additional_details) {
+        existingBackgrounds.additional = profile.additional_details;
+      }
+      if (profile.cv_content) {
+        existingBackgrounds.cv = profile.cv_content;
+      }
     }
-    if (profile.additional_details) {
-      existingBackgrounds.additional = profile.additional_details;
-      setAdditionalDetails(profile.additional_details);
-    }
-    if (profile.cv_content) {
-      existingBackgrounds.cv = profile.cv_content;
-      setCvContent(profile.cv_content);
-    }
+    
     setExistingData(existingBackgrounds);
   }, [profile, user, navigate]);
 
@@ -111,11 +124,7 @@ const Profile = () => {
 
   useEffect(() => {
     // Check if any changes were made compared to existing data
-    const hasLinkedinChanges =
-      linkedinContent !== (existingData.linkedin || "");
-    const hasAdditionalChanges =
-      additionalDetails !== (existingData.additional || "");
-    const hasCvChanges = cvContent !== (existingData.cv || "");
+    const hasBackgroundChanges = backgroundInput !== (existingData.background || "");
 
     // Check if any summary fields have changed
     let hasSummaryChanges = false;
@@ -140,16 +149,9 @@ const Profile = () => {
           JSON.stringify(backgroundSummary.combined_education_highlights);
     }
 
-    setHasChanges(
-      hasLinkedinChanges ||
-        hasAdditionalChanges ||
-        hasCvChanges ||
-        hasSummaryChanges
-    );
+    setHasChanges(hasBackgroundChanges || hasSummaryChanges);
   }, [
-    linkedinContent,
-    additionalDetails,
-    cvContent,
+    backgroundInput,
     editableSummary,
     backgroundSummary,
     existingData,
@@ -160,11 +162,9 @@ const Profile = () => {
 
     setIsSubmitting(true);
     try {
-      // Save profile data to user_profiles table
+      // Save profile data to user_profiles table using the unified background_input field
       await saveUserProfile(user.id, {
-        linkedin_content: linkedinContent,
-        additional_details: additionalDetails,
-        cv_content: cvContent,
+        background_input: backgroundInput,
       });
 
       // Save the updated summary data if in edit mode
@@ -305,12 +305,8 @@ const Profile = () => {
                     <SectionTitle>Edit Profile Information</SectionTitle>
 
                     <ProfessionalBackground
-                      linkedinContent={linkedinContent}
-                      setLinkedinContent={setLinkedinContent}
-                      additionalDetails={additionalDetails}
-                      setAdditionalDetails={setAdditionalDetails}
-                      cvContent={cvContent}
-                      setCvContent={setCvContent}
+                      backgroundInput={backgroundInput}
+                      setBackgroundInput={setBackgroundInput}
                       isSubmitting={isSubmitting}
                       isEditing={Object.keys(existingData).length > 0}
                       existingData={existingData}

@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InfoBox } from "@/components/ui/info-box";
+import { InfoBox } from "@/components/ui/design-system";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -11,15 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const ProfileInput = () => {
-  const {
-    user,
-    linkUserProfile
-  } = useAuth();
+  const { user, linkUserProfile } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("linkedin");
-  const [linkedinContent, setLinkedinContent] = useState("");
-  const [cvContent, setCvContent] = useState("");
-  const [freeformContent, setFreeformContent] = useState("");
+  const [backgroundInput, setBackgroundInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [profileLinked, setProfileLinked] = useState(false);
@@ -103,24 +97,13 @@ const ProfileInput = () => {
     };
     attemptProfileLinking();
   }, [user, sessionId, navigate, profileLinked, profileLinkingAttempted, linkUserProfile]);
-  const getActiveContent = () => {
-    switch (activeTab) {
-      case "linkedin":
-        return linkedinContent;
-      case "cv":
-        return cvContent;
-      case "freeform":
-        return freeformContent;
-      default:
-        return "";
-    }
-  };
+
   const processProfile = async () => {
-    const content = getActiveContent();
-    if (!content) {
-      toast.error("Please add your details: We need some information about your professional background to generate a profile.");
+    if (!backgroundInput.trim()) {
+      toast.error("Please add your background information: We need some information about your professional background to generate a profile.");
       return;
     }
+
     if (!sessionId) {
       // If somehow we don't have a session ID, create one
       const newSessionId = uuidv4();
@@ -128,35 +111,25 @@ const ProfileInput = () => {
       setSessionId(newSessionId);
       toast.info("Created a new session for your profile");
     }
+
     setIsProcessing(true);
     try {
-      // Determine which content to send based on active tab
-      const payload: Record<string, any> = {
-        sessionId
+      const payload = {
+        sessionId,
+        backgroundInput: backgroundInput.trim()
       };
-      switch (activeTab) {
-        case "linkedin":
-          payload.linkedinContent = content;
-          break;
-        case "cv":
-          payload.cvContent = content;
-          break;
-        case "freeform":
-          payload.additionalDetails = content;
-          break;
-      }
+
       console.log("ProfileInput: Sending profile data for processing with session ID:", sessionId);
 
       // Call the edge function
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("generate_guest_profile", {
+      const { data, error } = await supabase.functions.invoke("generate_guest_profile", {
         body: payload
       });
+
       if (error) {
         throw new Error(`Edge function error: ${error.message || "Unknown error"}`);
       }
+
       if (!data || !data.summary) {
         throw new Error("No profile data received from the server");
       }
@@ -167,9 +140,11 @@ const ProfileInput = () => {
       // Convert to UI format
       setAiProfile({
         summary: data.summary.overall_blurb || data.summary.experience,
-        highlights: data.summary.combined_experience_highlights || [data.summary.experience, data.summary.education, data.summary.achievements].filter(Boolean),
+        highlights: data.summary.combined_experience_highlights || 
+                   [data.summary.experience, data.summary.education, data.summary.achievements].filter(Boolean),
         skills: data.summary.key_skills || []
       });
+
       toast.success("Profile generated! Your professional profile has been generated successfully.");
 
       // If user is already logged in, try linking the profile
@@ -202,6 +177,7 @@ const ProfileInput = () => {
       setIsProcessing(false);
     }
   };
+
   const handleSaveProfile = () => {
     if (user) {
       // If user is logged in, redirect to profile page
@@ -228,41 +204,37 @@ const ProfileInput = () => {
       navigate("/auth/signup");
     }
   };
-  return <div>
+
+  return (
+    <div>
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text py-1 inline-block">
           Get Started: Generate Your Profile
         </h2>
-        <p className="text-xl text-gray-600">Share your professional background. Your LinkedIn profile is typically enough. Our AI will process it and show you how it builds your profile.</p>
+        <p className="text-xl text-gray-600">
+          Share your professional background in one simple step. Copy your LinkedIn profile, CV content, or tell us about yourself. Our AI will process it and show you how it builds your profile.
+        </p>
       </div>
 
-      <Tabs defaultValue="linkedin" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="linkedin">LinkedIn Profile</TabsTrigger>
-          <TabsTrigger value="cv">CV Content</TabsTrigger>
-          <TabsTrigger value="freeform">Tell Us About Yourself</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="linkedin" className="space-y-4">
-          <InfoBox>
-            Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out. We will use the AI-generated summary of your profile for company matching and message generation.
-          </InfoBox>
-          <Textarea placeholder="Paste your LinkedIn profile content here..." className="min-h-[200px]" value={linkedinContent} onChange={e => setLinkedinContent(e.target.value)} />
-        </TabsContent>
-        
-        <TabsContent value="cv" className="space-y-4">
-          <InfoBox>
-            Copy your CV contents (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out. We will use the AI-generated summary of your profile for company matching and message generation.
-          </InfoBox>
-          <Textarea placeholder="Paste your CV content here..." className="min-h-[200px]" value={cvContent} onChange={e => setCvContent(e.target.value)} />
-        </TabsContent>
-        
-        <TabsContent value="freeform" className="space-y-4">
-          <InfoBox>
-            Add any other written information about yourself - bio, success stories, blurbs, achievements. This can help enrich the profile with valuable details.
-          </InfoBox>
-          <Textarea placeholder="Bio, education, key skills, success cases, STAR-stories for interviews, blurbs, cover letters - everything works!" className="min-h-[200px]" value={freeformContent} onChange={e => setFreeformContent(e.target.value)} />
-        </TabsContent>
+      <div className="space-y-4">
+        <InfoBox>
+          <p className="font-medium mb-2">How to add your background information:</p>
+          <ul className="text-sm space-y-1">
+            <li><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</li>
+            <li><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</li>
+            <li><strong>Tell us about yourself:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</li>
+          </ul>
+          <p className="text-sm mt-2 font-medium">
+            We will use the AI-generated summary of your profile for company matching and message generation. The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value and overcome self-doubt in networking.
+          </p>
+        </InfoBox>
+
+        <Textarea
+          placeholder="Paste your LinkedIn profile, CV content, or describe your professional background..."
+          className="min-h-[200px]"
+          value={backgroundInput}
+          onChange={(e) => setBackgroundInput(e.target.value)}
+        />
 
         <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
           <p className="text-sm text-blue-700">
@@ -270,24 +242,37 @@ const ProfileInput = () => {
             {!user && " Sign up to save your profile and access all features."}
           </p>
           
-          {user && !profileLinked && sessionId && <p className="text-sm text-blue-700 mt-1">
+          {user && !profileLinked && sessionId && (
+            <p className="text-sm text-blue-700 mt-1">
               <strong>Note:</strong> You're logged in but your profile data hasn't been linked yet. We'll attempt to link it when you continue.
-            </p>}
-          {linkingInProgress && <p className="text-sm text-blue-700 mt-1 flex items-center">
+            </p>
+          )}
+          {linkingInProgress && (
+            <p className="text-sm text-blue-700 mt-1 flex items-center">
               <Loader2 className="h-3 w-3 animate-spin mr-1" />
               <span>Linking your profile data...</span>
-            </p>}
+            </p>
+          )}
         </div>
 
-        <Button onClick={processProfile} disabled={isProcessing || !getActiveContent() || !sessionId || linkingInProgress} className="w-full mt-4">
-          {isProcessing ? <>
+        <Button 
+          onClick={processProfile} 
+          disabled={isProcessing || !backgroundInput.trim() || !sessionId || linkingInProgress} 
+          className="w-full mt-4"
+        >
+          {isProcessing ? (
+            <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
-            </> : "Sign Up And Generate My Profile"}
+            </>
+          ) : (
+            "Generate My Profile"
+          )}
         </Button>
-      </Tabs>
+      </div>
 
-      {aiProfile && <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-primary mt-8">
+      {aiProfile && (
+        <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-primary mt-8">
           <h3 className="text-2xl font-bold mb-4">Your AI-Generated Profile</h3>
           
           <div className="mb-6">
@@ -298,26 +283,37 @@ const ProfileInput = () => {
           <div className="mb-6">
             <h4 className="text-md font-semibold text-gray-500 mb-2">HIGHLIGHTS</h4>
             <ul className="list-disc pl-5 space-y-1">
-              {aiProfile.highlights.map((highlight, index) => <li key={index} className="text-md">{highlight}</li>)}
+              {aiProfile.highlights.map((highlight, index) => (
+                <li key={index} className="text-md">{highlight}</li>
+              ))}
             </ul>
           </div>
           
           <div className="mb-6">
             <h4 className="text-md font-semibold text-gray-500 mb-2">KEY SKILLS</h4>
             <div className="flex flex-wrap gap-2">
-              {aiProfile.skills.map((skill, index) => <span key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+              {aiProfile.skills.map((skill, index) => (
+                <span key={index} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
                   {skill}
-                </span>)}
+                </span>
+              ))}
             </div>
           </div>
           
           <Button onClick={handleSaveProfile} className="w-full" disabled={linkingInProgress}>
-            {linkingInProgress ? <>
+            {linkingInProgress ? (
+              <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Linking Profile...
-              </> : user ? "Save My Profile" : "Sign Up to Save Profile & Unlock Features"}
+              </>
+            ) : (
+              user ? "Save My Profile" : "Sign Up to Save Profile & Unlock Features"
+            )}
           </Button>
-        </div>}
-    </div>;
+        </div>
+      )}
+    </div>
+  );
 };
+
 export default ProfileInput;

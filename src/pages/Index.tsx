@@ -18,11 +18,13 @@ const Index = () => {
     }
   }, []);
 
-  return <div className="min-h-screen">
+  return (
+    <div className="min-h-screen">
       <HeroSection />
       <PainPointsSection />
       <SolutionSection />
-    </div>;
+    </div>
+  );
 };
 
 export default Index;
