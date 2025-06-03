@@ -30,7 +30,7 @@ const SolutionSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">How ConnectorAI Helps</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-[hsl(var(--normaltext))] max-w-3xl mx-auto">
             What if you had an AI copilot to guide you? ConnectorAI is designed to cut through the complexity and discomfort of job search networking.
           </p>
         </div>
@@ -43,7 +43,7 @@ const SolutionSection = () => {
                 <h3 className="font-bold text-xl text-white">{solution.title}</h3>
               </div>
               <div className="bg-white p-6 shadow-sm border border-t-0">
-                <p className="text-gray-600">{solution.description}</p>
+                <p className="text-[hsl(var(--normaltext))]">{solution.description}</p>
               </div>
             </div>
           ))}

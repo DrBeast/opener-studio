@@ -12,7 +12,7 @@ const CTASection = () => {
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Job Search?</h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-[hsl(var(--normaltext))] mb-8">
             Join thousands of professionals who are landing interviews and offers faster by networking more effectively with ConnectorAI.
           </p>
           
@@ -34,7 +34,7 @@ const CTASection = () => {
             )}
           </div>
           
-          <div className="flex items-center justify-center text-sm text-gray-500">
+          <div className="flex items-center justify-center text-sm text-[hsl(var(--normaltext))]">
             <Shield className="h-4 w-4 mr-2" />
             <span>Your data is secure and used only to power your personalized networking</span>
           </div>

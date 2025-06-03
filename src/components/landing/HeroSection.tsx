@@ -18,7 +18,7 @@ const HeroSection = () => {
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
               Connect With a Human: <span className="text-primary">Your AI Copilot</span> for Job Search Networking
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-[hsl(var(--normaltext))] mb-8">
               In today's job market, getting to talk to a real person is hard yet essential. ConnectorAI helps you craft messaging that gets responses and build networks that actually help - at scale and without the awkwardness.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">

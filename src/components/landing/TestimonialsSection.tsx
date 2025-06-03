@@ -25,7 +25,7 @@ const TestimonialsSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-[hsl(var(--normaltext))] max-w-3xl mx-auto">
             Join professionals who are landing interviews and offers faster by networking more effectively with ConnectorAI.
           </p>
         </div>
@@ -49,7 +49,7 @@ const TestimonialsSection = () => {
                   </div>
                   <p className="font-medium">{testimonial.author}</p>
                 </div>
-                <p className="text-gray-600 italic">"{testimonial.quote}"</p>
+                <p className="text-[hsl(var(--normaltext))] italic">"{testimonial.quote}"</p>
               </CardContent>
             </Card>
           ))}

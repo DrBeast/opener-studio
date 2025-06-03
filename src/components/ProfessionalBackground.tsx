@@ -49,7 +49,7 @@ const ProfessionalBackground = ({
         <Label htmlFor="background-input" className="text-lg font-semibold">
           Professional Background
         </Label>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-[hsl(var(--normaltext))] mt-1">
           {isEditing 
             ? "Update your professional background information. This will be used to regenerate your AI profile summary."
             : "Share your professional background information to generate your AI profile summary."
