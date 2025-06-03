@@ -277,10 +277,10 @@ const Profile = () => {
                     Edit Profile
                   </OutlineAction>
                 )}
-                <PrimaryAction onClick={handleNavigateToTargets}>
+                {/*<PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
-                </PrimaryAction>
+                </PrimaryAction>*/}
               </div>
             </div>
 
