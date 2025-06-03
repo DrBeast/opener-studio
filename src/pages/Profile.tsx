@@ -270,6 +270,13 @@ const Profile = () => {
                   summaries
                 </PageDescription>
               </div>
+              {!editMode && (
+                <OutlineAction onClick={() => setEditMode(true)}>
+                  <Edit className="h-4 w-4" />
+                  Edit Profile
+                </OutlineAction>
+              )}
+
               <div className="flex gap-3">
                 <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
