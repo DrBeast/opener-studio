@@ -270,7 +270,6 @@ const Profile = () => {
                   summaries
                 </PageDescription>
               </div>
-
               <div className="flex gap-3">
                 {!editMode && (
                   <OutlineAction onClick={() => setEditMode(true)}>
