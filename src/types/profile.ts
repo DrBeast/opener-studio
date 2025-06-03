@@ -1,4 +1,3 @@
-
 export interface UserProfile {
   user_id: string;
   first_name?: string;
@@ -9,6 +8,7 @@ export interface UserProfile {
   linkedin_content?: string;
   additional_details?: string;
   cv_content?: string;
+  background_input?: string;
 }
 
 export interface Background {
