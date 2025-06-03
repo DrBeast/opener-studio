@@ -166,7 +166,7 @@ const Signup = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <div className="text-center text-sm w-full">
+          <div className="text-center text-sm w-full text-[hsl(var(--normaltext))]">
             Already have an account?{" "}
             <Link to="/auth/login" className="text-primary hover:underline">
               Log in

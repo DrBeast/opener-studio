@@ -12,7 +12,7 @@ export const ProfileReviewStep = ({ backgroundSummary }: ProfileReviewStepProps)
       <div className="text-center">
         <User className="h-12 w-12 text-primary mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">Welcome to ConnectorAI!</h3>
-        <p className="text-muted-foreground">
+        <p className="text-[hsl(var(--normaltext))]">
           Let's get you set up to start building meaningful professional connections.
         </p>
       </div>

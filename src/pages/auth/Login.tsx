@@ -56,13 +56,13 @@ const Login = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600">Sign in to continue your networking journey</p>
+          <p className="text-[hsl(var(--normaltext))]">Sign in to continue your networking journey</p>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-gray-900">Log In</CardTitle>
-            <CardDescription className="text-center text-gray-600">
+            <CardTitle className="text-2xl font-bold text-center text-[hsl(var(--normaltext))]">Log In</CardTitle>
+            <CardDescription className="text-center text-[hsl(var(--normaltext))]">
               Enter your email and password to access your account
             </CardDescription>
           </CardHeader>
@@ -74,10 +74,10 @@ const Login = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">Email Address</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">Email Address</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
                           <Input 
                             placeholder="you@example.com" 
                             type="email" 
@@ -96,10 +96,10 @@ const Login = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">Password</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
                           <Input 
                             placeholder="••••••••" 
                             type="password" 
@@ -139,7 +139,7 @@ const Login = () => {
                 Forgot your password?
               </Link>
             </div>
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-[hsl(var(--normaltext))]">
               Don't have an account?{" "}
               <Link 
                 to="/auth/signup" 
@@ -153,7 +153,7 @@ const Login = () => {
 
         {/* Footer note */}
         <div className="text-center mt-8">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[hsl(var(--normaltext))]">
             Secure login powered by industry-standard encryption
           </p>
         </div>
