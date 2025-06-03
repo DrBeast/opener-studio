@@ -276,7 +276,6 @@ const Profile = () => {
                   Edit Profile
                 </OutlineAction>
               )}
-
               <div className="flex gap-3">
                 <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
