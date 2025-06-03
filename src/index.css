@@ -5,8 +5,9 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* White */
-    --foreground: 280 90% 32.2%; /* Deep purple, primary headers */
-    --normaltext: 0 10.2% 28.7%; /* Dark gray */
+    --foreground: 0 10.2% 28.7%; /* Dark gray */
+    --normaltext: 0 14.7% 23%; /* Dark gray */
+    --purple-accent: 280 90% 32.2%; /* Deep purple, primary headers */
 
     --card: 0 0% 100%; /* White */
     --card-foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */

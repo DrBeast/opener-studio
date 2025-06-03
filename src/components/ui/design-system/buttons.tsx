@@ -15,7 +15,7 @@ const buttonVariants = cva(
 
         destructive:
           // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
-          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80 shadow-sm hover:shadow-sm transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80 shadow-lg hover:shadow-xl transition-all duration-200 shrink-0",
 
         success:
           // Tailwind: bg-green-600 (#16a34a, hsl(142, 71%, 36%)), text-white (#fff), hover:bg-green-700 (#15803d, hsl(142, 76%, 26%))
@@ -27,16 +27,15 @@ const buttonVariants = cva(
 
         outline:
           // Tailwind: border-gray-300 (#d1d5db, hsl(220, 13%, 91%)), bg-white (#fff, hsl(0, 0%, 100%)), text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-50 (#f9fafb, hsl(220, 20%, 98%))
-          "border border-[hsl(var(--primary))] bg-[hsl(var(--background))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--muted))] shadow-lg hover:shadow-lg
-           transition-all duration-200 shrink-0",
+          "border border-[hsl(var(--primary))] bg-[hsl(var(--background))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--muted))] shadow-lg hover:shadow-lg transition-all duration-200 shrink-0",
 
         ghost:
           // Tailwind: text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%))
           "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]",
 
-        secondary:
-          // Tailwind: bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%)), text-gray-900 (#111827, hsl(222, 47%, 11%)), hover:bg-gray-200 (#e5e7eb, hsl(220, 13%, 91%)), border-gray-300 (#d1d5db, hsl(220, 13%, 91%))
-          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))] hover:brightness-95 border border-[hsl(var(--border))]",
+        outlinedestructive:
+          // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
+          "border border-[hsl(var(--destructive))] bg-[hsl(var(--background))] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--muted))] shadow-lg hover:shadow-lg transition-all duration-200 shrink-0",
       },
       size: {
         default: "h-10 px-4 py-2",
