@@ -272,16 +272,16 @@ const Profile = () => {
               </div>
 
               <div className="flex gap-3">
-                <PrimaryAction onClick={handleNavigateToTargets}>
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
-                </PrimaryAction>
                 {!editMode && (
                   <OutlineAction onClick={() => setEditMode(true)}>
                     <Edit className="h-4 w-4" />
                     Edit Profile
                   </OutlineAction>
                 )}
+                <PrimaryAction onClick={handleNavigateToTargets}>
+                  Next: Define Targets
+                  <ArrowRight className="h-4 w-4" />
+                </PrimaryAction>
               </div>
             </div>
 
