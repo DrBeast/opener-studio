@@ -12,8 +12,6 @@ import * as z from "zod";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { X, Plus, ChevronsUpDown, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { Button } from "@/components/ui/design-system/buttons";
-// import { InfoBox } from "@/components/ui/design-system/info-box";
 
 // Design System Imports
 import {
@@ -24,8 +22,8 @@ import {
   PageTitle,
   PageDescription,
   Button,
+  InfoBox,
 } from "@/components/ui/design-system";
-import { InfoBox } from "@/components/ui/info-box";
 
 const formSchema = z.object({
   target_functions: z.array(z.string()).optional(),
