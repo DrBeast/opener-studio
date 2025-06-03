@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { Plus, Sparkles } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
@@ -20,7 +18,7 @@ import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal
 
 // Design System Imports
 import {
-  PrimaryCard,
+  Card,
   CardContent,
   PrimaryAction,
   OutlineAction,
