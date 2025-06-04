@@ -14,7 +14,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
-import { InfoBox } from "@/components/ui/design-system/infobox"; // Adjust path as needed
+import { TargetsModal } from "@/components/TargetsModal";
+import { InfoBox } from "@/components/ui/design-system/infobox";
 
 // Design System Imports
 import {
@@ -50,6 +51,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isContactSelectionOpen, setIsContactSelectionOpen] = useState(false);
   const [isCompanySelectionOpen, setIsCompanySelectionOpen] = useState(false);
+  const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -111,10 +113,14 @@ const Dashboard = () => {
     setIsCompanySelectionOpen(true);
   };
 
+  const handleFindCompanies = () => {
+    setIsTargetsModalOpen(true);
+  };
+
   const handleGetStarted = () => {
     if (stats.totalCompanies === 0) {
       // Guide to add companies first
-      window.location.href = "/job-targets";
+      setIsTargetsModalOpen(true);
     } else if (stats.totalContacts === 0) {
       // Guide to add contacts
       setIsCompanySelectionOpen(true);
@@ -162,9 +168,6 @@ const Dashboard = () => {
           <InfoBox
             title="💡 Getting started"
             description="Once you have your Profile and Job Targets set up, add more Companies to your list. With the help of an AI, Find Contacts to reach out to and learn about their professional backgrounds. Finally, Generate Messages to start building your relationships and track them using the Pipeline view."
-            // You can add an icon or badges here if you want:
-            // icon={<Zap className="h-6 w-6 text-blue-600" />}
-            // badges={["Quick Setup", "AI-Powered"]}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -185,14 +188,12 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <Button
-                  asChild
+                  onClick={handleFindCompanies}
                   variant="outline"
                   className="w-full mt-4 border-blue-600 text-blue-800"
                 >
-                  <Link to="/job-targets">
-                    Find Companies
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                  Find Companies
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
@@ -257,7 +258,6 @@ const Dashboard = () => {
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {/* <Target className="h-5 w-5 text-purple-600" /> */}
                   Your Networking Progress
                 </CardTitle>
                 <CardDescription>
@@ -356,6 +356,11 @@ const Dashboard = () => {
       <CompanySelectionModal
         isOpen={isCompanySelectionOpen}
         onClose={() => setIsCompanySelectionOpen(false)}
+      />
+
+      <TargetsModal
+        isOpen={isTargetsModalOpen}
+        onClose={() => setIsTargetsModalOpen(false)}
       />
     </>
   );

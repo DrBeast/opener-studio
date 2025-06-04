@@ -15,6 +15,7 @@ import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { TargetsModal } from "@/components/TargetsModal";
 
 // Design System Imports
 import {
@@ -400,6 +401,11 @@ const PipelineDashboard = () => {
             defaultTab={contactDetailsTab}
           />
         )}
+
+        <TargetsModal
+          isOpen={isTargetsModalOpen}
+          onClose={() => setIsTargetsModalOpen(false)}
+        />
       </div>
     </div>
   );
