@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Info, User, Settings, Mail, Calendar, Star } from 'lucide-react';
 import {
@@ -214,16 +213,19 @@ const DesignSystemDemo = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <InfoBox icon={<Info />}>
-                This is an info box with an icon. It's useful for displaying helpful information or tips.
-              </InfoBox>
+              <InfoBox 
+                title="💡 Pro Tip"
+                description="This is an info box with an icon. It's useful for displaying helpful information or tips."
+                icon={<Info />}
+              />
               
-              <InfoBox>
-                This is an info box without an icon. Still useful for general information display.
-              </InfoBox>
+              <InfoBox
+                title="💡 General Info"
+                description="This is an info box without an icon. Still useful for general information display."
+              />
             </div>
             <code className="text-xs text-gray-500 mt-4 block">
-              {'<InfoBox icon={<Info />}>This is an info box...</InfoBox>'}
+              {'<InfoBox title="Pro Tip" description="This is an info box..." icon={<Info />} />'}
             </code>
           </CardContent>
         </Card>
@@ -360,9 +362,11 @@ const DesignSystemDemo = () => {
         >
           <div className="space-y-4">
             <p>This is an action modal component from the design system.</p>
-            <InfoBox icon={<User />}>
-              Action modals are identical to standard modals but with semantic naming.
-            </InfoBox>
+            <InfoBox 
+              title="💡 Pro Tip"
+              description="Action modals are identical to standard modals but with semantic naming."
+              icon={<User />}
+            />
             <div className="flex justify-end gap-2">
               <OutlineAction onClick={() => setIsActionModalOpen(false)}>
                 Cancel

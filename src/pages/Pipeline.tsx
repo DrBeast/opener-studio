@@ -397,7 +397,7 @@ const PipelineDashboard = () => {
             contactId={selectedContactId}
             isOpen={isContactDetailsOpen}
             onClose={handleContactDetailClose}
-            onContactUpdated={handleContactUpdated}
+            onContactUpdated={handleCompanyUpdated}
             defaultTab={contactDetailsTab}
           />
         )}

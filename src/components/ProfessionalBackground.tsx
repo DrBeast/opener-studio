@@ -57,16 +57,17 @@ const ProfessionalBackground = ({
         </p>
       </div>
 
-      <InfoBox>
-        <p className="font-medium mb-2">How to add your background information:</p>
-        <ul className="text-sm space-y-1">
-          <li><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</li>
-          <li><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</li>
-          <li><strong>Professional Information:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</li>
-        </ul>
-        <p className="text-sm mt-2 font-medium">
-          The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value in your networking outreach.
-        </p>
+      <InfoBox
+        title="💡 How to add your background information"
+        description="Copy your LinkedIn profile, CV content, or professional information to help AI create your profile summary."
+        badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
+      >
+        <div className="space-y-2">
+          <p><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</p>
+          <p><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</p>
+          <p><strong>Professional Information:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</p>
+          <p className="font-medium">The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value in your networking outreach.</p>
+        </div>
       </InfoBox>
 
       <div>
