@@ -5,6 +5,7 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* White */
+    --backbackground: 0 10% 100%; /* White */
     --foreground: 0 10.2% 28.7%; /* Main text, dark gray */
     --secondary-foreground: 0 3.6% 42.9%; /* Secondary text, lighter gray */
     --normaltext: 0 14.7% 23%; /* TO BE REMOVED Dark gray */

@@ -139,23 +139,9 @@ const Dashboard = () => {
     );
   }
 
-  /*
-  <div className="min-h-screen bg-gray-50">
-    <div className="container mx-auto py-8 max-w-4xl"> 
-      <ProfileBreadcrumbs />
-
-      <div className="grid gap-8"> 
-        <div className="space-y-8">
-       
-        </div>
-      </div>
-    </div>
-  </div>
-*/
-
   return (
     <>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-100">
         <div className="container mx-auto py-8 max-w-4xl">
           <div className="grid gap-8">
             <div className="space-y-8"></div>
@@ -174,10 +160,8 @@ const Dashboard = () => {
 
           {/* Quick Tips */}
           <InfoBox
-            title="💡 Pro Tip"
-            description="Once you have your profile and job targets set up, add more companies to your list, then let AI find the
-                    perfect contacts for you. Our message generator creates
-                    personalized outreach that gets responses."
+            title="💡 Getting started"
+            description="Once you have your Profile and Job Targets set up, add more Companies to your list. With the help of an AI, Find Contacts to reach out to and learn about their professional backgrounds. Finally, Generate Messages to start building your relationships and track them using the Pipeline view."
             // You can add an icon or badges here if you want:
             // icon={<Zap className="h-6 w-6 text-blue-600" />}
             // badges={["Quick Setup", "AI-Powered"]}
@@ -189,9 +173,9 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <Building className="h-6 w-6" />
-                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                    <div className="flex items-center gap-3">
+                      <Building className="h-6 w-6 mb-2" />
+                      <CardTitle className="text-primary-foreground">
                         Target Companies
                       </CardTitle>
                     </div>
@@ -218,9 +202,9 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <Users className="h-6 w-6" />
-                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-6 w-6 mb-2" />
+                      <CardTitle className=" text-primary-foreground">
                         Find Contacts
                       </CardTitle>
                     </div>
@@ -232,7 +216,7 @@ const Dashboard = () => {
                 <Button
                   onClick={handleFindContacts}
                   variant="outline"
-                  className="w-full mt-4 border-green-600 text-green-900"
+                  className="w-full mt-4 border-green-600 text-green-700"
                 >
                   Discover People
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -245,9 +229,9 @@ const Dashboard = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <MessageCircle className="h-6 w-6" />
-                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                    <div className="flex items-center gap-3">
+                      <MessageCircle className="h-6 w-6 mb-2" />
+                      <CardTitle className=" text-primary-foreground">
                         Generate Messages
                       </CardTitle>
                     </div>
@@ -323,6 +307,9 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>
+                  Messages you saved will appear here
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {stats.recentActivity.length > 0 ? (

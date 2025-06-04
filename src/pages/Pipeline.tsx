@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Plus, Sparkles } from "lucide-react";
+import { Edit, Plus, Sparkles } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -27,6 +27,7 @@ import {
   SectionTitle,
   PageDescription,
   Button,
+  InfoBox,
 } from "@/components/ui/design-system";
 
 const PipelineDashboard = () => {
@@ -67,6 +68,7 @@ const PipelineDashboard = () => {
   );
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
+  const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -234,8 +236,8 @@ const PipelineDashboard = () => {
     setContactDetailsTab("details");
   };
 
-  const handleContactUpdated = async () => {
-    await fetchCompanies();
+  const handleOpenTargetsModal = () => {
+    setIsTargetsModalOpen(true);
   };
 
   if (isLoading) {
@@ -247,44 +249,80 @@ const PipelineDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-green-50">
-      <div className="container mx-auto px-4 py-8 max-w-full">
+    <div className="min-h-screen bg-gray-100">
+      <div className="mx-auto py-8 ">
         <ProfileBreadcrumbs />
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <PageTitle>Company Targets and Contacts</PageTitle>
-            <PageDescription>
-              Manage your target companies and track your networking progress
-            </PageDescription>
-          </div>
-          <div className="flex gap-3">
-            <OutlineAction
-              onClick={handleGenerateCompanies}
-              disabled={isGeneratingCompanies}
-              variant="outline"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              {isGeneratingCompanies
-                ? "Generating..."
-                : "Generate More Companies"}
-            </OutlineAction>
-            <PrimaryAction onClick={handleAddCompany}>
-              <Plus className="mr-2 h-4 w-4" /> Add Company
-            </PrimaryAction>
+        {/* Top Section (Like Profile Page) */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="grid gap-8">
+            <div className="space-y-8">
+              <div className="flex flex-row items-center justify-between">
+                <div>
+                  <PageTitle>Company Targets and Contacts</PageTitle>
+                  <PageDescription>
+                    Manage your target companies and track your networking
+                    progress
+                  </PageDescription>
+                </div>
+              </div>
+
+              <InfoBox
+                title="💡 Pipeline Overview"
+                description="View and manage your target companies and track your networking progress."
+              />
+            </div>
           </div>
         </div>
 
-        <ContactInfoBox />
+        {/* Placeholder Targets Modal */}
+        {isTargetsModalOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <h3 className="text-lg font-medium text-gray-800">
+                Edit Targets (Placeholder)
+              </h3>
+              <p>This is a placeholder for the Targets modal.</p>
+              <button
+                onClick={() => setIsTargetsModalOpen(false)}
+                className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        {/* Full-Width Card with Table */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
           <CardContent className="p-8">
-            <SearchAndFilters
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              selectedCount={selectedCompanies.size}
-              onBulkRemove={handleBulkRemove}
-            />
+            <div className="flex items-center justify-between gap-4 ">
+              <SearchAndFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedCount={selectedCompanies.size}
+                onBulkRemove={handleBulkRemove}
+              />
+              <div className="flex items-center gap-3 mb-6">
+                <OutlineAction onClick={handleOpenTargetsModal}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Targets
+                </OutlineAction>
+                <PrimaryAction
+                  onClick={handleGenerateCompanies}
+                  disabled={isGeneratingCompanies}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {isGeneratingCompanies
+                    ? "Generating..."
+                    : "Generate More Companies"}
+                </PrimaryAction>
+                <PrimaryAction onClick={handleAddCompany}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Company
+                </PrimaryAction>
+              </div>
+            </div>
 
             {filteredCompanies.length === 0 ? (
               <EmptyState
