@@ -158,6 +158,8 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto py-8 max-w-4xl">
           <div className="grid gap-8">
+            <div className="space-y-8"></div>
+
             {/* Welcome Header */}
             <div className="mb-8">
               <PageTitle className="mb-2">
