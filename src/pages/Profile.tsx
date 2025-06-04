@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  AirtableCard,
-  AirtableCardContent,
-  AirtableCardFooter,
-} from "@/components/ui/airtable-card";
-import { InfoBox } from "@/components/ui/design-system";
+import { InfoBox } from "@/components/ui/design-system/infobox";
 import { toast } from "@/hooks/use-toast";
-import { Edit, ArrowRight, Save } from "lucide-react";
+import { Edit, ArrowRight, Save, Sparkles } from "lucide-react";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
@@ -16,14 +11,18 @@ import { useProfileData } from "@/hooks/useProfileData";
 
 // Design System Imports
 import {
-  PrimaryCard,
+  Card,
   CardContent,
-  PrimaryAction,
-  OutlineAction,
-  PageTitle,
-  SectionTitle,
-  PageDescription,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Button,
+  PageTitle,
+  PageDescription,
+  OutlineAction,
+  PrimaryAction,
+  SectionTitle,
+  CardFooter,
 } from "@/components/ui/design-system";
 
 // Import new components
@@ -285,20 +284,18 @@ const Profile = () => {
             </div>
 
             {/* Info Box */}
-            <InfoBox>
-              <p className="font-medium mb-1">
-                AI-Generated Professional Summary
-              </p>
-              <p>
-                We will use the AI-generated summary of your profile for company
-                matching and message generation. You can edit the summaries
-                directly or regenerate them based on updated details. Feel free
-                to experiment here.
-              </p>
-            </InfoBox>
 
-            <AirtableCard>
-              <AirtableCardContent className="space-y-8">
+            <InfoBox
+              title="💡 AI-Generated Professional Summary" // Pass the title as a prop
+              description="We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here."
+              // Pass the description as a prop
+              // You can also add an icon or badges if desired, as per the InfoBoxProps interface:
+              icon={<Sparkles className="h-6 w-6 text-blue-600" />} // Example: If you want the Zap icon
+              // badges={["Profile Setup", "AI-Powered"]} // Example: If you want badges
+            />
+
+            <Card>
+              <CardContent className="space-y-8">
                 {/* Edit Form - Moved to the top when in edit mode */}
                 {editMode && (
                   <div className="border-t border-gray-100 pt-8">
@@ -350,21 +347,31 @@ const Profile = () => {
 
                 {/* Professional Summary - Only visible when not in edit mode */}
                 {!editMode && (
-                  <ProfileSummary
-                    backgroundSummary={backgroundSummary}
-                    onRegenerateAISummary={handleRegenerateAISummary}
-                  />
+                  <div className="border-t border-gray-100 pt-8">
+                    <CardTitle>AI-Generated Profile Summary</CardTitle>
+                    <CardDescription>
+                      Intelligent analysis of your professional background
+                    </CardDescription>
+                    <ProfileSummary
+                      backgroundSummary={backgroundSummary}
+                      onRegenerateAISummary={handleRegenerateAISummary}
+                    />
+                  </div>
                 )}
-              </AirtableCardContent>
+              </CardContent>
 
               {/* Bottom navigation button */}
-              <AirtableCardFooter className="flex justify-end">
+              <CardFooter className="flex justify-end gap-4">
+                <OutlineAction onClick={() => setEditMode(true)}>
+                  <Edit className="h-4 w-4" />
+                  Edit Profile
+                </OutlineAction>
                 <PrimaryAction onClick={handleNavigateToTargets}>
                   Next: Define Targets
                   <ArrowRight className="h-4 w-4" />
                 </PrimaryAction>
-              </AirtableCardFooter>
-            </AirtableCard>
+              </CardFooter>
+            </Card>
           </div>
         </div>
       </div>

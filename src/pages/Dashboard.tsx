@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
+import { InfoBox } from "@/components/ui/design-system/infobox"; // Adjust path as needed
 
 // Design System Imports
 import {
@@ -138,64 +139,98 @@ const Dashboard = () => {
     );
   }
 
+  /*
+  <div className="min-h-screen bg-gray-50">
+    <div className="container mx-auto py-8 max-w-4xl"> 
+      <ProfileBreadcrumbs />
+
+      <div className="grid gap-8"> 
+        <div className="space-y-8">
+       
+        </div>
+      </div>
+    </div>
+  </div>
+*/
+
   return (
     <>
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          {/* Welcome Header */}
-          <div className="mb-8">
-            <PageTitle className="mb-2">
-              Welcome back! Ready to expand your network?
-            </PageTitle>
-            <PageDescription>
-              Your AI-powered networking assistant is here to help you connect
-              with the right people.
-            </PageDescription>
+        <div className="container mx-auto py-8 max-w-4xl">
+          <div className="grid gap-8">
+            {/* Welcome Header */}
+            <div className="mb-8">
+              <PageTitle className="mb-2">
+                Welcome back! Ready to expand your network?
+              </PageTitle>
+              <PageDescription>
+                Discover companies, add people, craft messages, and build
+                meaningful connections with AI-powered tools.
+              </PageDescription>
+            </div>
           </div>
 
-          {/* Quick Action Cards */}
+          {/* Quick Tips */}
+          <InfoBox
+            title="💡 Pro Tip"
+            description="Once you have your profile and job targets set up, add more companies to your list, then let AI find the
+                    perfect contacts for you. Our message generator creates
+                    personalized outreach that gets responses."
+            // You can add an icon or badges here if you want:
+            // icon={<Zap className="h-6 w-6 text-blue-600" />}
+            // badges={["Quick Setup", "AI-Powered"]}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-purple-600 text-white">
+            {/* Quick Action Card - Target Companies */}
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-700 border-blue-200 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">
-                      Generate Message
-                    </h3>
-                    <p className="text-sm text-purple-100">
-                      AI-crafted outreach messages
-                    </p>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Building className="h-6 w-6" />
+                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                        Target Companies
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-sm text-primary-foreground">
+                      Identify ideal employers
+                    </CardDescription>
                   </div>
-                  <MessageCircle className="h-8 w-8" />
                 </div>
                 <Button
-                  onClick={handleGenerateMessage}
-                  variant="secondary"
-                  className="w-full mt-4"
+                  asChild
+                  variant="outline"
+                  className="w-full mt-4 border-blue-600 text-blue-800"
                 >
-                  Start Writing
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <Link to="/job-targets">
+                    Find Companies
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-green-600 text-white">
+            {/* Quick Action Card - Find Contacts */}
+            <Card className="bg-gradient-to-br from-green-500 to-green-700 border-green-200 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">
-                      Find Contacts
-                    </h3>
-                    <p className="text-sm text-green-100">
-                      AI-recommended people to reach
-                    </p>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Users className="h-6 w-6" />
+                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                        Find Contacts
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-sm text-primary-foreground">
+                      Add relevant people
+                    </CardDescription>
                   </div>
-                  <Users className="h-8 w-8" />
                 </div>
                 <Button
                   onClick={handleFindContacts}
-                  variant="secondary"
-                  className="w-full mt-4"
+                  variant="outline"
+                  className="w-full mt-4 border-green-600 text-green-900"
                 >
                   Discover People
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -203,40 +238,44 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-600 text-white">
+            {/* Quick Action Card - Generate Messages */}
+            <Card className="bg-gradient-to-br from-purple-500 to-violet-700 border-purple-200 text-white">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-white">
-                      Target Companies
-                    </h3>
-                    <p className="text-sm text-blue-100">
-                      Find your ideal employers
-                    </p>
+                    <div className="flex items-center gap-3 mb-2">
+                      <MessageCircle className="h-6 w-6" />
+                      <CardTitle className="text-lg font-semibold text-primary-foreground">
+                        Generate Messages
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-sm text-primary-foreground">
+                      Start conversations
+                    </CardDescription>
                   </div>
-                  <Building className="h-8 w-8" />
                 </div>
-                <Button asChild variant="secondary" className="w-full mt-4">
-                  <Link to="/job-targets">
-                    Explore Companies
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                <Button
+                  onClick={handleGenerateMessage}
+                  variant="outline"
+                  className="w-full mt-4 border-primary"
+                >
+                  Start Writing
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
           </div>
 
           {/* Progress & Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
+                  {/* <Target className="h-5 w-5 text-purple-600" /> */}
                   Your Networking Progress
                 </CardTitle>
                 <CardDescription>
-                  Track your journey to building meaningful professional
-                  connections
+                  Track your journey to meaningful connections
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -245,18 +284,16 @@ const Dashboard = () => {
                     <span className="text-sm font-medium">
                       Overall Progress
                     </span>
-                    <span className="text-sm text-gray-500">
-                      {completionPercentage}%
-                    </span>
+                    <span className="text-sm">{completionPercentage}%</span>
                   </div>
                   <Progress value={completionPercentage} className="h-2" />
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-blue-700">
                         {stats.totalCompanies}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-secondary-foreground">
                         Target Companies
                       </div>
                     </div>
@@ -264,13 +301,15 @@ const Dashboard = () => {
                       <div className="text-2xl font-bold text-green-600">
                         {stats.totalContacts}
                       </div>
-                      <div className="text-sm text-gray-500">Key Contacts</div>
+                      <div className="text-sm text-secondary-foreground">
+                        Key Contacts
+                      </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-2xl font-bold text-primary">
                         {stats.messagesSent}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-secondary-foreground">
                         Messages Crafted
                       </div>
                     </div>
@@ -281,7 +320,7 @@ const Dashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <CardTitle>Recent Activity</CardTitle>
               </CardHeader>
               <CardContent>
                 {stats.recentActivity.length > 0 ? (
@@ -317,47 +356,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Quick Tips */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Zap className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                    💡 Pro Tip
-                  </h3>
-                  <p className="text-blue-800 mb-3">
-                    Start by adding your target companies, then let AI find the
-                    perfect contacts for you. Our message generator creates
-                    personalized outreach that gets responses.
-                  </p>
-                  <div className="flex gap-2">
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800"
-                    >
-                      Quick Setup
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800"
-                    >
-                      AI-Powered
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800"
-                    >
-                      High Success Rate
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 

@@ -838,15 +838,17 @@ const JobTargets = () => {
           </PrimaryAction>
         </div>
 
-        <InfoBox icon={<Target />} className="mb-8">
-          <p className="font-semibold mb-1">Why This Matters</p>
-          <p className="text-sm">
-            The more specific you are about your preferences, the better we can
+        <InfoBox
+          title="💡 Why This Matters" // Pass the title as a prop
+          description="The more specific you are about your preferences, the better we can
             help you find relevant companies and contacts. Your preferences
             aren't set in stone - you can always come back and update them as
-            your job search evolves.
-          </p>
-        </InfoBox>
+            your job search evolves and generate more companies based on updated critera."
+          // Pass the description as a prop
+          // You can also add an icon or badges if desired, as per the InfoBoxProps interface:
+          // icon={<Zap className="h-6 w-6 text-blue-600" />} // Example: If you want the Zap icon
+          // badges={["Profile Setup", "AI-Powered"]} // Example: If you want badges
+        />
 
         <div className="grid grid-cols-1 gap-8">
           <div className="space-y-8">
