@@ -1,3 +1,4 @@
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -19,7 +20,6 @@ import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/Pipeline";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
-import DesignSystemDemo from "@/pages/admin/DesignSystemDemo";
 import AirtableDesignSystem from "@/pages/admin/AirtableDesignSystem";
 
 // Components
@@ -59,10 +59,6 @@ const App = () => (
               <Route
                 path="/admin/feedback-review"
                 element={<FeedbackReview />}
-              />
-              <Route
-                path="/admin/design-system"
-                element={<DesignSystemDemo />}
               />
               <Route
                 path="/admin/airtable-design-system"
