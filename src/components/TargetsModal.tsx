@@ -641,15 +641,7 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex items-center justify-between w-full">
-          <span>Define Your Job & Company Targets</span>
-          <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating..." : "Generate Companies!"}
-          </PrimaryAction>
-        </div>
-      }
+      title="Define Your Job & Company Targets"
       description="Tell us about your ideal role and company preferences to help AI generate relevant opportunities."
       icon={<Target />}
       className="sm:max-w-4xl max-h-[90vh]"
@@ -663,9 +655,15 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* Describe Your Ideal Role and Company */}
           <div className="space-y-4">
-            <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">
-              Describe Your Ideal Role and Company
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">
+                Describe Your Ideal Role and Company
+              </Label>
+              <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isGenerating ? "Generating..." : "Generate Companies!"}
+              </PrimaryAction>
+            </div>
             <Textarea
               placeholder="Tell us what matters to you about your next job - in your own words or using the criteria below."
               className="min-h-[120px] border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-purple-300 transition-colors shadow-sm"
