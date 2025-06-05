@@ -13,6 +13,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  description?: string;
   children: React.ReactNode;
   className?: string;
   icon?: React.ReactNode;
@@ -22,6 +23,7 @@ const Modal = ({
   isOpen, 
   onClose, 
   title, 
+  description,
   icon,
   children, 
   className 
@@ -30,7 +32,7 @@ const Modal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={cn("sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-white border border-gray-200 shadow-lg", className)}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
             {icon && (
               <div className="text-purple-600">
                 {React.cloneElement(icon as React.ReactElement, { 
@@ -40,8 +42,15 @@ const Modal = ({
             )}
             {title}
           </DialogTitle>
+          {description && (
+            <div className="text-sm text-[hsl(var(--foreground))] mb-4">
+              {description}
+            </div>
+          )}
         </DialogHeader>
-        {children}
+        <div className="text-[hsl(var(--foreground))]">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -52,6 +61,7 @@ const ActionModal = ({
   isOpen, 
   onClose, 
   title, 
+  description,
   icon,
   children, 
   className 
@@ -60,7 +70,7 @@ const ActionModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={cn("sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-white border border-gray-200 shadow-lg", className)}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold text-[hsl(var(--foreground))] flex items-center gap-2 mb-2">
             {icon && (
               <div className="text-purple-600">
                 {React.cloneElement(icon as React.ReactElement, { 
@@ -70,8 +80,15 @@ const ActionModal = ({
             )}
             {title}
           </DialogTitle>
+          {description && (
+            <div className="text-sm text-[hsl(var(--foreground))] mb-4">
+              {description}
+            </div>
+          )}
         </DialogHeader>
-        {children}
+        <div className="text-[hsl(var(--foreground))]">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );

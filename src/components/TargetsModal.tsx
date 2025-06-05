@@ -625,7 +625,12 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
 
   if (isLoading) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title="Edit Target Criteria" icon={<Target />}>
+      <Modal 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        title="Edit Target Criteria" 
+        icon={<Target />}
+      >
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -638,14 +643,13 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
       isOpen={isOpen}
       onClose={onClose}
       title="Define Your Job & Company Targets"
+      description="Tell us about your ideal role and company preferences to help AI generate relevant opportunities."
       icon={<Target />}
       className="sm:max-w-4xl max-h-[90vh]"
     >
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-[hsl(var(--normaltext))]">
-            Tell us about your ideal role and company preferences to help AI generate relevant opportunities.
-          </div>
+        <div className="flex justify-between items-start">
+          <div></div>
           <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
             <Sparkles className="mr-2 h-4 w-4" />
             {isGenerating ? "Generating..." : "Generate Companies"}
@@ -660,7 +664,7 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* Describe Your Ideal Role and Company */}
           <div className="space-y-4">
-            <Label className="text-lg font-semibold text-gray-800">
+            <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">
               Describe Your Ideal Role and Company
             </Label>
             <Textarea
@@ -706,8 +710,8 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
 
           {/* Similar Companies */}
           <div className="space-y-4">
-            <Label className="text-lg font-semibold text-gray-800">Company Examples</Label>
-            <p className="text-gray-600 text-sm">
+            <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">Company Examples</Label>
+            <p className="text-[hsl(var(--foreground))] text-sm">
               We will use your examples as inspiration to generate more options.
             </p>
             <Input
