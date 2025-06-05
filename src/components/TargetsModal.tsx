@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase, cleanupDuplicateTargetCriteria } from "@/lib/supabase";
@@ -642,20 +641,20 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Define Your Job & Company Targets"
-      description="Tell us about your ideal role and company preferences to help AI generate relevant opportunities."
-      icon={<Target />}
-      className="sm:max-w-4xl max-h-[90vh]"
-    >
-      <div >
-        <div className="flex justify-between items-start">
-          <div className="space-y-8"></div>
+      title={
+        <div className="flex items-center justify-between w-full">
+          <span>Define Your Job & Company Targets</span>
           <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
             <Sparkles className="mr-2 h-4 w-4" />
             {isGenerating ? "Generating..." : "Generate Companies!"}
           </PrimaryAction>
         </div>
-
+      }
+      description="Tell us about your ideal role and company preferences to help AI generate relevant opportunities."
+      icon={<Target />}
+      className="sm:max-w-4xl max-h-[90vh]"
+    >
+      <div>
         <InfoBox
           title="💡 Why This Matters"
           description="The more specific you are about your preferences, the better we can help you find relevant companies and contacts. Your preferences aren't set in stone - you can always come back and update them as your job search evolves."
@@ -741,10 +740,6 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
               disabled={isSubmitting || isGenerating}
             >
               {isSubmitting ? "Saving..." : "Save Targets"}
-            </PrimaryAction>
-            <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              {isGenerating ? "Generating..." : "Generate Companies"}
             </PrimaryAction>
           </div>
         </form>
