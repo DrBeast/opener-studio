@@ -647,12 +647,12 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
       icon={<Target />}
       className="sm:max-w-4xl max-h-[90vh]"
     >
-      <div className="space-y-6">
+      <div >
         <div className="flex justify-between items-start">
           <div></div>
           <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
             <Sparkles className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating..." : "Generate Companies"}
+            {isGenerating ? "Generating..." : "Generate Companies!"}
           </PrimaryAction>
         </div>
 
