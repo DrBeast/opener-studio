@@ -6,13 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { UserPlus } from "lucide-react";
-
-// Design System Imports
-import {
-  ActionModal,
-  PrimaryAction,
-  OutlineAction
-} from "@/components/ui/design-system";
+import { Modal } from "@/components/ui/design-system/modals";
+import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -84,11 +79,12 @@ export const ContactModal = ({
   };
 
   return (
-    <ActionModal
+    <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Contact"
       icon={<UserPlus />}
+      className="sm:max-w-md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
@@ -156,6 +152,6 @@ export const ContactModal = ({
           </PrimaryAction>
         </div>
       </form>
-    </ActionModal>
+    </Modal>
   );
 };
