@@ -9,7 +9,7 @@ import { Save, UserRound, Calendar, MessageCircle, Plus, Trash, FileText, Pencil
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { ContactDetails } from "@/components/ContactDetails";
+import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +84,7 @@ export function CompanyDetails({
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [interactions, setInteractions] = useState<InteractionData[]>([]);
-  const [selectedContact, setSelectedContact] = useState<ContactData | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [isPlanningMode, setIsPlanningMode] = useState(false);
@@ -279,7 +279,7 @@ export function CompanyDetails({
 
   // View contact details
   const handleViewContact = (contact: ContactData) => {
-    setSelectedContact(contact);
+    setSelectedContactId(contact.contact_id);
     setIsContactDetailsOpen(true);
   };
 
@@ -287,6 +287,7 @@ export function CompanyDetails({
   const handleContactUpdated = () => {
     fetchContacts();
     setIsContactDetailsOpen(false);
+    setSelectedContactId(null);
   };
 
   // Handle new interaction created - regenerate summary
@@ -567,7 +568,8 @@ export function CompanyDetails({
                 </Button>
               </div>
               
-              {contacts.length > 0 ? <div className="border rounded-md overflow-hidden">
+              {contacts.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b bg-muted/50">
@@ -577,7 +579,8 @@ export function CompanyDetails({
                       </tr>
                     </thead>
                     <tbody>
-                      {contacts.map(contact => <tr key={contact.contact_id} className="border-b">
+                      {contacts.map(contact => (
+                        <tr key={contact.contact_id} className="border-b">
                           <td className="p-3">
                             {contact.first_name || ''} {contact.last_name || ''}
                           </td>
@@ -588,10 +591,13 @@ export function CompanyDetails({
                               Details
                             </Button>
                           </td>
-                        </tr>)}
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
-                </div> : <div className="bg-muted/30 rounded-lg p-6 text-center">
+                </div>
+              ) : (
+                <div className="bg-muted/30 rounded-lg p-6 text-center">
                   <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-muted-foreground mb-4">
                     No contacts added for this company yet
@@ -600,7 +606,8 @@ export function CompanyDetails({
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                   </Button>
-                </div>}
+                </div>
+              )}
             </TabsContent>
             
             {/* Interactions Tab */}
@@ -693,8 +700,15 @@ export function CompanyDetails({
           </Tabs>
         </DialogContent>
         
-        {/* Contact Details Dialog */}
-        {selectedContact && <ContactDetails contact={selectedContact} isOpen={isContactDetailsOpen} onClose={() => setIsContactDetailsOpen(false)} onContactUpdated={handleContactUpdated} />}
+        {/* Enhanced Contact Details Dialog */}
+        {selectedContactId && (
+          <EnhancedContactDetails
+            contactId={selectedContactId}
+            isOpen={isContactDetailsOpen}
+            onClose={() => setIsContactDetailsOpen(false)}
+            onContactUpdated={handleContactUpdated}
+          />
+        )}
         
         {/* Log Interaction Modal */}
         {company && (

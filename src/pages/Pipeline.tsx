@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { InteractionModal } from "@/components/pipeline/InteractionModal";
-import { ContactModal } from "@/components/pipeline/ContactModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
