@@ -1,6 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building, Users, UserPlus, Bot } from "lucide-react";
@@ -21,12 +26,17 @@ interface CompanySelectionModalProps {
   onClose: () => void;
 }
 
-export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModalProps) => {
+export const CompanySelectionModal = ({
+  isOpen,
+  onClose,
+}: CompanySelectionModalProps) => {
   const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [contactMethod, setContactMethod] = useState<'generate' | 'manual' | null>(null);
+  const [contactMethod, setContactMethod] = useState<
+    "generate" | "manual" | null
+  >(null);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -40,22 +50,25 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
 
     try {
       const { data, error } = await supabase
-        .from('companies')
-        .select('company_id, name, industry, hq_location')
-        .eq('user_id', user.id)
-        .eq('is_blacklisted', false)
-        .order('name');
+        .from("companies")
+        .select("company_id, name, industry, hq_location")
+        .eq("user_id", user.id)
+        .eq("is_blacklisted", false)
+        .order("name");
 
       if (error) throw error;
       setCompanies(data || []);
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error("Error fetching companies:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCompanySelect = (company: Company, method: 'generate' | 'manual') => {
+  const handleCompanySelect = (
+    company: Company,
+    method: "generate" | "manual"
+  ) => {
     setSelectedCompany(company);
     setContactMethod(method);
     setIsContactModalOpen(true);
@@ -99,17 +112,22 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
               <p className="text-muted-foreground mb-4">
                 Add some target companies first before adding contacts
               </p>
-              <Button onClick={() => {
-                onClose();
-                window.location.href = '/job-targets';
-              }}>
+              <Button
+                onClick={() => {
+                  onClose();
+                  window.location.href = "/job-targets";
+                }}
+              >
                 Add Companies
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
               {companies.map((company) => (
-                <Card key={company.company_id} className="hover:shadow-md transition-shadow">
+                <Card
+                  key={company.company_id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -119,26 +137,32 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
                         <div>
                           <h3 className="font-medium">{company.name}</h3>
                           {company.industry && (
-                            <p className="text-sm text-muted-foreground">{company.industry}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {company.industry}
+                            </p>
                           )}
                           {company.hq_location && (
-                            <p className="text-xs text-muted-foreground">{company.hq_location}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {company.hq_location}
+                            </p>
                           )}
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => handleCompanySelect(company, 'generate')}
+                          onClick={() =>
+                            handleCompanySelect(company, "generate")
+                          }
                           className="flex items-center gap-1"
                         >
                           <Bot className="h-3 w-3" />
                           Generate
                         </Button>
-                        <Button 
+                        <Button
                           size="sm"
-                          onClick={() => handleCompanySelect(company, 'manual')}
+                          onClick={() => handleCompanySelect(company, "manual")}
                           className="flex items-center gap-1"
                         >
                           <UserPlus className="h-3 w-3" />
@@ -156,7 +180,7 @@ export const CompanySelectionModal = ({ isOpen, onClose }: CompanySelectionModal
 
       {selectedCompany && contactMethod && (
         <>
-          {contactMethod === 'generate' ? (
+          {contactMethod === "generate" ? (
             <GenerateContactsModal
               isOpen={isContactModalOpen}
               onClose={handleCloseContactModal}
