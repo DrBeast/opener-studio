@@ -23,7 +23,12 @@ import {
 } from "lucide-react";
 import { Background } from "@/types/profile";
 import { useState } from "react";
-import { Card, CardTitle } from "../ui/design-system";
+import {
+  Card,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "../ui/design-system"; // Ensure CardContent and CardDescription are imported if you are using them here
 
 interface ProfileSummaryProps {
   backgroundSummary: Background | null;
@@ -74,11 +79,15 @@ const ProfileSummary = ({
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        {/* Main Summary Cards */}
-        <div className="grid gap-6 md:grid-cols-2">
+        {/* Main Summary Cards - Changed to single column (no md:grid-cols-2) and uses space-y for vertical gap */}
+        <div className="grid gap-6 w-full">
+          {" "}
+          {/* Removed md:grid-cols-2 and added w-full */}
           {backgroundSummary.overall_blurb && (
             <Card className="bg-gradient-to-br from-purple-50 to-purple-200 border-purple-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-4">
                   <User className="h-6 w-6 text-purple-600" />
                   <CardTitle className="font-semibold text-lg text-purple-800">
@@ -88,23 +97,24 @@ const ProfileSummary = ({
                 <p className="text-gray-700 leading-relaxed text-base">
                   {backgroundSummary.overall_blurb}
                 </p>
-              </AirtableCardContent>
+              </CardContent>
             </Card>
           )}
-
           {backgroundSummary.value_proposition_summary && (
             <Card className="bg-gradient-to-br from-green-50 to-emerald-200 border-green-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-4">
                   <Award className="h-6 w-6 text-green-600" />
-                  <h4 className="font-semibold text-lg text-green-800">
+                  <CardTitle className="font-semibold text-lg text-green-800">
                     Value Proposition
-                  </h4>
+                  </CardTitle>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-base">
                   {backgroundSummary.value_proposition_summary}
                 </p>
-              </AirtableCardContent>
+              </CardContent>
             </Card>
           )}
         </div>
@@ -116,7 +126,7 @@ const ProfileSummary = ({
         </OutlineAction>
       </div>
 
-      {/* Expandable detailed sections */}
+      {/* Expandable detailed sections - Changed to single column (no md:grid-cols-2) and uses space-y for vertical gap */}
       <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
         <CollapsibleTrigger asChild>
           <CollapsibleWide expanded={isDetailsExpanded} variant="outline">
@@ -124,9 +134,13 @@ const ProfileSummary = ({
           </CollapsibleWide>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 w-full">
+            {" "}
+            {/* Removed md:grid-cols-2 and added w-full */}
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-200 border-blue-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-5">
                   <User className="h-6 w-6 text-blue-600" />
                   <h4 className="font-semibold text-lg text-blue-800">
@@ -139,11 +153,12 @@ const ProfileSummary = ({
                 {renderArrayItems(
                   backgroundSummary.combined_experience_highlights
                 )}
-              </AirtableCardContent>
+              </CardContent>
             </Card>
-
             <Card className="bg-gradient-to-br from-purple-50 to-violet-200 border-purple-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-5">
                   <GraduationCap className="h-6 w-6 text-purple-600" />
                   <h4 className="font-semibold text-lg text-purple-800">
@@ -156,11 +171,12 @@ const ProfileSummary = ({
                 {renderArrayItems(
                   backgroundSummary.combined_education_highlights
                 )}
-              </AirtableCardContent>
+              </CardContent>
             </Card>
-
             <Card className="bg-gradient-to-br from-orange-50 to-red-200 border-orange-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-5">
                   <Star className="h-6 w-6 text-orange-600" />
                   <h4 className="font-semibold text-lg text-orange-800">
@@ -170,7 +186,6 @@ const ProfileSummary = ({
                 <p className="text-gray-700 mb-4 leading-relaxed text-base">
                   {backgroundSummary.expertise}
                 </p>
-
                 {backgroundSummary.key_skills &&
                   backgroundSummary.key_skills.length > 0 && (
                     <div className="mt-5">
@@ -180,7 +195,6 @@ const ProfileSummary = ({
                       {renderArrayItems(backgroundSummary.key_skills)}
                     </div>
                   )}
-
                 {backgroundSummary.domain_expertise &&
                   backgroundSummary.domain_expertise.length > 0 && (
                     <div className="mt-5">
@@ -190,7 +204,6 @@ const ProfileSummary = ({
                       {renderArrayItems(backgroundSummary.domain_expertise)}
                     </div>
                   )}
-
                 {backgroundSummary.technical_expertise &&
                   backgroundSummary.technical_expertise.length > 0 && (
                     <div className="mt-5">
@@ -200,11 +213,12 @@ const ProfileSummary = ({
                       {renderArrayItems(backgroundSummary.technical_expertise)}
                     </div>
                   )}
-              </AirtableCardContent>
+              </CardContent>
             </Card>
-
             <Card className="bg-gradient-to-br from-emerald-50 to-teal-200 border-emerald-200">
-              <AirtableCardContent className="p-8">
+              <CardContent className="p-8">
+                {" "}
+                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-5">
                   <Award className="h-6 w-6 text-emerald-600" />
                   <h4 className="font-semibold text-lg text-emerald-800">
@@ -214,7 +228,7 @@ const ProfileSummary = ({
                 <p className="text-gray-700 leading-relaxed text-base">
                   {backgroundSummary.achievements}
                 </p>
-              </AirtableCardContent>
+              </CardContent>
             </Card>
           </div>
         </CollapsibleContent>
