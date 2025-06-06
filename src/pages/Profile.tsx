@@ -286,11 +286,9 @@ const Profile = () => {
             {/* Info Box */}
 
             <InfoBox
-              title="💡 AI-Generated Professional Summary" // Pass the title as a prop
+              title="💡 AI-Generated Professional Summary"
               description="We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here."
-              // Pass the description as a prop
-              // You can also add an icon or badges if desired, as per the InfoBoxProps interface:
-              icon={<Sparkles className="h-6 w-6 text-blue-600" />} // Example: If you want the Zap icon
+              icon={<Sparkles className="h-6 w-6 text-blue-600" />}
               // badges={["Profile Setup", "AI-Powered"]} // Example: If you want badges
             />
 

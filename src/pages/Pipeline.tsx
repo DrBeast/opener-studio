@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles } from "lucide-react";
+import { Edit, Plus, Sparkles, Bot, Loader2 } from "lucide-react"; // Import Bot icon
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -15,6 +15,7 @@ import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
+import { ContactRecommendation } from "@/components/ContactRecommendation"; // Import ContactRecommendation component
 
 // Design System Imports
 import {
@@ -69,6 +70,13 @@ const PipelineDashboard = () => {
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
+
+  // NEW State for Contact Recommendation Modal
+  const [isContactRecommendationOpen, setIsContactRecommendationOpen] =
+    useState(false);
+  const [companyForContactRecommendation, setCompanyForContactRecommendation] =
+    useState<{ id: string; name: string } | null>(null);
+  const [isGeneratingContacts, setIsGeneratingContacts] = useState(false);
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -240,6 +248,61 @@ const PipelineDashboard = () => {
     setIsTargetsModalOpen(true);
   };
 
+  // NEW Function to trigger ContactRecommendation modal for a specific company
+  const handleOpenContactRecommendation = (
+    companyId: string,
+    companyName: string
+  ) => {
+    setCompanyForContactRecommendation({ id: companyId, name: companyName });
+    setIsContactRecommendationOpen(true);
+  };
+
+  // NEW Function to generate contacts (to be passed down to ContactRecommendation)
+  const handleGenerateContacts = async (companyId: string) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to generate contacts.",
+        variant: "destructive",
+      });
+      return [];
+    }
+    setIsGeneratingContacts(true); // Set global loading for the modal
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "generate_contacts",
+        {
+          body: { company_id: companyId },
+        }
+      );
+      if (error) throw error;
+      if (data?.status === "success") {
+        toast({
+          title: "Success",
+          description: `Generated ${data.contacts?.length || 0} contacts.`,
+        });
+        return data.contacts; // Return generated contacts
+      } else {
+        toast({
+          title: "Error",
+          description: data?.message || "Failed to generate contacts.",
+          variant: "destructive",
+        });
+        return []; // Return empty array on error
+      }
+    } catch (error: any) {
+      console.error("Error generating contacts:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate contacts.",
+        variant: "destructive",
+      });
+      return []; // Return empty array on error
+    } finally {
+      setIsGeneratingContacts(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
@@ -247,6 +310,19 @@ const PipelineDashboard = () => {
       </div>
     );
   }
+
+  // Determine if the "Generate Contacts" button should be disabled
+  const isGenerateContactsButtonDisabled =
+    !user || // No user logged in
+    isGeneratingContacts || // Contacts are already being generated
+    filteredCompanies.length === 0 || // No companies to generate for
+    selectedCompanies.size !== 1; // Not exactly one company selected
+
+  // Get the selected company for the button's onClick if exactly one is selected
+  const singleSelectedCompany =
+    selectedCompanies.size === 1
+      ? filteredCompanies.find((c) => selectedCompanies.has(c.company_id))
+      : null;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -269,8 +345,25 @@ const PipelineDashboard = () => {
 
               <InfoBox
                 title="💡 Pipeline Overview"
-                description="Click the icons under Contacts to Generate Contacts and Add them manually. AI-powered contact identification can only leverage publicly available information such as company websites - it cannot access LinkedIn profiles yet. For best results, we strongly recommend manually adding contacts from your existing network or new contacts you discover through LinkedIn research. This ensures you connect with the most relevant people at your target companies.
-                Once you have contacts, use the Message icon to craft the messages. When you Save Messages, the will be summarized in the Interactions column. Full history can be viewed by clicking a company row under Company details."
+                description={
+                  <>
+                    Click the icons under Contacts to Generate Contacts and Add
+                    them manually. AI-powered contact identification can only
+                    leverage publicly available information such as company
+                    websites - it cannot access LinkedIn profiles yet. For best
+                    results, we strongly recommend manually adding contacts from
+                    your existing network or new contacts you discover through
+                    LinkedIn research. This ensures you connect with the most
+                    relevant people at your target companies.
+                    <br />
+                    <br />
+                    Once you have contacts, use the Message icon to craft the
+                    messages. When you Save Messages, the will be summarized in
+                    the Interactions column. Full history can be viewed by
+                    clicking a company row under Company details.
+                  </>
+                }
+                icon={<Sparkles className="h-6 w-6 text-blue-600" />}
               />
             </div>
           </div>
@@ -318,6 +411,7 @@ const PipelineDashboard = () => {
                     ? "Generating..."
                     : "Generate More Companies"}
                 </PrimaryAction>
+
                 <PrimaryAction onClick={handleAddCompany}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Company
@@ -347,7 +441,7 @@ const PipelineDashboard = () => {
                 sortField={sortField}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                onCreateContact={(companyId) => {
+                onCreateContact={(companyId, companyName) => {
                   const company = filteredCompanies.find(
                     (c) => c.company_id === companyId
                   );
@@ -355,6 +449,7 @@ const PipelineDashboard = () => {
                 }}
                 onContactClick={handleContactClick}
                 onGenerateMessage={handleGenerateMessage}
+                onOpenContactRecommendation={handleOpenContactRecommendation} // Pass the new prop
               />
             )}
           </CardContent>
@@ -406,6 +501,19 @@ const PipelineDashboard = () => {
           isOpen={isTargetsModalOpen}
           onClose={() => setIsTargetsModalOpen(false)}
         />
+
+        {/* Contact Recommendation Modal (opens when companyForContactRecommendation is set) */}
+        {companyForContactRecommendation && (
+          <ContactRecommendation
+            companyId={companyForContactRecommendation.id}
+            companyName={companyForContactRecommendation.name}
+            isOpen={isContactRecommendationOpen}
+            onClose={() => setIsContactRecommendationOpen(false)}
+            onGenerateContacts={handleGenerateContacts} // Pass the generation function
+            isDisabled={isGeneratingContacts} // Pass loading state
+            isLoading={isGeneratingContacts} // Pass loading state
+          />
+        )}
       </div>
     </div>
   );

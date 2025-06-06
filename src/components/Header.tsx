@@ -87,7 +87,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
               <Link
                 to="/job-targets"
                 className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/Job Targets")
+                  isActive("/job-targets")
                     ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
                     : "text-normaltext hover:primary"
                 }`}
@@ -97,7 +97,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
               <Link
                 to="/pipeline"
                 className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/Pipeline")
+                  isActive("/pipeline")
                     ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
                     : "text-normaltext hover:primary"
                 }`}
