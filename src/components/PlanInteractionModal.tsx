@@ -1,21 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
 import { format, addDays } from "date-fns";
+import { Modal } from "@/components/ui/design-system/modals";
+import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 
 interface ContactData {
   contact_id: string;
@@ -173,116 +167,116 @@ export const PlanInteractionModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Plan Interaction</DialogTitle>
-          <p className="text-sm text-muted-foreground">with {companyName}</p>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <div className="space-y-2">
-              {/* Suggestion Chips */}
-              <div className="flex flex-wrap gap-2">
-                {SUGGESTION_CHIPS.map((chip) => (
-                  <button
-                    key={chip}
-                    type="button"
-                    onClick={() => handleChipClick(chip)}
-                    className="inline-flex items-center rounded-full bg-muted hover:bg-muted/80 px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Description Textarea */}
-              <Textarea
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what you plan to do..."
-                rows={3}
-                required
-              />
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Plan Interaction"
+      description={`with ${companyName}`}
+      icon={<Calendar />}
+      className="sm:max-w-md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <div className="space-y-2">
+            {/* Suggestion Chips */}
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTION_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => handleChipClick(chip)}
+                  className="inline-flex items-center rounded-full bg-muted hover:bg-muted/80 px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="date">Due Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+            
+            {/* Description Textarea */}
+            <Textarea
+              id="description"
+              name="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe what you plan to do..."
+              rows={3}
               required
             />
           </div>
+        </div>
 
-          {/* Contact Association */}
-          <div>
-            <Label>Associated Contacts</Label>
-            <div className="space-y-2">
-              {/* Selected Contacts */}
-              {selectedContacts.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedContacts.map((contact) => (
-                    <Badge 
-                      key={contact.contact_id} 
-                      variant="secondary" 
-                      className="gap-1"
-                    >
-                      {contact.first_name} {contact.last_name}
-                      <button
-                        type="button"
-                        onClick={() => removeContact(contact.contact_id)}
-                        className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              
-              {/* Add Contact Options */}
-              {availableToAdd.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {availableToAdd.map((contact) => (
+        <div>
+          <Label htmlFor="date">Due Date</Label>
+          <Input
+            id="date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Contact Association */}
+        <div>
+          <Label>Associated Contacts</Label>
+          <div className="space-y-2">
+            {/* Selected Contacts */}
+            {selectedContacts.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedContacts.map((contact) => (
+                  <Badge 
+                    key={contact.contact_id} 
+                    variant="secondary" 
+                    className="gap-1"
+                  >
+                    {contact.first_name} {contact.last_name}
                     <button
-                      key={contact.contact_id}
                       type="button"
-                      onClick={() => addContact(contact)}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-3 py-1 text-xs font-medium text-primary transition-colors cursor-pointer"
+                      onClick={() => removeContact(contact.contact_id)}
+                      className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                     >
-                      <Plus className="h-3 w-3" />
-                      {contact.first_name} {contact.last_name}
+                      <X className="h-3 w-3" />
                     </button>
-                  ))}
-                </div>
-              )}
-              
-              {selectedContacts.length === 0 && availableToAdd.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  No contacts available for this company
-                </p>
-              )}
-            </div>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
+            {/* Add Contact Options */}
+            {availableToAdd.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {availableToAdd.map((contact) => (
+                  <button
+                    key={contact.contact_id}
+                    type="button"
+                    onClick={() => addContact(contact)}
+                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 hover:bg-primary/20 px-3 py-1 text-xs font-medium text-primary transition-colors cursor-pointer"
+                  >
+                    <Plus className="h-3 w-3" />
+                    {contact.first_name} {contact.last_name}
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {selectedContacts.length === 0 && availableToAdd.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                No contacts available for this company
+              </p>
+            )}
           </div>
+        </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !description.trim()}>
-              {isLoading ? 'Planning...' : 'Plan Interaction'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div className="flex justify-end gap-2">
+          <OutlineAction type="button" onClick={onClose}>
+            Cancel
+          </OutlineAction>
+          <PrimaryAction type="submit" disabled={isLoading || !description.trim()}>
+            {isLoading ? 'Planning...' : 'Plan Interaction'}
+          </PrimaryAction>
+        </div>
+      </form>
+    </Modal>
   );
 };
