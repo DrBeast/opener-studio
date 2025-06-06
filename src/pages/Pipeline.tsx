@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, Bot, Loader2 } from "lucide-react"; // Import Bot icon
+import { Edit, Plus, Sparkles, Bot, Loader2, UserPlus } from "lucide-react"; // Import Bot icon
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -363,7 +363,7 @@ const PipelineDashboard = () => {
                     clicking a company row under Company details.
                   </>
                 }
-                icon={<Sparkles className="h-6 w-6 text-blue-600" />}
+                icon={<UserPlus className="h-6 w-6 text-blue-600" />}
               />
             </div>
           </div>

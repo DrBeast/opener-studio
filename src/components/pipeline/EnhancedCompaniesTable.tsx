@@ -21,16 +21,53 @@ import {
   UserPlus,
   MessageCircle,
   RefreshCw,
-  Bot, // Ensure Bot icon is imported
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ContactRecommendation } from "@/components/ContactRecommendation"; // Keep this import, but it's used as a modal now
+import { ContactRecommendation } from "@/components/ContactRecommendation";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import type { Company } from "@/hooks/useCompanies";
 
+// Define the interface for the Company type if it's not globally available or exactly matching
+// This is important for type safety and clarity in the component.
+interface GeneratedCompany {
+  company_id: string; // Assuming UUID
+  user_id: string; // Assuming UUID
+  name: string;
+  ai_description: string;
+  industry: string;
+  hq_location: string;
+  estimated_headcount: string;
+  estimated_revenue: string;
+  wfh_policy: string;
+  match_quality_score: number;
+  ai_match_reasoning: string;
+  generated_criteria_highlights: any; // Assuming JSONB can be any type
+  public_private: string;
+  user_priority: string; // 'Top', 'Medium', 'Maybe'
+  is_blacklisted: boolean;
+  interaction_summary?: string; // From ERD, optional
+  added_at: string;
+  updated_at: string;
+  // If your company object includes nested contacts or latest_update/next_followup from RPC:
+  contacts?: {
+    contact_id: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    latest_interaction_date?: string;
+  }[];
+  latest_update?: {
+    latest_update_description: string;
+    latest_update_date: string;
+  };
+  next_followup?: { follow_up_description: string; follow_up_date: string };
+}
+
+// Ensure the prop interface uses the correct Company type
 interface CompaniesTableProps {
-  companies: Company[];
-  onCompanyClick: (company: Company) => void;
+  companies: GeneratedCompany[]; // Use GeneratedCompany or your specific Company type
+  onCompanyClick: (company: GeneratedCompany) => void;
   onSetPriority: (companyId: string, priority: string) => void;
   onBlacklist: (companyId: string) => void;
   newCompanyIds: string[];
@@ -41,10 +78,10 @@ interface CompaniesTableProps {
   sortField: string;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
-  onCreateContact: (companyId: string, companyName: string) => void; // Updated prop to pass companyName
+  onCreateContact: (companyId: string, companyName: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
-  onOpenContactRecommendation: (companyId: string, companyName: string) => void; // NEW PROP
+  onOpenContactRecommendation: (companyId: string, companyName: string) => void;
 }
 
 const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
@@ -151,12 +188,13 @@ export const EnhancedCompaniesTable = ({
   onGenerateMessage,
   onOpenContactRecommendation, // NEW PROP
 }: CompaniesTableProps) => {
-  const highlightAnimation = `
-    @keyframes highlightFade {
-      0% { background-color: rgba(var(--primary-rgb), 0.3); }
-      100% { background-color: transparent; }
-    }
-  `;
+  // Moved highlightAnimation CSS to a global CSS file or <style> tag in a higher-level component
+  // You should ensure the keyframes are defined globally, e.g., in index.css or App.css
+  // @keyframes highlightFade {
+  //   0% { background-color: rgba(var(--primary-rgb), 0.3); }
+  //   100% { background-color: transparent; }
+  // }
+  // You would define --primary-rgb as a CSS variable if you use it in your Tailwind config.
 
   const abbreviateRole = (role: string): string => {
     if (!role) return "";
@@ -232,6 +270,7 @@ export const EnhancedCompaniesTable = ({
   };
 
   const formatContacts = (contacts?: any[]) => {
+    // `any[]` here should ideally be `GeneratedCompany['contacts']`
     if (!contacts || contacts.length === 0) return null;
 
     const sortedContacts = [...contacts]
@@ -244,7 +283,7 @@ export const EnhancedCompaniesTable = ({
           : 0;
         return dateB - dateA;
       })
-      .slice(0, 2);
+      .slice(0, 2); // Limit to top 2 contacts for display in table cell
 
     return sortedContacts.map((contact) => {
       const firstName = contact.first_name || "";
@@ -302,7 +341,8 @@ export const EnhancedCompaniesTable = ({
     </button>
   );
 
-  const PriorityDropdown = ({ company }: { company: Company }) => {
+  const PriorityDropdown = ({ company }: { company: GeneratedCompany }) => {
+    // Use GeneratedCompany
     const otherPriorities = getPriorityOptions(company.user_priority);
 
     if (otherPriorities.length === 0) {
@@ -359,10 +399,19 @@ export const EnhancedCompaniesTable = ({
 
   return (
     <>
-      <style>{highlightAnimation}</style>
+      {/* Moved highlightAnimation CSS to a global CSS file or <style> tag in a higher-level component */}
+      {/* You should ensure the keyframes are defined globally, e.g., in index.css or App.css */}
+      {/*
+      @keyframes highlightFade {
+        0% { background-color: rgba(var(--primary-rgb), 0.3); }
+        100% { background-color: transparent; }
+      }
+      */}
       <div className="rounded-md border overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
+            {" "}
+            {/* Removed min-w-full */}
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8">
@@ -374,21 +423,37 @@ export const EnhancedCompaniesTable = ({
                     onCheckedChange={onSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-10">
+                <TableHead className="w-[60px]">
+                  {" "}
+                  {/* Narrower for Priority */}
                   <SortButton field="priority">Priority</SortButton>
                 </TableHead>
-                <TableHead className="w-44">
+                <TableHead className="min-w-[150px] max-w-[200px]">
+                  {" "}
+                  {/* Company Name */}
                   <SortButton field="name">Company</SortButton>
                 </TableHead>
-                <TableHead className="w-64">Description</TableHead>
-                <TableHead className="hidden md:table-cell w-32">
+                <TableHead className="min-w-[250px]">
+                  {" "}
+                  {/* Description */}
+                  Description
+                </TableHead>
+                <TableHead className="hidden md:table-cell min-w-[120px] max-w-[150px]">
+                  {" "}
+                  {/* Location / WFH */}
                   Location / WFH
                 </TableHead>
-                <TableHead className="hidden xl:table-cell w-48">
+                <TableHead className="hidden xl:table-cell min-w-[250px]">
+                  {" "}
+                  {/* Match Reasoning */}
                   Match Reasoning
                 </TableHead>
-                <TableHead className="w-28">Contacts</TableHead>
-                <TableHead className="w-64">Interactions</TableHead>
+                <TableHead className="min-w-[180px]">Contacts</TableHead>{" "}
+                {/* Contacts */}
+                <TableHead className="min-w-[250px]">
+                  Interactions
+                </TableHead>{" "}
+                {/* Interactions */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -434,7 +499,9 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs leading-relaxed max-w-64 break-words">
+                      <div className="text-xs leading-relaxed break-words">
+                        {" "}
+                        {/* Removed max-w-64 */}
                         {company.ai_description || "-"}
                       </div>
                     </TableCell>
@@ -447,7 +514,9 @@ export const EnhancedCompaniesTable = ({
                       </div>
                     </TableCell>
                     <TableCell className="hidden xl:table-cell">
-                      <div className="text-xs leading-relaxed max-w-48 break-words">
+                      <div className="text-xs leading-relaxed break-words">
+                        {" "}
+                        {/* Removed max-w-48 */}
                         {company.ai_match_reasoning || "-"}
                       </div>
                     </TableCell>
@@ -502,26 +571,26 @@ export const EnhancedCompaniesTable = ({
                           )}
                         </div>
                         <div
-                          className="flex items-center gap-2" // Changed gap-8 to gap-2 for spacing
+                          className="flex items-center gap-2"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {/* NEW: Bot button for Generate Contacts */}
                           <Button
-                            size="xs" // Use xs to match UserPlus button
+                            size="xs"
                             variant="ghost"
-                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10" // Styled to match Add Contact Manually button
+                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               onOpenContactRecommendation(
                                 company.company_id,
                                 company.name
-                              ); // Pass companyId and Name
+                              );
                             }}
                             title="Generate contacts with AI"
                           >
                             <Bot
-                              className="h-4 w-4" // Use h-4 w-4 to match UserPlus icon size
-                              style={{ transform: "scale(1.5)" }} // Apply transform to match visual size
+                              className="h-4 w-4"
+                              style={{ transform: "scale(1.5)" }}
                             />
                           </Button>
                           {/* END NEW */}
@@ -531,7 +600,7 @@ export const EnhancedCompaniesTable = ({
                             className="p-2 shrink-0 hover:bg-blue-500/10"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onCreateContact(company.company_id, company.name); // Pass companyName
+                              onCreateContact(company.company_id, company.name);
                             }}
                             title="Add contact manually"
                           >
