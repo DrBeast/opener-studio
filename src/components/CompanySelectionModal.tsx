@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building, UserPlus, Bot } from "lucide-react";
+import { Building, Users, UserPlus, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
