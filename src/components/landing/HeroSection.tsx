@@ -13,7 +13,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Alert, AlertDescription } from "@/components/ui/alert"; // Ensure Alert and AlertDescription are correctly imported and used
-import { Card, CardContent } from "@/components/ui/design-system";
+import {
+  Card,
+  CardContent,
+  PrimaryAction,
+} from "@/components/ui/design-system";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
@@ -248,7 +252,7 @@ const HeroSection = () => {
         </Alert>
 
         {/* Main Consolidated Card */}
-        <Card className="text-center rounded-lg shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-gray-200 bg-gradient-to-br from-emerald-300 to-green-100">
+        <Card className="text-center rounded-lg shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-gray-200 bg-gradient-to-br from-green-500 to-emerald-400">
           {/* Header & Value Proposition */}
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-gray-900">
             Break Through. Connect with Humans.
@@ -258,15 +262,15 @@ const HeroSection = () => {
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             ConnectorAI helps you craft messages that get responses and build
-            networks that truly open doors—without the awkwardness.
+            relationships that truly open doors — at scale and without the
+            awkwardness.
           </p>
 
           {/* Profile Input & Generate Button - Initial State */}
           {!generatedProfileOutput && (
             <div className="space-y-6">
               <Textarea
-                placeholder="Copy your professional story from your LinkedIn profile or CV. Simply
-              select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
+                placeholder="Copy your professional story from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
                 className="min-h-[200px] text-base p-4 border-2 focus:border-primary transition-colors duration-200 bg-gray-50"
                 value={backgroundInput}
                 onChange={(e) => setBackgroundInput(e.target.value)}
@@ -281,7 +285,7 @@ const HeroSection = () => {
                     !sessionId ||
                     linkingInProgress
                   }
-                  className="w-full sm:w-auto px-8 py-3 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transform transition-all duration-300 hover:scale-105"
+                  className="w-full sm:w-auto px-8 py-3 text-lg font-semibold bg-primary hover:from-primary/90 hover:to-primary/70 transform transition-all duration-300 hover:scale-105"
                 >
                   {isProcessing ? (
                     <>
