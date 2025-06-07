@@ -233,7 +233,7 @@ const ProfileInput = () => {
             if (linked) {
               setProfileLinked(true);
             }
-            navigate("/profile");
+            navigate("/dashboard");
           })
           .catch((err) => {
             console.error("ProfileInput: Error linking on save:", err);
@@ -274,10 +274,29 @@ const ProfileInput = () => {
           badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
         >
           <div className="space-y-2">
-            <p><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</p>
-            <p><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</p>
-            <p><strong>Tell us about yourself:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</p>
-            <p className="font-medium">We will use the AI-generated summary of your profile for company matching and message generation. The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value and overcome self-doubt in networking.</p>
+            <p>
+              <strong>LinkedIn Profile:</strong> Go to your LinkedIn profile,
+              select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into
+              the text box below (CMD/CTRL + V). Don't worry about formatting,
+              just copy everything - AI will figure it out.
+            </p>
+            <p>
+              <strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A)
+              and paste it (CMD/CTRL + V) into the text box below. Don't worry
+              about formatting.
+            </p>
+            <p>
+              <strong>Tell us about yourself:</strong> Write about your bio,
+              education, key skills, success stories, achievements, or any other
+              professional information.
+            </p>
+            <p className="font-medium">
+              We will use the AI-generated summary of your profile for company
+              matching and message generation. The AI analyzes your background
+              to highlight your value proposition for specific roles and
+              companies, helping you articulate how you can add value and
+              overcome self-doubt in networking.
+            </p>
           </div>
         </InfoBox>
 
