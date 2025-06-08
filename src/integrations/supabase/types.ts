@@ -354,7 +354,6 @@ export type Database = {
       user_profiles: {
         Row: {
           additional_details: string | null
-          background_input: string | null
           created_at: string
           current_company: string | null
           cv_content: string | null
@@ -373,7 +372,6 @@ export type Database = {
         }
         Insert: {
           additional_details?: string | null
-          background_input?: string | null
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
@@ -392,7 +390,6 @@ export type Database = {
         }
         Update: {
           additional_details?: string | null
-          background_input?: string | null
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
