@@ -7,7 +7,7 @@ const PainPointsSection = () => {
       icon: <Search className="h-8 w-8 text-red-500" />,
       title: "Applications Disappearing",
       description: "Feeling like your applications disappear into a black hole? You're not alone. The job market has shifted, and getting your resume seen by the right person is tougher than ever.",
-      gradient: "from-red-50 to-pink-50",
+      gradient: "from-red-50 to-rose-50",
       borderColor: "border-red-200"
     },
     {
@@ -21,7 +21,7 @@ const PainPointsSection = () => {
       icon: <ClipboardList className="h-8 w-8 text-blue-500" />,
       title: "Overwhelming Tracking",
       description: "Trying to keep track of who you've contacted, what you discussed, and when to follow up? It's overwhelming when you're reaching out to dozens of people.",
-      gradient: "from-blue-50 to-cyan-50",
+      gradient: "from-blue-50 to-sky-50",
       borderColor: "border-blue-200"
     },
     {
@@ -34,7 +34,7 @@ const PainPointsSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-slate-100 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-b from-slate-50 to-neutral-100 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -49,10 +49,10 @@ const PainPointsSection = () => {
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800">
             Sounds Familiar?
           </h2>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
             The job search process is filled with challenges that can make even the most qualified candidates feel stuck.
           </p>
         </div>
@@ -69,10 +69,10 @@ const PainPointsSection = () => {
                     {point.icon}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
+                    <h3 className="font-bold text-2xl mb-4 text-slate-800 group-hover:text-slate-900 transition-colors">
                       {point.title}
                     </h3>
-                    <p className="text-gray-700 leading-relaxed text-lg">
+                    <p className="text-slate-700 leading-relaxed text-lg">
                       {point.description}
                     </p>
                   </div>
@@ -86,9 +86,9 @@ const PainPointsSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-200">
-            <Clock className="h-5 w-5 text-gray-500" />
-            <span className="text-gray-600 font-medium">Sound like your current job search experience?</span>
+          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-slate-200">
+            <Clock className="h-5 w-5 text-slate-500" />
+            <span className="text-slate-600 font-medium">Sound like your current job search experience?</span>
           </div>
         </div>
       </div>

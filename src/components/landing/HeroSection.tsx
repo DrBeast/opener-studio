@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -236,19 +235,19 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 overflow-hidden">
+    <section className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/30 to-purple-400/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-400/30 to-teal-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-rose-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <div className="container mx-auto px-4 py-16 lg:py-24 relative z-10">
         {/* Early Access Alert */}
-        <Alert className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 max-w-4xl mx-auto shadow-sm">
-          <Zap className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
+        <Alert className="mb-8 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 max-w-4xl mx-auto shadow-sm">
+          <Zap className="h-4 w-4 text-rose-600" />
+          <AlertDescription className="text-rose-800">
             <strong>Limited Early Access DEV:</strong> Thank you for being part
             of our early access! Please don't share this link yet as we're still
             refining the experience. We appreciate your patience and feedback.
@@ -258,24 +257,24 @@ const HeroSection = () => {
         </Alert>
 
         {/* Main Content Card */}
-        <Card className="max-w-5xl mx-auto bg-white/90 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
+        <Card className="max-w-5xl mx-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-3xl overflow-hidden">
           <div className="relative">
             {/* Header Section with Gradient */}
-            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-12 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-black/10"></div>
+            <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 text-white p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 via-purple-600/20 to-indigo-600/20"></div>
               <div className="relative z-10">
                 <div className="flex justify-center mb-6">
-                  <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+                  <div className="bg-gradient-to-r from-violet-500 to-purple-500 p-4 rounded-full backdrop-blur-sm shadow-lg">
                     <Target className="h-12 w-12 text-white" />
                   </div>
                 </div>
                 <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
                   Break Through. Connect with Humans.
-                  <span className="block text-3xl md:text-4xl font-semibold mt-4 text-blue-100">
+                  <span className="block text-3xl md:text-4xl font-semibold mt-4 bg-gradient-to-r from-violet-300 to-purple-300 bg-clip-text text-transparent">
                     Your AI Copilot for Job Search Networking.
                   </span>
                 </h1>
-                <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed">
                   ConnectorAI helps you craft messages that get responses and build
                   relationships that truly open doors — at scale and without the
                   awkwardness.
@@ -290,12 +289,12 @@ const HeroSection = () => {
                 <div className="space-y-8">
                   <div className="text-center mb-8">
                     <div className="flex justify-center items-center gap-3 mb-4">
-                      <Sparkles className="h-8 w-8 text-primary" />
-                      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                      <Sparkles className="h-8 w-8 text-violet-600" />
+                      <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
                         Get Started in 30 Seconds
                       </h2>
                     </div>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                       Simply paste your professional background and watch AI create your networking profile
                     </p>
                   </div>
@@ -303,12 +302,12 @@ const HeroSection = () => {
                   <div className="relative">
                     <Textarea
                       placeholder="Copy your professional story from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
-                      className="min-h-[200px] text-base p-6 border-2 border-gray-200 focus:border-primary transition-all duration-300 bg-gray-50/50 rounded-xl shadow-inner resize-none"
+                      className="min-h-[200px] text-base p-6 border-2 border-slate-200 focus:border-violet-500 transition-all duration-300 bg-slate-50/50 rounded-xl shadow-inner resize-none"
                       value={backgroundInput}
                       onChange={(e) => setBackgroundInput(e.target.value)}
                       disabled={isProcessing || linkingInProgress}
                     />
-                    <div className="absolute bottom-4 right-4 text-sm text-gray-400">
+                    <div className="absolute bottom-4 right-4 text-sm text-slate-400">
                       {backgroundInput.length} characters
                     </div>
                   </div>
@@ -322,7 +321,7 @@ const HeroSection = () => {
                         !sessionId ||
                         linkingInProgress
                       }
-                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[200px]"
+                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[200px]"
                     >
                       {isProcessing ? (
                         <>
@@ -339,8 +338,8 @@ const HeroSection = () => {
                   </div>
 
                   <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                      <CheckCircle className="h-4 w-4 text-emerald-500" />
                       <span>Your data is secure and privately processed. No signup required to see your profile preview.</span>
                     </div>
                   </div>
@@ -352,34 +351,34 @@ const HeroSection = () => {
                 <div className="space-y-8">
                   <div className="text-center">
                     <div className="flex justify-center items-center gap-3 mb-4">
-                      <Award className="h-8 w-8 text-green-600" />
-                      <h3 className="text-3xl md:text-4xl font-bold text-gray-800">
+                      <Award className="h-8 w-8 text-emerald-600" />
+                      <h3 className="text-3xl md:text-4xl font-bold text-slate-800">
                         Your AI-Powered Profile Preview
                       </h3>
                     </div>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-lg text-slate-600">
                       Here's how AI interprets your professional background
                     </p>
                   </div>
 
                   <div className="grid gap-6">
                     {/* Profile Overview Card */}
-                    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 border border-purple-200 rounded-xl p-8 shadow-sm">
+                    <div className="bg-gradient-to-br from-indigo-50 to-violet-100 border border-indigo-200 rounded-xl p-8 shadow-sm">
                       <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-purple-100 p-3 rounded-full">
-                          <User className="h-6 w-6 text-purple-600" />
+                        <div className="bg-indigo-100 p-3 rounded-full">
+                          <User className="h-6 w-6 text-indigo-600" />
                         </div>
-                        <h4 className="font-bold text-xl text-purple-800">
+                        <h4 className="font-bold text-xl text-indigo-800">
                           Professional Overview
                         </h4>
                       </div>
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                      <p className="text-slate-700 leading-relaxed text-lg">
                         {generatedProfileOutput.overall_blurb}
                       </p>
                       {extractedProfileData?.job_role &&
                         extractedProfileData?.current_company && (
-                          <div className="mt-4 p-4 bg-white/60 rounded-lg">
-                            <p className="text-sm text-gray-600">
+                          <div className="mt-4 p-4 bg-white/70 rounded-lg">
+                            <p className="text-sm text-slate-600">
                               <strong>Current Position:</strong> {extractedProfileData.job_role}{" "}
                               at {extractedProfileData.current_company}
                               {extractedProfileData.location &&
@@ -390,16 +389,16 @@ const HeroSection = () => {
                     </div>
 
                     {/* Value Proposition Card */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 rounded-xl p-8 shadow-sm">
+                    <div className="bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200 rounded-xl p-8 shadow-sm">
                       <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-emerald-100 p-3 rounded-full">
-                          <Award className="h-6 w-6 text-emerald-600" />
+                        <div className="bg-teal-100 p-3 rounded-full">
+                          <Award className="h-6 w-6 text-teal-600" />
                         </div>
-                        <h4 className="font-bold text-xl text-emerald-800">
+                        <h4 className="font-bold text-xl text-teal-800">
                           Your Unique Value Proposition
                         </h4>
                       </div>
-                      <p className="text-gray-700 leading-relaxed text-lg">
+                      <p className="text-slate-700 leading-relaxed text-lg">
                         {generatedProfileOutput.value_proposition_summary}
                       </p>
                     </div>
@@ -407,12 +406,12 @@ const HeroSection = () => {
                     {/* Highlights Section */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {generatedProfileOutput.combined_experience_highlights && (
-                        <div className="bg-gradient-to-br from-blue-50 to-cyan-100 border border-blue-200 rounded-xl p-8 shadow-sm">
+                        <div className="bg-gradient-to-br from-sky-50 to-blue-100 border border-sky-200 rounded-xl p-8 shadow-sm">
                           <div className="flex items-center gap-4 mb-6">
-                            <div className="bg-blue-100 p-3 rounded-full">
-                              <Star className="h-6 w-6 text-blue-600" />
+                            <div className="bg-sky-100 p-3 rounded-full">
+                              <Star className="h-6 w-6 text-sky-600" />
                             </div>
-                            <h4 className="font-bold text-xl text-blue-800">
+                            <h4 className="font-bold text-xl text-sky-800">
                               Experience Highlights
                             </h4>
                           </div>
@@ -422,12 +421,12 @@ const HeroSection = () => {
                         </div>
                       )}
                       {generatedProfileOutput.combined_education_highlights && (
-                        <div className="bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 rounded-xl p-8 shadow-sm">
+                        <div className="bg-gradient-to-br from-rose-50 to-pink-100 border border-rose-200 rounded-xl p-8 shadow-sm">
                           <div className="flex items-center gap-4 mb-6">
-                            <div className="bg-violet-100 p-3 rounded-full">
-                              <GraduationCap className="h-6 w-6 text-violet-600" />
+                            <div className="bg-rose-100 p-3 rounded-full">
+                              <GraduationCap className="h-6 w-6 text-rose-600" />
                             </div>
-                            <h4 className="font-bold text-xl text-violet-800">
+                            <h4 className="font-bold text-xl text-rose-800">
                               Education Highlights
                             </h4>
                           </div>
@@ -439,12 +438,12 @@ const HeroSection = () => {
                     </div>
 
                     {/* Key Skills & Expertise Section */}
-                    <div className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-xl p-8 shadow-sm">
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 rounded-xl p-8 shadow-sm">
                       <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-orange-100 p-3 rounded-full">
-                          <Zap className="h-6 w-6 text-orange-600" />
+                        <div className="bg-amber-100 p-3 rounded-full">
+                          <Zap className="h-6 w-6 text-amber-600" />
                         </div>
-                        <h4 className="font-bold text-xl text-orange-800">
+                        <h4 className="font-bold text-xl text-amber-800">
                           Key Skills & Expertise
                         </h4>
                       </div>
@@ -454,7 +453,7 @@ const HeroSection = () => {
                             {generatedProfileOutput.key_skills.map((skill, index) => (
                               <span
                                 key={index}
-                                className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium border border-orange-200 shadow-sm"
+                                className="bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium border border-amber-200 shadow-sm"
                               >
                                 {skill}
                               </span>
@@ -464,7 +463,7 @@ const HeroSection = () => {
                       {generatedProfileOutput.domain_expertise &&
                         generatedProfileOutput.domain_expertise.length > 0 && (
                           <div className="mt-6">
-                            <h5 className="text-sm font-bold text-orange-700 mb-3">
+                            <h5 className="text-sm font-bold text-amber-700 mb-3">
                               Domain Expertise:
                             </h5>
                             <div className="flex flex-wrap gap-2">
@@ -472,7 +471,7 @@ const HeroSection = () => {
                                 (domain, index) => (
                                   <span
                                     key={index}
-                                    className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-300"
+                                    className="bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-sm border border-amber-300"
                                   >
                                     {domain}
                                   </span>
@@ -484,7 +483,7 @@ const HeroSection = () => {
                       {generatedProfileOutput.technical_expertise &&
                         generatedProfileOutput.technical_expertise.length > 0 && (
                           <div className="mt-6">
-                            <h5 className="text-sm font-bold text-orange-700 mb-3">
+                            <h5 className="text-sm font-bold text-amber-700 mb-3">
                               Technical Expertise:
                             </h5>
                             <div className="flex flex-wrap gap-2">
@@ -492,7 +491,7 @@ const HeroSection = () => {
                                 (tech, index) => (
                                   <span
                                     key={index}
-                                    className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-300"
+                                    className="bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-sm border border-amber-300"
                                   >
                                     {tech}
                                   </span>
@@ -505,10 +504,10 @@ const HeroSection = () => {
                   </div>
 
                   {/* Call to Action for Saving/Signup */}
-                  <div className="text-center pt-8 border-t border-gray-100">
+                  <div className="text-center pt-8 border-t border-slate-100">
                     <Button
                       onClick={handleSaveProfileAndContinue}
-                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[250px]"
+                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[250px]"
                       disabled={linkingInProgress}
                     >
                       {linkingInProgress ? (
@@ -528,7 +527,7 @@ const HeroSection = () => {
                         </>
                       )}
                     </Button>
-                    <p className="text-sm text-gray-500 mt-4">
+                    <p className="text-sm text-slate-500 mt-4">
                       Your profile preview is temporary until you sign up or save.
                     </p>
                   </div>
