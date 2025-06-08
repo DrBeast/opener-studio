@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -243,9 +244,9 @@ const HeroSection = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-rose-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-16 lg:py-24 relative z-10">
+      <div className="container mx-auto px-4 py-8 lg:py-12 relative z-10">
         {/* Early Access Alert */}
-        <Alert className="mb-8 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 max-w-4xl mx-auto shadow-sm">
+        <Alert className="mb-4 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 max-w-4xl mx-auto shadow-sm">
           <Zap className="h-4 w-4 text-rose-600" />
           <AlertDescription className="text-rose-800">
             <strong>Limited Early Access DEV:</strong> Thank you for being part
@@ -321,16 +322,17 @@ const HeroSection = () => {
                         !sessionId ||
                         linkingInProgress
                       }
-                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[200px]"
+                      className="px-12 py-6 text-xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 hover:from-purple-700 hover:via-violet-700 hover:to-purple-800 text-white rounded-2xl shadow-2xl hover:shadow-purple-500/50 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 min-w-[280px] relative overflow-hidden"
                     >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                       {isProcessing ? (
                         <>
-                          <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                          <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                           Processing...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="mr-3 h-5 w-5" />
+                          <Sparkles className="mr-3 h-6 w-6" />
                           Generate My Profile
                         </>
                       )}

@@ -1,5 +1,5 @@
 
-import { Search, UserX, ClipboardList, HelpCircle, AlertTriangle, Target, Clock, Users } from "lucide-react";
+import { Search, UserX, ClipboardList, HelpCircle, Target, Clock, Users } from "lucide-react";
 
 const PainPointsSection = () => {
   const painPoints = [
@@ -44,11 +44,6 @@ const PainPointsSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <div className="flex justify-center items-center gap-3 mb-6">
-            <div className="bg-red-100 p-3 rounded-full">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800">
             Sounds Familiar?
           </h2>
@@ -82,14 +77,6 @@ const PainPointsSection = () => {
               <div className={`h-1 bg-gradient-to-r ${point.gradient.replace('50', '200')}`}></div>
             </div>
           ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-slate-200">
-            <Clock className="h-5 w-5 text-slate-500" />
-            <span className="text-slate-600 font-medium">Sound like your current job search experience?</span>
-          </div>
         </div>
       </div>
     </section>
