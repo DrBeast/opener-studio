@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -550,7 +549,7 @@ export const EnhancedCompaniesTable = ({
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="shrink-0 hover:bg-purple-accent"
+                                    className="p-2 shrink-0 border-blue-200  hover:bg-blue-500/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onGenerateMessage(contact.id);
@@ -579,7 +578,7 @@ export const EnhancedCompaniesTable = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10"
+                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10 hover:text-purple-600"
                             onClick={(e) => {
                               e.stopPropagation();
                               onOpenContactRecommendation(
@@ -598,7 +597,7 @@ export const EnhancedCompaniesTable = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="p-2 shrink-0 hover:bg-blue-500/10"
+                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10 hover:text-purple-600"
                             onClick={(e) => {
                               e.stopPropagation();
                               onCreateContact(company.company_id, company.name);
@@ -606,7 +605,7 @@ export const EnhancedCompaniesTable = ({
                             title="Add contact manually"
                           >
                             <UserPlus
-                              className="h-4 w-4 text-blue-500"
+                              className="h-4 w-4"
                               style={{ transform: "scale(1.5)" }}
                             />
                           </Button>
