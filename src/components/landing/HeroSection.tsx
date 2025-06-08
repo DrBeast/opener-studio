@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,9 +11,12 @@ import {
   Award,
   GraduationCap,
   Star,
+  CheckCircle,
+  Target,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert"; // Ensure Alert and AlertDescription are correctly imported and used
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -232,17 +236,19 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="py-16 lg:py-24 relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Background abstract illustration */}
-      <div className="absolute inset-0 z-0 opacity-20">
-        <div className="absolute inset-0 bg-radial-gradient from-transparent to-primary/10 via-transparent"></div>
+    <section className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 py-16 lg:py-24 relative z-10">
         {/* Early Access Alert */}
-        {/* FIX: Ensure Alert is a self-contained component if it's the root of a JSX fragment that's directly returned */}
-        <Alert className="mb-6 border-yellow-200 bg-yellow-50 max-w-3xl mx-auto">
-          <AlertDescription className="text-yellow-800">
+        <Alert className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 max-w-4xl mx-auto shadow-sm">
+          <Zap className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
             <strong>Limited Early Access DEV:</strong> Thank you for being part
             of our early access! Please don't share this link yet as we're still
             refining the experience. We appreciate your patience and feedback.
@@ -251,221 +257,285 @@ const HeroSection = () => {
           </AlertDescription>
         </Alert>
 
-        {/* Main Consolidated Card */}
-        <Card className="text-center rounded-lg shadow-xl p-8 md:p-12 max-w-4xl mx-auto border border-gray-200 bg-gradient-to-br from-green-500 to-emerald-400">
-          {/* Header & Value Proposition */}
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-gray-900">
-            Break Through. Connect with Humans.
-            <span className="block text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2 p-2">
-              Your AI Copilot for Job Search Networking.
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            ConnectorAI helps you craft messages that get responses and build
-            relationships that truly open doors — at scale and without the
-            awkwardness.
-          </p>
-
-          {/* Profile Input & Generate Button - Initial State */}
-          {!generatedProfileOutput && (
-            <div className="space-y-6">
-              <Textarea
-                placeholder="Copy your professional story from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
-                className="min-h-[200px] text-base p-4 border-2 focus:border-primary transition-colors duration-200 bg-gray-50"
-                value={backgroundInput}
-                onChange={(e) => setBackgroundInput(e.target.value)}
-                disabled={isProcessing || linkingInProgress}
-              />
-              <div className="flex justify-center gap-4">
-                <Button
-                  onClick={processBackgroundWithAI}
-                  disabled={
-                    isProcessing ||
-                    !backgroundInput.trim() ||
-                    !sessionId ||
-                    linkingInProgress
-                  }
-                  className="w-full sm:w-auto px-8 py-3 text-lg font-semibold bg-primary hover:from-primary/90 hover:to-primary/70 transform transition-all duration-300 hover:scale-105"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Generate My Profile
-                    </>
-                  )}
-                </Button>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Your data is secure and privately processed. No signup required
-                to see your profile preview.
-              </p>
-            </div>
-          )}
-
-          {/* AI-Generated Profile Summary Display - Post-Processing State */}
-          {generatedProfileOutput && (
-            <div className="mt-8 pt-8 border-t border-gray-100 text-left">
-              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900">
-                Your AI-Powered Profile Preview
-              </h3>
-
-              {/* Profile Overview Card */}
-              <div className="mb-6 bg-gradient-to-br from-purple-50 to-purple-200 border-purple-200 rounded-lg p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <User className="h-6 w-6 text-purple-600" />
-                  <h4 className="font-semibold text-lg text-purple-800">
-                    Professional Overview
-                  </h4>
+        {/* Main Content Card */}
+        <Card className="max-w-5xl mx-auto bg-white/90 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
+          <div className="relative">
+            {/* Header Section with Gradient */}
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 text-white p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative z-10">
+                <div className="flex justify-center mb-6">
+                  <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+                    <Target className="h-12 w-12 text-white" />
+                  </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed text-base">
-                  {generatedProfileOutput.overall_blurb}
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+                  Break Through. Connect with Humans.
+                  <span className="block text-3xl md:text-4xl font-semibold mt-4 text-blue-100">
+                    Your AI Copilot for Job Search Networking.
+                  </span>
+                </h1>
+                <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+                  ConnectorAI helps you craft messages that get responses and build
+                  relationships that truly open doors — at scale and without the
+                  awkwardness.
                 </p>
-                {extractedProfileData?.job_role &&
-                  extractedProfileData?.current_company && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      <strong>Current:</strong> {extractedProfileData.job_role}{" "}
-                      at {extractedProfileData.current_company}
-                      {extractedProfileData.location &&
-                        ` (${extractedProfileData.location})`}
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="p-8 md:p-12">
+              {/* Profile Input & Generate Button - Initial State */}
+              {!generatedProfileOutput && (
+                <div className="space-y-8">
+                  <div className="text-center mb-8">
+                    <div className="flex justify-center items-center gap-3 mb-4">
+                      <Sparkles className="h-8 w-8 text-primary" />
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                        Get Started in 30 Seconds
+                      </h2>
+                    </div>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      Simply paste your professional background and watch AI create your networking profile
                     </p>
-                  )}
-              </div>
-
-              {/* Value Proposition Card */}
-              <div className="mb-6 bg-gradient-to-br from-green-50 to-emerald-200 border-green-200 rounded-lg p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <Award className="h-6 w-6 text-green-600" />
-                  <h4 className="font-semibold text-lg text-green-800">
-                    Your Unique Value Proposition
-                  </h4>
-                </div>
-                <p className="text-gray-700 leading-relaxed text-base">
-                  {generatedProfileOutput.value_proposition_summary}
-                </p>
-              </div>
-
-              {/* Highlights Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {generatedProfileOutput.combined_experience_highlights && (
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-200 border-blue-200 rounded-lg p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Star className="h-6 w-6 text-blue-600" />
-                      <h4 className="font-semibold text-lg text-blue-800">
-                        Experience Highlights
-                      </h4>
-                    </div>
-                    {renderArrayItems(
-                      generatedProfileOutput.combined_experience_highlights
-                    )}
                   </div>
-                )}
-                {generatedProfileOutput.combined_education_highlights && (
-                  <div className="bg-gradient-to-br from-purple-50 to-violet-200 border-purple-200 rounded-lg p-6 shadow-sm">
-                    <div className="flex items-center gap-3 mb-4">
-                      <GraduationCap className="h-6 w-6 text-purple-600" />
-                      <h4 className="font-semibold text-lg text-purple-800">
-                        Education Highlights
-                      </h4>
+
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Copy your professional story from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
+                      className="min-h-[200px] text-base p-6 border-2 border-gray-200 focus:border-primary transition-all duration-300 bg-gray-50/50 rounded-xl shadow-inner resize-none"
+                      value={backgroundInput}
+                      onChange={(e) => setBackgroundInput(e.target.value)}
+                      disabled={isProcessing || linkingInProgress}
+                    />
+                    <div className="absolute bottom-4 right-4 text-sm text-gray-400">
+                      {backgroundInput.length} characters
                     </div>
-                    {renderArrayItems(
-                      generatedProfileOutput.combined_education_highlights
-                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Key Skills & Expertise Section */}
-              <div className="bg-gradient-to-br from-orange-50 to-red-200 border-orange-200 rounded-lg p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <Star className="h-6 w-6 text-orange-600" />
-                  <h4 className="font-semibold text-lg text-orange-800">
-                    Key Skills & Expertise
-                  </h4>
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={processBackgroundWithAI}
+                      disabled={
+                        isProcessing ||
+                        !backgroundInput.trim() ||
+                        !sessionId ||
+                        linkingInProgress
+                      }
+                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[200px]"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-3 h-5 w-5" />
+                          Generate My Profile
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span>Your data is secure and privately processed. No signup required to see your profile preview.</span>
+                    </div>
+                  </div>
                 </div>
-                {generatedProfileOutput.key_skills &&
-                  generatedProfileOutput.key_skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {generatedProfileOutput.key_skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-200"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                {generatedProfileOutput.domain_expertise &&
-                  generatedProfileOutput.domain_expertise.length > 0 && ( // Corrected variable name from domain_analysis
-                    <div className="mt-4">
-                      <h5 className="text-sm font-semibold text-orange-700 mb-2">
-                        Domain Expertise:
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {generatedProfileOutput.domain_expertise.map(
-                          (domain, index) => (
-                            <span
-                              key={index}
-                              className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-200"
-                            >
-                              {domain}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                {generatedProfileOutput.technical_expertise &&
-                  generatedProfileOutput.technical_expertise.length > 0 && (
-                    <div className="mt-4">
-                      <h5 className="text-sm font-semibold text-orange-700 mb-2">
-                        Technical Expertise:
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {generatedProfileOutput.technical_expertise.map(
-                          (tech, index) => (
-                            <span
-                              key={index}
-                              className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-200"
-                            >
-                              {tech}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </div>
+              )}
 
-              {/* Call to Action for Saving/Signup */}
-              <div className="mt-8 pt-6 border-t border-gray-100">
-                <Button
-                  onClick={handleSaveProfileAndContinue}
-                  className="w-full sm:w-auto px-8 py-3 text-lg font-semibold transform transition-all duration-300 hover:scale-105"
-                  disabled={linkingInProgress}
-                >
-                  {linkingInProgress ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Linking Profile...
-                    </>
-                  ) : user ? (
-                    "Save My Profile & Continue"
-                  ) : (
-                    "Sign Up to Save Profile & Unlock Features"
-                  )}
-                </Button>
-                <p className="text-sm text-gray-500 mt-4">
-                  Your profile preview is temporary until you sign up or save.
-                </p>
-              </div>
+              {/* AI-Generated Profile Summary Display - Post-Processing State */}
+              {generatedProfileOutput && (
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <div className="flex justify-center items-center gap-3 mb-4">
+                      <Award className="h-8 w-8 text-green-600" />
+                      <h3 className="text-3xl md:text-4xl font-bold text-gray-800">
+                        Your AI-Powered Profile Preview
+                      </h3>
+                    </div>
+                    <p className="text-lg text-gray-600">
+                      Here's how AI interprets your professional background
+                    </p>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {/* Profile Overview Card */}
+                    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 border border-purple-200 rounded-xl p-8 shadow-sm">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-purple-100 p-3 rounded-full">
+                          <User className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <h4 className="font-bold text-xl text-purple-800">
+                          Professional Overview
+                        </h4>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed text-lg">
+                        {generatedProfileOutput.overall_blurb}
+                      </p>
+                      {extractedProfileData?.job_role &&
+                        extractedProfileData?.current_company && (
+                          <div className="mt-4 p-4 bg-white/60 rounded-lg">
+                            <p className="text-sm text-gray-600">
+                              <strong>Current Position:</strong> {extractedProfileData.job_role}{" "}
+                              at {extractedProfileData.current_company}
+                              {extractedProfileData.location &&
+                                ` • ${extractedProfileData.location}`}
+                            </p>
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Value Proposition Card */}
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 rounded-xl p-8 shadow-sm">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-emerald-100 p-3 rounded-full">
+                          <Award className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <h4 className="font-bold text-xl text-emerald-800">
+                          Your Unique Value Proposition
+                        </h4>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed text-lg">
+                        {generatedProfileOutput.value_proposition_summary}
+                      </p>
+                    </div>
+
+                    {/* Highlights Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {generatedProfileOutput.combined_experience_highlights && (
+                        <div className="bg-gradient-to-br from-blue-50 to-cyan-100 border border-blue-200 rounded-xl p-8 shadow-sm">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="bg-blue-100 p-3 rounded-full">
+                              <Star className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <h4 className="font-bold text-xl text-blue-800">
+                              Experience Highlights
+                            </h4>
+                          </div>
+                          {renderArrayItems(
+                            generatedProfileOutput.combined_experience_highlights
+                          )}
+                        </div>
+                      )}
+                      {generatedProfileOutput.combined_education_highlights && (
+                        <div className="bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 rounded-xl p-8 shadow-sm">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="bg-violet-100 p-3 rounded-full">
+                              <GraduationCap className="h-6 w-6 text-violet-600" />
+                            </div>
+                            <h4 className="font-bold text-xl text-violet-800">
+                              Education Highlights
+                            </h4>
+                          </div>
+                          {renderArrayItems(
+                            generatedProfileOutput.combined_education_highlights
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Key Skills & Expertise Section */}
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-xl p-8 shadow-sm">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-orange-100 p-3 rounded-full">
+                          <Zap className="h-6 w-6 text-orange-600" />
+                        </div>
+                        <h4 className="font-bold text-xl text-orange-800">
+                          Key Skills & Expertise
+                        </h4>
+                      </div>
+                      {generatedProfileOutput.key_skills &&
+                        generatedProfileOutput.key_skills.length > 0 && (
+                          <div className="flex flex-wrap gap-3 mt-6">
+                            {generatedProfileOutput.key_skills.map((skill, index) => (
+                              <span
+                                key={index}
+                                className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium border border-orange-200 shadow-sm"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      {generatedProfileOutput.domain_expertise &&
+                        generatedProfileOutput.domain_expertise.length > 0 && (
+                          <div className="mt-6">
+                            <h5 className="text-sm font-bold text-orange-700 mb-3">
+                              Domain Expertise:
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {generatedProfileOutput.domain_expertise.map(
+                                (domain, index) => (
+                                  <span
+                                    key={index}
+                                    className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-300"
+                                  >
+                                    {domain}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      {generatedProfileOutput.technical_expertise &&
+                        generatedProfileOutput.technical_expertise.length > 0 && (
+                          <div className="mt-6">
+                            <h5 className="text-sm font-bold text-orange-700 mb-3">
+                              Technical Expertise:
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {generatedProfileOutput.technical_expertise.map(
+                                (tech, index) => (
+                                  <span
+                                    key={index}
+                                    className="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm border border-orange-300"
+                                  >
+                                    {tech}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Call to Action for Saving/Signup */}
+                  <div className="text-center pt-8 border-t border-gray-100">
+                    <Button
+                      onClick={handleSaveProfileAndContinue}
+                      className="px-10 py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 min-w-[250px]"
+                      disabled={linkingInProgress}
+                    >
+                      {linkingInProgress ? (
+                        <>
+                          <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                          Linking Profile...
+                        </>
+                      ) : user ? (
+                        <>
+                          <CheckCircle className="mr-3 h-5 w-5" />
+                          Save My Profile & Continue
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="mr-3 h-5 w-5" />
+                          Sign Up to Save Profile & Unlock Features
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-sm text-gray-500 mt-4">
+                      Your profile preview is temporary until you sign up or save.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </Card>
       </div>
     </section>
