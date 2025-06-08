@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -276,9 +275,8 @@ const HeroSection = () => {
                   </span>
                 </h1>
                 <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed">
-                  ConnectorAI helps you craft messages that get responses and build
-                  relationships that truly open doors — at scale and without the
-                  awkwardness.
+                  ConnectorAI helps you craft messages that get responses and
+                  build relationships — at scale and without the awkwardness.
                 </p>
               </div>
             </div>
@@ -296,13 +294,14 @@ const HeroSection = () => {
                       </h2>
                     </div>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                      Simply paste your professional background and watch AI create your networking profile
+                      Simply paste your professional background and watch AI
+                      write your story
                     </p>
                   </div>
 
                   <div className="relative">
                     <Textarea
-                      placeholder="Copy your professional story from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
+                      placeholder="Copy your professional bio from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
                       className="min-h-[200px] text-base p-6 border-2 border-slate-200 focus:border-violet-500 transition-all duration-300 bg-slate-50/50 rounded-xl shadow-inner resize-none"
                       value={backgroundInput}
                       onChange={(e) => setBackgroundInput(e.target.value)}
@@ -324,21 +323,21 @@ const HeroSection = () => {
                       }
                       className="group relative px-12 py-6 text-xl font-bold text-white rounded-2xl min-w-[280px] overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       style={{
-                        background: isProcessing ? 
-                          'linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #8b5cf6 100%)' :
-                          'linear-gradient(135deg, #7c3aed 0%, #a855f7 25%, #c084fc 50%, #8b5cf6 75%, #7c3aed 100%)',
-                        boxShadow: isProcessing ? 
-                          '0 25px 50px rgba(168, 85, 247, 0.6), 0 15px 35px rgba(192, 132, 252, 0.4)' :
-                          '0 30px 60px rgba(124, 58, 237, 0.8), 0 20px 40px rgba(168, 85, 247, 0.5), 0 10px 20px rgba(192, 132, 252, 0.3)',
-                        animation: isProcessing ? 'pulse 2s infinite' : 'none'
+                        background: isProcessing
+                          ? "linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #8b5cf6 100%)"
+                          : "linear-gradient(135deg, #7c3aed 0%, #a855f7 25%, #c084fc 50%, #8b5cf6 75%, #7c3aed 100%)",
+                        boxShadow: isProcessing
+                          ? "0 10px 20px rgba(168, 85, 247, 0.6), 0 8px 15px rgba(192, 132, 252, 0.4)"
+                          : "0 15px 20px rgba(124, 58, 237, 0.8), 0 10px 20px rgba(168, 85, 247, 0.5), 0 3px 10px rgba(192, 132, 252, 0.3)",
+                        animation: isProcessing ? "pulse 2s infinite" : "none",
                       }}
                     >
-                      {/* Animated shimmer effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                      
+                      {/* Animated shimmer effect 
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>*/}
+
                       {/* Animated border glow */}
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
-                      
+
                       {/* Button content */}
                       <div className="relative z-10 flex items-center justify-center">
                         {isProcessing ? (
@@ -359,7 +358,10 @@ const HeroSection = () => {
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
                       <CheckCircle className="h-4 w-4 text-emerald-500" />
-                      <span>Your data is secure and privately processed. No signup required to see your profile preview.</span>
+                      <span>
+                        Your data is secure and privately processed. No signup
+                        required to see your profile preview.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -398,8 +400,9 @@ const HeroSection = () => {
                         extractedProfileData?.current_company && (
                           <div className="mt-4 p-4 bg-white/70 rounded-lg">
                             <p className="text-sm text-slate-600">
-                              <strong>Current Position:</strong> {extractedProfileData.job_role}{" "}
-                              at {extractedProfileData.current_company}
+                              <strong>Current Position:</strong>{" "}
+                              {extractedProfileData.job_role} at{" "}
+                              {extractedProfileData.current_company}
                               {extractedProfileData.location &&
                                 ` • ${extractedProfileData.location}`}
                             </p>
@@ -469,14 +472,16 @@ const HeroSection = () => {
                       {generatedProfileOutput.key_skills &&
                         generatedProfileOutput.key_skills.length > 0 && (
                           <div className="flex flex-wrap gap-3 mt-6">
-                            {generatedProfileOutput.key_skills.map((skill, index) => (
-                              <span
-                                key={index}
-                                className="bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium border border-amber-200 shadow-sm"
-                              >
-                                {skill}
-                              </span>
-                            ))}
+                            {generatedProfileOutput.key_skills.map(
+                              (skill, index) => (
+                                <span
+                                  key={index}
+                                  className="bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium border border-amber-200 shadow-sm"
+                                >
+                                  {skill}
+                                </span>
+                              )
+                            )}
                           </div>
                         )}
                       {generatedProfileOutput.domain_expertise &&
@@ -500,7 +505,8 @@ const HeroSection = () => {
                           </div>
                         )}
                       {generatedProfileOutput.technical_expertise &&
-                        generatedProfileOutput.technical_expertise.length > 0 && (
+                        generatedProfileOutput.technical_expertise.length >
+                          0 && (
                           <div className="mt-6">
                             <h5 className="text-sm font-bold text-amber-700 mb-3">
                               Technical Expertise:
@@ -547,7 +553,8 @@ const HeroSection = () => {
                       )}
                     </Button>
                     <p className="text-sm text-slate-500 mt-4">
-                      Your profile preview is temporary until you sign up or save.
+                      Your profile preview is temporary until you sign up or
+                      save.
                     </p>
                   </div>
                 </div>
