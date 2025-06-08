@@ -153,14 +153,22 @@ Rules:
       };
     }
 
+    // Get existing profile data to preserve background_input
+    const { data: existingProfile } = await supabaseClient
+      .from("user_profiles")
+      .select("background_input")
+      .eq("session_id", sessionId)
+      .single();
+
     // Store profile data in user_profiles with session_id and extracted fields
+    // Preserve existing background_input if it exists
     const { error: profileError } = await supabaseClient
       .from("user_profiles")
       .upsert({
         session_id: sessionId,
         is_temporary: true,
         temp_created_at: new Date().toISOString(),
-        background_input: backgroundInput || null,
+        background_input: existingProfile?.background_input || backgroundInput || null,
         linkedin_content: linkedinContent || null,
         cv_content: cvContent || null,
         additional_details: additionalDetails || null,
