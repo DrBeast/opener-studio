@@ -68,7 +68,92 @@ serve(async (req) => {
       });
     }
 
-    // Store profile data in user_profiles with session_id and is_temporary = true
+    // Combine all available content for AI processing
+    const combinedContent = [
+      backgroundInput && `Background Information: ${backgroundInput}`,
+      linkedinContent && `LinkedIn Profile: ${linkedinContent}`,
+      additionalDetails && `Additional Details: ${additionalDetails}`,
+      cvContent && `CV Content: ${cvContent}`
+    ].filter(Boolean).join("\n\n");
+
+    console.log("Step 1: Calling Gemini API to extract structured profile fields...");
+
+    // STEP 1: Extract structured profile fields
+    const profileExtractionResponse = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': geminiApiKey
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `
+You are an AI assistant that extracts structured profile information from professional background text.
+
+Please analyze the following profile information and extract the key profile fields:
+
+${combinedContent}
+
+Extract and return the following information in JSON format:
+
+{
+  "first_name": "First name only (no middle names or initials)",
+  "last_name": "Last name only",
+  "job_role": "Current or most recent job title/role",
+  "current_company": "Current or most recent company name",
+  "location": "City, State/Country or current location"
+}
+
+Rules:
+- If information is not clearly available, return null for that field
+- For names, extract only clear first and last names (avoid middle names, initials, or titles)
+- For job_role, use the most recent or current position mentioned
+- For current_company, use the most recent or current company mentioned
+- For location, extract the most relevant current location (city and state/country if available)
+- Return valid JSON only, no additional text or explanations
+            `
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if (!profileExtractionResponse.ok) {
+      throw new Error(`Gemini API error during profile extraction: ${profileExtractionResponse.status}`);
+    }
+
+    console.log("Received profile extraction response from Gemini API");
+    const profileData = await profileExtractionResponse.json();
+    
+    let extractedProfile;
+    try {
+      const extractedText = profileData.candidates[0].content.parts[0].text;
+      extractedProfile = JSON.parse(extractedText);
+      console.log("Extracted profile fields:", extractedProfile);
+    } catch (parseError) {
+      console.error("Error parsing profile extraction response:", parseError);
+      // Set default empty profile if parsing fails
+      extractedProfile = {
+        first_name: null,
+        last_name: null,
+        job_role: null,
+        current_company: null,
+        location: null
+      };
+    }
+
+    // Store profile data in user_profiles with session_id and extracted fields
     const { error: profileError } = await supabaseClient
       .from("user_profiles")
       .upsert({
@@ -79,6 +164,11 @@ serve(async (req) => {
         linkedin_content: linkedinContent || null,
         cv_content: cvContent || null,
         additional_details: additionalDetails || null,
+        first_name: extractedProfile.first_name,
+        last_name: extractedProfile.last_name,
+        job_role: extractedProfile.job_role,
+        current_company: extractedProfile.current_company,
+        location: extractedProfile.location,
         updated_at: new Date().toISOString()
       }, {
         onConflict: "session_id"
@@ -89,18 +179,10 @@ serve(async (req) => {
       throw new Error(`Failed to store profile data: ${profileError.message}`);
     }
 
-    // Combine all available content for AI processing
-    const combinedContent = [
-      backgroundInput && `Background Information: ${backgroundInput}`,
-      linkedinContent && `LinkedIn Profile: ${linkedinContent}`,
-      additionalDetails && `Additional Details: ${additionalDetails}`,
-      cvContent && `CV Content: ${cvContent}`
-    ].filter(Boolean).join("\n\n");
+    console.log("Step 2: Calling Gemini API to generate comprehensive summary...");
 
-    console.log("Calling Gemini API to generate summary...");
-
-    // Call Gemini API to process the profile
-    const response = await fetch(GEMINI_API_URL, {
+    // STEP 2: Generate comprehensive summary (existing logic)
+    const summaryResponse = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -150,20 +232,20 @@ Focus on creating content that would be valuable for job search networking. Be s
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+    if (!summaryResponse.ok) {
+      throw new Error(`Gemini API error during summary generation: ${summaryResponse.status}`);
     }
 
-    console.log("Received response from Gemini API");
-    const data = await response.json();
+    console.log("Received summary response from Gemini API");
+    const summaryData = await summaryResponse.json();
     
     let summary;
     try {
-      const generatedText = data.candidates[0].content.parts[0].text;
+      const generatedText = summaryData.candidates[0].content.parts[0].text;
       summary = JSON.parse(generatedText);
     } catch (parseError) {
-      console.error("Error parsing Gemini response:", parseError);
-      throw new Error("Failed to parse AI response");
+      console.error("Error parsing summary response:", parseError);
+      throw new Error("Failed to parse AI summary response");
     }
 
     // Store the summary in the database with session_id
@@ -184,8 +266,9 @@ Focus on creating content that would be valuable for job search networking. Be s
 
     return new Response(JSON.stringify({
       success: true,
-      message: "Profile summary generated successfully!",
-      summary: summary
+      message: "Profile and summary generated successfully!",
+      summary: summary,
+      extractedProfile: extractedProfile
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
