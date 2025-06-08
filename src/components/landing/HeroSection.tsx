@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,31 +26,22 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define the expected structure for the AI's complete output (profile_data + summary_data)
-interface GeneratedProfileAndSummary {
-  profile_data: {
-    first_name?: string;
-    last_name?: string;
-    job_role?: string;
-    current_company?: string;
-    location?: string;
-  };
-  summary_data: {
-    overall_blurb?: string;
-    experience?: string;
-    education?: string;
-    expertise?: string;
-    achievements?: string;
-    combined_experience_highlights?: string[];
-    combined_education_highlights?: string[];
-    key_skills?: string[];
-    domain_expertise?: string[];
-    technical_expertise?: string[];
-    value_proposition_summary?: string;
-  };
+// Define the expected structure for the AI's complete output (summary data from generate_guest_profile)
+interface GeneratedGuestSummary {
+  overall_blurb?: string;
+  experience?: string;
+  education?: string;
+  expertise?: string;
+  achievements?: string;
+  combined_experience_highlights?: string[];
+  combined_education_highlights?: string[];
+  key_skills?: string[];
+  domain_expertise?: string[];
+  technical_expertise?: string[];
+  value_proposition_summary?: string;
 }
 
-// Helper function to render arrays safely (copied from ProfileSummary)
+// Helper function to render arrays safely
 const renderArrayItems = (items?: string[]) => {
   if (!items || !Array.isArray(items) || items.length === 0) return null;
   return (
@@ -73,10 +65,7 @@ const HeroSection = () => {
   const [profileLinkingAttempted, setProfileLinkingAttempted] = useState(false);
   const [linkingInProgress, setLinkingInProgress] = useState(false);
   const [generatedProfileOutput, setGeneratedProfileOutput] = useState<
-    GeneratedProfileAndSummary["summary_data"] | null
-  >(null);
-  const [extractedProfileData, setExtractedProfileData] = useState<
-    GeneratedProfileAndSummary["profile_data"] | null
+    GeneratedGuestSummary | null
   >(null);
 
   // Generate or retrieve session ID on component mount
@@ -164,19 +153,20 @@ const HeroSection = () => {
 
     setIsProcessing(true);
     try {
+      // Updated payload to match generate_guest_profile expectations
       const payload = {
         sessionId: sessionId,
-        additionalDetails: backgroundInput.trim(),
-        userId: user?.id || null,
+        backgroundInput: backgroundInput.trim(), // Use backgroundInput instead of additionalDetails
       };
 
       console.log(
-        "ProfileInput: Sending profile data for processing with session ID:",
+        "HeroSection: Sending profile data for guest processing with session ID:",
         sessionId
       );
 
+      // Call generate_guest_profile instead of generate_profile
       const { data, error } = await supabase.functions.invoke(
-        "generate_profile",
+        "generate_guest_profile",
         {
           body: payload,
         }
@@ -187,12 +177,19 @@ const HeroSection = () => {
           `Edge function error: ${error.message || "Unknown error"}`
         );
       }
-      if (!data || !data.summary_data || !data.profile_data) {
-        throw new Error("No complete profile data received from the server");
+      
+      // Handle the response structure from generate_guest_profile
+      if (!data || !data.success) {
+        throw new Error("Profile generation failed or returned invalid data");
       }
 
-      setGeneratedProfileOutput(data.summary_data);
-      setExtractedProfileData(data.profile_data);
+      // The summary data is directly in data.summary from generate_guest_profile
+      const summaryData = data.summary;
+      if (!summaryData) {
+        throw new Error("No summary data received from the server");
+      }
+
+      setGeneratedProfileOutput(summaryData);
 
       toast.success("Your AI-powered profile preview is ready!");
 
@@ -220,7 +217,6 @@ const HeroSection = () => {
         technical_expertise: [],
         value_proposition_summary: "Please try again later.",
       });
-      setExtractedProfileData({});
     } finally {
       setIsProcessing(false);
     }
@@ -332,9 +328,6 @@ const HeroSection = () => {
                         animation: isProcessing ? "pulse 2s infinite" : "none",
                       }}
                     >
-                      {/* Animated shimmer effect 
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>*/}
-
                       {/* Animated border glow */}
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
 
@@ -396,34 +389,24 @@ const HeroSection = () => {
                       <p className="text-slate-700 leading-relaxed text-lg">
                         {generatedProfileOutput.overall_blurb}
                       </p>
-                      {extractedProfileData?.job_role &&
-                        extractedProfileData?.current_company && (
-                          <div className="mt-4 p-4 bg-white/70 rounded-lg">
-                            <p className="text-sm text-slate-600">
-                              <strong>Current Position:</strong>{" "}
-                              {extractedProfileData.job_role} at{" "}
-                              {extractedProfileData.current_company}
-                              {extractedProfileData.location &&
-                                ` • ${extractedProfileData.location}`}
-                            </p>
-                          </div>
-                        )}
                     </div>
 
                     {/* Value Proposition Card */}
-                    <div className="bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200 rounded-xl p-8 shadow-sm">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-teal-100 p-3 rounded-full">
-                          <Award className="h-6 w-6 text-teal-600" />
+                    {generatedProfileOutput.value_proposition_summary && (
+                      <div className="bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200 rounded-xl p-8 shadow-sm">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="bg-teal-100 p-3 rounded-full">
+                            <Award className="h-6 w-6 text-teal-600" />
+                          </div>
+                          <h4 className="font-bold text-xl text-teal-800">
+                            Your Unique Value Proposition
+                          </h4>
                         </div>
-                        <h4 className="font-bold text-xl text-teal-800">
-                          Your Unique Value Proposition
-                        </h4>
+                        <p className="text-slate-700 leading-relaxed text-lg">
+                          {generatedProfileOutput.value_proposition_summary}
+                        </p>
                       </div>
-                      <p className="text-slate-700 leading-relaxed text-lg">
-                        {generatedProfileOutput.value_proposition_summary}
-                      </p>
-                    </div>
+                    )}
 
                     {/* Highlights Section */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
