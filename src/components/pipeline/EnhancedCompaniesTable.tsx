@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -66,8 +67,8 @@ interface GeneratedCompany {
 
 // Ensure the prop interface uses the correct Company type
 interface CompaniesTableProps {
-  companies: GeneratedCompany[]; // Use GeneratedCompany or your specific Company type
-  onCompanyClick: (company: GeneratedCompany) => void;
+  companies: Company[]; // Use Company from useCompanies hook
+  onCompanyClick: (company: Company) => void;
   onSetPriority: (companyId: string, priority: string) => void;
   onBlacklist: (companyId: string) => void;
   newCompanyIds: string[];
@@ -341,8 +342,8 @@ export const EnhancedCompaniesTable = ({
     </button>
   );
 
-  const PriorityDropdown = ({ company }: { company: GeneratedCompany }) => {
-    // Use GeneratedCompany
+  const PriorityDropdown = ({ company }: { company: Company }) => {
+    // Use Company from useCompanies hook
     const otherPriorities = getPriorityOptions(company.user_priority);
 
     if (otherPriorities.length === 0) {
@@ -547,7 +548,7 @@ export const EnhancedCompaniesTable = ({
                                     )}
                                   </div>
                                   <Button
-                                    size="xs"
+                                    size="sm"
                                     variant="ghost"
                                     className="shrink-0 hover:bg-purple-accent"
                                     onClick={(e) => {
@@ -576,7 +577,7 @@ export const EnhancedCompaniesTable = ({
                         >
                           {/* NEW: Bot button for Generate Contacts */}
                           <Button
-                            size="xs"
+                            size="sm"
                             variant="ghost"
                             className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10"
                             onClick={(e) => {
@@ -595,7 +596,7 @@ export const EnhancedCompaniesTable = ({
                           </Button>
                           {/* END NEW */}
                           <Button
-                            size="xs"
+                            size="sm"
                             variant="ghost"
                             className="p-2 shrink-0 hover:bg-blue-500/10"
                             onClick={(e) => {

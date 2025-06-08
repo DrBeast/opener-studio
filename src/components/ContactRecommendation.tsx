@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   MessageCircle,
@@ -118,9 +119,12 @@ export function ContactRecommendation({
     }
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error: insertError } = await supabase.from("contacts").insert(
         selected.map((c) => ({
-          user_id: supabase.auth.user()?.id, // Assuming user is authenticated and ID is available
+          user_id: user?.id, // Use the user from getUser()
           company_id: companyId,
           first_name: c.first_name,
           last_name: c.last_name,

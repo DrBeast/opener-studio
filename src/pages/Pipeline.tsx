@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { InteractionModal } from "@/components/pipeline/InteractionModal";
-import { ContactInfoBox } from "@/components/pipeline/ContactInfoBox";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
 import { ContactRecommendation } from "@/components/ContactRecommendation"; // Import ContactRecommendation component
@@ -345,24 +345,7 @@ const PipelineDashboard = () => {
 
               <InfoBox
                 title="💡 Pipeline Overview"
-                description={
-                  <>
-                    Click the icons under Contacts to Generate Contacts and Add
-                    them manually. AI-powered contact identification can only
-                    leverage publicly available information such as company
-                    websites - it cannot access LinkedIn profiles yet. For best
-                    results, we strongly recommend manually adding contacts from
-                    your existing network or new contacts you discover through
-                    LinkedIn research. This ensures you connect with the most
-                    relevant people at your target companies.
-                    <br />
-                    <br />
-                    Once you have contacts, use the Message icon to craft the
-                    messages. When you Save Messages, the will be summarized in
-                    the Interactions column. Full history can be viewed by
-                    clicking a company row under Company details.
-                  </>
-                }
+                description="Click the icons under Contacts to Generate Contacts and Add them manually. AI-powered contact identification can only leverage publicly available information such as company websites - it cannot access LinkedIn profiles yet. For best results, we strongly recommend manually adding contacts from your existing network or new contacts you discover through LinkedIn research. This ensures you connect with the most relevant people at your target companies. Once you have contacts, use the Message icon to craft the messages. When you Save Messages, the will be summarized in the Interactions column. Full history can be viewed by clicking a company row under Company details."
                 icon={<UserPlus className="h-6 w-6 text-blue-600" />}
               />
             </div>
