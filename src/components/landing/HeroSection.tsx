@@ -314,7 +314,7 @@ const HeroSection = () => {
                   </div>
 
                   <div className="flex justify-center">
-                    <Button
+                    <button
                       onClick={processBackgroundWithAI}
                       disabled={
                         isProcessing ||
@@ -322,21 +322,38 @@ const HeroSection = () => {
                         !sessionId ||
                         linkingInProgress
                       }
-                      className="px-12 py-6 text-xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 hover:from-purple-700 hover:via-violet-700 hover:to-purple-800 text-white rounded-2xl shadow-2xl hover:shadow-purple-500/50 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 min-w-[280px] relative overflow-hidden"
+                      className="group relative px-12 py-6 text-xl font-bold text-white rounded-2xl min-w-[280px] overflow-hidden transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      style={{
+                        background: isProcessing ? 
+                          'linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #9333ea 100%)' :
+                          'linear-gradient(135deg, #9333ea 0%, #8b5cf6 25%, #a855f7 50%, #7c3aed 75%, #6d28d9 100%)',
+                        boxShadow: isProcessing ? 
+                          '0 20px 40px rgba(139, 92, 246, 0.3)' :
+                          '0 25px 50px rgba(147, 51, 234, 0.5), 0 15px 35px rgba(139, 92, 246, 0.3)',
+                        animation: isProcessing ? 'pulse 2s infinite' : 'none'
+                      }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="mr-3 h-6 w-6" />
-                          Generate My Profile
-                        </>
-                      )}
-                    </Button>
+                      {/* Animated shimmer effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      
+                      {/* Animated border glow */}
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-violet-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
+                      
+                      {/* Button content */}
+                      <div className="relative z-10 flex items-center justify-center">
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="mr-3 h-6 w-6 animate-pulse" />
+                            Generate My Profile
+                          </>
+                        )}
+                      </div>
+                    </button>
                   </div>
 
                   <div className="text-center">
