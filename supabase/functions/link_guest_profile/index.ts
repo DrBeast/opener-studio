@@ -127,7 +127,7 @@ serve(async (req) => {
         };
 
         // Copy all non-null fields from guest profile to user profile
-        const fieldsToMerge = ['linkedin_content', 'additional_details', 'cv_content', 'first_name', 'last_name', 'current_company', 'location', 'job_role'];
+        const fieldsToMerge = ['linkedin_content', 'additional_details', 'cv_content', 'first_name', 'last_name', 'current_company', 'location', 'job_role', 'background_input'];
         
         fieldsToMerge.forEach(field => {
           if (guestProfile[field] && !existingUserProfile[field]) {
@@ -203,6 +203,7 @@ serve(async (req) => {
               current_company: guestProfile.current_company,
               location: guestProfile.location,
               job_role: guestProfile.job_role,
+              background_input: guestProfile.background_input,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
