@@ -1,68 +1,67 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
-
 // Define CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
-
 // Define the Gemini API endpoint
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
-
 // Create a Supabase client with the Deno runtime
-const supabaseClient = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-);
-
-serve(async (req) => {
+const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+serve(async (req)=>{
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
-
   try {
     // Verify request method
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      return new Response(JSON.stringify({
+        error: "Method not allowed"
+      }), {
         status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
       });
     }
-
     // Parse the request body - now accepts unified backgroundInput plus legacy fields
-    const { 
-      sessionId, 
-      backgroundInput,
-      linkedinContent, 
-      cvContent, 
-      additionalDetails 
-    } = await req.json();
-
+    const { sessionId, backgroundInput, linkedinContent, cvContent, additionalDetails } = await req.json();
     if (!sessionId) {
-      return new Response(JSON.stringify({ error: "Missing required field: sessionId" }), {
+      return new Response(JSON.stringify({
+        error: "Missing required field: sessionId"
+      }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
       });
     }
-
     console.log(`Processing guest profile data for session: ${sessionId}`);
-
     // Get the Gemini API Key
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       console.error('Gemini API key not set in Supabase secrets.');
-      return new Response(JSON.stringify({ error: 'Gemini API key not configured.' }), {
+      return new Response(JSON.stringify({
+        error: 'Gemini API key not configured.'
+      }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
       });
     }
-
     // Check if any content is provided
     if (!backgroundInput && !linkedinContent && !cvContent && !additionalDetails) {
-      return new Response(JSON.stringify({ error: "No background content provided" }), {
+      return new Response(JSON.stringify({
+        error: "No background content provided"
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
@@ -255,23 +254,18 @@ Focus on creating content that would be valuable for job search networking. Be s
       console.error("Error parsing summary response:", parseError);
       throw new Error("Failed to parse AI summary response");
     }
-
     // Store the summary in the database with session_id
-    const { error: summaryError } = await supabaseClient
-      .from("user_summaries")
-      .upsert({
-        session_id: sessionId,
-        ...summary,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: "session_id"
-      });
-
+    const { error: summaryError } = await supabaseClient.from("user_summaries").upsert({
+      session_id: sessionId,
+      ...summary,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: "session_id"
+    });
     if (summaryError) {
       console.error("Error saving summary:", summaryError);
       throw new Error(`Failed to save summary: ${summaryError.message}`);
     }
-
     return new Response(JSON.stringify({
       success: true,
       message: "Profile and summary generated successfully!",
@@ -279,9 +273,11 @@ Focus on creating content that would be valuable for job search networking. Be s
       extractedProfile: extractedProfile
     }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
+      }
     });
-
   } catch (error) {
     console.error("Error in generate_guest_profile function:", error);
     return new Response(JSON.stringify({
@@ -289,7 +285,10 @@ Focus on creating content that would be valuable for job search networking. Be s
       message: error.message
     }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
+      }
     });
   }
 });
