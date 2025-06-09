@@ -1,6 +1,11 @@
-
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
@@ -22,15 +27,21 @@ interface OnboardingFlowProps {
 const ensureStringArray = (value: any): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) {
-    return value.map(item => String(item));
+    return value.map((item) => String(item));
   }
   return [];
 };
 
-const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) => {
+const OnboardingFlow = ({
+  isOpen,
+  onClose,
+  onComplete,
+}: OnboardingFlowProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(null);
+  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [messageGenerated, setMessageGenerated] = useState(false);
 
@@ -48,7 +59,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
           .select("*")
           .eq("user_id", user.id)
           .maybeSingle();
-          
+
         if (summaryData) {
           setBackgroundSummary({
             experience: summaryData.experience,
@@ -56,16 +67,22 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
             expertise: summaryData.expertise,
             achievements: summaryData.achievements,
             overall_blurb: summaryData.overall_blurb,
-            combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
-            combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
+            combined_experience_highlights: ensureStringArray(
+              summaryData.combined_experience_highlights
+            ),
+            combined_education_highlights: ensureStringArray(
+              summaryData.combined_education_highlights
+            ),
             key_skills: ensureStringArray(summaryData.key_skills),
             domain_expertise: ensureStringArray(summaryData.domain_expertise),
-            technical_expertise: ensureStringArray(summaryData.technical_expertise),
-            value_proposition_summary: summaryData.value_proposition_summary
+            technical_expertise: ensureStringArray(
+              summaryData.technical_expertise
+            ),
+            value_proposition_summary: summaryData.value_proposition_summary,
           });
         }
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        console.error("Error loading user profile:", error);
       }
     };
 
@@ -91,11 +108,15 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
   const handleComplete = async () => {
     setIsLoading(true);
     try {
-      toast.success("Welcome to ConnectorAI! You're all set to start networking.");
+      toast.success(
+        "Welcome to ConnectorAI! You're all set to start networking."
+      );
       onComplete();
     } catch (error) {
-      console.error('Error completing onboarding:', error);
-      toast.error("There was an error completing setup. You can still use the app!");
+      console.error("Error completing onboarding:", error);
+      toast.error(
+        "There was an error completing setup. You can still use the app!"
+      );
       onComplete();
     } finally {
       setIsLoading(false);
@@ -116,7 +137,9 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
       case 1:
         return <ProfileReviewStep backgroundSummary={backgroundSummary} />;
       case 2:
-        return <CompanyGenerationStep onMessageGenerated={handleMessageGenerated} />;
+        return (
+          <CompanyGenerationStep onMessageGenerated={handleMessageGenerated} />
+        );
       case 3:
         return <CompletionStep />;
       default:
@@ -140,11 +163,11 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
   const getStepDescription = () => {
     switch (currentStep) {
       case 1:
-        return "Review your professional background and let AI optimize your profile";
+        return "Review your professional story";
       case 2:
         return "Discover target companies and key contacts in your industry";
       case 3:
-        return "Your networking workspace is ready to help you succeed";
+        return "Your workspace is ready. Next, refine targets, add contacts, and craft messages!";
       default:
         return "";
     }
@@ -152,7 +175,8 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
 
   const getNextButtonText = () => {
     if (currentStep === 1) return "Discover Companies & Contacts";
-    if (currentStep === 2) return messageGenerated ? "Complete Setup" : "Complete Setup";
+    if (currentStep === 2)
+      return messageGenerated ? "Complete Setup" : "Complete Setup";
     if (currentStep === 3) return "Get Started!";
     return "Next";
   };
@@ -184,18 +208,19 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   ) : (
                     <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">{currentStep}</span>
+                      <span className="text-white text-xs font-bold">
+                        {currentStep}
+                      </span>
                     </div>
                   )}
-                  <span className="font-semibold text-gray-900">{getStepTitle()}</span>
+                  <span className="font-semibold text-gray-900">
+                    {getStepTitle()}
+                  </span>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-sm font-medium text-gray-600">
                   Step {currentStep} of {totalSteps}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {Math.round(progress)}% complete
                 </div>
               </div>
             </div>
@@ -203,9 +228,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
           </div>
 
           {/* Step Content */}
-          <div className="min-h-[400px]">
-            {renderStep()}
-          </div>
+          <div className="min-h-[400px]">{renderStep()}</div>
 
           {/* Navigation */}
           <div className="flex justify-between items-center pt-6 border-t border-gray-200">
@@ -243,7 +266,9 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) =>
               ) : (
                 <div className="flex items-center gap-2">
                   {getNextButtonText()}
-                  {currentStep < totalSteps && <ArrowRight className="h-4 w-4" />}
+                  {currentStep < totalSteps && (
+                    <ArrowRight className="h-4 w-4" />
+                  )}
                   {currentStep === 3 && <Sparkles className="h-4 w-4" />}
                 </div>
               )}

@@ -28,7 +28,7 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from "../ui/design-system"; // Ensure CardContent and CardDescription are imported if you are using them here
+} from "../ui/design-system";
 
 interface ProfileSummaryProps {
   backgroundSummary: Background | null;
@@ -79,15 +79,12 @@ const ProfileSummary = ({
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        {/* Main Summary Cards - Changed to single column (no md:grid-cols-2) and uses space-y for vertical gap */}
         <div className="grid gap-6 w-full">
           {" "}
-          {/* Removed md:grid-cols-2 and added w-full */}
           {backgroundSummary.overall_blurb && (
             <Card className="bg-gradient-to-br from-purple-50 to-purple-200 border-purple-200">
               <CardContent className="p-8">
                 {" "}
-                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-4">
                   <User className="h-6 w-6 text-purple-600" />
                   <CardTitle className="font-semibold text-lg text-purple-800">
@@ -104,11 +101,10 @@ const ProfileSummary = ({
             <Card className="bg-gradient-to-br from-green-50 to-emerald-200 border-green-200">
               <CardContent className="p-8">
                 {" "}
-                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-4">
                   <Award className="h-6 w-6 text-green-600" />
                   <CardTitle className="font-semibold text-lg text-green-800">
-                    Value Proposition
+                    What you bring to the table
                   </CardTitle>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-base">
@@ -158,7 +154,6 @@ const ProfileSummary = ({
             <Card className="bg-gradient-to-br from-purple-50 to-violet-200 border-purple-200">
               <CardContent className="p-8">
                 {" "}
-                {/* Changed AirtableCardContent to CardContent */}
                 <div className="flex items-center gap-3 mb-5">
                   <GraduationCap className="h-6 w-6 text-purple-600" />
                   <h4 className="font-semibold text-lg text-purple-800">
