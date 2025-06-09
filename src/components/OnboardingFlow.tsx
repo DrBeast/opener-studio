@@ -8,7 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Sparkles, CheckCircle, Edit } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  CheckCircle,
+  Edit,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,6 +23,7 @@ import { CompanyGenerationStep } from "@/components/onboarding/CompanyGeneration
 import { CompletionStep } from "@/components/onboarding/CompletionStep";
 import { Background } from "@/types/profile";
 import { useNavigate } from "react-router-dom";
+import { OutlineAction } from "./ui/design-system";
 
 interface OnboardingFlowProps {
   isOpen: boolean;
@@ -259,38 +266,40 @@ const OnboardingFlow = ({
               >
                 Skip for now
               </Button>
+            </div>
+            <div className="flex gap-3">
               {currentStep === 1 && (
-                <Button
+                <OutlineAction
                   variant="outline"
                   onClick={handleEditProfile}
                   disabled={isLoading}
-                  className="flex items-center gap-2 hover:bg-gray-50"
+                  className="flex gap-2 hover:bg-gray-50"
                 >
                   <Edit className="h-4 w-4" />
                   Edit Profile
-                </Button>
+                </OutlineAction>
               )}
+              <Button
+                onClick={handleNext}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Setting up...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {getNextButtonText()}
+                    {currentStep < totalSteps && (
+                      <ArrowRight className="h-4 w-4" />
+                    )}
+                    {currentStep === 3 && <Sparkles className="h-4 w-4" />}
+                  </div>
+                )}
+              </Button>
             </div>
-            <Button
-              onClick={handleNext}
-              disabled={isLoading}
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Setting up...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {getNextButtonText()}
-                  {currentStep < totalSteps && (
-                    <ArrowRight className="h-4 w-4" />
-                  )}
-                  {currentStep === 3 && <Sparkles className="h-4 w-4" />}
-                </div>
-              )}
-            </Button>
           </div>
         </div>
       </DialogContent>
