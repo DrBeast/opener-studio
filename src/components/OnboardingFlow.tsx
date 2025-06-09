@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Sparkles, CheckCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, CheckCircle, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { ProfileReviewStep } from "@/components/onboarding/ProfileReviewStep";
 import { CompanyGenerationStep } from "@/components/onboarding/CompanyGenerationStep";
 import { CompletionStep } from "@/components/onboarding/CompletionStep";
 import { Background } from "@/types/profile";
+import { useNavigate } from "react-router-dom";
 
 interface OnboardingFlowProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ const OnboardingFlow = ({
   onComplete,
 }: OnboardingFlowProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(
     null
@@ -126,6 +128,11 @@ const OnboardingFlow = ({
   const handleSkip = () => {
     // Mark as completed and close
     onClose();
+  };
+
+  const handleEditProfile = () => {
+    onClose();
+    navigate("/profile?edit=true");
   };
 
   const handleMessageGenerated = () => {
@@ -252,6 +259,17 @@ const OnboardingFlow = ({
               >
                 Skip for now
               </Button>
+              {currentStep === 1 && (
+                <Button
+                  variant="outline"
+                  onClick={handleEditProfile}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 hover:bg-gray-50"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+              )}
             </div>
             <Button
               onClick={handleNext}

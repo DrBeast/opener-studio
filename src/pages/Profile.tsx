@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { InfoBox } from "@/components/ui/design-system/infobox";
 import { toast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ import EditableSummary from "@/components/profile/EditableSummary";
 const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const {
     profile,
@@ -118,8 +119,16 @@ const Profile = () => {
     setExistingData(existingBackgrounds);
   }, [profile, user, navigate]);
 
-  // Initialize editable summary when backgroundSummary changes or edit mode is activated
+  // Check for edit mode from URL parameter
   useEffect(() => {
+    const editFromUrl = searchParams.get('edit');
+    if (editFromUrl === 'true') {
+      setEditMode(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Initialize editable summary when backgroundSummary changes or edit mode is activated
     if (backgroundSummary && editMode) {
       setEditableSummary({ ...backgroundSummary });
     }
