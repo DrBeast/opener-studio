@@ -27,11 +27,11 @@ interface ContactRecommendationProps {
   companyId: string;
   companyName: string;
   existingContactsCount?: number;
-  isOpen: boolean; // Added isOpen prop for modal control
-  onClose: () => void; // Added onClose prop to close the modal
-  onGenerateContacts: (companyId: string) => Promise<any[]>; // Receive the generation function
-  isDisabled: boolean; // From parent
-  isLoading: boolean; // From parent
+  isOpen: boolean;
+  onClose: () => void;
+  onGenerateContacts: (companyId: string) => Promise<any[]>;
+  isDisabled: boolean;
+  isLoading: boolean;
 }
 
 interface ContactData {
@@ -53,15 +53,12 @@ export function ContactRecommendation({
   companyId,
   companyName,
   existingContactsCount = 0,
-  isOpen, // Destructure isOpen PROP
-  onClose, // Destructure onClose PROP
-  onGenerateContacts, // Destructure the function to generate contacts
+  isOpen,
+  onClose,
+  onGenerateContacts,
   isDisabled,
   isLoading,
 }: ContactRecommendationProps) {
-  // FIX: REMOVED THE LOCAL useState FOR isOpen - it is now controlled by prop
-  // const [isOpen, setIsOpen] = useState(false); // <--- DELETE OR COMMENT THIS LINE
-
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [messageContact, setMessageContact] = useState<ContactData | null>(
@@ -123,27 +120,36 @@ export function ContactRecommendation({
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error: insertError } = await supabase.from("contacts").insert(
-        selected.map((c) => ({
-          user_id: user?.id, // Use the user from getUser()
-          company_id: companyId,
-          first_name: c.first_name,
-          last_name: c.last_name,
-          full_name: c.name,
-          role: c.role,
-          location: c.location,
-          linkedin_url: c.linkedin_url,
-          email: c.email,
-          bio_summary: c.bio_summary,
-          how_i_can_help: c.how_i_can_help,
-        }))
+        selected.map((c) => {
+          // Parse first and last name from the name field if not already provided
+          let firstName = c.first_name;
+          let lastName = c.last_name;
+          
+          if (!firstName && !lastName && c.name) {
+            const nameParts = c.name.trim().split(' ');
+            firstName = nameParts[0] || '';
+            lastName = nameParts.slice(1).join(' ') || '';
+          }
+
+          return {
+            user_id: user?.id,
+            company_id: companyId,
+            first_name: firstName,
+            last_name: lastName,
+            role: c.role,
+            location: c.location,
+            linkedin_url: c.linkedin_url,
+            email: c.email,
+            bio_summary: c.bio_summary,
+            how_i_can_help: c.how_i_can_help,
+          };
+        })
       );
 
       if (insertError) throw insertError;
 
       toast.success(`Saved ${selected.length} contacts!`);
-      onClose(); // Close the modal on success
-      // You might want to trigger a refetch of companies in PipelineDashboard
-      // to update the contacts count for the company row.
+      onClose();
     } catch (error: any) {
       console.error("Error saving selected contacts:", error);
       toast.error(`Failed to save contacts: ${error.message}`);
@@ -162,7 +168,6 @@ export function ContactRecommendation({
 
   return (
     <>
-      {/* FIX: Dialog's open and onOpenChange now use the props directly */}
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -175,7 +180,6 @@ export function ContactRecommendation({
                 your application, provide insights into opportunities, or
                 influence hiring decisions.
               </p>
-              {/* FIX: Removed the extra, unmatched closing </p> tag here */}
               <p className="text-sm text-primary">
                 <strong>How AI helps:</strong> Contacts are selected based on
                 your specific background and skills in relation to this
@@ -195,7 +199,6 @@ export function ContactRecommendation({
                 </p>
               </div>
 
-              {/* Info box during generation */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
@@ -243,7 +246,7 @@ export function ContactRecommendation({
               <p>Error: {error}</p>
               <Button
                 variant="outline"
-                onClick={() => onGenerateContacts(companyId)} // Retry generation
+                onClick={() => onGenerateContacts(companyId)}
                 className="mt-4"
               >
                 Try Again
@@ -273,7 +276,7 @@ export function ContactRecommendation({
               <div className="grid gap-4">
                 {contacts.map((contact, index) => (
                   <Card
-                    key={contact.contact_id || index} // Use contact_id as key if available, fallback to index
+                    key={contact.contact_id || index}
                     className={`p-4 transition-all ${
                       contact.isSelected
                         ? "ring-2 ring-primary bg-primary/5"
@@ -333,12 +336,12 @@ export function ContactRecommendation({
 
                         <div className="flex flex-col gap-2">
                           <Button
-                            size="sm" // Changed from xs to sm to match the outer button
+                            size="sm"
                             variant="outline"
                             onClick={() =>
                               handleGenerateMessageForContact(contact)
                             }
-                            className="w-full justify-start" // Make button full width and align icon left
+                            className="w-full justify-start"
                           >
                             <MessageCircle className="mr-1 h-4 w-4" />
                             Generate Message
