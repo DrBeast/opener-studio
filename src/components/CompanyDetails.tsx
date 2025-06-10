@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Save, MessageCircle, Calendar, Plus, Building, MapPin, Users, Globe, RefreshCw, Check } from "lucide-react";
+import { Save, MessageCircle, Calendar, Plus, Building, MapPin, Users, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { InteractionForm } from "@/components/InteractionForm";
@@ -309,15 +309,15 @@ export function CompanyDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-xl font-medium flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Building className="h-5 w-5 text-blue-600" />
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+          <DialogHeader className="border-b border-gray-100 pb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <Building className="h-5 w-5 text-purple-600" />
               </div>
               {formData.name}
               {formData.industry && (
-                <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-0">
+                <Badge variant="outline" className="text-gray-600 border-gray-200 bg-gray-50">
                   {formData.industry}
                 </Badge>
               )}
@@ -333,7 +333,7 @@ export function CompanyDetails({
                 {formData.website_url && (
                   <div className="flex items-center gap-1">
                     <Globe className="h-4 w-4" />
-                    <a href={formData.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">
+                    <a href={formData.website_url} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700">
                       Website
                     </a>
                   </div>
@@ -342,30 +342,30 @@ export function CompanyDetails({
             )}
           </DialogHeader>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-3 h-10 bg-gray-100 p-0.5 rounded-lg mb-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-50 p-1 rounded-lg border border-gray-200">
               <TabsTrigger 
                 value="details" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium rounded-md h-9"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Company Details
               </TabsTrigger>
               <TabsTrigger 
                 value="interactions" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium rounded-md h-9"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Interactions
               </TabsTrigger>
               <TabsTrigger 
                 value="contacts" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium rounded-md h-9"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Contacts
               </TabsTrigger>
             </TabsList>
             
             {/* Company Details Tab */}
-            <TabsContent value="details" className="flex-1 overflow-y-auto space-y-6">
+            <TabsContent value="details" className="space-y-6 pt-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -375,7 +375,7 @@ export function CompanyDetails({
                       name="name"
                       value={formData.name || ''}
                       onChange={handleChange}
-                      className="h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -386,7 +386,7 @@ export function CompanyDetails({
                       name="industry"
                       value={formData.industry || ''}
                       onChange={handleChange}
-                      className="h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -397,7 +397,7 @@ export function CompanyDetails({
                       name="hq_location"
                       value={formData.hq_location || ''}
                       onChange={handleChange}
-                      className="h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -408,7 +408,7 @@ export function CompanyDetails({
                       name="website_url"
                       value={formData.website_url || ''}
                       onChange={handleChange}
-                      className="h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -422,7 +422,7 @@ export function CompanyDetails({
                     value={formData.notes || ''}
                     onChange={handleChange}
                     placeholder="Add your personal notes about this company..."
-                    className="bg-white border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                    className="bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
                   />
                 </div>
                 
@@ -435,8 +435,8 @@ export function CompanyDetails({
                   </div>
                 )}
                 
-                <div className="flex justify-end pt-6 border-t border-gray-200">
-                  <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white px-6">
+                <div className="flex justify-end pt-6 border-t border-gray-100">
+                  <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700 text-white px-6">
                     <Save className="mr-2 h-4 w-4" />
                     {isLoading ? "Saving..." : "Save Changes"}
                   </Button>
@@ -445,7 +445,7 @@ export function CompanyDetails({
             </TabsContent>
             
             {/* Interactions Tab */}
-            <TabsContent value="interactions" className="flex-1 overflow-y-auto space-y-6">
+            <TabsContent value="interactions" className="space-y-6 pt-8">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
                 <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
@@ -456,7 +456,7 @@ export function CompanyDetails({
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Interactions</h3>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Log Interaction
                   </Button>
@@ -513,7 +513,7 @@ export function CompanyDetails({
                     No interactions logged for this company yet
                   </p>
                   <div className="flex gap-2 justify-center">
-                    <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Log Interaction
                     </Button>
@@ -527,10 +527,10 @@ export function CompanyDetails({
             </TabsContent>
             
             {/* Contacts Tab */}
-            <TabsContent value="contacts" className="flex-1 overflow-y-auto space-y-6">
+            <TabsContent value="contacts" className="space-y-6 pt-8">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Contacts</h3>
-                <Button size="sm" onClick={() => window.location.href = `/contacts?company=${companyId}`} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button size="sm" onClick={() => window.location.href = `/contacts?company=${companyId}`} className="bg-purple-600 hover:bg-purple-700 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
@@ -569,7 +569,7 @@ export function CompanyDetails({
                   <p className="text-gray-600 mb-4">
                     No contacts added for this company yet
                   </p>
-                  <Button onClick={() => window.location.href = `/contacts?company=${companyId}`} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button onClick={() => window.location.href = `/contacts?company=${companyId}`} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                   </Button>
