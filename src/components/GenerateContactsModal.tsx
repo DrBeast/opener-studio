@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -43,10 +43,31 @@ export const GenerateContactsModal = ({
   const [isSaving, setIsSaving] = useState(false);
   const [generatedContact, setGeneratedContact] = useState<GeneratedContact | null>(null);
 
+  // Reset state when companyId changes or modal closes
+  useEffect(() => {
+    if (isOpen) {
+      setGeneratedContact(null);
+      setIsGenerating(false);
+      setIsSaving(false);
+      // Generate contact for the new company
+      handleGenerateContact();
+    }
+  }, [companyId, isOpen]);
+
+  // Clear state when modal closes
+  const handleClose = () => {
+    setGeneratedContact(null);
+    setIsGenerating(false);
+    setIsSaving(false);
+    onClose();
+  };
+
   const handleGenerateContact = async () => {
     if (!user) return;
 
     setIsGenerating(true);
+    setGeneratedContact(null); // Clear any previous contact
+    
     try {
       const { data, error } = await supabase.functions.invoke('generate_contacts', {
         body: { company_id: companyId }
@@ -105,8 +126,7 @@ export const GenerateContactsModal = ({
       });
 
       onSuccess();
-      onClose();
-      resetForm();
+      handleClose();
     } catch (error: any) {
       console.error("Error saving contact:", error);
       toast({
@@ -124,20 +144,6 @@ export const GenerateContactsModal = ({
     handleGenerateContact();
   };
 
-  const handleDiscard = () => {
-    onClose();
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setGeneratedContact(null);
-  };
-
-  const handleClose = () => {
-    onClose();
-    resetForm();
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -146,7 +152,26 @@ export const GenerateContactsModal = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {!generatedContact ? (
+          {isGenerating ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground mb-4">
+                Generating contact based on your profile...
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-2">How AI identifies the right contact:</p>
+                  <p className="mb-2">
+                    Our AI analyzes your professional background, skills, and target criteria to identify an individual who would be most relevant for your networking goals. This goes beyond simple title matching to find decision-makers and influencers who align with your career objectives.
+                  </p>
+                  <p className="font-medium">Important limitations:</p>
+                  <p>
+                    We cannot access private LinkedIn profiles or proprietary databases. Suggested contacts are based on publicly available information only. Some companies may have limited public contact data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : !generatedContact ? (
             <div className="text-center py-8">
               <div className="mb-4">
                 <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -154,32 +179,13 @@ export const GenerateContactsModal = ({
                 <p className="text-muted-foreground mb-6">
                   AI will identify a key individual at {companyName} who can help with your job search based on your background and target criteria.
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-2">How AI identifies the right contact:</p>
-                    <p className="mb-2">
-                      Our AI analyzes your professional background, skills, and target criteria to identify an individual who would be most relevant for your networking goals. This goes beyond simple title matching to find decision-makers and influencers who align with your career objectives.
-                    </p>
-                    <p className="font-medium">Important limitations:</p>
-                    <p>
-                      We cannot access private LinkedIn profiles or proprietary databases. Suggested contacts are based on publicly available information only. Some companies may have limited public contact data.
-                    </p>
-                  </div>
-                </div>
               </div>
               <Button 
                 onClick={handleGenerateContact} 
                 disabled={isGenerating}
                 className="w-full max-w-md"
               >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating contact based on your profile...
-                  </>
-                ) : (
-                  'Generate Contact'
-                )}
+                Generate Contact
               </Button>
             </div>
           ) : (
@@ -250,11 +256,11 @@ export const GenerateContactsModal = ({
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={handleDiscard}
+                  onClick={handleClose}
                   className="flex items-center gap-2"
                 >
                   <X className="h-4 w-4" />
-                  Discard
+                  Cancel
                 </Button>
                 
                 <div className="flex gap-2">

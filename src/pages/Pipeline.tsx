@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, Bot, Loader2, UserPlus } from "lucide-react"; // Import Bot icon
+import { Edit, Plus, Sparkles, UserPlus } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -12,10 +12,9 @@ import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
-import { InteractionModal } from "@/components/pipeline/InteractionModal";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
-import { ContactRecommendation } from "@/components/ContactRecommendation"; // Import ContactRecommendation component
+import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 
 // Design System Imports
 import {
@@ -23,11 +22,8 @@ import {
   CardContent,
   PrimaryAction,
   OutlineAction,
-  GhostAction,
   PageTitle,
-  SectionTitle,
   PageDescription,
-  Button,
   InfoBox,
 } from "@/components/ui/design-system";
 
@@ -71,12 +67,16 @@ const PipelineDashboard = () => {
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
 
-  // NEW State for Contact Recommendation Modal
-  const [isContactRecommendationOpen, setIsContactRecommendationOpen] =
-    useState(false);
-  const [companyForContactRecommendation, setCompanyForContactRecommendation] =
-    useState<{ id: string; name: string } | null>(null);
-  const [isGeneratingContacts, setIsGeneratingContacts] = useState(false);
+  // Generate Contacts Modal state
+  const [generateContactsModal, setGenerateContactsModal] = useState<{
+    isOpen: boolean;
+    companyId: string;
+    companyName: string;
+  }>({
+    isOpen: false,
+    companyId: "",
+    companyName: "",
+  });
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -248,59 +248,16 @@ const PipelineDashboard = () => {
     setIsTargetsModalOpen(true);
   };
 
-  // NEW Function to trigger ContactRecommendation modal for a specific company
+  // Updated function to open the unified generate contacts modal
   const handleOpenContactRecommendation = (
     companyId: string,
     companyName: string
   ) => {
-    setCompanyForContactRecommendation({ id: companyId, name: companyName });
-    setIsContactRecommendationOpen(true);
-  };
-
-  // NEW Function to generate contacts (to be passed down to ContactRecommendation)
-  const handleGenerateContacts = async (companyId: string) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to generate contacts.",
-        variant: "destructive",
-      });
-      return [];
-    }
-    setIsGeneratingContacts(true); // Set global loading for the modal
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "generate_contacts",
-        {
-          body: { company_id: companyId },
-        }
-      );
-      if (error) throw error;
-      if (data?.status === "success") {
-        toast({
-          title: "Success",
-          description: `Generated ${data.contacts?.length || 0} contacts.`,
-        });
-        return data.contacts; // Return generated contacts
-      } else {
-        toast({
-          title: "Error",
-          description: data?.message || "Failed to generate contacts.",
-          variant: "destructive",
-        });
-        return []; // Return empty array on error
-      }
-    } catch (error: any) {
-      console.error("Error generating contacts:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate contacts.",
-        variant: "destructive",
-      });
-      return []; // Return empty array on error
-    } finally {
-      setIsGeneratingContacts(false);
-    }
+    setGenerateContactsModal({
+      isOpen: true,
+      companyId,
+      companyName,
+    });
   };
 
   if (isLoading) {
@@ -310,19 +267,6 @@ const PipelineDashboard = () => {
       </div>
     );
   }
-
-  // Determine if the "Generate Contacts" button should be disabled
-  const isGenerateContactsButtonDisabled =
-    !user || // No user logged in
-    isGeneratingContacts || // Contacts are already being generated
-    filteredCompanies.length === 0 || // No companies to generate for
-    selectedCompanies.size !== 1; // Not exactly one company selected
-
-  // Get the selected company for the button's onClick if exactly one is selected
-  const singleSelectedCompany =
-    selectedCompanies.size === 1
-      ? filteredCompanies.find((c) => selectedCompanies.has(c.company_id))
-      : null;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -432,7 +376,7 @@ const PipelineDashboard = () => {
                 }}
                 onContactClick={handleContactClick}
                 onGenerateMessage={handleGenerateMessage}
-                onOpenContactRecommendation={handleOpenContactRecommendation} // Pass the new prop
+                onOpenContactRecommendation={handleOpenContactRecommendation}
               />
             )}
           </CardContent>
@@ -485,18 +429,18 @@ const PipelineDashboard = () => {
           onClose={() => setIsTargetsModalOpen(false)}
         />
 
-        {/* Contact Recommendation Modal (opens when companyForContactRecommendation is set) */}
-        {companyForContactRecommendation && (
-          <ContactRecommendation
-            companyId={companyForContactRecommendation.id}
-            companyName={companyForContactRecommendation.name}
-            isOpen={isContactRecommendationOpen}
-            onClose={() => setIsContactRecommendationOpen(false)}
-            onGenerateContacts={handleGenerateContacts} // Pass the generation function
-            isDisabled={isGeneratingContacts} // Pass loading state
-            isLoading={isGeneratingContacts} // Pass loading state
-          />
-        )}
+        {/* Unified Generate Contacts Modal */}
+        <GenerateContactsModal
+          isOpen={generateContactsModal.isOpen}
+          onClose={() => setGenerateContactsModal({
+            isOpen: false,
+            companyId: "",
+            companyName: "",
+          })}
+          companyId={generateContactsModal.companyId}
+          companyName={generateContactsModal.companyName}
+          onSuccess={handleCompanyUpdated}
+        />
       </div>
     </div>
   );
