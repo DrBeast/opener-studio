@@ -458,99 +458,174 @@ export function CompanyDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl">{company.name}</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
+          <DialogHeader className="border-b border-gray-200 pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">{company.name}</DialogTitle>
           </DialogHeader>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="details">Company Details</TabsTrigger>
-              <TabsTrigger value="contacts">Contacts ({contacts.length})</TabsTrigger>
-              <TabsTrigger value="interactions">Interactions</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="details" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+              >
+                Company Details
+              </TabsTrigger>
+              <TabsTrigger 
+                value="contacts" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+              >
+                Contacts ({contacts.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="interactions" 
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+              >
+                Interactions
+              </TabsTrigger>
             </TabsList>
             
             {/* Company Details Tab */}
-            <TabsContent value="details" className="space-y-4 pt-4">
+            <TabsContent value="details" className="space-y-6 pt-6">
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Company Name</Label>
-                    <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Company Name</Label>
+                    <Input 
+                      id="name" 
+                      name="name" 
+                      value={formData.name} 
+                      onChange={handleChange} 
+                      required 
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Priority</Label>
+                    <Label className="text-sm font-medium text-gray-700">Priority</Label>
                     <div className="flex h-10 w-full items-center">
                       <PriorityDropdown />
                     </div>
                   </div>
                   
                   {hasData(formData.industry) && <div className="space-y-2">
-                      <Label htmlFor="industry">Industry</Label>
-                      <Input id="industry" name="industry" value={formData.industry || ''} onChange={handleChange} />
+                      <Label htmlFor="industry" className="text-sm font-medium text-gray-700">Industry</Label>
+                      <Input 
+                        id="industry" 
+                        name="industry" 
+                        value={formData.industry || ''} 
+                        onChange={handleChange} 
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      />
                     </div>}
                   
                   {hasData(formData.hq_location) && <div className="space-y-2">
-                      <Label htmlFor="hq_location">Location</Label>
-                      <Input id="hq_location" name="hq_location" value={formData.hq_location || ''} onChange={handleChange} />
+                      <Label htmlFor="hq_location" className="text-sm font-medium text-gray-700">Location</Label>
+                      <Input 
+                        id="hq_location" 
+                        name="hq_location" 
+                        value={formData.hq_location || ''} 
+                        onChange={handleChange} 
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      />
                     </div>}
                   
                   {hasData(formData.wfh_policy) && <div className="space-y-2">
-                      <Label htmlFor="wfh_policy">Work From Home Policy</Label>
-                      <Input id="wfh_policy" name="wfh_policy" value={formData.wfh_policy || ''} onChange={handleChange} />
+                      <Label htmlFor="wfh_policy" className="text-sm font-medium text-gray-700">Work From Home Policy</Label>
+                      <Input 
+                        id="wfh_policy" 
+                        name="wfh_policy" 
+                        value={formData.wfh_policy || ''} 
+                        onChange={handleChange} 
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      />
                     </div>}
                   
                   {hasData(formData.website_url) && <div className="space-y-2">
-                      <Label htmlFor="website_url">Website URL</Label>
-                      <Input id="website_url" name="website_url" value={formData.website_url || ''} onChange={handleChange} />
+                      <Label htmlFor="website_url" className="text-sm font-medium text-gray-700">Website URL</Label>
+                      <Input 
+                        id="website_url" 
+                        name="website_url" 
+                        value={formData.website_url || ''} 
+                        onChange={handleChange} 
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      />
                     </div>}
                   
                   <div className="space-y-2">
-                    <Label htmlFor="estimated_headcount">Estimated Headcount</Label>
-                    <Input id="estimated_headcount" name="estimated_headcount" value={formData.estimated_headcount || ''} onChange={handleChange} placeholder="e.g., 100-500" />
+                    <Label htmlFor="estimated_headcount" className="text-sm font-medium text-gray-700">Estimated Headcount</Label>
+                    <Input 
+                      id="estimated_headcount" 
+                      name="estimated_headcount" 
+                      value={formData.estimated_headcount || ''} 
+                      onChange={handleChange} 
+                      placeholder="e.g., 100-500" 
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="estimated_revenue">Estimated Revenue</Label>
-                    <Input id="estimated_revenue" name="estimated_revenue" value={formData.estimated_revenue || ''} onChange={handleChange} placeholder="e.g., $10M-50M" />
+                    <Label htmlFor="estimated_revenue" className="text-sm font-medium text-gray-700">Estimated Revenue</Label>
+                    <Input 
+                      id="estimated_revenue" 
+                      name="estimated_revenue" 
+                      value={formData.estimated_revenue || ''} 
+                      onChange={handleChange} 
+                      placeholder="e.g., $10M-50M" 
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    />
                   </div>
 
                   {hasData(formData.public_private) && <div className="space-y-2">
-                      <Label htmlFor="public_private">Company Type</Label>
-                      <Input id="public_private" name="public_private" value={formData.public_private || ''} onChange={handleChange} placeholder="e.g., Public, Private, Startup" />
+                      <Label htmlFor="public_private" className="text-sm font-medium text-gray-700">Company Type</Label>
+                      <Input 
+                        id="public_private" 
+                        name="public_private" 
+                        value={formData.public_private || ''} 
+                        onChange={handleChange} 
+                        placeholder="e.g., Public, Private, Startup" 
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      />
                     </div>}
                   
                   <div className="col-span-2 space-y-2">
-                    <Label htmlFor="user_notes">Notes</Label>
-                    <Textarea id="user_notes" name="user_notes" rows={4} value={formData.user_notes || ''} onChange={handleChange} placeholder="Add your notes about this company..." />
+                    <Label htmlFor="user_notes" className="text-sm font-medium text-gray-700">Notes</Label>
+                    <Textarea 
+                      id="user_notes" 
+                      name="user_notes" 
+                      rows={4} 
+                      value={formData.user_notes || ''} 
+                      onChange={handleChange} 
+                      placeholder="Add your notes about this company..." 
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    />
                   </div>
                   
                   {hasData(formData.ai_description) && <div className="col-span-2 space-y-2">
-                      <Label>AI Description</Label>
-                      <div className="rounded-md border p-3 bg-muted/20 text-sm">
+                      <Label className="text-sm font-medium text-gray-700">AI Description</Label>
+                      <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 text-sm text-gray-700">
                         {formData.ai_description}
                       </div>
                     </div>}
 
                   {hasData(formData.ai_match_reasoning) && <div className="col-span-2 space-y-2">
-                      <Label>AI Match Reasoning</Label>
-                      <div className="rounded-md border p-3 bg-muted/20 text-sm">
+                      <Label className="text-sm font-medium text-gray-700">AI Match Reasoning</Label>
+                      <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 text-sm text-gray-700">
                         {formData.ai_match_reasoning}
                       </div>
                     </div>}
                   
                   {/* Interaction Summary Section */}
                   <div className="col-span-2 space-y-2">
-                    <Label className="flex items-center justify-between">
-                      
-                    </Label>
-                    
+                    <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
+                    <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                      {renderInteractionSummary()}
+                    </div>
                   </div>
                 </div>
                 
-                <div className="flex justify-end mt-6">
-                  <Button type="submit" disabled={isLoading}>
+                <div className="flex justify-end mt-8 pt-6 border-t border-gray-200">
+                  <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Save className="mr-2 h-4 w-4" />
                     {isLoading ? "Saving..." : "Save Changes"}
                   </Button>
@@ -559,34 +634,34 @@ export function CompanyDetails({
             </TabsContent>
             
             {/* Contacts Tab */}
-            <TabsContent value="contacts" className="space-y-4 pt-4">
+            <TabsContent value="contacts" className="space-y-6 pt-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Company Contacts</h3>
-                <Button size="sm">
+                <h3 className="text-lg font-semibold text-gray-900">Company Contacts</h3>
+                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
               </div>
               
               {contacts.length > 0 ? (
-                <div className="border rounded-md overflow-hidden">
+                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-3 font-medium text-muted-foreground">Name</th>
-                        <th className="text-left p-3 font-medium text-muted-foreground">Role</th>
-                        <th className="text-right p-3 font-medium text-muted-foreground">Actions</th>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="text-left p-4 font-medium text-gray-700">Name</th>
+                        <th className="text-left p-4 font-medium text-gray-700">Role</th>
+                        <th className="text-right p-4 font-medium text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {contacts.map(contact => (
-                        <tr key={contact.contact_id} className="border-b">
-                          <td className="p-3">
+                        <tr key={contact.contact_id} className="border-b border-gray-100">
+                          <td className="p-4 text-gray-900">
                             {contact.first_name || ''} {contact.last_name || ''}
                           </td>
-                          <td className="p-3">{contact.role || 'N/A'}</td>
-                          <td className="p-3 text-right">
-                            <Button variant="outline" size="sm" onClick={() => handleViewContact(contact)}>
+                          <td className="p-4 text-gray-600">{contact.role || 'N/A'}</td>
+                          <td className="p-4 text-right">
+                            <Button variant="outline" size="sm" onClick={() => handleViewContact(contact)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
                               <FileText className="h-4 w-4 mr-1" />
                               Details
                             </Button>
@@ -597,12 +672,12 @@ export function CompanyDetails({
                   </table>
                 </div>
               ) : (
-                <div className="bg-muted/30 rounded-lg p-6 text-center">
-                  <UserRound className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground mb-4">
+                <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+                  <UserRound className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">
                     No contacts added for this company yet
                   </p>
-                  <Button size="sm">
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                   </Button>
@@ -611,23 +686,23 @@ export function CompanyDetails({
             </TabsContent>
             
             {/* Interactions Tab */}
-            <TabsContent value="interactions" className="space-y-4 pt-4">
+            <TabsContent value="interactions" className="space-y-6 pt-6">
               {/* Interaction Summary Section */}
               <div className="space-y-2">
-                <Label>Interaction Summary</Label>
-                <div className="rounded-md border p-3 bg-muted/20">
+                <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
+                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
                   {renderInteractionSummary()}
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Interactions</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Interactions</h3>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Log Interaction
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)}>
+                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
                     <Calendar className="h-4 w-4 mr-2" />
                     Plan Interaction
                   </Button>
@@ -635,12 +710,12 @@ export function CompanyDetails({
               </div>
               
               {interactions.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {interactions.map(interaction => (
-                    <div key={interaction.interaction_id} className="border rounded-lg p-4">
+                    <div key={interaction.interaction_id} className="border border-gray-200 rounded-lg p-4 bg-white">
                       <div className="flex justify-between items-start">
                         <div className="flex-1 space-y-2">
-                          <div className="text-sm font-medium text-muted-foreground">
+                          <div className="text-sm font-medium text-gray-600">
                             {formatDate(interaction.interaction_date)}
                           </div>
                           
@@ -650,19 +725,20 @@ export function CompanyDetails({
                                 value={editingDescription}
                                 onChange={(e) => setEditingDescription(e.target.value)}
                                 rows={3}
+                                className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                               />
                               <div className="flex gap-2">
-                                <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)}>
+                                <Button size="sm" onClick={() => handleSaveInlineEdit(interaction.interaction_id)} className="bg-purple-600 hover:bg-purple-700 text-white">
                                   Save
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={handleCancelInlineEdit}>
+                                <Button size="sm" variant="outline" onClick={handleCancelInlineEdit} className="border-gray-300 text-gray-700 hover:bg-gray-50">
                                   Cancel
                                 </Button>
                               </div>
                             </div>
                           ) : (
                             <div 
-                              className="text-sm cursor-pointer hover:bg-muted/50 p-1 rounded"
+                              className="text-sm cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200 transition-colors text-gray-700"
                               onClick={() => handleEditInteractionInline(interaction.interaction_id, interaction.description || '')}
                             >
                               {interaction.description}
@@ -674,7 +750,7 @@ export function CompanyDetails({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
                             onClick={() => handleDeleteInteraction(interaction.interaction_id)}
                           >
                             <Trash className="h-4 w-4" />
@@ -685,12 +761,12 @@ export function CompanyDetails({
                   ))}
                 </div>
               ) : (
-                <div className="bg-muted/30 rounded-lg p-6 text-center">
-                  <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground mb-4">
+                <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+                  <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">
                     No interactions logged for this company yet
                   </p>
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Log Interaction
                   </Button>
