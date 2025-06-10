@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw } from "lucide-react";
+import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw, User, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -380,42 +380,51 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
-          <DialogHeader className="border-b border-gray-200 pb-4">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+          <DialogHeader className="border-b border-gray-100 pb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <User className="h-5 w-5 text-purple-600" />
+              </div>
               {formData.first_name || ''} {formData.last_name || ''}
               {formData.companies?.name && (
-                <Badge variant="outline" className="text-gray-600 border-gray-300">
+                <Badge variant="outline" className="text-gray-600 border-gray-200 bg-gray-50 flex items-center gap-1">
+                  <Building className="h-3 w-3" />
                   {formData.companies.name}
                 </Badge>
               )}
             </DialogTitle>
+            {formData.role && (
+              <div className="text-sm text-gray-600 mt-2">
+                {formData.role}
+              </div>
+            )}
           </DialogHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-50 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-50 p-1 rounded-lg border border-gray-200">
               <TabsTrigger 
                 value="details" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Contact Details
               </TabsTrigger>
               <TabsTrigger 
                 value="messages" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Messages
               </TabsTrigger>
               <TabsTrigger 
                 value="interactions" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-gray-200 text-gray-600 font-medium py-2 px-4 rounded-md transition-all"
               >
                 Interactions
               </TabsTrigger>
             </TabsList>
             
             {/* Contact Details Tab */}
-            <TabsContent value="details" className="space-y-6 pt-6">
+            <TabsContent value="details" className="space-y-6 pt-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -425,7 +434,7 @@ export function EnhancedContactDetails({
                       name="first_name"
                       value={formData.first_name || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -436,7 +445,7 @@ export function EnhancedContactDetails({
                       name="last_name"
                       value={formData.last_name || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -447,7 +456,7 @@ export function EnhancedContactDetails({
                       name="role"
                       value={formData.role || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -458,7 +467,7 @@ export function EnhancedContactDetails({
                       name="location"
                       value={formData.location || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -470,7 +479,7 @@ export function EnhancedContactDetails({
                       type="email"
                       value={formData.email || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                   
@@ -481,7 +490,7 @@ export function EnhancedContactDetails({
                       name="linkedin_url"
                       value={formData.linkedin_url || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="h-10 bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -495,7 +504,7 @@ export function EnhancedContactDetails({
                     value={formData.user_notes || ''}
                     onChange={handleChange}
                     placeholder="Add your personal notes about this contact..."
-                    className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    className="bg-white border-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
                   />
                 </div>
                 
@@ -511,14 +520,14 @@ export function EnhancedContactDetails({
                 {formData.how_i_can_help && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">How I Can Help</Label>
-                    <div className="rounded-lg border border-purple-200 p-4 bg-purple-50 text-sm text-purple-800">
+                    <div className="rounded-lg border border-blue-200 p-4 bg-blue-50 text-sm text-blue-800">
                       {formData.how_i_can_help}
                     </div>
                   </div>
                 )}
                 
-                <div className="flex justify-end pt-6 border-t border-gray-200">
-                  <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                <div className="flex justify-end pt-6 border-t border-gray-100">
+                  <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700 text-white px-6">
                     <Save className="mr-2 h-4 w-4" />
                     {isLoading ? "Saving..." : "Save Changes"}
                   </Button>
@@ -527,7 +536,7 @@ export function EnhancedContactDetails({
             </TabsContent>
             
             {/* Enhanced Messages Tab */}
-            <TabsContent value="messages" className="space-y-6 pt-6">
+            <TabsContent value="messages" className="space-y-6 pt-8">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Generate Outreach Message</h3>
                 <p className="text-sm text-gray-600 mt-1">
@@ -567,7 +576,7 @@ export function EnhancedContactDetails({
             </TabsContent>
             
             {/* Simplified Interactions Tab */}
-            <TabsContent value="interactions" className="space-y-6 pt-6">
+            <TabsContent value="interactions" className="space-y-6 pt-8">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
                 <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
