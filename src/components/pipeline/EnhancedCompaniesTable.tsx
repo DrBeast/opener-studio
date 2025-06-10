@@ -24,7 +24,6 @@ import {
   Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ContactRecommendation } from "@/components/ContactRecommendation";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import type { Company } from "@/hooks/useCompanies";
 
