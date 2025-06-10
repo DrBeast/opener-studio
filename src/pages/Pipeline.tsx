@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -392,7 +391,7 @@ const PipelineDashboard = () => {
 
         {selectedCompany && (
           <CompanyDetails
-            company={selectedCompany}
+            companyId={selectedCompany.company_id}
             isOpen={!!selectedCompany}
             onClose={handleCompanyDetailClose}
             onCompanyUpdated={handleCompanyUpdated}
