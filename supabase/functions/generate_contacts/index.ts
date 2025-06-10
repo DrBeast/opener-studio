@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
 
@@ -97,11 +98,12 @@ serve(async (req) => {
     });
   }
 
-  // 1. Fetch existing contacts for this user to prevent duplicates
+  // 1. Fetch existing contacts for this SPECIFIC COMPANY to prevent duplicates (FIXED)
   const { data: existingContacts, error: existingContactsError } = await supabaseClient
     .from('contacts')
-    .select('first_name, last_name, role, company_id')
-    .eq('user_id', userId);
+    .select('first_name, last_name, role')
+    .eq('user_id', userId)
+    .eq('company_id', company_id); // CRITICAL FIX: Only check contacts for this specific company
     
   if (existingContactsError) {
     console.error('Error fetching existing contacts:', existingContactsError.message);
@@ -118,17 +120,19 @@ serve(async (req) => {
     });
   }
 
-  // Create a list of existing contact names for comparison
+  // Create a list of existing contact names for this company only
   const existingContactNames = existingContacts?.map(contact => 
     `${contact.first_name} ${contact.last_name}`.toLowerCase().trim()
   ) || [];
 
+  console.log(`Existing contacts for company ${company_id}:`, existingContactNames);
+
   // 2. Fetch the user's overall processed background summary from the user_summaries table
   const { data: userSummaryData, error: fetchSummaryError } = await supabaseClient
     .from('user_summaries')
-    .select('*') // Fetch all columns from the user_summaries row
+    .select('*')
     .eq('user_id', userId)
-    .single(); // Expecting one summary row per user
+    .single();
 
   if (fetchSummaryError || !userSummaryData) {
     console.error('Error fetching user summary:', fetchSummaryError?.message || 'Summary not found in user_summaries.');
@@ -150,7 +154,7 @@ serve(async (req) => {
   // 3. Fetch the user's job target criteria from the target_criteria table
   const { data: targetCriteria, error: fetchCriteriaError } = await supabaseClient
     .from('target_criteria')
-    .select('*') // Fetch all columns
+    .select('*')
     .eq('user_id', userId)
     .single();
 
@@ -170,12 +174,11 @@ serve(async (req) => {
   }
 
   // 4. Fetch the details of the selected company from companies
-  // RLS should ensure the user can only fetch their own companies
   const { data: companyData, error: fetchCompanyError } = await supabaseClient
     .from('companies')
-    .select('*') // Fetch all columns
+    .select('*')
     .eq('company_id', company_id)
-    .eq('user_id', userId) // Double check user_id for security
+    .eq('user_id', userId)
     .single();
 
   if (fetchCompanyError || !companyData) {
@@ -193,72 +196,101 @@ serve(async (req) => {
     });
   }
 
-  // 4. Construct the prompt for the Gemini API - UPDATED to request 1 contact
-  const prompt = `
-  You are an AI assistant helping a professional identify key contacts within a company for job search networking.
-  Below is the user's professional background summary, their job target criteria, and details about the target company.
+  // Helper function to get random variation in prompts
+  const getPromptVariation = (attempt: number) => {
+    const variations = [
+      "Focus on identifying senior leadership or key decision-makers",
+      "Prioritize contacts who would be most valuable for career advancement discussions",
+      "Look for individuals in strategic roles who can provide industry insights",
+      "Identify influential team leads or department heads who hire for your target function"
+    ];
+    return variations[attempt % variations.length];
+  };
 
-  User Background Summary (Synthesized):
-  Overall Blurb: ${userSummary.overall_blurb ?? 'N/A'}
-  Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
-  Education Highlights: ${userSummary.combined_education_highlights ? JSON.stringify(userSummary.combined_education_highlights) : 'N/A'}
-  Key Skills: ${userSummary.key_skills ? JSON.stringify(userSummary.key_skills) : 'N/A'}
-  Domain Expertise: ${userSummary.domain_expertise ? JSON.stringify(userSummary.domain_expertise) : 'N/A'}
-  Technical Expertise: ${userSummary.technical_expertise ? JSON.stringify(userSummary.technical_expertise) : 'N/A'}
-  Value Proposition Summary: ${userSummary.value_proposition_summary ?? 'N/A'}
+  // Helper function to generate contact with retry logic
+  const generateContactWithRetry = async (attempt: number = 0): Promise<SuggestedContactOutput[]> => {
+    const maxAttempts = 3;
+    
+    if (attempt >= maxAttempts) {
+      throw new Error('Maximum retry attempts reached. Unable to generate unique contact.');
+    }
 
-  User Job Target Criteria:
-  Target Functions: ${targetCriteria.target_functions ? JSON.stringify(targetCriteria.target_functions) : 'Any'}
-  Target Locations: ${targetCriteria.target_locations ? JSON.stringify(targetCriteria.target_locations) : 'Any'}
-  Target WFH Preference: ${targetCriteria.target_wfh_preference ? JSON.stringify(targetCriteria.target_wfh_preference) : 'Any'}
-  Free-form Role And Company Description: ${targetCriteria.free_form_role_description ?? 'None provided'}
-  Target Industries: ${targetCriteria.target_industries ? JSON.stringify(targetCriteria.target_industries) : 'Any'}
-  Target Sizes: ${targetCriteria.target_sizes ? JSON.stringify(targetCriteria.target_sizes) : 'Any'}
-  Target Public/Private: ${targetCriteria.target_public_private ? JSON.stringify(targetCriteria.target_public_private) : 'Any'}
-  Similar Companies (Inspiration): ${targetCriteria.similar_companies ? JSON.stringify(targetCriteria.similar_companies) : 'None provided'}
-  Visa Sponsorship Required: ${targetCriteria.visa_sponsorship_required ? 'Yes' : 'No'}
+    const promptVariation = getPromptVariation(attempt);
+    const randomSeed = Math.random().toString(36).substring(7);
 
-  Target Company Details:
-  Company Name: ${companyData.name}
-  Company Description: ${companyData.ai_description ?? 'N/A'}
-  Industry: ${companyData.industry ?? 'N/A'}
-  Key Locations: ${companyData.hq_location ?? 'N/A'}
-  Estimated Headcount: ${companyData.estimated_headcount ?? 'N/A'}
-  Estimated Revenue: ${companyData.estimated_revenue ?? 'N/A'}
-  WFH Policy: ${companyData.wfh_policy ?? 'N/A'}
-  Public/Private: ${companyData.public_private ?? 'N/A'}
+    // 5. Construct the enhanced prompt for the Gemini API
+    const prompt = `
+    You are an AI assistant helping a professional identify key contacts within a company for job search networking.
+    Below is the user's professional background summary, their job target criteria, and details about the target company.
 
-  IMPORTANT: The following contacts already exist in the user's network, so DO NOT suggest anyone with these names or very similar variations:
-  ${JSON.stringify(existingContactNames)}
+    IMPORTANT GUIDANCE: ${promptVariation}
 
-  Your task is to identify 1 key individual within ${companyData.name} who would be most relevant for the user to connect with for job search networking, based on the user's background and target criteria. Focus on publicly available information and ensure the suggested contact is NOT a duplicate of existing contacts.
+    User Background Summary (Synthesized):
+    Overall Blurb: ${userSummary.overall_blurb ?? 'N/A'}
+    Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
+    Education Highlights: ${userSummary.combined_education_highlights ? JSON.stringify(userSummary.combined_education_highlights) : 'N/A'}
+    Key Skills: ${userSummary.key_skills ? JSON.stringify(userSummary.key_skills) : 'N/A'}
+    Domain Expertise: ${userSummary.domain_expertise ? JSON.stringify(userSummary.domain_expertise) : 'N/A'}
+    Technical Expertise: ${userSummary.technical_expertise ? JSON.stringify(userSummary.technical_expertise) : 'N/A'}
+    Value Proposition Summary: ${userSummary.value_proposition_summary ?? 'N/A'}
 
-  When identifying the contact, consider the user's current role and target functions, aiming for individuals in roles at or above the user's current level, understanding that seniority can vary significantly based on company size. Do not prioritize contacts based on their location.
+    User Job Target Criteria:
+    Target Functions: ${targetCriteria.target_functions ? JSON.stringify(targetCriteria.target_functions) : 'Any'}
+    Target Locations: ${targetCriteria.target_locations ? JSON.stringify(targetCriteria.target_locations) : 'Any'}
+    Target WFH Preference: ${targetCriteria.target_wfh_preference ? JSON.stringify(targetCriteria.target_wfh_preference) : 'Any'}
+    Free-form Role And Company Description: ${targetCriteria.free_form_role_description ?? 'None provided'}
+    Target Industries: ${targetCriteria.target_industries ? JSON.stringify(targetCriteria.target_industries) : 'Any'}
+    Target Sizes: ${targetCriteria.target_sizes ? JSON.stringify(targetCriteria.target_sizes) : 'Any'}
+    Target Public/Private: ${targetCriteria.target_public_private ? JSON.stringify(targetCriteria.target_public_private) : 'Any'}
+    Similar Companies (Inspiration): ${targetCriteria.similar_companies ? JSON.stringify(targetCriteria.similar_companies) : 'None provided'}
+    Visa Sponsorship Required: ${targetCriteria.visa_sponsorship_required ? 'Yes' : 'No'}
 
-  Prioritize individuals in roles like:
-  - Leaders in the user's target function (1-2 levels above user's current/target seniority)
-  - Relevant Executives (within 3 levels of user's target seniority)
-  - Potential Peers currently holding similar roles/teams (at or above user's current level)
-  - Recruiters or Talent Acquisition professionals focused on relevant functions/levels
+    Target Company Details:
+    Company Name: ${companyData.name}
+    Company Description: ${companyData.ai_description ?? 'N/A'}
+    Industry: ${companyData.industry ?? 'N/A'}
+    Key Locations: ${companyData.hq_location ?? 'N/A'}
+    Estimated Headcount: ${companyData.estimated_headcount ?? 'N/A'}
+    Estimated Revenue: ${companyData.estimated_revenue ?? 'N/A'}
+    WFH Policy: ${companyData.wfh_policy ?? 'N/A'}
+    Public/Private: ${companyData.public_private ?? 'N/A'}
 
-  Provide the following information in a JSON array with exactly 1 contact object:
+    IMPORTANT: The following contacts already exist for this company, so DO NOT suggest anyone with these names or very similar variations:
+    ${JSON.stringify(existingContactNames)}
 
-  For the contact object in the array:
-  - "name": Full Name of the contact (ensure this is NOT similar to any existing contact names listed above).
-  - "role": The contact's job title/role.
-  - "location": The contact's location (if available from public data).
-  - "linkedin_url": Public LinkedIn URL if found (often hard to find reliably from public data).
-  - "email": Public email address if found (very unlikely from public data). Do NOT guess or generate email addresses.
-  - "bio_summary": A brief, 1-2 sentence summary of the contact's background or relevance based on publicly available information.
-  - "how_i_can_help": A brief, 1-2 sentence explanation of *how the user* (referring to the user's background and skills) can potentially be of help or provide value to *this specific contact* or their team/company, based on the context.
+    PRIORITY GUIDANCE FOR CONTACT SELECTION:
+    Based on the user's target functions and background, prioritize contacts in this order:
+    1. **VP of Product, Chief Product Officer (CPO), or Head of Product** - These are often the most valuable connections for product-focused roles
+    2. **VP of Engineering, CTO, or Engineering Directors** - Critical for technical roles and engineering positions  
+    3. **Functional VPs relevant to user's target** (VP of Data, VP of AI/ML, VP of Strategy, etc.)
+    4. **Senior Directors or Principal-level individual contributors** in the user's target domain
+    5. **Hiring Managers or Team Leads** for specific functions the user is targeting
+    6. **Recruiters or Talent Acquisition leaders** who focus on the user's target functions
+    7. **CEO or other C-level executives** only if they're particularly relevant to the user's domain
 
-  Ensure the output is a valid JSON array with exactly 1 contact object.
+    Your task is to identify 1 key individual within ${companyData.name} who would be most relevant for the user to connect with for job search networking, based on the user's background and target criteria. Focus on publicly available information and ensure the suggested contact is NOT a duplicate of existing contacts for this company.
 
-  Generate the JSON array:
-  `;
+    Random seed for variation: ${randomSeed}
 
-  // 5. Make the call to the Gemini API
-  try {
+    When identifying the contact, consider the user's current role and target functions, aiming for individuals in roles at or above the user's current level, understanding that seniority can vary significantly based on company size. Do not prioritize contacts based on their location.
+
+    Provide the following information in a JSON array with exactly 1 contact object:
+
+    For the contact object in the array:
+    - "name": Full Name of the contact (ensure this is NOT similar to any existing contact names listed above for this company).
+    - "role": The contact's job title/role.
+    - "location": The contact's location (if available from public data).
+    - "linkedin_url": Public LinkedIn URL if found (often hard to find reliably from public data).
+    - "email": Public email address if found (very unlikely from public data). Do NOT guess or generate email addresses.
+    - "bio_summary": A brief, 1-2 sentence summary of the contact's background or relevance based on publicly available information.
+    - "how_i_can_help": A brief, 1-2 sentence explanation of *how the user* (referring to the user's background and skills) can potentially be of help or provide value to *this specific contact* or their team/company, based on the context.
+
+    Ensure the output is a valid JSON array with exactly 1 contact object.
+
+    Generate the JSON array:
+    `;
+
+    // Make the call to the Gemini API
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
@@ -270,7 +302,7 @@ serve(async (req) => {
           parts: [{ text: prompt }]
         }],
         generationConfig: {
-           temperature: 0.7,
+           temperature: 0.7 + (attempt * 0.1), // Increase randomness with each attempt
            responseMimeType: "application/json"
         },
       }),
@@ -278,30 +310,19 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error(`Gemini API error: ${response.status} - ${errorBody}`);
-      return new Response(JSON.stringify({
-        status: 'error',
-        message: `Error from AI service: ${response.statusText}`,
-        error: errorBody
-      }), {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-        status: response.status,
-      });
+      throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
     }
 
     const data = await response.json();
 
-    // 6. Process the Gemini response - UPDATED to handle both array and object formats
+    // Process the Gemini response
     let suggestedContacts: SuggestedContactOutput[];
     try {
         const rawResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text
             ? JSON.parse(data.candidates[0].content.parts[0].text)
             : data;
 
-        console.log('Raw AI response data:', JSON.stringify(rawResponse));
+        console.log(`Raw AI response data (attempt ${attempt + 1}):`, JSON.stringify(rawResponse));
 
         // Handle both array format and object with contacts property
         if (Array.isArray(rawResponse)) {
@@ -320,39 +341,39 @@ serve(async (req) => {
         // Ensure exactly 1 contact
         suggestedContacts = suggestedContacts.slice(0, 1);
         
-        // Additional validation: Check for duplicates against existing contacts
+        // Check for duplicates against existing contacts for this company only
         const filteredContacts = suggestedContacts.filter(contact => {
           const contactNameLower = contact.name.toLowerCase().trim();
           const isDuplicate = existingContactNames.includes(contactNameLower);
           if (isDuplicate) {
-            console.log(`Filtered out duplicate contact: ${contact.name}`);
+            console.log(`Filtered out duplicate contact: ${contact.name} (attempt ${attempt + 1})`);
           }
           return !isDuplicate;
         });
         
-        if (filteredContacts.length !== suggestedContacts.length) {
-          console.log(`Filtered out ${suggestedContacts.length - filteredContacts.length} duplicate contacts`);
+        // If we filtered out duplicates and have no contacts left, retry with different prompt
+        if (filteredContacts.length === 0 && suggestedContacts.length > 0) {
+          console.log(`All contacts were duplicates on attempt ${attempt + 1}, retrying...`);
+          return await generateContactWithRetry(attempt + 1);
         }
         
-        suggestedContacts = filteredContacts;
+        return filteredContacts;
 
     } catch (parseError) {
-        console.error('Error parsing AI response:', parseError);
-        console.error('Raw AI response data:', JSON.stringify(data));
-        return new Response(JSON.stringify({
-          status: 'error',
-          message: 'Failed to process AI response structure for contacts.',
-          error: parseError.message
-        }), {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-          status: 500,
-        });
+        console.error(`Error parsing AI response on attempt ${attempt + 1}:`, parseError);
+        if (attempt < maxAttempts - 1) {
+          console.log('Retrying with different parameters...');
+          return await generateContactWithRetry(attempt + 1);
+        }
+        throw new Error(`Failed to process AI response structure for contacts: ${parseError.message}`);
     }
+  };
 
-    // 7. Return a success response
+  // 6. Generate contact with retry logic
+  try {
+    const suggestedContacts = await generateContactWithRetry();
+
+    // 7. Return success response
     return new Response(JSON.stringify({
       status: 'success',
       message: 'Suggested contacts generated successfully.',
@@ -366,10 +387,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Unexpected error during contact generation:', error);
+    console.error('Error during contact generation:', error);
     return new Response(JSON.stringify({
       status: 'error',
-      message: 'An unexpected error occurred during contact generation.',
+      message: 'Failed to generate unique contact after multiple attempts.',
       error: error.message
     }), {
       headers: {
