@@ -212,6 +212,7 @@ export const EnhancedCompaniesTable = ({
       "Vice President": "VP",
       "Senior Vice President": "SVP",
       "Executive Vice President": "EVP",
+      "Executive VP": "EVP",
       "Vice President of Product": "VP Product",
       "Vice President of Engineering": "VP Engineering",
       "Vice President of Sales": "VP Sales",
@@ -423,12 +424,12 @@ export const EnhancedCompaniesTable = ({
                     onCheckedChange={onSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[60px]">
+                <TableHead className="w-[20px]">
                   {" "}
                   {/* Narrower for Priority */}
                   <SortButton field="priority">Priority</SortButton>
                 </TableHead>
-                <TableHead className="min-w-[150px] max-w-[200px]">
+                <TableHead className="min-w-[50px] max-w-[50px]">
                   {" "}
                   {/* Company Name */}
                   <SortButton field="name">Company</SortButton>
