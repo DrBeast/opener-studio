@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
+import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 
 interface ContactData {
   contact_id: string;
@@ -94,6 +95,8 @@ export function CompanyDetails({
   const [editingDescription, setEditingDescription] = useState<string>('');
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
+  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+
   const {
     overview,
     isLoading: isOverviewLoading,
@@ -455,6 +458,12 @@ export function CompanyDetails({
     );
   };
 
+  const handleAddContactSuccess = () => {
+    fetchContacts();
+    setIsAddContactOpen(false);
+    onCompanyUpdated();
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -637,7 +646,7 @@ export function CompanyDetails({
             <TabsContent value="contacts" className="space-y-6 pt-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Company Contacts</h3>
-                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Button size="sm" onClick={() => setIsAddContactOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contact
                 </Button>
@@ -677,7 +686,7 @@ export function CompanyDetails({
                   <p className="text-gray-600 mb-4">
                     No contacts added for this company yet
                   </p>
-                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button size="sm" onClick={() => setIsAddContactOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                   </Button>
@@ -785,6 +794,15 @@ export function CompanyDetails({
             onContactUpdated={handleContactUpdated}
           />
         )}
+        
+        {/* Add Contact Modal */}
+        <EnhancedContactModal
+          isOpen={isAddContactOpen}
+          onClose={() => setIsAddContactOpen(false)}
+          companyId={company.company_id}
+          companyName={company.name}
+          onSuccess={handleAddContactSuccess}
+        />
         
         {/* Log Interaction Modal */}
         {company && (
