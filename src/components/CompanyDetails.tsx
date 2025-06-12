@@ -549,13 +549,8 @@ export function CompanyDetails({
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader className="border-b border-gray-200 pb-4">
             <div className="flex items-center">
-              {" "}
-              {/* Use flex to align items in a row */}
               <DialogTitle className="flex items-center text-xl font-semibold text-gray-900">
-                {" "}
-                {/* Align items within the title */}
-                <Building className="h-6 w-6 text-primary mr-2" />{" "}
-                {/* Add margin to separate icon and text */}
+                <Building className="h-6 w-6 text-primary mr-2" />
                 {company.name}
               </DialogTitle>
             </div>
@@ -1096,13 +1091,17 @@ export function CompanyDetails({
         {/* Message Generation Modal */}
         {selectedContactForMessage && (
           <MessageGeneration
+            contact={selectedContactForMessage}
+            companyName={company.name}
             isOpen={isMessageGenerationOpen}
             onClose={() => {
               setIsMessageGenerationOpen(false);
               setSelectedContactForMessage(null);
             }}
-            contactId={selectedContactForMessage.contact_id}
-            companyId={company.company_id}
+            onMessageSaved={() => {
+              // Optionally refresh interactions or show success
+              fetchInteractions();
+            }}
           />
         )}
       </Dialog>
