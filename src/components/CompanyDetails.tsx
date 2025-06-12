@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { MessageGeneration } from "@/components/MessageGeneration";
 import { OutlineAction, PrimaryAction } from "./ui/design-system";
 
 interface ContactData {
@@ -122,6 +123,8 @@ export function CompanyDetails({
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const [isMessageGenerationOpen, setIsMessageGenerationOpen] = useState(false);
+  const [selectedContactForMessage, setSelectedContactForMessage] = useState<ContactData | null>(null);
 
   const {
     overview,
@@ -535,6 +538,11 @@ export function CompanyDetails({
     onCompanyUpdated();
   };
 
+  const handleGenerateMessage = (contact: ContactData) => {
+    setSelectedContactForMessage(contact);
+    setIsMessageGenerationOpen(true);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -837,6 +845,13 @@ export function CompanyDetails({
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <PrimaryAction
+                          size="sm"
+                          onClick={() => handleGenerateMessage(contact)}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Generate Message
+                        </PrimaryAction>
                         <Button
                           variant="outline"
                           size="sm"
@@ -1075,6 +1090,19 @@ export function CompanyDetails({
               follow_up_due_date: selectedInteraction.follow_up_due_date,
               medium: selectedInteraction.medium,
             }}
+          />
+        )}
+
+        {/* Message Generation Modal */}
+        {selectedContactForMessage && (
+          <MessageGeneration
+            isOpen={isMessageGenerationOpen}
+            onClose={() => {
+              setIsMessageGenerationOpen(false);
+              setSelectedContactForMessage(null);
+            }}
+            contactId={selectedContactForMessage.contact_id}
+            companyId={company.company_id}
           />
         )}
       </Dialog>
