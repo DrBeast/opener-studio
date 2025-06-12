@@ -811,48 +811,42 @@ export function CompanyDetails({
               </div>
 
               {contacts.length > 0 ? (
-                <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200 bg-gray-50">
-                        <th className="text-left p-4 font-medium text-gray-700">
-                          Name
-                        </th>
-                        <th className="text-left p-4 font-medium text-gray-700">
-                          Role
-                        </th>
-                        <th className="text-right p-4 font-medium text-gray-700">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {contacts.map((contact) => (
-                        <tr
-                          key={contact.contact_id}
-                          className="border-b border-gray-100"
-                        >
-                          <td className="p-4 text-gray-900">
+                <div className="space-y-3">
+                  {contacts.map((contact) => (
+                    <div
+                      key={contact.contact_id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <UserRound className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">
                             {contact.first_name || ""} {contact.last_name || ""}
-                          </td>
-                          <td className="p-4 text-gray-600">
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
                             {contact.role || "N/A"}
-                          </td>
-                          <td className="p-4 text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewContact(contact)}
-                              className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              Details
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </p>
+                          <div className="flex items-center mt-1">
+                            <Building className="w-3 h-3 text-gray-400 mr-1" />
+                            <p className="text-xs text-gray-400 truncate">
+                              {company.name}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewContact(contact)}
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <FileText className="h-4 w-4 mr-1" />
+                        Details
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
