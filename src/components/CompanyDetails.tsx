@@ -815,7 +815,7 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <div
                       key={contact.contact_id}
-                      className="flex items-center justify-between p-4 border-2 border-primary rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors"
+                      className="flex items-center justify-between p-4 border-2 border-primary rounded-lg bg-white hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
