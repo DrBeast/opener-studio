@@ -815,7 +815,7 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <div
                       key={contact.contact_id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-4 border-2 border-primary rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -836,15 +836,17 @@ export function CompanyDetails({
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewContact(contact)}
-                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewContact(contact)}
+                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Details
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
