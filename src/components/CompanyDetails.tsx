@@ -41,6 +41,7 @@ import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { OutlineAction, PrimaryAction } from "./ui/design-system";
+import { MessageGeneration } from "@/components/MessageGeneration";
 
 interface ContactData {
   contact_id: string;
@@ -122,6 +123,8 @@ export function CompanyDetails({
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
+  const [isMessageGenerationOpen, setIsMessageGenerationOpen] = useState(false);
+  const [selectedContactForMessage, setSelectedContactForMessage] = useState<ContactData | null>(null);
 
   const {
     overview,
@@ -535,6 +538,11 @@ export function CompanyDetails({
     onCompanyUpdated();
   };
 
+  const handleGenerateMessage = (contact: ContactData) => {
+    setSelectedContactForMessage(contact);
+    setIsMessageGenerationOpen(true);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -815,7 +823,7 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <div
                       key={contact.contact_id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-4 border-2 border-primary rounded-lg bg-white hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -836,15 +844,25 @@ export function CompanyDetails({
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewContact(contact)}
-                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <PrimaryAction
+                          size="sm"
+                          onClick={() => handleGenerateMessage(contact)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Generate Message
+                        </PrimaryAction>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewContact(contact)}
+                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Details
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1019,6 +1037,16 @@ export function CompanyDetails({
           companyName={company.name}
           onSuccess={handleAddContactSuccess}
         />
+
+        {/* Message Generation Modal */}
+        {selectedContactForMessage && (
+          <MessageGeneration
+            isOpen={isMessageGenerationOpen}
+            onClose={() => setIsMessageGenerationOpen(false)}
+            contact={selectedContactForMessage}
+            company={company}
+          />
+        )}
 
         {/* Log Interaction Modal */}
         {company && (
