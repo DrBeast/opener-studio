@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Edit, Plus, Sparkles, UserPlus } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
-import CompanyDetails from "@/components/CompanyDetails";
+import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
