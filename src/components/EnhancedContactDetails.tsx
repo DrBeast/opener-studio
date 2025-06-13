@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -416,7 +417,7 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white fixed top-[8vh] left-1/2 transform -translate-x-1/2 translate-y-0">
           <DialogHeader className="pb-6 border-b border-gray-200">
             <DialogTitle className="flex items-center text-xl font-semibold text-foreground">
               {formData.first_name || ""} {formData.last_name || ""}
