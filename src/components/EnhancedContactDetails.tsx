@@ -1,11 +1,26 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Save, MessageCircle, Calendar, Plus, Pencil, Trash, Check, RefreshCw } from "lucide-react";
+import {
+  Save,
+  MessageCircle,
+  Calendar,
+  Plus,
+  Pencil,
+  Trash,
+  Check,
+  RefreshCw,
+  Building,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -16,6 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
 import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface ContactData {
   contact_id: string;
@@ -53,12 +69,12 @@ interface EnhancedContactDetailsProps {
   defaultTab?: string;
 }
 
-export function EnhancedContactDetails({ 
-  contactId, 
-  isOpen, 
-  onClose, 
+export function EnhancedContactDetails({
+  contactId,
+  isOpen,
+  onClose,
   onContactUpdated,
-  defaultTab = "details" 
+  defaultTab = "details",
 }: EnhancedContactDetailsProps) {
   const { user } = useAuth();
   const [contact, setContact] = useState<ContactData | null>(null);
@@ -68,8 +84,12 @@ export function EnhancedContactDetails({
   const [interactions, setInteractions] = useState<InteractionData[]>([]);
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [isPlanningMode, setIsPlanningMode] = useState(false);
-  const [editingInteraction, setEditingInteraction] = useState<string | null>(null);
-  const [editingValues, setEditingValues] = useState<{[key: string]: {date: string, description: string}}>({});
+  const [editingInteraction, setEditingInteraction] = useState<string | null>(
+    null
+  );
+  const [editingValues, setEditingValues] = useState<{
+    [key: string]: { date: string; description: string };
+  }>({});
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const [companyContacts, setCompanyContacts] = useState<ContactData[]>([]);
@@ -78,7 +98,7 @@ export function EnhancedContactDetails({
     overview,
     isLoading: isOverviewLoading,
     error: overviewError,
-    regenerateOverview
+    regenerateOverview,
   } = useContactInteractionOverview(contactId);
 
   useEffect(() => {
@@ -95,21 +115,23 @@ export function EnhancedContactDetails({
   const fetchContactDetails = async () => {
     try {
       const { data, error } = await supabase
-        .from('contacts')
-        .select(`
+        .from("contacts")
+        .select(
+          `
           *,
           companies (
             name
           )
-        `)
-        .eq('contact_id', contactId)
+        `
+        )
+        .eq("contact_id", contactId)
         .single();
-      
+
       if (error) throw error;
-      
+
       setContact(data);
       setFormData(data);
-      
+
       // Fetch other contacts from the same company
       if (data.company_id) {
         fetchCompanyContacts(data.company_id);
@@ -122,16 +144,16 @@ export function EnhancedContactDetails({
 
   const fetchCompanyContacts = async (companyId: string) => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('contacts')
-        .select('contact_id, first_name, last_name, role')
-        .eq('company_id', companyId)
-        .eq('user_id', user.id);
-      
+        .from("contacts")
+        .select("contact_id, first_name, last_name, role")
+        .eq("company_id", companyId)
+        .eq("user_id", user.id);
+
       if (error) throw error;
-      
+
       setCompanyContacts(data || []);
     } catch (error) {
       console.error("Error fetching company contacts:", error);
@@ -140,17 +162,17 @@ export function EnhancedContactDetails({
 
   const fetchContactInteractions = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
-        .from('interactions')
-        .select('*')
-        .eq('contact_id', contactId)
-        .eq('user_id', user.id)
-        .order('interaction_date', { ascending: false });
-      
+        .from("interactions")
+        .select("*")
+        .eq("contact_id", contactId)
+        .eq("user_id", user.id)
+        .order("interaction_date", { ascending: false });
+
       if (error) throw error;
-      
+
       setInteractions(data || []);
     } catch (error) {
       console.error("Error fetching contact interactions:", error);
@@ -158,21 +180,23 @@ export function EnhancedContactDetails({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (!formData) return;
     const { name, value } = e.target;
-    setFormData(prev => prev ? { ...prev, [name]: value } : null);
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const { error } = await supabase
-        .from('contacts')
+        .from("contacts")
         .update({
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -181,18 +205,21 @@ export function EnhancedContactDetails({
           email: formData.email,
           linkedin_url: formData.linkedin_url,
           user_notes: formData.user_notes,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
-        .eq('contact_id', contactId);
-      
+        .eq("contact_id", contactId);
+
       if (error) throw error;
-      
+
       toast.success("Contact details updated successfully");
       onContactUpdated();
       await fetchContactDetails();
     } catch (error: any) {
       console.error("Error updating contact:", error);
-      toast.error("Failed to update contact details: " + (error.message || "Unknown error"));
+      toast.error(
+        "Failed to update contact details: " +
+          (error.message || "Unknown error")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -201,15 +228,15 @@ export function EnhancedContactDetails({
   const handleCompleteFollowUp = async (interactionId: string) => {
     try {
       const { error } = await supabase
-        .from('interactions')
+        .from("interactions")
         .update({
           follow_up_completed: true,
-          follow_up_completed_date: new Date().toISOString()
+          follow_up_completed_date: new Date().toISOString(),
         })
-        .eq('interaction_id', interactionId);
-      
+        .eq("interaction_id", interactionId);
+
       if (error) throw error;
-      
+
       toast.success("Follow-up marked as completed");
       fetchContactInteractions();
       onContactUpdated();
@@ -253,12 +280,12 @@ export function EnhancedContactDetails({
   const handleDeleteInteraction = async (interactionId: string) => {
     try {
       const { error } = await supabase
-        .from('interactions')
+        .from("interactions")
         .delete()
-        .eq('interaction_id', interactionId);
-      
+        .eq("interaction_id", interactionId);
+
       if (error) throw error;
-      
+
       toast.success("Interaction deleted");
       await fetchContactInteractions();
       onContactUpdated();
@@ -270,14 +297,18 @@ export function EnhancedContactDetails({
     }
   };
 
-  const handleEditInteraction = (interactionId: string, currentDate: string, currentDescription: string) => {
+  const handleEditInteraction = (
+    interactionId: string,
+    currentDate: string,
+    currentDescription: string
+  ) => {
     setEditingInteraction(interactionId);
     setEditingValues({
       ...editingValues,
       [interactionId]: {
-        date: format(new Date(currentDate), 'yyyy-MM-dd'),
-        description: currentDescription || ''
-      }
+        date: format(new Date(currentDate), "yyyy-MM-dd"),
+        description: currentDescription || "",
+      },
     });
   };
 
@@ -287,15 +318,15 @@ export function EnhancedContactDetails({
 
     try {
       const { error } = await supabase
-        .from('interactions')
+        .from("interactions")
         .update({
           interaction_date: new Date(values.date).toISOString(),
-          description: values.description
+          description: values.description,
         })
-        .eq('interaction_id', interactionId);
-      
+        .eq("interaction_id", interactionId);
+
       if (error) throw error;
-      
+
       toast.success("Interaction updated");
       setEditingInteraction(null);
       fetchContactInteractions();
@@ -314,8 +345,8 @@ export function EnhancedContactDetails({
   };
 
   const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'MMM d, yyyy');
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "MMM d, yyyy");
   };
 
   const renderInteractionSummary = () => {
@@ -327,18 +358,22 @@ export function EnhancedContactDetails({
         </div>
       );
     }
-    
+
     if (overviewError) {
       return (
         <div className="flex flex-col">
           <div className="text-red-500">Error loading interaction summary</div>
-          <OutlineAction size="sm" onClick={regenerateOverview} className="mt-2 self-start">
+          <OutlineAction
+            size="sm"
+            onClick={regenerateOverview}
+            className="mt-2 self-start"
+          >
             <RefreshCw className="mr-2 h-3 w-3" /> Try again
           </OutlineAction>
         </div>
       );
     }
-    
+
     return (
       <div className="flex flex-col">
         <div className="flex items-start justify-between">
@@ -346,23 +381,25 @@ export function EnhancedContactDetails({
             {overview?.overview ? (
               <p className="text-sm text-foreground">{overview.overview}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">No interaction summary available</p>
+              <p className="text-sm text-muted-foreground">
+                No interaction summary available
+              </p>
             )}
-            
+
             {overview?.interactionCount !== undefined && (
               <p className="text-xs text-muted-foreground mt-1">
                 {overview.interactionCount} total
-                {overview.pastCount !== undefined && overview.plannedCount !== undefined && 
-                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`
-                }
+                {overview.pastCount !== undefined &&
+                  overview.plannedCount !== undefined &&
+                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
               </p>
             )}
           </div>
-          
-          <OutlineAction 
-            size="sm" 
-            onClick={regenerateOverview} 
-            className="ml-2 h-8 w-8 p-0" 
+
+          <OutlineAction
+            size="sm"
+            onClick={regenerateOverview}
+            className="ml-2 h-8 w-8 p-0"
             title="Regenerate summary"
           >
             <RefreshCw className="h-4 w-4" />
@@ -381,141 +418,182 @@ export function EnhancedContactDetails({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
           <DialogHeader className="pb-6 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
-              {formData.first_name || ''} {formData.last_name || ''}
-              {formData.companies?.name && (
-                <Badge variant="outline" className="text-gray-600 border-gray-300 bg-gray-50">
-                  {formData.companies.name}
-                </Badge>
-              )}
+            <DialogTitle className="flex items-center text-xl font-semibold text-foreground">
+              {formData.first_name || ""} {formData.last_name || ""}
             </DialogTitle>
+
+            <div className="flex items-center">
+              <DialogDescription className="flex items-center">
+                <Building className="h-4 w-4 text-foreground mr-2" />
+                {contact.companies?.name}
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
-              <TabsTrigger 
-                value="details" 
-                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium transition-all duration-200"
+            <TabsList className="grid w-full grid-cols-3 bg-gray-0 p-1 rounded-lg gap-2">
+              <TabsTrigger
+                value="details"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
               >
                 Contact Details
               </TabsTrigger>
-              <TabsTrigger 
-                value="messages" 
-                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium transition-all duration-200"
+              <TabsTrigger
+                value="messages"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
               >
                 Messages
               </TabsTrigger>
-              <TabsTrigger 
-                value="interactions" 
-                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium transition-all duration-200"
+              <TabsTrigger
+                value="interactions"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
               >
                 Interactions
               </TabsTrigger>
             </TabsList>
-            
+
             {/* Contact Details Tab */}
             <TabsContent value="details" className="space-y-6 pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="first_name" className="text-sm font-medium text-gray-700">First Name</Label>
+                    <Label
+                      htmlFor="first_name"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      First Name
+                    </Label>
                     <Input
                       id="first_name"
                       name="first_name"
-                      value={formData.first_name || ''}
+                      value={formData.first_name || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="last_name" className="text-sm font-medium text-gray-700">Last Name</Label>
+                    <Label
+                      htmlFor="last_name"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Last Name
+                    </Label>
                     <Input
                       id="last_name"
                       name="last_name"
-                      value={formData.last_name || ''}
+                      value={formData.last_name || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
+                    <Label
+                      htmlFor="role"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Role
+                    </Label>
                     <Input
                       id="role"
                       name="role"
-                      value={formData.role || ''}
+                      value={formData.role || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
+                    <Label
+                      htmlFor="location"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Location
+                    </Label>
                     <Input
                       id="location"
                       name="location"
-                      value={formData.location || ''}
+                      value={formData.location || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Email
+                    </Label>
                     <Input
                       id="email"
                       name="email"
                       type="email"
-                      value={formData.email || ''}
+                      value={formData.email || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="linkedin_url" className="text-sm font-medium text-gray-700">LinkedIn URL</Label>
+                    <Label
+                      htmlFor="linkedin_url"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      LinkedIn URL
+                    </Label>
                     <Input
                       id="linkedin_url"
                       name="linkedin_url"
-                      value={formData.linkedin_url || ''}
+                      value={formData.linkedin_url || ""}
                       onChange={handleChange}
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="user_notes" className="text-sm font-medium text-gray-700">Your Notes</Label>
+                  <Label
+                    htmlFor="user_notes"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Your Notes
+                  </Label>
                   <Textarea
                     id="user_notes"
                     name="user_notes"
                     rows={4}
-                    value={formData.user_notes || ''}
+                    value={formData.user_notes || ""}
                     onChange={handleChange}
                     placeholder="Add your personal notes about this contact..."
                     className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
-                
+
                 {formData.bio_summary && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">Background Summary</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Background Summary
+                    </Label>
                     <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 text-sm text-gray-900">
                       {formData.bio_summary}
                     </div>
                   </div>
                 )}
-                
+
                 {formData.how_i_can_help && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">How I Can Help</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      How I Can Help
+                    </Label>
                     <div className="rounded-lg border border-gray-200 p-4 bg-blue-50 text-sm text-gray-900">
                       {formData.how_i_can_help}
                     </div>
                   </div>
                 )}
-                
+
                 <div className="flex justify-end pt-6 border-t border-gray-200">
                   <PrimaryAction type="submit" disabled={isLoading}>
                     <Save className="mr-2 h-4 w-4" />
@@ -524,64 +602,91 @@ export function EnhancedContactDetails({
                 </div>
               </form>
             </TabsContent>
-            
+
             {/* Enhanced Messages Tab */}
             <TabsContent value="messages" className="space-y-6 pt-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Generate Outreach Message</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Generate Outreach Message
+                </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  You are crafting a personalized message to build genuine connections and articulate your value proposition authentically, focusing on mutual learning rather than just asking for opportunities.
+                  You are crafting a personalized message to build genuine
+                  connections and articulate your value proposition
+                  authentically, focusing on mutual learning rather than just
+                  asking for opportunities.
                 </p>
               </div>
-              
+
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                   <div className="space-y-3 text-sm">
                     <div>
-                      <strong className="text-blue-900">How AI helps you succeed:</strong>
+                      <strong className="text-blue-900">
+                        How AI helps you succeed:
+                      </strong>
                       <p className="text-blue-800 mt-1">
-                        Your experience and skills are analyzed in relation to this contact's role and company needs. The AI helps you frame your outreach around genuine interest and mutual value, avoiding the "sales-y" feeling by focusing on how you can contribute rather than what you need.
+                        Your experience and skills are analyzed in relation to
+                        this contact's role and company needs. The AI helps you
+                        frame your outreach around genuine interest and mutual
+                        value, avoiding the "sales-y" feeling by focusing on how
+                        you can contribute rather than what you need.
                       </p>
                     </div>
-                    
+
                     <div>
-                      <strong className="text-blue-900">Your value proposition approach:</strong>
+                      <strong className="text-blue-900">
+                        Your value proposition approach:
+                      </strong>
                       <p className="text-blue-800 mt-1">
-                        You are positioning yourself as someone who can bring value to their work and company goals. Your professional background is leveraged to demonstrate authentic interest in their industry and challenges, making the connection feel natural and mutually beneficial.
+                        You are positioning yourself as someone who can bring
+                        value to their work and company goals. Your professional
+                        background is leveraged to demonstrate authentic
+                        interest in their industry and challenges, making the
+                        connection feel natural and mutually beneficial.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <MessageGeneration
                 contact={contact}
-                companyName={contact.companies?.name || 'Unknown Company'}
+                companyName={contact.companies?.name || "Unknown Company"}
                 isOpen={true}
                 onClose={() => {}}
                 onMessageSaved={handleMessageSaved}
                 embedded={true}
               />
             </TabsContent>
-            
+
             {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
+                <Label className="text-sm font-medium text-gray-700">
+                  Interaction Summary
+                </Label>
                 <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
                   {renderInteractionSummary()}
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Interactions</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Interactions
+                </h3>
                 <div className="flex gap-2">
-                  <PrimaryAction size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                  <PrimaryAction
+                    size="sm"
+                    onClick={() => setIsLogInteractionOpen(true)}
+                  >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Log Interaction
                   </PrimaryAction>
-                  <OutlineAction size="sm" onClick={() => setIsPlanInteractionOpen(true)}>
+                  <OutlineAction
+                    size="sm"
+                    onClick={() => setIsPlanInteractionOpen(true)}
+                  >
                     <Calendar className="h-4 w-4 mr-2" />
                     Plan Interaction
                   </OutlineAction>
@@ -590,40 +695,67 @@ export function EnhancedContactDetails({
 
               {interactions.length > 0 ? (
                 <div className="space-y-4">
-                  {interactions.map(interaction => (
-                    <div key={interaction.interaction_id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                  {interactions.map((interaction) => (
+                    <div
+                      key={interaction.interaction_id}
+                      className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 space-y-2">
                           {editingInteraction === interaction.interaction_id ? (
                             <div className="space-y-3">
                               <div>
-                                <Label htmlFor={`date-${interaction.interaction_id}`} className="text-sm font-medium text-gray-700">Date</Label>
+                                <Label
+                                  htmlFor={`date-${interaction.interaction_id}`}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  Date
+                                </Label>
                                 <Input
                                   id={`date-${interaction.interaction_id}`}
                                   type="date"
-                                  value={editingValues[interaction.interaction_id]?.date || ''}
-                                  onChange={(e) => setEditingValues({
-                                    ...editingValues,
-                                    [interaction.interaction_id]: {
-                                      ...editingValues[interaction.interaction_id],
-                                      date: e.target.value
-                                    }
-                                  })}
+                                  value={
+                                    editingValues[interaction.interaction_id]
+                                      ?.date || ""
+                                  }
+                                  onChange={(e) =>
+                                    setEditingValues({
+                                      ...editingValues,
+                                      [interaction.interaction_id]: {
+                                        ...editingValues[
+                                          interaction.interaction_id
+                                        ],
+                                        date: e.target.value,
+                                      },
+                                    })
+                                  }
                                   className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                                 />
                               </div>
                               <div>
-                                <Label htmlFor={`desc-${interaction.interaction_id}`} className="text-sm font-medium text-gray-700">Description</Label>
+                                <Label
+                                  htmlFor={`desc-${interaction.interaction_id}`}
+                                  className="text-sm font-medium text-gray-700"
+                                >
+                                  Description
+                                </Label>
                                 <Textarea
                                   id={`desc-${interaction.interaction_id}`}
-                                  value={editingValues[interaction.interaction_id]?.description || ''}
-                                  onChange={(e) => setEditingValues({
-                                    ...editingValues,
-                                    [interaction.interaction_id]: {
-                                      ...editingValues[interaction.interaction_id],
-                                      description: e.target.value
-                                    }
-                                  })}
+                                  value={
+                                    editingValues[interaction.interaction_id]
+                                      ?.description || ""
+                                  }
+                                  onChange={(e) =>
+                                    setEditingValues({
+                                      ...editingValues,
+                                      [interaction.interaction_id]: {
+                                        ...editingValues[
+                                          interaction.interaction_id
+                                        ],
+                                        description: e.target.value,
+                                      },
+                                    })
+                                  }
                                   rows={3}
                                   className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                                 />
@@ -631,7 +763,11 @@ export function EnhancedContactDetails({
                               <div className="flex gap-2">
                                 <PrimaryAction
                                   size="sm"
-                                  onClick={() => handleSaveInteraction(interaction.interaction_id)}
+                                  onClick={() =>
+                                    handleSaveInteraction(
+                                      interaction.interaction_id
+                                    )
+                                  }
                                 >
                                   <Check className="h-4 w-4 mr-1" />
                                   Save
@@ -646,35 +782,43 @@ export function EnhancedContactDetails({
                             </div>
                           ) : (
                             <div>
-                              <div 
+                              <div
                                 className="text-sm font-medium text-gray-600 cursor-pointer hover:text-purple-600 transition-colors"
-                                onClick={() => handleEditInteraction(
-                                  interaction.interaction_id, 
-                                  interaction.interaction_date, 
-                                  interaction.description || ''
-                                )}
+                                onClick={() =>
+                                  handleEditInteraction(
+                                    interaction.interaction_id,
+                                    interaction.interaction_date,
+                                    interaction.description || ""
+                                  )
+                                }
                               >
                                 {formatDate(interaction.interaction_date)}
                               </div>
-                              <div 
+                              <div
                                 className="text-sm mt-1 cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200 transition-colors text-gray-900"
-                                onClick={() => handleEditInteraction(
-                                  interaction.interaction_id, 
-                                  interaction.interaction_date, 
-                                  interaction.description || ''
-                                )}
+                                onClick={() =>
+                                  handleEditInteraction(
+                                    interaction.interaction_id,
+                                    interaction.interaction_date,
+                                    interaction.description || ""
+                                  )
+                                }
                               >
                                 {interaction.description}
                               </div>
                             </div>
                           )}
                         </div>
-                        
+
                         {editingInteraction !== interaction.interaction_id && (
                           <OutlineAction
                             size="sm"
                             className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 border-gray-200"
-                            onClick={() => handleDeleteInteraction(interaction.interaction_id)}
+                            onClick={() =>
+                              handleDeleteInteraction(
+                                interaction.interaction_id
+                              )
+                            }
                           >
                             <Trash className="h-4 w-4" />
                           </OutlineAction>
@@ -690,11 +834,17 @@ export function EnhancedContactDetails({
                     No interactions logged for this contact yet
                   </p>
                   <div className="flex gap-2 justify-center">
-                    <PrimaryAction size="sm" onClick={() => setIsLogInteractionOpen(true)}>
+                    <PrimaryAction
+                      size="sm"
+                      onClick={() => setIsLogInteractionOpen(true)}
+                    >
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Log Interaction
                     </PrimaryAction>
-                    <OutlineAction size="sm" onClick={() => setIsPlanInteractionOpen(true)}>
+                    <OutlineAction
+                      size="sm"
+                      onClick={() => setIsPlanInteractionOpen(true)}
+                    >
                       <Calendar className="h-4 w-4 mr-2" />
                       Plan Interaction
                     </OutlineAction>
@@ -711,8 +861,8 @@ export function EnhancedContactDetails({
         <LogInteractionModal
           isOpen={isLogInteractionOpen}
           onClose={() => setIsLogInteractionOpen(false)}
-          companyId={contact.company_id || ''}
-          companyName={contact.companies?.name || 'Unknown Company'}
+          companyId={contact.company_id || ""}
+          companyName={contact.companies?.name || "Unknown Company"}
           availableContacts={companyContacts}
           preSelectedContact={contact}
           onSuccess={handleLogInteractionSuccess}
@@ -724,8 +874,8 @@ export function EnhancedContactDetails({
         <PlanInteractionModal
           isOpen={isPlanInteractionOpen}
           onClose={() => setIsPlanInteractionOpen(false)}
-          companyId={contact.company_id || ''}
-          companyName={contact.companies?.name || 'Unknown Company'}
+          companyId={contact.company_id || ""}
+          companyName={contact.companies?.name || "Unknown Company"}
           availableContacts={companyContacts}
           preSelectedContact={contact}
           onSuccess={handlePlanInteractionSuccess}
@@ -735,8 +885,8 @@ export function EnhancedContactDetails({
       {/* Old Interaction Form Dialog - keeping for legacy support */}
       {contact && (
         <InteractionForm
-          companyId={contact.company_id || ''}
-          companyName={contact.companies?.name || 'Unknown Company'}
+          companyId={contact.company_id || ""}
+          companyName={contact.companies?.name || "Unknown Company"}
           contacts={contact ? [contact] : []}
           isOpen={isAddInteractionOpen}
           onClose={() => setIsAddInteractionOpen(false)}

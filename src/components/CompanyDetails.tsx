@@ -559,7 +559,7 @@ export function CompanyDetails({
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader className="border-b border-gray-200 pb-4">
             <div className="flex items-center">
-              <DialogTitle className="flex items-center text-xl font-semibold text-gray-900">
+              <DialogTitle className="flex items-center text-xl font-semibold foreground">
                 <Building className="h-6 w-6 text-primary mr-2" />
                 {company.name}
               </DialogTitle>
@@ -605,7 +605,7 @@ export function CompanyDetails({
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="bg-white border-primary"
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
@@ -631,7 +631,7 @@ export function CompanyDetails({
                         name="industry"
                         value={formData.industry || ""}
                         onChange={handleChange}
-                        className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                       />
                     </div>
                   )}
@@ -649,7 +649,7 @@ export function CompanyDetails({
                         name="hq_location"
                         value={formData.hq_location || ""}
                         onChange={handleChange}
-                        className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                       />
                     </div>
                   )}
@@ -667,7 +667,7 @@ export function CompanyDetails({
                         name="wfh_policy"
                         value={formData.wfh_policy || ""}
                         onChange={handleChange}
-                        className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                       />
                     </div>
                   )}
@@ -685,7 +685,7 @@ export function CompanyDetails({
                         name="website_url"
                         value={formData.website_url || ""}
                         onChange={handleChange}
-                        className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                       />
                     </div>
                   )}
@@ -703,7 +703,7 @@ export function CompanyDetails({
                       value={formData.estimated_headcount || ""}
                       onChange={handleChange}
                       placeholder="e.g., 100-500"
-                      className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
@@ -720,7 +720,7 @@ export function CompanyDetails({
                       value={formData.estimated_revenue || ""}
                       onChange={handleChange}
                       placeholder="e.g., $10M-50M"
-                      className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
@@ -738,7 +738,7 @@ export function CompanyDetails({
                         value={formData.public_private || ""}
                         onChange={handleChange}
                         placeholder="e.g., Public, Private, Startup"
-                        className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                        className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                       />
                     </div>
                   )}
@@ -757,7 +757,7 @@ export function CompanyDetails({
                       value={formData.user_notes || ""}
                       onChange={handleChange}
                       placeholder="Add your notes about this company..."
-                      className="bg-white border-primary focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
@@ -766,7 +766,7 @@ export function CompanyDetails({
                       <Label className="text-sm font-medium text-gray-700">
                         AI Description
                       </Label>
-                      <div className="rounded-lg border border-primary p-4 bg-gray-50 text-sm text-gray-700">
+                      <div className="rounded-lg border p-4 bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500 text-sm">
                         {formData.ai_description}
                       </div>
                     </div>
@@ -777,7 +777,7 @@ export function CompanyDetails({
                       <Label className="text-sm font-medium text-gray-700">
                         AI Match Reasoning
                       </Label>
-                      <div className="rounded-lg border border-primary p-4 bg-gray-50 text-sm text-gray-700">
+                      <div className="rounded-lg border p-4 bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500 text-sm">
                         {formData.ai_match_reasoning}
                       </div>
                     </div>
@@ -788,7 +788,7 @@ export function CompanyDetails({
                     <Label className="text-sm font-medium text-gray-700">
                       Interaction Summary
                     </Label>
-                    <div className="rounded-lg border border-primary p-4 bg-gray-50">
+                    <div className="rounded-lg border p-4 bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500 text-sm">
                       {renderInteractionSummary()}
                     </div>
                   </div>
@@ -869,7 +869,7 @@ export function CompanyDetails({
                 <Label className="text-sm font-medium text-gray-700">
                   Interaction Summary
                 </Label>
-                <div className="rounded-lg border border-primary p-4 bg-gray-50">
+                <div className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg p-4">
                   {renderInteractionSummary()}
                 </div>
               </div>
@@ -882,7 +882,7 @@ export function CompanyDetails({
                   <PrimaryAction
                     size="sm"
                     onClick={() => setIsLogInteractionOpen(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className=" border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Log Interaction
