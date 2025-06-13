@@ -416,7 +416,7 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white fixed top-[10vh] left-1/2 transform -translate-x-1/2">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white fixed top-[5vh] left-1/2 transform -translate-x-1/2">
           <DialogHeader className="pb-6 border-b border-gray-200">
             <DialogTitle className="flex items-center text-xl font-semibold text-foreground">
               {formData.first_name || ""} {formData.last_name || ""}
