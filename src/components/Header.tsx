@@ -43,9 +43,9 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
               </span>
               <Badge
                 variant="secondary"
-                className="bg-red-100 text-red-700 border-red-200 text-xs font-medium"
+                className="bg-green-100 text-green-700 border-green-200 text-xs font-medium"
               >
-                DEV
+                BETA0.3
               </Badge>
             </Link>
             {/* Onboarding Button - Placed next to logo/badge */}

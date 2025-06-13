@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -64,9 +63,8 @@ const HeroSection = () => {
   const [profileLinked, setProfileLinked] = useState(false);
   const [profileLinkingAttempted, setProfileLinkingAttempted] = useState(false);
   const [linkingInProgress, setLinkingInProgress] = useState(false);
-  const [generatedProfileOutput, setGeneratedProfileOutput] = useState<
-    GeneratedGuestSummary | null
-  >(null);
+  const [generatedProfileOutput, setGeneratedProfileOutput] =
+    useState<GeneratedGuestSummary | null>(null);
 
   // Generate or retrieve session ID on component mount
   useEffect(() => {
@@ -177,7 +175,7 @@ const HeroSection = () => {
           `Edge function error: ${error.message || "Unknown error"}`
         );
       }
-      
+
       // Handle the response structure from generate_guest_profile
       if (!data || !data.success) {
         throw new Error("Profile generation failed or returned invalid data");
@@ -244,8 +242,8 @@ const HeroSection = () => {
         <Alert className="mb-2 border-rose-200 bg-gradient-to-r from-rose-50 to-pink-50 max-w-4xl mx-auto shadow-sm">
           <Zap className="h-4 w-4 text-rose-600" />
           <AlertDescription className="text-rose-800">
-            <strong>Limited Early Access DEV:</strong> Thank you for being part
-            of our early access! Please don't share this link yet as we're still
+            <strong>Limited Early Access:</strong> Thank you for being part of
+            our early access! Please don't share this link yet as we're still
             refining the experience. We appreciate your patience and feedback.
             Your data is privately and securely stored, though it may be used
             for product improvement purposes.
