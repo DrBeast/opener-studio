@@ -354,6 +354,7 @@ export type Database = {
       user_profiles: {
         Row: {
           additional_details: string | null
+          background_input: string | null
           created_at: string
           current_company: string | null
           cv_content: string | null
@@ -372,6 +373,7 @@ export type Database = {
         }
         Insert: {
           additional_details?: string | null
+          background_input?: string | null
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
@@ -390,6 +392,7 @@ export type Database = {
         }
         Update: {
           additional_details?: string | null
+          background_input?: string | null
           created_at?: string
           current_company?: string | null
           cv_content?: string | null
@@ -470,6 +473,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_transaction: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      commit_transaction: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_companies_overview: {
         Args: { user_id_param: string }
         Returns: {
@@ -487,6 +498,10 @@ export type Database = {
           next_followup: Json
           contacts: Json
         }[]
+      }
+      rollback_transaction: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

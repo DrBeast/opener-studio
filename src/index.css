@@ -4,82 +4,93 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 93%; /* Gray */
+    --backbackground: 0 10% 100%; /* White */
+    --foreground: 0 10.2% 28.7%; /* Main text, dark gray */
+    --secondary-foreground: 0 3.6% 42.9%; /* Secondary text, lighter gray */
+    --normaltext: 0 14.7% 23%; /* TO BE REMOVED Dark gray */
+    --purple-accent: 280 90% 32.2%; /* Headers and highlights, deep purple */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 222.2 84% 4.9%; /* Very dark blue (almost black) */
 
-    --primary: 258 75% 74%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 280 90% 50.9%; /* Bright purple button color */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 240 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220, 14%, 96%; /* Light gray */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 279 68.2% 89.6%; /* Very light purple */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray-blue */
 
-    --accent: 258 75% 94%;
-    --accent-foreground: 258 75% 37%;
+    --accent: 258 75% 94%; /* Very pale purple (accent) */
+    --accent-foreground: 258 75% 37%; /* Medium purple */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0, 84%, 60%; /* Bright red */
+    --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 258 75% 74%;
+    --success: 142, 71%, 36%; /* Bright green */
+    --success-foreground: 0, 0%, 100%; /* White */
 
-    --radius: 0.5rem;
+    --option: 221, 83%, 53%; /* Bright blue */
+    --option-foreground: 0, 0%, 100%; /* White */
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 280 90% 89.8%; /* Very light purple */
+
+    --input: 214.3 31.8% 91.4%; /* Very light gray-blue */
+    --ring: 0 0% 93%; /* Light purple (primary accent ring) */
+
+    --radius: 0.5rem; /* Medium border radius */
+
+    --sidebar-background: 0 0% 98%; /* Very pale gray */
+    --sidebar-foreground: 240 5.3% 26.1%; /* Medium gray-blue */
+    --sidebar-primary: 240 5.9% 10%; /* Very dark blue */
+    --sidebar-primary-foreground: 0 0% 98%; /* Very pale gray */
+    --sidebar-accent: 240 4.8% 95.9%; /* Very pale blue-gray */
+    --sidebar-accent-foreground: 240 5.9% 10%; /* Very dark blue */
+    --sidebar-border: 220 13% 91%; /* Very light blue-gray */
+    --sidebar-ring: 217.2 91.2% 59.8%; /* Bright blue */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 222.2 84% 4.9%; /* Very dark blue (almost black) */
+    --foreground: 210 40% 98%; /* Very light blue */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%; /* Very dark blue (almost black) */
+    --card-foreground: 210 40% 98%; /* Very light blue */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%; /* Very dark blue (almost black) */
+    --popover-foreground: 210 40% 98%; /* Very light blue */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 210 40% 98%; /* Very light blue (primary accent) */
+    --primary-foreground: 222.2 47.4% 11.2%; /* Dark blue-gray */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%; /* Dark blue-gray */
+    --secondary-foreground: 210 40% 98%; /* Very light blue */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217.2 32.6% 17.5%; /* Dark blue-gray */
+    --muted-foreground: 215 20.2% 65.1%; /* Muted blue-gray */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217.2 32.6% 17.5%; /* Dark blue-gray (accent) */
+    --accent-foreground: 210 40% 98%; /* Very light blue */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%; /* Dark red */
+    --destructive-foreground: 210 40% 98%; /* Very light blue */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 217.2 32.6% 17.5%; /* Dark blue-gray */
+    --input: 217.2 32.6% 17.5%; /* Dark blue-gray */
+    --ring: 212.7 26.8% 83.9%; /* Light blue */
+
+    --sidebar-background: 240 5.9% 10%; /* Very dark blue */
+    --sidebar-foreground: 240 4.8% 95.9%; /* Very pale blue-gray */
+    --sidebar-primary: 224.3 76.3% 48%; /* Bright blue */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 240 3.7% 15.9%; /* Very dark blue-gray */
+    --sidebar-accent-foreground: 240 4.8% 95.9%; /* Very pale blue-gray */
+    --sidebar-border: 240 3.7% 15.9%; /* Very dark blue-gray */
+    --sidebar-ring: 217.2 91.2% 59.8%; /* Bright blue */
   }
 }
 

@@ -34,7 +34,7 @@ const VerificationPending = () => {
             </div>
           </div>
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-[hsl(var(--normaltext))]">
               Once you verify your email, you'll be able to log in to your account.
             </p>
           </div>

@@ -1,13 +1,17 @@
-
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/design-system/buttons";
 import { Textarea } from "@/components/ui/textarea";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { MessageSquare, Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { OutlineAction } from "./ui/design-system";
 
 interface FeedbackBoxProps {
   viewName: string;
@@ -24,14 +28,12 @@ const FeedbackBox = ({ viewName }: FeedbackBoxProps) => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('user_feedback')
-        .insert({
-          user_id: user.id,
-          session_id: uuidv4(), // Generate a session ID for this feedback
-          view_name: viewName,
-          feedback_text: feedback.trim()
-        });
+      const { error } = await supabase.from("user_feedback").insert({
+        user_id: user.id,
+        session_id: uuidv4(), // Generate a session ID for this feedback
+        view_name: viewName,
+        feedback_text: feedback.trim(),
+      });
 
       if (error) throw error;
 
@@ -46,24 +48,26 @@ const FeedbackBox = ({ viewName }: FeedbackBoxProps) => {
     }
   };
 
-  if (!user) return null;
-
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    // FIX: Added 'relative' class to the Collapsible component
+    // This makes the Collapsible the positioning context for its absolutely positioned content.
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="relative">
       <CollapsibleTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
+        <OutlineAction
+          size="sm"
+          className=" bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           Beta Feedback
-        </Button>
+        </OutlineAction>
       </CollapsibleTrigger>
-      <CollapsibleContent className="absolute top-12 right-0 z-50 w-80 bg-white border border-green-200 rounded-lg shadow-lg p-4">
+      {/* Adjusted top positioning slightly to account for button height */}
+      <CollapsibleContent className="absolute top-10 right-0 z-50 w-80 bg-white border border-green-200 rounded-lg shadow-lg p-4">
         <div className="space-y-3">
           <div className="text-sm text-gray-600">
-            <p className="font-medium mb-2">Help us improve! Share your thoughts:</p>
+            <p className="font-medium mb-2">
+              Help us improve! Share your thoughts:
+            </p>
             <ul className="text-xs space-y-1 text-gray-500">
               <li>• What did you find valuable?</li>
               <li>• What felt irrelevant?</li>

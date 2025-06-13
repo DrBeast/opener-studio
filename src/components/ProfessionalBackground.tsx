@@ -1,123 +1,87 @@
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, ArrowDown, FileText } from "lucide-react";
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { InfoBox } from "@/components/ui/design-system";
+
 interface ProfessionalBackgroundProps {
-  linkedinContent: string;
-  setLinkedinContent: (value: string) => void;
-  additionalDetails: string;
-  setAdditionalDetails: (value: string) => void;
-  cvContent: string;
-  setCvContent: (value: string) => void;
+  backgroundInput: string;
+  setBackgroundInput: (value: string) => void;
   isSubmitting: boolean;
   isEditing?: boolean;
   existingData?: {
+    background?: string;
     linkedin?: string;
     additional?: string;
-    cv?: {
-      name: string;
-      url: string;
-    } | string;
+    cv?: string;
   };
 }
+
 const ProfessionalBackground = ({
-  linkedinContent,
-  setLinkedinContent,
-  additionalDetails,
-  setAdditionalDetails,
-  cvContent,
-  setCvContent,
+  backgroundInput,
+  setBackgroundInput,
   isSubmitting,
   isEditing = false,
   existingData = {}
 }: ProfessionalBackgroundProps) => {
-  const [linkedinExpanded, setLinkedinExpanded] = useState(false);
-  const [additionalExpanded, setAdditionalExpanded] = useState(false);
-  const [cvExpanded, setCvExpanded] = useState(false);
-  const toggleLinkedin = () => setLinkedinExpanded(!linkedinExpanded);
-  const toggleAdditional = () => setAdditionalExpanded(!additionalExpanded);
-  const toggleCv = () => setCvExpanded(!cvExpanded);
-  return <div className="space-y-6">
-      {/* LinkedIn Section */}
-      <div className="relative">
-        <Card className={`bg-primary/5 p-6 rounded-lg ${linkedinExpanded ? 'border-primary' : ''}`} onClick={toggleLinkedin}>
-          <div className="flex items-center justify-between cursor-pointer">
-            <h3 className="text-lg font-semibold mb-0">LinkedIn Profile</h3>
-            {linkedinExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
-          
-          {!linkedinExpanded && <div className="flex items-center mt-2 text-sm text-muted-foreground">
-              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
-              <span>Click to edit LinkedIn content</span>
-            </div>}
-        </Card>
-        
-        {linkedinExpanded && <div className="mt-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {isEditing && existingData.linkedin ? "Update your LinkedIn profile information or add more details below." : "Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it into the text box below. This will help us understand your professional background better."}
-            </p>
-            
-            {isEditing && existingData.linkedin && <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
-                <p>Your current LinkedIn content is shown below. You can keep it as is or update it.</p>
-              </div>}
-            
-            <Textarea placeholder="Paste your LinkedIn profile content here..." className="min-h-[200px] w-full" value={linkedinContent} onChange={e => setLinkedinContent(e.target.value)} disabled={isSubmitting} />
-          </div>}
-      </div>
+  // If editing and backgroundInput is empty, try to populate from existing data
+  const [initialValue] = useState(() => {
+    if (isEditing && !backgroundInput) {
+      // Combine existing data if available for backward compatibility
+      const combinedExisting = [
+        existingData.background,
+        existingData.linkedin && `LinkedIn Profile:\n${existingData.linkedin}`,
+        existingData.cv && `CV Content:\n${existingData.cv}`,
+        existingData.additional && `Additional Details:\n${existingData.additional}`
+      ].filter(Boolean).join('\n\n');
       
-      {/* Additional Details Section */}
-      <div className="relative">
-        <Card className={`bg-primary/5 p-6 rounded-lg ${additionalExpanded ? 'border-primary' : ''}`} onClick={toggleAdditional}>
-          <div className="flex items-center justify-between cursor-pointer">
-            <h3 className="text-lg font-semibold mb-0">Additional Details</h3>
-            {additionalExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
-          
-          {!additionalExpanded && <div className="flex items-center mt-2 text-sm text-muted-foreground">
-              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
-              <span>Click to edit additional professional details</span>
-            </div>}
-        </Card>
-        
-        {additionalExpanded && <div className="mt-4 space-y-4">
-            
-            
-            {isEditing && existingData.additional && <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
-                <p>Your current additional details are shown below. You can keep them as is or update them.</p>
-              </div>}
-            
-            <Textarea placeholder="Tell us more about your professional stories, specific strengths, or key successes..." className="min-h-[200px] w-full" value={additionalDetails} onChange={e => setAdditionalDetails(e.target.value)} disabled={isSubmitting} />
-          </div>}
+      return combinedExisting || backgroundInput;
+    }
+    return backgroundInput;
+  });
+
+  // Use the initial value if backgroundInput is empty
+  const displayValue = backgroundInput || initialValue;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="background-input" className="text-lg font-semibold">
+          Professional Background
+        </Label>
+        <p className="text-sm text-[hsl(var(--normaltext))] mt-1">
+          {isEditing 
+            ? "Update your professional background information. This will be used to regenerate your AI profile summary."
+            : "Share your professional background information to generate your AI profile summary."
+          }
+        </p>
       </div>
 
-      {/* CV Content Section */}
-      <div className="relative">
-        <Card className={`bg-primary/5 p-6 rounded-lg ${cvExpanded ? 'border-primary' : ''}`} onClick={toggleCv}>
-          <div className="flex items-center justify-between cursor-pointer">
-            <h3 className="text-lg font-semibold mb-0 flex items-center">
-              <FileText className="mr-2 h-4 w-4" />
-              Resume Content
-            </h3>
-            {cvExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
-          
-          {!cvExpanded && <div className="flex items-center mt-2 text-sm text-muted-foreground">
-              <ArrowDown className="mr-2 h-4 w-4 text-primary animate-bounce" />
-              <span>Click to edit resume content</span>
-            </div>}
-        </Card>
-        
-        {cvExpanded && <div className="mt-4 space-y-4">
-            
-            
-            {isEditing && existingData.cv && <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800 border border-blue-200">
-                <p>Your resume content is shown below. You can keep it as is or update it.</p>
-              </div>}
-            
-            <Textarea placeholder="Copy and paste your resume content into the text box below. Don't worry about formatting - AI will figure it out. This helps us understand your professional background better." className="min-h-[200px] w-full" value={cvContent} onChange={e => setCvContent(e.target.value)} disabled={isSubmitting} />
-          </div>}
+      <InfoBox
+        title="💡 How to add your background information"
+        description="Copy your LinkedIn profile, CV content, or professional information to help AI create your profile summary."
+        badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
+      >
+        <div className="space-y-2">
+          <p><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</p>
+          <p><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</p>
+          <p><strong>Professional Information:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</p>
+          <p className="font-medium">The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value in your networking outreach.</p>
+        </div>
+      </InfoBox>
+
+      <div>
+        <Textarea
+          id="background-input"
+          placeholder="Paste your LinkedIn profile, CV content, or describe your professional background..."
+          value={displayValue}
+          onChange={(e) => setBackgroundInput(e.target.value)}
+          className="min-h-[300px]"
+          disabled={isSubmitting}
+        />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ProfessionalBackground;

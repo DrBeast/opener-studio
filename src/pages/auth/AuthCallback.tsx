@@ -181,116 +181,19 @@ const AuthCallback = () => {
             } else {
               console.log("User already has profile data, not overwriting");
             }
-
-            // Check for user data completion status to determine redirect
-            setRedirectStatus("Checking profile completion...");
-            
-            try {
-              // Check for background data in user_profiles
-              const { data: profileContentData, error: profileContentError } = await supabase
-                .from('user_profiles')
-                .select('linkedin_content, additional_details, cv_content')
-                .eq('user_id', user.id)
-                .single();
-                
-              if (profileContentError && profileContentError.code !== 'PGRST116') {
-                console.error("Error checking profile content:", profileContentError);
-              }
-              
-              // Get target criteria data
-              const { data: targetData, error: targetError } = await supabase
-                .from('target_criteria')
-                .select('*')
-                .eq('user_id', user.id);
-                
-              if (targetError) {
-                console.error("Error checking target criteria:", targetError);
-              }
-              
-              // Determine best path based on profile completion
-              const hasBackground = profileContentData && 
-                (profileContentData.linkedin_content || profileContentData.additional_details || profileContentData.cv_content);
-              const hasTargets = targetData && targetData.length > 0;
-              
-              setRedirectStatus("Redirecting you to the appropriate page...");
-              
-              // Decision logic for redirection:
-              if (!hasBackground) {
-                // If user doesn't have background data, redirect to enrichment page
-                console.log("User needs to complete profile enrichment");
-                navigate("/profile/enrichment");
-              } else if (!hasTargets) {
-                // If user has background but no targets, redirect to job targets
-                console.log("User needs to complete job targets");
-                navigate("/job-targets");
-              } else {
-                // User has completed both sections, redirect to profile
-                console.log("User profile is complete, redirecting to profile");
-                navigate("/profile");
-              }
-            } catch (err: any) {
-              console.error("Error in redirect logic:", err.message);
-              navigate("/profile");
-            }
-            
           } catch (profileErr: any) {
             console.error("Error processing profile data:", profileErr.message);
             console.error("Full error details:", JSON.stringify(profileErr, null, 2));
             toast.error("Error processing profile data");
-            navigate("/profile/enrichment");
           }
         } else {
-          // Not a LinkedIn user, use same logic for redirection
-          setRedirectStatus("Checking profile completion...");
+          // Not a LinkedIn user
           toast.success("Successfully logged in");
-          
-          try {
-            // Check for background data in user_profiles
-            const { data: profileData, error: profileError } = await supabase
-              .from('user_profiles')
-              .select('linkedin_content, additional_details, cv_content')
-              .eq('user_id', user.id)
-              .maybeSingle();
-              
-            if (profileError && profileError.code !== 'PGRST116') {
-              console.error("Error checking profile data:", profileError);
-            }
-            
-            // Get target criteria data
-            const { data: targetData, error: targetError } = await supabase
-              .from('target_criteria')
-              .select('*')
-              .eq('user_id', user.id);
-              
-            if (targetError) {
-              console.error("Error checking target criteria:", targetError);
-            }
-            
-            // Determine best path based on profile completion
-            const hasBackground = profileData && 
-              (profileData.linkedin_content || profileData.additional_details || profileData.cv_content);
-            const hasTargets = targetData && targetData.length > 0;
-            
-            setRedirectStatus("Redirecting you to the appropriate page...");
-            
-            if (!hasBackground) {
-              // If user doesn't have background data, redirect to enrichment page
-              console.log("User needs to complete profile enrichment");
-              navigate("/profile/enrichment");
-            } else if (!hasTargets) {
-              // If user has background but no targets, redirect to job targets
-              console.log("User needs to complete job targets");
-              navigate("/job-targets");
-            } else {
-              // User has completed both sections, redirect to profile
-              console.log("User profile is complete, redirecting to profile");
-              navigate("/profile");
-            }
-          } catch (err: any) {
-            console.error("Unexpected error determining user status:", err.message);
-            navigate("/profile");
-          }
         }
+        
+        // Always navigate to dashboard after successful authentication
+        setRedirectStatus("Redirecting to dashboard...");
+        navigate("/dashboard");
         
       } catch (err: any) {
         console.error("Unexpected error during authentication:", err.message);

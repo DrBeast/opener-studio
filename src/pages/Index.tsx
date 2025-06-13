@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import HeroSection from "@/components/landing/HeroSection";
 import PainPointsSection from "@/components/landing/PainPointsSection";
@@ -12,17 +11,19 @@ const Index = () => {
       const element = document.querySelector(hash);
       if (element) {
         element.scrollIntoView({
-          behavior: 'smooth'
+          behavior: "smooth",
         });
       }
     }
   }, []);
 
-  return <div className="min-h-screen">
+  return (
+    <div className="min-h-screen">
       <HeroSection />
       <PainPointsSection />
       <SolutionSection />
-    </div>;
+    </div>
+  );
 };
 
 export default Index;

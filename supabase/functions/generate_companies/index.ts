@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
 
@@ -13,7 +12,7 @@ const corsHeaders = {
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 
 serve(async (req) => {
-  // --- CORS Handling ---
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: corsHeaders
@@ -90,7 +89,7 @@ serve(async (req) => {
       });
     }
 
-    // 1. NEW: Fetch existing companies for this user (both regular and blacklisted)
+    // 1. Fetch existing companies for this user (both regular and blacklisted)
     console.log("Fetching existing companies to prevent duplicates");
     const { data: existingCompanies, error: existingCompaniesError } = await supabaseClient
       .from('companies')
@@ -193,7 +192,7 @@ serve(async (req) => {
     const targetCriteria = criteriaArray[0];
     console.log("Found target criteria:", targetCriteria.criteria_id);
 
-    // 3. Construct the prompt for the Gemini API
+    // 3. Construct the prompt for the Gemini API - UPDATED to request 5 companies
     const prompt = `
     You are an AI assistant helping a professional identify target companies for their job search.
     Below is the user's professional background summary and their job target criteria.
@@ -218,7 +217,7 @@ serve(async (req) => {
     Similar Companies (Inspiration): ${targetCriteria.similar_companies ? JSON.stringify(targetCriteria.similar_companies) : 'None provided'}
     Visa Sponsorship Required: ${targetCriteria.visa_sponsorship_required ? 'Yes' : 'No'}
 
-    Your task is to identify 10 companies that are the best fit for this user's background and criteria. For each company, provide the following information in a structured JSON array.
+    Your task is to identify 5 companies that are the best fit for this user's background and criteria. For each company, provide the following information in a structured JSON array.
 
     IMPORTANT: The following companies already exist in the user's list, so DO NOT include them or any close variations. Ensure all suggested companies are new and distinctly different from these:
     ${JSON.stringify(existingCompanyNames)}
@@ -236,7 +235,7 @@ serve(async (req) => {
     - "generated_criteria_highlights": A JSON object highlighting specific connections between the user's free-form criteria and this company.
     - "public_private": "Public" or "Private".
 
-    Ensure the output is a valid JSON array of company objects. Prioritize companies that are the strongest matches.
+    Ensure the output is a valid JSON array of exactly 5 company objects. Prioritize companies that are the strongest matches.
 
     Generate the JSON array:
     `;
@@ -306,8 +305,8 @@ serve(async (req) => {
         throw new Error("AI response is not a valid array of company objects.");
       }
       
-      // Limit to max 30 companies if AI returned more
-      generatedCompanies = generatedCompanies.slice(0, 30);
+      // Limit to max 5 companies - UPDATED from 30
+      generatedCompanies = generatedCompanies.slice(0, 5);
       console.log(`Successfully parsed ${generatedCompanies.length} companies from response`);
       
       // ADDITIONAL CHECK: Filter again for existing or blacklisted companies

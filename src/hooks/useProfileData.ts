@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, Background } from "@/types/profile";
@@ -10,6 +11,34 @@ const ensureStringArray = (value: any): string[] => {
     return value.map(item => String(item));
   }
   return [];
+};
+
+// Helper function to convert third-person descriptions to second-person
+const convertToSecondPerson = (text: string): string => {
+  if (!text) return text;
+  
+  // Common patterns to replace
+  const replacements = [
+    { pattern: /The user is/gi, replacement: "You are" },
+    { pattern: /The user has/gi, replacement: "You have" },
+    { pattern: /The user brings/gi, replacement: "You bring" },
+    { pattern: /The user specializes/gi, replacement: "You specialize" },
+    { pattern: /The user works/gi, replacement: "You work" },
+    { pattern: /The user's/gi, replacement: "Your" },
+    { pattern: /\bHe is/gi, replacement: "You are" },
+    { pattern: /\bShe is/gi, replacement: "You are" },
+    { pattern: /\bHe has/gi, replacement: "You have" },
+    { pattern: /\bShe has/gi, replacement: "You have" },
+    { pattern: /\bHis /gi, replacement: "Your " },
+    { pattern: /\bHer /gi, replacement: "Your " },
+  ];
+  
+  let result = text;
+  replacements.forEach(({ pattern, replacement }) => {
+    result = result.replace(pattern, replacement);
+  });
+  
+  return result;
 };
 
 export const useProfileData = (userId: string | undefined) => {
@@ -54,25 +83,25 @@ export const useProfileData = (userId: string | undefined) => {
         
         if (summaryData) {
           setBackgroundSummary({
-            experience: summaryData.experience,
-            education: summaryData.education,
-            expertise: summaryData.expertise,
-            achievements: summaryData.achievements,
-            overall_blurb: summaryData.overall_blurb,
+            experience: convertToSecondPerson(summaryData.experience),
+            education: convertToSecondPerson(summaryData.education),
+            expertise: convertToSecondPerson(summaryData.expertise),
+            achievements: convertToSecondPerson(summaryData.achievements),
+            overall_blurb: convertToSecondPerson(summaryData.overall_blurb),
             combined_experience_highlights: ensureStringArray(summaryData.combined_experience_highlights),
             combined_education_highlights: ensureStringArray(summaryData.combined_education_highlights),
             key_skills: ensureStringArray(summaryData.key_skills),
             domain_expertise: ensureStringArray(summaryData.domain_expertise),
             technical_expertise: ensureStringArray(summaryData.technical_expertise),
-            value_proposition_summary: summaryData.value_proposition_summary
+            value_proposition_summary: convertToSecondPerson(summaryData.value_proposition_summary)
           });
         } else {
           // Set dummy data if no summary was found
           setBackgroundSummary({
-            experience: "Product leader with expertise in SaaS and technology companies.",
-            education: "MBA from a top business school with undergraduate degree in Computer Science.",
-            expertise: "Product strategy, cross-functional leadership, and go-to-market execution.",
-            achievements: "Successfully launched multiple products driving significant revenue growth."
+            experience: "You are a product leader with expertise in SaaS and technology companies.",
+            education: "You have an MBA from a top business school with undergraduate degree in Computer Science.",
+            expertise: "You specialize in product strategy, cross-functional leadership, and go-to-market execution.",
+            achievements: "You have successfully launched multiple products driving significant revenue growth."
           });
         }
       } catch (error: any) {
@@ -90,8 +119,9 @@ export const useProfileData = (userId: string | undefined) => {
     fetchUserProfile();
   }, [userId]);
 
-  // Function to save profile data
+  // Function to save profile data - now handles the unified background_input field
   const saveUserProfile = async (userId: string, profileData: {
+    background_input?: string;
     linkedin_content?: string;
     additional_details?: string;
     cv_content?: string;
@@ -116,6 +146,7 @@ export const useProfileData = (userId: string | undefined) => {
         const { error } = await supabase
           .from("user_profiles")
           .update({
+            background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
             additional_details: profileData.additional_details || null,
             cv_content: profileData.cv_content || null,
@@ -130,6 +161,7 @@ export const useProfileData = (userId: string | undefined) => {
           .from("user_profiles")
           .insert({
             user_id: userId,
+            background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
             additional_details: profileData.additional_details || null,
             cv_content: profileData.cv_content || null
@@ -194,6 +226,7 @@ export const useProfileData = (userId: string | undefined) => {
     if (!userId) return;
     
     try {
+      console.log("Calling generate_profile function...");
       const { data, error } = await supabase.functions.invoke("generate_profile", {
         body: {
           userId: userId,
@@ -201,21 +234,50 @@ export const useProfileData = (userId: string | undefined) => {
         }
       });
       
+      console.log("Edge function response:", { data, error });
+      
       if (error) {
-        throw error;
+        console.error("Edge function error:", error);
+        throw new Error(`Edge function error: ${error.message || "Unknown error"}`);
+      }
+      
+      if (!data) {
+        throw new Error("No data returned from edge function");
+      }
+      
+      if (!data.success) {
+        throw new Error(data.message || "Edge function returned failure status");
       }
       
       if (data && data.summary) {
-        setBackgroundSummary(data.summary);
-        return data.summary;
+        // Convert to second person before setting
+        const convertedSummary = {
+          ...data.summary,
+          experience: convertToSecondPerson(data.summary.experience),
+          education: convertToSecondPerson(data.summary.education),
+          expertise: convertToSecondPerson(data.summary.expertise),
+          achievements: convertToSecondPerson(data.summary.achievements),
+          overall_blurb: convertToSecondPerson(data.summary.overall_blurb),
+          value_proposition_summary: convertToSecondPerson(data.summary.value_proposition_summary)
+        };
+        
+        setBackgroundSummary(convertedSummary);
+        return convertedSummary;
+      } else {
+        throw new Error("No summary data in response");
+      }
+    } catch (error: any) {
+      console.error("Error regenerating summary:", error);
+      
+      // Provide more specific error messaging
+      let errorMessage = "Failed to regenerate summary";
+      if (error.message) {
+        errorMessage = error.message;
       }
       
-      return null;
-    } catch (error: any) {
-      console.error("Error regenerating summary:", error.message);
       toast({
         title: "Error",
-        description: `Failed to regenerate summary: ${error.message}`,
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;

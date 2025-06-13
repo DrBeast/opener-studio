@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Building, Sparkles } from "lucide-react";
+import { Modal } from "@/components/ui/design-system/modals";
+import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 
 interface AddCompanyModalProps {
   isOpen: boolean;
@@ -34,19 +34,27 @@ export const AddCompanyModal = ({
     onAddCompany(companyName.trim());
   };
 
+  const handleClose = () => {
+    setCompanyName('');
+    setInputError('');
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add Company</DialogTitle>
-          <DialogDescription>
-            Enter a company name to add it to your target list.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Add Target Company"
+      description="Enter a company name to add it to your networking targets"
+      icon={<Building />}
+      className="sm:max-w-md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <div className="space-y-3">
+          <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+            Company Name
+          </Label>
+          <div className="relative">
             <Input
               id="companyName"
               value={companyName}
@@ -54,48 +62,50 @@ export const AddCompanyModal = ({
                 setCompanyName(e.target.value);
                 if (inputError) setInputError('');
               }}
-              placeholder="Enter company name"
-              className={inputError ? "border-destructive" : ""}
+              placeholder="e.g., Google, Microsoft, Apple..."
+              className={`h-12 pl-4 pr-12 border-2 transition-all duration-200 ${
+                inputError 
+                  ? "border-red-300 focus:border-red-400 focus:ring-red-200" 
+                  : "border-gray-200 focus:border-primary focus:ring-primary/20"
+              }`}
               disabled={isLoading}
             />
-            {inputError && (
-              <div className="flex items-center text-sm text-destructive">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                {inputError}
+            <Building className="absolute right-4 top-4 h-4 w-4 text-gray-400" />
+          </div>
+          {inputError && (
+            <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {inputError}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end gap-3 pt-4">
+          <OutlineAction
+            type="button"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </OutlineAction>
+          <PrimaryAction
+            type="submit"
+            disabled={isLoading || !companyName.trim()}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Adding...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Add Company
               </div>
             )}
-          </div>
-          
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || !companyName.trim()}
-              className="relative"
-            >
-              {isLoading ? (
-                <>
-                  <span className="opacity-0">Add Company</span>
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  </span>
-                </>
-              ) : (
-                <>
-                  Add Company
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </PrimaryAction>
+        </div>
+      </form>
+    </Modal>
   );
 };

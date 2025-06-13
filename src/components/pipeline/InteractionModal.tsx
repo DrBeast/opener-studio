@@ -1,12 +1,5 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -21,6 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
+import { Calendar, Clock, CheckCircle } from "lucide-react";
+
+// Design System Imports
+import {
+  ActionModal,
+  PrimaryAction,
+  OutlineAction
+} from "@/components/ui/design-system";
 
 interface InteractionModalProps {
   isOpen: boolean;
@@ -95,69 +96,98 @@ export const InteractionModal = ({
     setDate(format(new Date(), 'yyyy-MM-dd'));
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const suggestionOptions = mode === 'log' 
     ? ['Face-to-face conversation', 'Email sent', 'Applied for a role', 'Phone call', 'LinkedIn message']
     : ['Follow up on application', 'Send thank you note', 'Check application status', 'Schedule interview', 'Send additional materials'];
 
+  const getModalIcon = () => {
+    return mode === 'log' ? <CheckCircle /> : <Clock />;
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === 'log' ? 'Log New Interaction' : 'Schedule Follow-up Action'}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={mode === 'log' ? "Describe what happened..." : "What action needs to be taken?"}
-              required
-            />
-          </div>
+    <ActionModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={mode === 'log' ? 'Log New Interaction' : 'Schedule Follow-up Action'}
+      icon={getModalIcon()}
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-3">
+          <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+            Description
+          </Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={mode === 'log' ? "Describe what happened..." : "What action needs to be taken?"}
+            className="min-h-[100px] border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 resize-none"
+            required
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <Select value={interactionType} onValueChange={setInteractionType} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type..." />
-              </SelectTrigger>
-              <SelectContent>
-                {suggestionOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-3">
+          <Label htmlFor="type" className="text-sm font-medium text-gray-700">
+            Type
+          </Label>
+          <Select value={interactionType} onValueChange={setInteractionType} required>
+            <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-500">
+              <SelectValue placeholder="Select type..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-gray-200 shadow-xl">
+              {suggestionOptions.map((option) => (
+                <SelectItem key={option} value={option} className="hover:bg-purple-50">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div>
-            <Label htmlFor="date">
-              {mode === 'log' ? 'Interaction Date' : 'Due Date'}
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
+        <div className="space-y-3">
+          <Label htmlFor="date" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {mode === 'log' ? 'Interaction Date' : 'Due Date'}
+          </Label>
+          <Input
+            id="date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="h-12 border-2 border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+            required
+          />
+        </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : (mode === 'log' ? 'Log Interaction' : 'Schedule Action')}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div className="flex justify-end gap-3 pt-4">
+          <OutlineAction 
+            type="button" 
+            onClick={handleClose}
+            className="px-6"
+          >
+            Cancel
+          </OutlineAction>
+          <PrimaryAction 
+            type="submit" 
+            disabled={isLoading}
+            className="px-6"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </div>
+            ) : (
+              mode === 'log' ? 'Log Interaction' : 'Schedule Action'
+            )}
+          </PrimaryAction>
+        </div>
+      </form>
+    </ActionModal>
   );
 };

@@ -9,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Linkedin } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
@@ -22,16 +20,16 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Signup = () => {
-  const { signUp, signInWithLinkedIn } = useAuth();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check for redirect param
+  // Check for redirect param - default to dashboard instead of profile
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/profile';
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
 
   // Get session ID when component mounts
   useEffect(() => {
@@ -99,21 +97,6 @@ const Signup = () => {
     }
   };
 
-  const handleLinkedInSignIn = async () => {
-    setErrorMessage(null);
-    try {
-      await signInWithLinkedIn();
-      // Redirect happens automatically
-    } catch (error: any) {
-      console.error("LinkedIn signin error:", error);
-      setErrorMessage(error.message || "An error occurred during LinkedIn sign-in");
-      toast.error(error.message || "An error occurred during LinkedIn sign-in", {
-        id: "linkedin-error",
-        duration: 5000
-      });
-    }
-  };
-
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
       <Card className="w-full max-w-md">
@@ -130,28 +113,6 @@ const Signup = () => {
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}
-          
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              type="button" 
-              onClick={handleLinkedInSignIn}
-              disabled={isLoading}
-            >
-              <Linkedin className="mr-2 h-4 w-4" />
-              Continue with LinkedIn
-            </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
 
             {sessionId && (
               <div className="text-sm text-blue-600 mb-2">
@@ -205,7 +166,7 @@ const Signup = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <div className="text-center text-sm w-full">
+          <div className="text-center text-sm w-full text-[hsl(var(--normaltext))]">
             Already have an account?{" "}
             <Link to="/auth/login" className="text-primary hover:underline">
               Log in
