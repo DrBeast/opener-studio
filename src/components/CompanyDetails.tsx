@@ -874,28 +874,26 @@ export function CompanyDetails({
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
+              <div className="flex justify-between items-center ">
+                <h3 className="text-lg font-semibold text-gray-900 ">
                   Interactions
                 </h3>
                 <div className="flex gap-2">
-                  <PrimaryAction
-                    size="sm"
-                    onClick={() => setIsLogInteractionOpen(true)}
-                    className=" border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </PrimaryAction>
                   <OutlineAction
                     size="sm"
                     variant="outline"
                     onClick={() => setIsPlanInteractionOpen(true)}
-                    className=" text-primary hover:bg-gray-50"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Plan Interaction
                   </OutlineAction>
+                  <PrimaryAction
+                    size="sm"
+                    onClick={() => setIsLogInteractionOpen(true)}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Log Interaction
+                  </PrimaryAction>
                 </div>
               </div>
 
