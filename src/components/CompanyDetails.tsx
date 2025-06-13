@@ -829,7 +829,9 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <Chipcard
                       key={contact.contact_id}
-                      title={`${contact.first_name || ''} ${contact.last_name || ''}`}
+                      title={`${contact.first_name || ""} ${
+                        contact.last_name || ""
+                      }`}
                       subtitle={contact.role}
                       description={contact.location}
                       icon={<Contact />}
@@ -1076,10 +1078,11 @@ export function CompanyDetails({
           <MessageGeneration
             contact={{
               contact_id: selectedContactForMessage.contact_id,
-              first_name: selectedContactForMessage.first_name || '',
-              last_name: selectedContactForMessage.last_name || '',
+              first_name: selectedContactForMessage.first_name || "",
+              last_name: selectedContactForMessage.last_name || "",
               role: selectedContactForMessage.role,
-              company_id: selectedContactForMessage.company_id || company.company_id,
+              company_id:
+                selectedContactForMessage.company_id || company.company_id,
             }}
             companyName={company.name}
             isOpen={isMessageGenerationOpen}
