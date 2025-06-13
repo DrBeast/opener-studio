@@ -1,12 +1,23 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Building, MessageCircle, Users } from "lucide-react";
+import { User, Building, MessageCircle, Users, Contact } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";
+import {
+  Chipcard,
+  OutlineAction,
+  PrimaryAction,
+} from "@/components/ui/design-system";
 
 interface Contact {
   contact_id: string;
@@ -22,7 +33,10 @@ interface ContactSelectionModalProps {
   onClose: () => void;
 }
 
-export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModalProps) => {
+export const ContactSelectionModal = ({
+  isOpen,
+  onClose,
+}: ContactSelectionModalProps) => {
   const { user } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,28 +55,31 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
 
     try {
       const { data, error } = await supabase
-        .from('contacts')
-        .select(`
+        .from("contacts")
+        .select(
+          `
           contact_id,
           first_name,
           last_name,
           role,
           company_id,
           companies!inner(name)
-        `)
-        .eq('user_id', user.id)
-        .order('first_name');
+        `
+        )
+        .eq("user_id", user.id)
+        .order("first_name");
 
       if (error) throw error;
 
-      const contactsWithCompany = data?.map(contact => ({
-        ...contact,
-        company_name: contact.companies?.name
-      })) || [];
+      const contactsWithCompany =
+        data?.map((contact) => ({
+          ...contact,
+          company_name: contact.companies?.name,
+        })) || [];
 
       setContacts(contactsWithCompany);
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      console.error("Error fetching contacts:", error);
     } finally {
       setLoading(false);
     }
@@ -114,41 +131,33 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
               <p className="text-muted-foreground mb-4">
                 Add some contacts first to generate personalized messages
               </p>
-              <Button onClick={handleAddContacts}>
-                Add Contacts
-              </Button>
+              <Button onClick={handleAddContacts}>Add Contacts</Button>
             </div>
           ) : (
             <div className="space-y-3">
               {contacts.map((contact) => (
-                <Card key={contact.contact_id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleContactSelect(contact)}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            {contact.first_name} {contact.last_name}
-                          </h3>
-                          {contact.role && (
-                            <p className="text-sm text-muted-foreground">{contact.role}</p>
-                          )}
-                          {contact.company_name && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <Building className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">{contact.company_name}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <Button size="sm">
-                        Generate Message
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Chipcard
+                  key={contact.contact_id}
+                  title={`${contact.first_name} ${contact.last_name}`}
+                  subtitle={
+                    contact.role ? (
+                      <p className="text-sm text-muted-foreground">
+                        {contact.role}
+                      </p>
+                    ) : null
+                  }
+                  description={`${contact.company_name}`}
+                  icon={<Contact />}
+                  icon2={<Building className="h-4 w-4" />}
+                >
+                  <PrimaryAction
+                    size="sm"
+                    onClick={() => handleContactSelect(contact)}
+                    className="flex items-center gap-1"
+                  >
+                    Generate Message
+                  </PrimaryAction>
+                </Chipcard>
               ))}
             </div>
           )}
@@ -158,7 +167,7 @@ export const ContactSelectionModal = ({ isOpen, onClose }: ContactSelectionModal
       {selectedContact && (
         <MessageGeneration
           contact={selectedContact}
-          companyName={selectedContact.company_name || 'Unknown Company'}
+          companyName={selectedContact.company_name || "Unknown Company"}
           isOpen={isMessageModalOpen}
           onClose={handleCloseMessageModal}
         />

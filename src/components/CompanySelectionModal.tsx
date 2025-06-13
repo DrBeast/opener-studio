@@ -7,12 +7,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Building, Bot } from "lucide-react";
+import { Building, Bot, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
-import { Chipcard } from "@/components/ui/design-system";
+import {
+  Chipcard,
+  OutlineAction,
+  PrimaryAction,
+} from "@/components/ui/design-system";
 
 interface Company {
   company_id: string;
@@ -129,24 +133,25 @@ export const CompanySelectionModal = ({
                   title={company.name}
                   subtitle={company.industry}
                   description={company.hq_location}
-                  icon={<Building className="h-4 w-4 text-primary" />}
+                  icon={<Building />}
+                  icon2={<MapPin className="h-4 w-4" />}
                 >
-                  <Button
+                  <OutlineAction
                     size="sm"
                     variant="outline"
                     onClick={() => handleCompanySelect(company, "generate")}
                     className="flex items-center gap-1"
                   >
-                    <Bot className="h-3 w-3" />
+                    <Bot className="h-4 w-4" />
                     Generate
-                  </Button>
-                  <Button
+                  </OutlineAction>
+                  <PrimaryAction
                     size="sm"
                     onClick={() => handleCompanySelect(company, "manual")}
                     className="flex items-center gap-1"
                   >
                     Add Manually
-                  </Button>
+                  </PrimaryAction>
                 </Chipcard>
               ))}
             </div>
