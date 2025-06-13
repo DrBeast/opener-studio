@@ -51,6 +51,7 @@ interface ContactData {
   last_name?: string;
   role?: string;
   location?: string;
+  company_id?: string;
 }
 interface InteractionData {
   interaction_id: string;
@@ -828,7 +829,7 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <Chipcard
                       key={contact.contact_id}
-                      title={`${contact.first_name} ${contact.last_name}`}
+                      title={`${contact.first_name || ''} ${contact.last_name || ''}`}
                       subtitle={contact.role}
                       description={contact.location}
                       icon={<Contact />}
@@ -1073,7 +1074,13 @@ export function CompanyDetails({
         {/* Message Generation Modal */}
         {selectedContactForMessage && (
           <MessageGeneration
-            contact={selectedContactForMessage}
+            contact={{
+              contact_id: selectedContactForMessage.contact_id,
+              first_name: selectedContactForMessage.first_name || '',
+              last_name: selectedContactForMessage.last_name || '',
+              role: selectedContactForMessage.role,
+              company_id: selectedContactForMessage.company_id || company.company_id,
+            }}
             companyName={company.name}
             isOpen={isMessageGenerationOpen}
             onClose={() => {
