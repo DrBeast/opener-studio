@@ -7,12 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Building, Users, UserPlus, Bot } from "lucide-react";
+import { Building, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+import { Chipcard } from "@/components/ui/design-system";
 
 interface Company {
   company_id: string;
@@ -92,7 +92,7 @@ export const CompanySelectionModal = ({
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
+              <Building className="h-5 w-5" />
               Add Contact - Select Company
             </DialogTitle>
             <DialogDescription>
@@ -124,54 +124,30 @@ export const CompanySelectionModal = ({
           ) : (
             <div className="space-y-3">
               {companies.map((company) => (
-                <Card
+                <Chipcard
                   key={company.company_id}
-                  className="hover:shadow-md transition-shadow"
+                  title={company.name}
+                  subtitle={company.industry}
+                  description={company.hq_location}
+                  icon={<Building className="h-4 w-4 text-primary" />}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <Building className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{company.name}</h3>
-                          {company.industry && (
-                            <p className="text-sm text-muted-foreground">
-                              {company.industry}
-                            </p>
-                          )}
-                          {company.hq_location && (
-                            <p className="text-xs text-muted-foreground">
-                              {company.hq_location}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleCompanySelect(company, "generate")
-                          }
-                          className="flex items-center gap-1"
-                        >
-                          <Bot className="h-3 w-3" />
-                          Generate
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleCompanySelect(company, "manual")}
-                          className="flex items-center gap-1"
-                        >
-                          <UserPlus className="h-3 w-3" />
-                          Add Manually
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCompanySelect(company, "generate")}
+                    className="flex items-center gap-1"
+                  >
+                    <Bot className="h-3 w-3" />
+                    Generate
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleCompanySelect(company, "manual")}
+                    className="flex items-center gap-1"
+                  >
+                    Add Manually
+                  </Button>
+                </Chipcard>
               ))}
             </div>
           )}
