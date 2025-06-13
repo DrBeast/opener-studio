@@ -556,7 +556,7 @@ export function CompanyDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto fixed top-[8vh] left-1/2 transform -translate-x-1/2 translate-y-0">
           <DialogHeader className="border-b border-gray-200 pb-4">
             <div className="flex items-center">
               <DialogTitle className="flex items-center text-xl font-semibold foreground">
