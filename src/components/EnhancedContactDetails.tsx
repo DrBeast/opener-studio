@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +15,7 @@ import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
+import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 
 interface ContactData {
   contact_id: string;
@@ -332,9 +332,9 @@ export function EnhancedContactDetails({
       return (
         <div className="flex flex-col">
           <div className="text-red-500">Error loading interaction summary</div>
-          <Button variant="outline" size="sm" onClick={regenerateOverview} className="mt-2 self-start">
+          <OutlineAction size="sm" onClick={regenerateOverview} className="mt-2 self-start">
             <RefreshCw className="mr-2 h-3 w-3" /> Try again
-          </Button>
+          </OutlineAction>
         </div>
       );
     }
@@ -359,15 +359,14 @@ export function EnhancedContactDetails({
             )}
           </div>
           
-          <Button 
-            variant="ghost" 
+          <OutlineAction 
             size="sm" 
             onClick={regenerateOverview} 
             className="ml-2 h-8 w-8 p-0" 
             title="Regenerate summary"
           >
             <RefreshCw className="h-4 w-4" />
-          </Button>
+          </OutlineAction>
         </div>
       </div>
     );
@@ -380,12 +379,12 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
-          <DialogHeader className="border-b border-gray-200 pb-4">
-            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-background">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold text-foreground flex items-center gap-3">
               {formData.first_name || ''} {formData.last_name || ''}
               {formData.companies?.name && (
-                <Badge variant="outline" className="text-gray-600 border-gray-300">
+                <Badge variant="outline" className="text-muted-foreground border-border">
                   {formData.companies.name}
                 </Badge>
               )}
@@ -393,22 +392,22 @@ export function EnhancedContactDetails({
           </DialogHeader>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-50 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-3 bg-muted p-1 rounded-lg">
               <TabsTrigger 
                 value="details" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground font-medium"
               >
                 Contact Details
               </TabsTrigger>
               <TabsTrigger 
                 value="messages" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground font-medium"
               >
                 Messages
               </TabsTrigger>
               <TabsTrigger 
                 value="interactions" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm text-gray-600 font-medium"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground font-medium"
               >
                 Interactions
               </TabsTrigger>
@@ -419,75 +418,75 @@ export function EnhancedContactDetails({
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="first_name" className="text-sm font-medium text-gray-700">First Name</Label>
+                    <Label htmlFor="first_name" className="text-sm font-medium text-foreground">First Name</Label>
                     <Input
                       id="first_name"
                       name="first_name"
                       value={formData.first_name || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="last_name" className="text-sm font-medium text-gray-700">Last Name</Label>
+                    <Label htmlFor="last_name" className="text-sm font-medium text-foreground">Last Name</Label>
                     <Input
                       id="last_name"
                       name="last_name"
                       value={formData.last_name || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
+                    <Label htmlFor="role" className="text-sm font-medium text-foreground">Role</Label>
                     <Input
                       id="role"
                       name="role"
                       value={formData.role || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
+                    <Label htmlFor="location" className="text-sm font-medium text-foreground">Location</Label>
                     <Input
                       id="location"
                       name="location"
                       value={formData.location || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
                     <Input
                       id="email"
                       name="email"
                       type="email"
                       value={formData.email || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="linkedin_url" className="text-sm font-medium text-gray-700">LinkedIn URL</Label>
+                    <Label htmlFor="linkedin_url" className="text-sm font-medium text-foreground">LinkedIn URL</Label>
                     <Input
                       id="linkedin_url"
                       name="linkedin_url"
                       value={formData.linkedin_url || ''}
                       onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                      className="bg-background border-border focus:border-primary focus:ring-primary"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="user_notes" className="text-sm font-medium text-gray-700">Your Notes</Label>
+                  <Label htmlFor="user_notes" className="text-sm font-medium text-foreground">Your Notes</Label>
                   <Textarea
                     id="user_notes"
                     name="user_notes"
@@ -495,14 +494,14 @@ export function EnhancedContactDetails({
                     value={formData.user_notes || ''}
                     onChange={handleChange}
                     placeholder="Add your personal notes about this contact..."
-                    className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                    className="bg-background border-border focus:border-primary focus:ring-primary"
                   />
                 </div>
                 
                 {formData.bio_summary && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">Background Summary</Label>
-                    <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 text-sm text-gray-700">
+                    <Label className="text-sm font-medium text-foreground">Background Summary</Label>
+                    <div className="rounded-lg border border-border p-4 bg-muted text-sm text-foreground">
                       {formData.bio_summary}
                     </div>
                   </div>
@@ -510,18 +509,18 @@ export function EnhancedContactDetails({
                 
                 {formData.how_i_can_help && (
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">How I Can Help</Label>
-                    <div className="rounded-lg border border-purple-200 p-4 bg-purple-50 text-sm text-purple-800">
+                    <Label className="text-sm font-medium text-foreground">How I Can Help</Label>
+                    <div className="rounded-lg border border-border p-4 bg-accent text-sm text-accent-foreground">
                       {formData.how_i_can_help}
                     </div>
                   </div>
                 )}
                 
-                <div className="flex justify-end pt-6 border-t border-gray-200">
-                  <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                <div className="flex justify-end pt-6 border-t border-border">
+                  <PrimaryAction type="submit" disabled={isLoading}>
                     <Save className="mr-2 h-4 w-4" />
                     {isLoading ? "Saving..." : "Save Changes"}
-                  </Button>
+                  </PrimaryAction>
                 </div>
               </form>
             </TabsContent>
@@ -529,26 +528,26 @@ export function EnhancedContactDetails({
             {/* Enhanced Messages Tab */}
             <TabsContent value="messages" className="space-y-6 pt-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Generate Outreach Message</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="text-lg font-semibold text-foreground">Generate Outreach Message</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   You are crafting a personalized message to build genuine connections and articulate your value proposition authentically, focusing on mutual learning rather than just asking for opportunities.
                 </p>
               </div>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-accent border border-border rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <MessageCircle className="h-5 w-5 text-accent-foreground mt-0.5 shrink-0" />
                   <div className="space-y-3 text-sm">
                     <div>
-                      <strong className="text-blue-900">How AI helps you succeed:</strong>
-                      <p className="text-blue-800 mt-1">
+                      <strong className="text-accent-foreground">How AI helps you succeed:</strong>
+                      <p className="text-accent-foreground mt-1">
                         Your experience and skills are analyzed in relation to this contact's role and company needs. The AI helps you frame your outreach around genuine interest and mutual value, avoiding the "sales-y" feeling by focusing on how you can contribute rather than what you need.
                       </p>
                     </div>
                     
                     <div>
-                      <strong className="text-blue-900">Your value proposition approach:</strong>
-                      <p className="text-blue-800 mt-1">
+                      <strong className="text-accent-foreground">Your value proposition approach:</strong>
+                      <p className="text-accent-foreground mt-1">
                         You are positioning yourself as someone who can bring value to their work and company goals. Your professional background is leveraged to demonstrate authentic interest in their industry and challenges, making the connection feel natural and mutually beneficial.
                       </p>
                     </div>
@@ -569,36 +568,36 @@ export function EnhancedContactDetails({
             {/* Simplified Interactions Tab */}
             <TabsContent value="interactions" className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Interaction Summary</Label>
-                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                <Label className="text-sm font-medium text-foreground">Interaction Summary</Label>
+                <div className="rounded-lg border border-border p-4 bg-muted">
                   {renderInteractionSummary()}
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Interactions</h3>
+                <h3 className="text-lg font-semibold text-foreground">Interactions</h3>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <PrimaryAction size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Log Interaction
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                  </PrimaryAction>
+                  <OutlineAction size="sm" onClick={() => setIsPlanInteractionOpen(true)}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Plan Interaction
-                  </Button>
+                  </OutlineAction>
                 </div>
               </div>
 
               {interactions.length > 0 ? (
                 <div className="space-y-4">
                   {interactions.map(interaction => (
-                    <div key={interaction.interaction_id} className="border border-gray-200 rounded-lg p-4 bg-white">
+                    <div key={interaction.interaction_id} className="border border-border rounded-lg p-4 bg-background">
                       <div className="flex justify-between items-start">
                         <div className="flex-1 space-y-2">
                           {editingInteraction === interaction.interaction_id ? (
                             <div className="space-y-3">
                               <div>
-                                <Label htmlFor={`date-${interaction.interaction_id}`} className="text-sm font-medium text-gray-700">Date</Label>
+                                <Label htmlFor={`date-${interaction.interaction_id}`} className="text-sm font-medium text-foreground">Date</Label>
                                 <Input
                                   id={`date-${interaction.interaction_id}`}
                                   type="date"
@@ -610,11 +609,11 @@ export function EnhancedContactDetails({
                                       date: e.target.value
                                     }
                                   })}
-                                  className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                                  className="bg-background border-border focus:border-primary focus:ring-primary"
                                 />
                               </div>
                               <div>
-                                <Label htmlFor={`desc-${interaction.interaction_id}`} className="text-sm font-medium text-gray-700">Description</Label>
+                                <Label htmlFor={`desc-${interaction.interaction_id}`} className="text-sm font-medium text-foreground">Description</Label>
                                 <Textarea
                                   id={`desc-${interaction.interaction_id}`}
                                   value={editingValues[interaction.interaction_id]?.description || ''}
@@ -626,32 +625,29 @@ export function EnhancedContactDetails({
                                     }
                                   })}
                                   rows={3}
-                                  className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                                  className="bg-background border-border focus:border-primary focus:ring-primary"
                                 />
                               </div>
                               <div className="flex gap-2">
-                                <Button
+                                <PrimaryAction
                                   size="sm"
                                   onClick={() => handleSaveInteraction(interaction.interaction_id)}
-                                  className="bg-purple-600 hover:bg-purple-700 text-white"
                                 >
                                   <Check className="h-4 w-4 mr-1" />
                                   Save
-                                </Button>
-                                <Button
+                                </PrimaryAction>
+                                <OutlineAction
                                   size="sm"
-                                  variant="outline"
                                   onClick={handleCancelEdit}
-                                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                                 >
                                   Cancel
-                                </Button>
+                                </OutlineAction>
                               </div>
                             </div>
                           ) : (
                             <div>
                               <div 
-                                className="text-sm font-medium text-gray-600 cursor-pointer hover:text-purple-600 transition-colors"
+                                className="text-sm font-medium text-muted-foreground cursor-pointer hover:text-primary transition-colors"
                                 onClick={() => handleEditInteraction(
                                   interaction.interaction_id, 
                                   interaction.interaction_date, 
@@ -661,7 +657,7 @@ export function EnhancedContactDetails({
                                 {formatDate(interaction.interaction_date)}
                               </div>
                               <div 
-                                className="text-sm mt-1 cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200 transition-colors text-gray-700"
+                                className="text-sm mt-1 cursor-pointer hover:bg-muted p-2 rounded border border-transparent hover:border-border transition-colors text-foreground"
                                 onClick={() => handleEditInteraction(
                                   interaction.interaction_id, 
                                   interaction.interaction_date, 
@@ -675,34 +671,33 @@ export function EnhancedContactDetails({
                         </div>
                         
                         {editingInteraction !== interaction.interaction_id && (
-                          <Button
-                            variant="ghost"
+                          <OutlineAction
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                             onClick={() => handleDeleteInteraction(interaction.interaction_id)}
                           >
                             <Trash className="h-4 w-4" />
-                          </Button>
+                          </OutlineAction>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
-                  <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
+                <div className="bg-muted rounded-lg p-8 text-center border border-border">
+                  <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
                     No interactions logged for this contact yet
                   </p>
                   <div className="flex gap-2 justify-center">
-                    <Button size="sm" onClick={() => setIsLogInteractionOpen(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <PrimaryAction size="sm" onClick={() => setIsLogInteractionOpen(true)}>
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Log Interaction
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setIsPlanInteractionOpen(true)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                    </PrimaryAction>
+                    <OutlineAction size="sm" onClick={() => setIsPlanInteractionOpen(true)}>
                       <Calendar className="h-4 w-4 mr-2" />
                       Plan Interaction
-                    </Button>
+                    </OutlineAction>
                   </div>
                 </div>
               )}
