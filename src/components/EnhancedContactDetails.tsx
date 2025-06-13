@@ -416,7 +416,7 @@ export function EnhancedContactDetails({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto bg-white fixed top-[7.5vh] left-1/2 transform -translate-x-1/2 translate-y-0">
           <DialogHeader className="pb-6 border-b border-gray-200">
             <DialogTitle className="flex items-center text-xl font-semibold text-foreground">
               {formData.first_name || ""} {formData.last_name || ""}
@@ -431,22 +431,22 @@ export function EnhancedContactDetails({
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-0 p-1 rounded-lg gap-2">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg gap-1">
               <TabsTrigger
                 value="details"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:bg-gray-50 rounded-md transition-all"
               >
                 Contact Details
               </TabsTrigger>
               <TabsTrigger
                 value="messages"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:bg-gray-50 rounded-md transition-all"
               >
                 Messages
               </TabsTrigger>
               <TabsTrigger
                 value="interactions"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-white data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:bg-gray-50 rounded-md transition-all"
               >
                 Interactions
               </TabsTrigger>
