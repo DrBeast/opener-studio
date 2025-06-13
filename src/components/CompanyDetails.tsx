@@ -50,6 +50,7 @@ interface ContactData {
   first_name?: string;
   last_name?: string;
   role?: string;
+  location?: string;
 }
 interface InteractionData {
   interaction_id: string;
@@ -546,6 +547,12 @@ export function CompanyDetails({
     setIsMessageGenerationOpen(true);
   };
 
+  // Add the missing handleContactSelect function
+  const handleContactSelect = (contact: ContactData) => {
+    setSelectedContactForMessage(contact);
+    setIsMessageGenerationOpen(true);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -822,14 +829,8 @@ export function CompanyDetails({
                     <Chipcard
                       key={contact.contact_id}
                       title={`${contact.first_name} ${contact.last_name}`}
-                      subtitle={
-                        contact.role ? (
-                          <p className="text-sm text-muted-foreground">
-                            {contact.role}
-                          </p>
-                        ) : null
-                      }
-                      description={`${contact.location}`}
+                      subtitle={contact.role}
+                      description={contact.location}
                       icon={<Contact />}
                       icon2={<MapPin className="h-4 w-4" />}
                     >

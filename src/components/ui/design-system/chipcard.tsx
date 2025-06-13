@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -6,6 +7,7 @@ interface ChipcardProps extends React.HTMLAttributes<HTMLDivElement> {
   subtitle?: string;
   description?: string;
   icon?: React.ReactNode;
+  icon2?: React.ReactNode;
   children?: React.ReactNode;
 }
 

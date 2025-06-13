@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -139,14 +140,8 @@ export const ContactSelectionModal = ({
                 <Chipcard
                   key={contact.contact_id}
                   title={`${contact.first_name} ${contact.last_name}`}
-                  subtitle={
-                    contact.role ? (
-                      <p className="text-sm text-muted-foreground">
-                        {contact.role}
-                      </p>
-                    ) : null
-                  }
-                  description={`${contact.company_name}`}
+                  subtitle={contact.role}
+                  description={contact.company_name}
                   icon={<Contact />}
                   icon2={<Building className="h-4 w-4" />}
                 >
