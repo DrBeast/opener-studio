@@ -49,10 +49,11 @@ const App = () => (
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/job-targets" element={<JobTargets />} />
-                <Route path="/pipeline" element={<PipelineDashboard />} />
+                {/* Redirect authenticated users to pipeline */}
+                <Route path="/dashboard" element={<Navigate to="/pipeline" replace />} />
               </Route>
 
               {/* Admin Routes (not linked anywhere) */}

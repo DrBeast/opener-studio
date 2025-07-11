@@ -2,9 +2,11 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, BookOpen } from "lucide-react";
+import { LogOut, BookOpen, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import FeedbackBox from "@/components/FeedbackBox"; // Corrected import: use default import if it's `export default FeedbackBox;`
+import FeedbackBox from "@/components/FeedbackBox";
+import SettingsModal from "@/components/SettingsModal";
+import { useState } from "react";
 
 interface HeaderProps {
   onOpenOnboarding?: () => void;
@@ -14,6 +16,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -61,50 +64,11 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             )}
           </div>
 
-          {/* MIDDLE: Navigation */}
+          {/* MIDDLE: Empty - Navigation removed */}
           {user ? (
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                to="/dashboard"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/dashboard")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/profile"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/profile")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Profile
-              </Link>
-              <Link
-                to="/job-targets"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/job-targets")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Job Targets
-              </Link>
-              <Link
-                to="/pipeline"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/pipeline")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Pipeline
-              </Link>
-            </nav>
+            <div className="hidden md:flex items-center">
+              {/* Navigation removed - Pipeline is now the main view */}
+            </div>
           ) : (
             <nav className="hidden md:flex items-center space-x-6">
               <Link
@@ -123,10 +87,18 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             </nav>
           )}
 
-          {/* RIGHT SIDE: Feedback and Logout Buttons */}
+          {/* RIGHT SIDE: Settings, Feedback and Logout Buttons */}
           {user && (
             <div className="flex items-center space-x-3">
-              {/* Feedback Button - Now on the far right */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </Button>
               <FeedbackBox viewName={location.pathname} />
               <Button
                 variant="outlinedestructive"
@@ -139,6 +111,11 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
               </Button>
             </div>
           )}
+
+          <SettingsModal 
+            isOpen={isSettingsOpen} 
+            onClose={() => setIsSettingsOpen(false)} 
+          />
 
           {/* Mobile Menu (simplified for now) */}
           {!user && (

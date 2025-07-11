@@ -18,9 +18,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ProfileReviewStep } from "@/components/onboarding/ProfileReviewStep";
-import { CompanyGenerationStep } from "@/components/onboarding/CompanyGenerationStep";
-import { CompletionStep } from "@/components/onboarding/CompletionStep";
+import ContactCreationStep from "@/components/onboarding/ContactCreationStep";
+import MessageCreationStep from "@/components/onboarding/MessageCreationStep";
 import { Background } from "@/types/profile";
 import { useNavigate } from "react-router-dom";
 import { OutlineAction } from "./ui/design-system";
@@ -48,57 +47,14 @@ const OnboardingFlow = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [backgroundSummary, setBackgroundSummary] = useState<Background | null>(
-    null
-  );
   const [isLoading, setIsLoading] = useState(false);
-  const [messageGenerated, setMessageGenerated] = useState(false);
+  const [contactCreated, setContactCreated] = useState(false);
+  const [messageCreated, setMessageCreated] = useState(false);
 
-  const totalSteps = 3;
+  const totalSteps = 2;
   const progress = (currentStep / totalSteps) * 100;
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!user) return;
-
-      try {
-        // Fetch summary data from the user_summaries table
-        const { data: summaryData } = await supabase
-          .from("user_summaries")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (summaryData) {
-          setBackgroundSummary({
-            experience: summaryData.experience,
-            education: summaryData.education,
-            expertise: summaryData.expertise,
-            achievements: summaryData.achievements,
-            overall_blurb: summaryData.overall_blurb,
-            combined_experience_highlights: ensureStringArray(
-              summaryData.combined_experience_highlights
-            ),
-            combined_education_highlights: ensureStringArray(
-              summaryData.combined_education_highlights
-            ),
-            key_skills: ensureStringArray(summaryData.key_skills),
-            domain_expertise: ensureStringArray(summaryData.domain_expertise),
-            technical_expertise: ensureStringArray(
-              summaryData.technical_expertise
-            ),
-            value_proposition_summary: summaryData.value_proposition_summary,
-          });
-        }
-      } catch (error) {
-        console.error("Error loading user profile:", error);
-      }
-    };
-
-    if (isOpen && currentStep === 1) {
-      loadUserProfile();
-    }
-  }, [user, isOpen, currentStep]);
+  // No need for profile loading in simplified onboarding
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -142,20 +98,20 @@ const OnboardingFlow = ({
     navigate("/profile?edit=true");
   };
 
-  const handleMessageGenerated = () => {
-    setMessageGenerated(true);
+  const handleContactCreated = () => {
+    setContactCreated(true);
+  };
+
+  const handleMessageCreated = () => {
+    setMessageCreated(true);
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <ProfileReviewStep backgroundSummary={backgroundSummary} />;
+        return <ContactCreationStep onContactCreated={handleContactCreated} />;
       case 2:
-        return (
-          <CompanyGenerationStep onMessageGenerated={handleMessageGenerated} />
-        );
-      case 3:
-        return <CompletionStep />;
+        return <MessageCreationStep onMessageCreated={handleMessageCreated} />;
       default:
         return null;
     }
@@ -164,11 +120,9 @@ const OnboardingFlow = ({
   const getStepTitle = () => {
     switch (currentStep) {
       case 1:
-        return "Profile Review";
+        return "Create Your First Contact";
       case 2:
-        return "Generate Companies & Contacts";
-      case 3:
-        return "You're All Set!";
+        return "Generate Your First Message";
       default:
         return "";
     }
@@ -177,21 +131,17 @@ const OnboardingFlow = ({
   const getStepDescription = () => {
     switch (currentStep) {
       case 1:
-        return "Review your professional story";
+        return "Add someone from your network to start building connections";
       case 2:
-        return "Discover target companies and key contacts in your industry";
-      case 3:
-        return "Your workspace is ready. Next, refine targets, add contacts, and craft messages!";
+        return "Create a personalized message to reach out to your contact";
       default:
         return "";
     }
   };
 
   const getNextButtonText = () => {
-    if (currentStep === 1) return "Discover Companies & Contacts";
-    if (currentStep === 2)
-      return messageGenerated ? "Complete Setup" : "Complete Setup";
-    if (currentStep === 3) return "Get Started!";
+    if (currentStep === 1) return contactCreated ? "Create Message" : "Create Message";
+    if (currentStep === 2) return messageCreated ? "Complete Setup!" : "Complete Setup!";
     return "Next";
   };
 
@@ -268,20 +218,9 @@ const OnboardingFlow = ({
               </Button>
             </div>
             <div className="flex gap-3">
-              {currentStep === 1 && (
-                <OutlineAction
-                  variant="outline"
-                  onClick={handleEditProfile}
-                  disabled={isLoading}
-                  className="flex gap-2 hover:bg-gray-50"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit Profile
-                </OutlineAction>
-              )}
               <Button
                 onClick={handleNext}
-                disabled={isLoading}
+                disabled={isLoading || (currentStep === 1 && !contactCreated) || (currentStep === 2 && !messageCreated)}
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8"
               >
                 {isLoading ? (
@@ -295,7 +234,7 @@ const OnboardingFlow = ({
                     {currentStep < totalSteps && (
                       <ArrowRight className="h-4 w-4" />
                     )}
-                    {currentStep === 3 && <Sparkles className="h-4 w-4" />}
+                    {currentStep === totalSteps && <Sparkles className="h-4 w-4" />}
                   </div>
                 )}
               </Button>
