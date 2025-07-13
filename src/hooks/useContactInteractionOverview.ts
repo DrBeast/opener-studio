@@ -1,6 +1,6 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ContactInteractionOverview {
   overview: string;
@@ -11,60 +11,57 @@ interface ContactInteractionOverview {
 }
 
 export const useContactInteractionOverview = (contactId: string) => {
+  const { user } = useAuth();
   const [overview, setOverview] = useState<ContactInteractionOverview | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const generateOverview = async () => {
-    if (!contactId) return;
-    
+    if (!user || !contactId) return;
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      console.log(`Generating contact overview for contact ${contactId}`);
-      
-      const { data, error: functionError } = await supabase.functions.invoke('generate_contact_interaction_overview', {
-        body: { contactId }
-      });
-      
-      if (functionError) {
-        console.error('Function error:', functionError);
-        throw functionError;
+      const { data, error } = await supabase.functions.invoke(
+        "generate_contact_interaction_overview",
+        {
+          body: { contact_id: contactId },
+        }
+      );
+
+      if (error) throw error;
+
+      if (data?.overview) {
+        setOverview(data.overview);
+      } else {
+        setOverview({
+          overview: "No interactions yet",
+          hasInteractions: false,
+        });
       }
-      
-      console.log('Generated contact overview data:', data);
-      
-      setOverview({
-        overview: data.overview,
-        hasInteractions: data.hasInteractions,
-        interactionCount: data.interactionCount,
-        pastCount: data.pastCount,
-        plannedCount: data.plannedCount
-      });
-    } catch (err: any) {
-      console.error('Error generating contact interaction overview:', err);
-      setError(err.message || 'Failed to generate overview');
-      setOverview(null);
+    } catch (error: any) {
+      console.error("Error generating contact interaction overview:", error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const regenerateOverview = async () => {
-    await generateOverview();
+  const regenerateOverview = () => {
+    generateOverview();
   };
 
   useEffect(() => {
     if (contactId) {
       generateOverview();
     }
-  }, [contactId]);
+  }, [contactId, user]);
 
   return {
     overview,
     isLoading,
     error,
-    regenerateOverview
+    regenerateOverview,
   };
 };

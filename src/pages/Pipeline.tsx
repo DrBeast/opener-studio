@@ -3,14 +3,16 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, UserPlus } from "lucide-react";
+import { Edit, Plus, Sparkles, UserPlus, Users, Building2 } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
+import { useContacts } from "@/hooks/useContacts";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
+import { ContactsTable } from "@/components/pipeline/ContactsTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
@@ -26,12 +28,13 @@ import {
   PageDescription,
   InfoBox,
 } from "@/components/ui/design-system";
+import { Button } from "@/components/ui/button";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();
   const {
     companies,
-    isLoading,
+    isLoading: companiesLoading,
     fetchCompanies,
     handleSetPriority,
     handleBlacklist,
@@ -41,12 +44,25 @@ const PipelineDashboard = () => {
     selectedCompanies,
     handleSelectCompany,
     handleSelectAll,
-    sortField,
-    sortDirection,
-    handleSort,
+    sortField: companySortField,
+    sortDirection: companySortDirection,
+    handleSort: handleCompanySort,
   } = useCompanies();
 
+  const {
+    contacts,
+    isLoading: contactsLoading,
+    fetchContacts,
+    selectedContacts,
+    handleSelectContact: handleContactSelect,
+    handleSelectAll: handleContactSelectAll,
+    sortField: contactSortField,
+    sortDirection: contactSortDirection,
+    handleSort: handleContactSort,
+  } = useContacts();
+
   // State variables
+  const [currentView, setCurrentView] = useState<"companies" | "contacts">("companies");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -80,10 +96,10 @@ const PipelineDashboard = () => {
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
-    if (!sortField) return 0;
+    if (!companySortField) return 0;
     let aValue: any = "";
     let bValue: any = "";
-    switch (sortField) {
+    switch (companySortField) {
       case "name":
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
@@ -118,8 +134,34 @@ const PipelineDashboard = () => {
       default:
         return 0;
     }
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    if (aValue < bValue) return companySortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return companySortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Sort contacts based on selected field and direction
+  const sortedContacts = [...contacts].sort((a, b) => {
+    if (!contactSortField) return 0;
+    let aValue: any = "";
+    let bValue: any = "";
+    switch (contactSortField) {
+      case "name":
+        aValue = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
+        bValue = `${b.first_name || ""} ${b.last_name || ""}`.toLowerCase();
+        break;
+      case "role":
+        aValue = (a.role || "").toLowerCase();
+        bValue = (b.role || "").toLowerCase();
+        break;
+      case "company":
+        aValue = (a.company_name || "").toLowerCase();
+        bValue = (b.company_name || "").toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+    if (aValue < bValue) return contactSortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return contactSortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -131,6 +173,19 @@ const PipelineDashboard = () => {
       company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesSearch;
+  });
+
+  // Filter contacts based on search term only
+  const filteredContacts = sortedContacts.filter((contact) => {
+    const fullName = `${contact.first_name || ""} ${contact.last_name || ""}`;
+    const matchesSearch =
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.bio_summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesSearch;
   });
@@ -211,6 +266,7 @@ const PipelineDashboard = () => {
 
   const handleCompanyUpdated = async () => {
     await fetchCompanies();
+    await fetchContacts();
   };
 
   const handleBulkRemove = async () => {
@@ -259,6 +315,8 @@ const PipelineDashboard = () => {
       companyName,
     });
   };
+
+  const isLoading = companiesLoading || contactsLoading;
 
   if (isLoading) {
     return (
@@ -317,67 +375,121 @@ const PipelineDashboard = () => {
         {/* Full-Width Card with Table */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
           <CardContent className="p-8">
-            <div className="flex items-center justify-between gap-4 ">
-              <SearchAndFilters
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCount={selectedCompanies.size}
-                onBulkRemove={handleBulkRemove}
-              />
-              <div className="flex items-center gap-3 mb-6">
-                <OutlineAction onClick={handleOpenTargetsModal}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Targets
-                </OutlineAction>
-                <PrimaryAction
-                  onClick={handleGenerateCompanies}
-                  disabled={isGeneratingCompanies}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {isGeneratingCompanies
-                    ? "Generating..."
-                    : "Generate More Companies"}
-                </PrimaryAction>
+            <div className="space-y-6">
+              {/* View Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
+                  <Button
+                    variant={currentView === "companies" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCurrentView("companies")}
+                    className="flex items-center gap-2"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Companies ({companies.length})
+                  </Button>
+                  <Button
+                    variant={currentView === "contacts" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCurrentView("contacts")}
+                    className="flex items-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    Contacts ({contacts.length})
+                  </Button>
+                </div>
+              </div>
 
-                <PrimaryAction onClick={handleAddCompany}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Company
-                </PrimaryAction>
+              {/* Search and Actions */}
+              <div className="flex items-center justify-between gap-4">
+                <SearchAndFilters
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  selectedCount={currentView === "companies" ? selectedCompanies.size : selectedContacts.size}
+                  onBulkRemove={handleBulkRemove}
+                />
+                <div className="flex items-center gap-3">
+                  {currentView === "companies" && (
+                    <>
+                      <OutlineAction onClick={handleOpenTargetsModal}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Targets
+                      </OutlineAction>
+                      <PrimaryAction
+                        onClick={handleGenerateCompanies}
+                        disabled={isGeneratingCompanies}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        {isGeneratingCompanies
+                          ? "Generating..."
+                          : "Generate More Companies"}
+                      </PrimaryAction>
+                      <PrimaryAction onClick={handleAddCompany}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Company
+                      </PrimaryAction>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            {filteredCompanies.length === 0 ? (
-              <EmptyState
-                searchTerm={searchTerm}
-                hasFilters={false}
-                onAddCompany={handleAddCompany}
-                onGenerateCompanies={handleGenerateCompanies}
-                isGeneratingCompanies={isGeneratingCompanies}
-              />
+            {currentView === "companies" ? (
+              filteredCompanies.length === 0 ? (
+                <EmptyState
+                  searchTerm={searchTerm}
+                  hasFilters={false}
+                  onAddCompany={handleAddCompany}
+                  onGenerateCompanies={handleGenerateCompanies}
+                  isGeneratingCompanies={isGeneratingCompanies}
+                />
+              ) : (
+                <EnhancedCompaniesTable
+                  companies={filteredCompanies}
+                  onCompanyClick={handleCompanyClick}
+                  onSetPriority={handleSetPriority}
+                  onBlacklist={handleBlacklist}
+                  newCompanyIds={newCompanyIds}
+                  highlightNew={highlightNew}
+                  selectedCompanies={selectedCompanies}
+                  onSelectCompany={handleSelectCompany}
+                  onSelectAll={handleSelectAll}
+                  sortField={companySortField}
+                  sortDirection={companySortDirection}
+                  onSort={handleCompanySort}
+                  onCreateContact={(companyId, companyName) => {
+                    const company = filteredCompanies.find(
+                      (c) => c.company_id === companyId
+                    );
+                    handleCreateContact(companyId, company?.name || "");
+                  }}
+                  onContactClick={handleContactClick}
+                  onGenerateMessage={handleGenerateMessage}
+                  onOpenContactRecommendation={handleOpenContactRecommendation}
+                />
+              )
             ) : (
-              <EnhancedCompaniesTable
-                companies={filteredCompanies}
-                onCompanyClick={handleCompanyClick}
-                onSetPriority={handleSetPriority}
-                onBlacklist={handleBlacklist}
-                newCompanyIds={newCompanyIds}
-                highlightNew={highlightNew}
-                selectedCompanies={selectedCompanies}
-                onSelectCompany={handleSelectCompany}
-                onSelectAll={handleSelectAll}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                onCreateContact={(companyId, companyName) => {
-                  const company = filteredCompanies.find(
-                    (c) => c.company_id === companyId
-                  );
-                  handleCreateContact(companyId, company?.name || "");
-                }}
-                onContactClick={handleContactClick}
-                onGenerateMessage={handleGenerateMessage}
-                onOpenContactRecommendation={handleOpenContactRecommendation}
-              />
+              filteredContacts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-2 text-sm font-semibold text-muted-foreground">No contacts found</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {searchTerm ? "Try adjusting your search term." : "Start by adding contacts to your companies."}
+                  </p>
+                </div>
+              ) : (
+                <ContactsTable
+                  contacts={filteredContacts}
+                  onContactClick={handleContactClick}
+                  onGenerateMessage={handleGenerateMessage}
+                  selectedContacts={selectedContacts}
+                  onSelectContact={handleContactSelect}
+                  onSelectAll={handleContactSelectAll}
+                  sortField={contactSortField}
+                  sortDirection={contactSortDirection}
+                  onSort={handleContactSort}
+                />
+              )
             )}
           </CardContent>
         </Card>
