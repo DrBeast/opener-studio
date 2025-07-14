@@ -29,6 +29,7 @@ import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
+import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 
 // localStorage utilities
 const STORAGE_KEY = "contact-workflow-state";
@@ -88,6 +89,7 @@ interface GeneratedContact {
   recent_activity_summary: string;
   email?: string;
   linkedin_url?: string;
+  contact_id?: string;
 }
 
 interface PotentialDuplicate {
@@ -131,6 +133,7 @@ export const IntegratedContactWorkflow = ({
     PotentialContactDuplicate[]
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
+  const [showContactDetails, setShowContactDetails] = useState(false);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -366,7 +369,9 @@ export const IntegratedContactWorkflow = ({
 
       if (error) throw error;
 
-      setCreatedContact(generatedContact);
+      // Store the created contact with the contact_id
+      const contactWithId = { ...generatedContact, contact_id: data.contact_id };
+      setCreatedContact(contactWithId);
       onContactCreated();
       toast.success("Contact created successfully!");
     } catch (error) {
@@ -449,11 +454,15 @@ export const IntegratedContactWorkflow = ({
     setShowContactDuplicateDialog(false);
     setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
+    setShowContactDetails(false);
   };
 
   const handleMessageSaved = () => {
-    toast.success("Message saved and workflow completed!");
-    resetWorkflow();
+    toast.success("Message saved!");
+    // Open the contact details modal on the Messages tab
+    if (createdContact?.contact_id) {
+      setShowContactDetails(true);
+    }
   };
 
   return (
@@ -698,13 +707,15 @@ export const IntegratedContactWorkflow = ({
 
               <MessageGeneration
                 contact={{
-                  contact_id: crypto.randomUUID(),
+                  contact_id: createdContact.contact_id || "",
                   first_name: createdContact.first_name,
                   last_name: createdContact.last_name,
                   role: createdContact.role,
-                  company_id: "",
+                  company_id: selectedCompanyId || "",
                 }}
-                companyName={generatedContact?.current_company || ""}
+                companyName={
+                  selectedCompany?.name || createdContact.current_company
+                }
                 isOpen={true}
                 onClose={() => {}}
                 onMessageSaved={handleMessageSaved}
@@ -745,6 +756,17 @@ export const IntegratedContactWorkflow = ({
             : ""
         }
       />
+
+      {/* Contact Details Modal for Messages */}
+      {showContactDetails && createdContact?.contact_id && (
+        <EnhancedContactDetails
+          contactId={createdContact.contact_id}
+          isOpen={showContactDetails}
+          onClose={() => setShowContactDetails(false)}
+          onContactUpdated={() => {}}
+          defaultTab="messages"
+        />
+      )}
     </div>
   );
 };
