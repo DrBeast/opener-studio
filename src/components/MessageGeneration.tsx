@@ -391,12 +391,21 @@ export function MessageGeneration({
           {/* Generate Button */}
           <Button
             onClick={generateMessages}
-            disabled={disabled || isGenerating || !getEffectiveObjective() || !contact}
+            disabled={
+              isGenerating || 
+              !getEffectiveObjective() || 
+              !contact?.contact_id
+            }
             className="w-full"
             size={embedded ? "sm" : "default"}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating..." : "Generate Messages"}
+            {isGenerating 
+              ? "Generating..." 
+              : !contact?.contact_id 
+                ? "Create contact first" 
+                : "Generate Messages"
+            }
           </Button>
         </div>
 
