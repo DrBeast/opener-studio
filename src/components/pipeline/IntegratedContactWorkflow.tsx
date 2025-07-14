@@ -203,11 +203,11 @@ export const IntegratedContactWorkflow = ({
                   <Label className="text-sm font-medium">
                     Paste their LinkedIn content here
                   </Label>
-                  
+
                   <Textarea
                     value={linkedinBio}
                     onChange={(e) => setLinkedinBio(e.target.value)}
-                    placeholder=" Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)..."
+                    placeholder="Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)"
                     className="min-h-[120px] text-sm"
                   />
                 </div>
@@ -279,14 +279,17 @@ export const IntegratedContactWorkflow = ({
                       <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                       <div className="text-xs text-blue-800">
                         <p className="font-medium mb-1">
-                          How to Find the Right Contacts
+                          Who should I contact?
                         </p>
                         <p className="mb-1">
-                          Start with your existing network. Provide their LinkedIn
-                          bios, and AI will do the rest.
+                          Whether you are looking for referrals or exploring
+                          roles, the most relevant contacts are people you
+                          already know: classmates, friends, ex-colleagues.
                         </p>
-                        <p className="font-medium">
-                          Feel free to use the suggested queries below:
+                        <p>
+                          If you're expanding your network, consider reaching
+                          out to people in the same function or recruiters. On
+                          LinkedIn, try searching for [company name] [function].
                         </p>
                       </div>
                     </div>
