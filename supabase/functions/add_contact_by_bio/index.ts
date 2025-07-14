@@ -18,6 +18,7 @@ interface ProcessedContact {
   email?: string;
   bio_summary?: string;
   how_i_can_help?: string;
+  current_company?: string;
 }
 
 serve(async (req) => {
@@ -62,43 +63,27 @@ serve(async (req) => {
   }
 
   try {
-    const { company_id, linkedin_bio } = await req.json();
+    const { linkedin_bio } = await req.json();
 
-    if (!company_id || !linkedin_bio) {
+    if (!linkedin_bio) {
       return new Response(JSON.stringify({
         status: 'error',
-        message: 'Missing company_id or linkedin_bio in request body.',
+        message: 'Missing linkedin_bio in request body.',
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
     }
 
-    // Fetch user's background summary and target criteria for context
-    const [userSummaryResponse, targetCriteriaResponse, companyResponse] = await Promise.all([
-      supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single(),
-      supabaseClient.from('target_criteria').select('*').eq('user_id', user.id).single(),
-      supabaseClient.from('companies').select('*').eq('company_id', company_id).eq('user_id', user.id).single()
-    ]);
-
+    // Fetch user's background summary for context
+    const userSummaryResponse = await supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single();
     const userSummary = userSummaryResponse.data;
-    const targetCriteria = targetCriteriaResponse.data;
-    const companyData = companyResponse.data;
-
-    if (!userSummary || !targetCriteria || !companyData) {
-      return new Response(JSON.stringify({
-        status: 'error',
-        message: 'Missing required user data (summary, criteria, or company).',
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      });
-    }
 
     const prompt = `
     You are an AI assistant helping a professional process contact information from a LinkedIn profile.
-    Below is the user's professional background summary, their job target criteria, details about the target company, and the LinkedIn bio of a potential contact.
+    Below is the user's professional background summary and the LinkedIn bio of a potential contact.
 
+    ${userSummary ? `
     User Background Summary:
     Overall Blurb: ${userSummary.overall_blurb ?? 'N/A'}
     Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
@@ -106,16 +91,7 @@ serve(async (req) => {
     Domain Expertise: ${userSummary.domain_expertise ? JSON.stringify(userSummary.domain_expertise) : 'N/A'}
     Technical Expertise: ${userSummary.technical_expertise ? JSON.stringify(userSummary.technical_expertise) : 'N/A'}
     Value Proposition: ${userSummary.value_proposition_summary ?? 'N/A'}
-
-    User Job Target Criteria:
-    Target Functions: ${targetCriteria.target_functions ? JSON.stringify(targetCriteria.target_functions) : 'Any'}
-    Target Role Description: ${targetCriteria.free_form_role_and_company_description ?? 'None provided'}
-    Target Industries: ${targetCriteria.target_industries ? JSON.stringify(targetCriteria.target_industries) : 'Any'}
-
-    Target Company Details:
-    Company Name: ${companyData.name}
-    Company Description: ${companyData.ai_description ?? 'N/A'}
-    Industry: ${companyData.industry ?? 'N/A'}
+    ` : ''}
 
     LinkedIn Bio/Profile Content:
     ${linkedin_bio}
@@ -124,12 +100,13 @@ serve(async (req) => {
 
     {
       "name": "Full Name of the contact",
-      "role": "The contact's job title/role at the company",
+      "role": "The contact's job title/role",
+      "current_company": "The company where the contact currently works",
       "location": "The contact's location (if available)",
       "linkedin_url": "LinkedIn URL if found (may not be present in bio text)",
       "email": "Public email address if found (very unlikely). Do NOT guess or generate email addresses.",
       "bio_summary": "A brief, 1-2 sentence summary of the contact's background and relevance based on their LinkedIn content",
-      "how_i_can_help": "A brief, 1-2 sentence explanation of how the user (referring to their background and skills) can potentially be of help or provide value to this specific contact or their team/company"
+      "how_i_can_help": "${userSummary ? 'A brief, 1-2 sentence explanation of how the user (referring to their background and skills) can potentially be of help or provide value to this specific contact or their team/company' : 'A brief note about potential collaboration opportunities'}"
     }
 
     Ensure the output is a valid JSON object. Focus on accuracy and only include information that can be reliably extracted from the provided LinkedIn content.
