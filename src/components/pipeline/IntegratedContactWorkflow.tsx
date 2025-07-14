@@ -196,112 +196,115 @@ export const IntegratedContactWorkflow = ({
           </div>
 
           {!createdContact ? (
-            <>
-              {/* Info Box */}
-              <AirtableCard className="bg-blue-50 border-blue-200">
-                <AirtableCardContent className="p-3">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-                    <div className="text-xs text-blue-800">
-                      <p className="font-medium mb-1">
-                        How to Find the Right Contacts
-                      </p>
-                      <p className="mb-1">
-                        Start with your existing network. Provide their LinkedIn
-                        bios, and AI will do the rest.
-                      </p>
-                      <p className="font-medium">
-                        Feel free to use the suggested queries below:
-                      </p>
-                    </div>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Left Column - LinkedIn Input */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    LinkedIn Profile Content
+                  </Label>
+                  <div className="text-xs text-gray-600 mb-2">
+                    Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
+                    and paste here.
                   </div>
-                </AirtableCardContent>
-              </AirtableCard>
-
-              {/* LinkedIn Query Suggestions */}
-              {selectedCompany && (
-                <LinkedInQuerySuggestions
-                  companyName={selectedCompany.name}
-                  isModalOpen={true}
-                />
-              )}
-
-              {/* LinkedIn Bio Input */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  LinkedIn Profile Content
-                </Label>
-                <div className="text-xs text-gray-600 mb-2">
-                  Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
-                  and paste here.
+                  <Textarea
+                    value={linkedinBio}
+                    onChange={(e) => setLinkedinBio(e.target.value)}
+                    placeholder="Paste the contact's LinkedIn profile content here..."
+                    className="min-h-[120px] text-sm"
+                  />
                 </div>
-                <Textarea
-                  value={linkedinBio}
-                  onChange={(e) => setLinkedinBio(e.target.value)}
-                  placeholder="Paste the contact's LinkedIn profile content here..."
-                  className="min-h-[120px] text-sm"
-                />
+
+                <PrimaryAction
+                  onClick={handleGenerateContact}
+                  disabled={
+                    !linkedinBio.trim() || !selectedCompanyId || isGenerating
+                  }
+                  className="w-full"
+                  size="sm"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Contact...
+                    </>
+                  ) : (
+                    "Generate Contact"
+                  )}
+                </PrimaryAction>
+
+                {/* Generated Contact Preview */}
+                {generatedContact && (
+                  <AirtableCard className="border-green-200 bg-green-50">
+                    <AirtableCardContent className="p-3">
+                      <h4 className="font-medium mb-2 text-green-800 text-sm">
+                        Generated Contact
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <User className="h-3 w-3 text-green-600" />
+                          <span className="font-medium">
+                            {generatedContact.name}
+                          </span>
+                        </div>
+                        {generatedContact.role && (
+                          <div className="flex items-center gap-2">
+                            <Building className="h-3 w-3 text-green-600" />
+                            <span>{generatedContact.role}</span>
+                          </div>
+                        )}
+                      </div>
+                      <PrimaryAction
+                        onClick={handleCreateContact}
+                        disabled={isCreating}
+                        className="w-full mt-3"
+                        size="sm"
+                      >
+                        {isCreating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Create Contact"
+                        )}
+                      </PrimaryAction>
+                    </AirtableCardContent>
+                  </AirtableCard>
+                )}
               </div>
 
-              {/* Generate Contact Button */}
-              <PrimaryAction
-                onClick={handleGenerateContact}
-                disabled={
-                  !linkedinBio.trim() || !selectedCompanyId || isGenerating
-                }
-                className="w-full"
-                size="sm"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Contact...
-                  </>
-                ) : (
-                  "Generate Contact"
-                )}
-              </PrimaryAction>
-
-              {/* Generated Contact Preview */}
-              {generatedContact && (
-                <AirtableCard className="border-green-200 bg-green-50">
+              {/* Right Column - Info Box */}
+              <div className="space-y-4">
+                <AirtableCard className="bg-blue-50 border-blue-200">
                   <AirtableCardContent className="p-3">
-                    <h4 className="font-medium mb-2 text-green-800 text-sm">
-                      Generated Contact
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <User className="h-3 w-3 text-green-600" />
-                        <span className="font-medium">
-                          {generatedContact.name}
-                        </span>
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                      <div className="text-xs text-blue-800">
+                        <p className="font-medium mb-1">
+                          How to Find the Right Contacts
+                        </p>
+                        <p className="mb-1">
+                          Start with your existing network. Provide their LinkedIn
+                          bios, and AI will do the rest.
+                        </p>
+                        <p className="font-medium">
+                          Feel free to use the suggested queries below:
+                        </p>
                       </div>
-                      {generatedContact.role && (
-                        <div className="flex items-center gap-2">
-                          <Building className="h-3 w-3 text-green-600" />
-                          <span>{generatedContact.role}</span>
-                        </div>
-                      )}
                     </div>
-                    <PrimaryAction
-                      onClick={handleCreateContact}
-                      disabled={isCreating}
-                      className="w-full mt-3"
-                      size="sm"
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        "Create Contact"
-                      )}
-                    </PrimaryAction>
                   </AirtableCardContent>
                 </AirtableCard>
-              )}
-            </>
+
+                {/* LinkedIn Query Suggestions */}
+                {selectedCompany && (
+                  <LinkedInQuerySuggestions
+                    companyName={selectedCompany.name}
+                    isModalOpen={true}
+                  />
+                )}
+              </div>
+            </div>
           ) : (
             /* Contact Created State */
             <AirtableCard className="border-green-200 bg-green-50">
