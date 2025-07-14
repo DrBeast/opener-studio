@@ -181,6 +181,7 @@ export const IntegratedContactWorkflow = ({
 
       if (data?.contact) {
         setGeneratedContact(data.contact);
+        setLinkedinBio(""); // Clear the input field after successful generation
       } else {
         throw new Error("No contact data received");
       }
