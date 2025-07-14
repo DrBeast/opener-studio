@@ -78,6 +78,8 @@ export function MessageGeneration({
     [key: string]: boolean;
   }>({});
 
+  console.log('Debug - MessageGeneration received contact:', contact);
+
   const mediumOptions = [
     {
       id: "LinkedIn connection note",

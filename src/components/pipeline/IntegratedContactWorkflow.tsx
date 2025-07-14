@@ -695,6 +695,19 @@ export const IntegratedContactWorkflow = ({
             </div>
           )}
 
+          {(() => {
+            console.log('Debug - createdContact:', createdContact);
+            const contactProp = createdContact ? {
+              contact_id: createdContact.contact_id,
+              first_name: createdContact.first_name,
+              last_name: createdContact.last_name,
+              role: createdContact.role,
+              company_id: createdContact.company_id || "",
+            } : null;
+            console.log('Debug - contact prop being passed:', contactProp);
+            return null;
+          })()}
+          
           <MessageGeneration
             contact={createdContact ? {
               contact_id: createdContact.contact_id,
