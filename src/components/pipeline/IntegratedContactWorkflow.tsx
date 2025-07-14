@@ -90,6 +90,11 @@ interface GeneratedContact {
   linkedin_url?: string;
 }
 
+interface CreatedContact extends GeneratedContact {
+  contact_id: string;
+  company_id?: string | null;
+}
+
 interface PotentialDuplicate {
   company_id: string;
   name: string;
@@ -118,7 +123,7 @@ export const IntegratedContactWorkflow = ({
   const [isCreating, setIsCreating] = useState(false);
   const [generatedContact, setGeneratedContact] =
     useState<GeneratedContact | null>(null);
-  const [createdContact, setCreatedContact] = useState<GeneratedContact | null>(
+  const [createdContact, setCreatedContact] = useState<CreatedContact | null>(
     null
   );
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -366,7 +371,12 @@ export const IntegratedContactWorkflow = ({
 
       if (error) throw error;
 
-      setCreatedContact(generatedContact);
+      // Store the created contact with the actual contact_id from database
+      setCreatedContact({
+        ...generatedContact,
+        contact_id: data.contact_id,
+        company_id: companyId,
+      });
       onContactCreated();
       toast.success("Contact created successfully!");
     } catch (error) {
@@ -699,11 +709,11 @@ export const IntegratedContactWorkflow = ({
 
             <MessageGeneration
               contact={createdContact ? {
-                contact_id: crypto.randomUUID(),
+                contact_id: createdContact.contact_id,
                 first_name: createdContact.first_name,
                 last_name: createdContact.last_name,
                 role: createdContact.role,
-                company_id: "",
+                company_id: createdContact.company_id || "",
               } : null}
               companyName={generatedContact?.current_company || ""}
               isOpen={true}
