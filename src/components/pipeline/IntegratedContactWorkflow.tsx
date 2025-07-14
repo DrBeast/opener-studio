@@ -229,82 +229,42 @@ export const IntegratedContactWorkflow = ({
                     "Generate Contact"
                   )}
                 </PrimaryAction>
-
-                {/* Generated Contact Preview */}
-                {generatedContact && (
-                  <AirtableCard className="border-green-200 bg-green-50">
-                    <AirtableCardContent className="p-3">
-                      <h4 className="font-medium mb-2 text-green-800 text-sm">
-                        Generated Contact
-                      </h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <User className="h-3 w-3 text-green-600" />
-                          <span className="font-medium">
-                            {generatedContact.name}
-                          </span>
-                        </div>
-                        {generatedContact.role && (
-                          <div className="flex items-center gap-2">
-                            <Building className="h-3 w-3 text-green-600" />
-                            <span>{generatedContact.role}</span>
-                          </div>
-                        )}
-                      </div>
-                      <PrimaryAction
-                        onClick={handleCreateContact}
-                        disabled={isCreating}
-                        className="w-full mt-3"
-                        size="sm"
-                      >
-                        {isCreating ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating...
-                          </>
-                        ) : (
-                          "Create Contact"
-                        )}
-                      </PrimaryAction>
-                    </AirtableCardContent>
-                  </AirtableCard>
-                )}
               </div>
 
               {/* Right Column - Contact Preview or Info Box */}
               <div className="space-y-4">
                 {generatedContact ? (
-                  <AirtableCard className="border-primary/20 bg-primary/5">
+                  <AirtableCard className="border-green-200 bg-green-50">
                     <AirtableCardContent className="p-4">
-                      <h4 className="font-medium mb-3 text-primary text-sm">
+                      <h4 className="font-medium mb-3 text-green-800 text-sm">
                         Contact Preview
                       </h4>
                       
                       <div className="space-y-3">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                            <span className="text-primary font-semibold text-sm">
+                          <div className="w-10 h-10 bg-green-600/10 rounded-full flex items-center justify-center shrink-0">
+                            <span className="text-green-700 font-semibold text-sm">
                               {generatedContact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="font-medium text-sm truncate">{generatedContact.name}</h5>
+                            <h5 className="font-medium text-sm truncate text-green-800">{generatedContact.name}</h5>
                             {generatedContact.role && (
-                              <p className="text-xs text-muted-foreground">{generatedContact.role}</p>
+                              <p className="text-xs text-green-700">{generatedContact.role}</p>
                             )}
                             {generatedContact.current_company && (
-                              <p className="text-xs text-primary">{generatedContact.current_company}</p>
+                              <p className="text-xs text-green-600">{generatedContact.current_company}</p>
                             )}
                             {generatedContact.location && (
-                              <p className="text-xs text-muted-foreground">{generatedContact.location}</p>
+                              <p className="text-xs text-green-600">{generatedContact.location}</p>
                             )}
                           </div>
                         </div>
                         
                         {generatedContact.bio_summary && (
                           <div>
-                            <p className="text-xs font-medium mb-1">Background</p>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-xs font-medium mb-1 text-green-800">Background</p>
+                            <p className="text-xs text-green-700 leading-relaxed">
                               {generatedContact.bio_summary}
                             </p>
                           </div>
@@ -312,8 +272,8 @@ export const IntegratedContactWorkflow = ({
                         
                         {generatedContact.how_i_can_help && (
                           <div>
-                            <p className="text-xs font-medium mb-1">How I Can Help</p>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
+                            <p className="text-xs font-medium mb-1 text-green-800">How I Can Help</p>
+                            <p className="text-xs text-green-700 leading-relaxed">
                               {generatedContact.how_i_can_help}
                             </p>
                           </div>
@@ -321,24 +281,40 @@ export const IntegratedContactWorkflow = ({
                         
                         {generatedContact.email && (
                           <div>
-                            <p className="text-xs font-medium mb-1">Email</p>
-                            <p className="text-xs text-primary">{generatedContact.email}</p>
+                            <p className="text-xs font-medium mb-1 text-green-800">Email</p>
+                            <p className="text-xs text-green-600">{generatedContact.email}</p>
                           </div>
                         )}
                         
                         {generatedContact.linkedin_url && (
                           <div>
-                            <p className="text-xs font-medium mb-1">LinkedIn</p>
+                            <p className="text-xs font-medium mb-1 text-green-800">LinkedIn</p>
                             <a 
                               href={generatedContact.linkedin_url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline"
+                              className="text-xs text-green-600 hover:underline"
                             >
                               View Profile
                             </a>
                           </div>
                         )}
+
+                        <PrimaryAction
+                          onClick={handleCreateContact}
+                          disabled={isCreating}
+                          className="w-full mt-4"
+                          size="sm"
+                        >
+                          {isCreating ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            "Create Contact"
+                          )}
+                        </PrimaryAction>
                       </div>
                     </AirtableCardContent>
                   </AirtableCard>
