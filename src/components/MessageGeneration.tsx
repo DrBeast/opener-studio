@@ -308,12 +308,12 @@ export function MessageGeneration({
   // Memoize the MessageContent to prevent unnecessary re-renders
   const MessageContent = useMemo(
     () => (
-      <div className="space-y-6 mt-4">
+      <div className={`space-y-4 ${embedded ? 'mt-0' : 'mt-4'}`}>
         {/* Message Configuration */}
-        <div className="space-y-4">
+        <div className={`space-y-3 ${embedded ? 'space-y-2' : 'space-y-4'}`}>
           {/* Medium Selection */}
           <div className="space-y-2">
-            <Label>Communication Medium</Label>
+            <Label className={embedded ? 'text-sm' : ''}>Communication Medium</Label>
             <RadioGroup
               value={medium}
               onValueChange={handleMediumChange}
@@ -337,18 +337,18 @@ export function MessageGeneration({
           </div>
 
           {/* Message Objective */}
-          <div className="space-y-3">
-            <Label>
+          <div className="space-y-2">
+            <Label className={embedded ? 'text-sm' : ''}>
               Message Objective <span className="text-red-500">*</span>
             </Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className={`grid gap-2 ${embedded ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {objectiveOptions.map((option) => (
                 <Button
                   key={option}
                   type="button"
                   variant={objective === option ? "default" : "outline"}
-                  size="sm"
-                  className="justify-start text-left h-auto py-2 px-3 border-purple-400"
+                  size={embedded ? "sm" : "sm"}
+                  className={`justify-start text-left h-auto py-2 px-3 border-purple-400 ${embedded ? 'text-xs' : ''}`}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
@@ -367,17 +367,17 @@ export function MessageGeneration({
           </div>
 
           {/* Additional Context */}
-          <div className="space-y-2 ">
-            <Label htmlFor="additional-context">
+          <div className="space-y-2">
+            <Label htmlFor="additional-context" className={embedded ? 'text-sm' : ''}>
               Additional Context (Optional)
             </Label>
             <Textarea
-              className="bg-white"
+              className={`bg-white ${embedded ? 'text-sm' : ''}`}
               id="additional-context"
-              placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
+              placeholder={embedded ? "Additional context for the message..." : "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."}
               value={additionalContext}
               onChange={handleAdditionalContextChange}
-              rows={3}
+              rows={embedded ? 2 : 3}
             />
           </div>
 
@@ -386,9 +386,10 @@ export function MessageGeneration({
             onClick={generateMessages}
             disabled={isGenerating || !getEffectiveObjective()}
             className="w-full"
+            size={embedded ? "sm" : "default"}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating Your Message..." : "Generate Messages"}
+            {isGenerating ? "Generating..." : "Generate Messages"}
           </Button>
         </div>
 

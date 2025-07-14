@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/pipeline/EmptyState";
 import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+import { IntegratedContactWorkflow } from "@/components/pipeline/IntegratedContactWorkflow";
 
 // Design System Imports
 import {
@@ -378,64 +379,14 @@ const PipelineDashboard = () => {
           </div>
         )}
 
-        {/* Top Action Sections */}
+        {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
-          <div className="grid grid-cols-2 gap-6">
-            {/* Add Contact Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Add Contact</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Add contacts manually or generate suggestions for your target companies
-                    </p>
-                  </div>
-                  <Button
-                    size="lg"
-                    onClick={() => {
-                      // For now, open the first available company's contact modal
-                      if (companies.length > 0) {
-                        handleCreateContact(companies[0].company_id, companies[0].name);
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <UserPlus className="h-5 w-5" />
-                    Add Contact
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Generate Message Section */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Generate Message</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Create personalized outreach messages for your contacts
-                    </p>
-                  </div>
-                  <Button
-                    size="lg"
-                    disabled={contacts.length === 0}
-                    onClick={() => {
-                      // Open message generation for the first contact
-                      if (contacts.length > 0) {
-                        handleGenerateMessage(contacts[0].contact_id);
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Sparkles className="h-5 w-5" />
-                    Generate Message
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <IntegratedContactWorkflow 
+            companies={companies}
+            onContactCreated={() => {
+              fetchContacts();
+            }}
+          />
         </div>
 
         {/* Full-Width Card with Table */}
