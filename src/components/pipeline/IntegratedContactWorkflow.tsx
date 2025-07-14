@@ -68,7 +68,7 @@ export const IntegratedContactWorkflow = ({
   );
 
   const handleGenerateContact = async () => {
-    if (!user || !linkedinBio.trim() || !selectedCompanyId) return;
+    if (!user || !linkedinBio.trim()) return;
 
     setIsGenerating(true);
     try {
@@ -76,7 +76,6 @@ export const IntegratedContactWorkflow = ({
         "add_contact_by_bio",
         {
           body: {
-            company_id: selectedCompanyId,
             linkedin_bio: linkedinBio.trim(),
           },
         }
@@ -88,7 +87,7 @@ export const IntegratedContactWorkflow = ({
         const contactWithIds = {
           ...data.contact,
           contact_id: crypto.randomUUID(), // Temporary ID for preview
-          company_id: selectedCompanyId,
+          company_id: null,
           first_name: data.contact.name.split(" ")[0] || "",
           last_name: data.contact.name.split(" ").slice(1).join(" ") || "",
         };
@@ -117,7 +116,7 @@ export const IntegratedContactWorkflow = ({
         .from("contacts")
         .insert({
           user_id: user.id,
-          company_id: selectedCompanyId,
+          company_id: null,
           first_name: generatedContact.first_name,
           last_name: generatedContact.last_name,
           role: generatedContact.role,
@@ -134,7 +133,7 @@ export const IntegratedContactWorkflow = ({
 
       const createdContactWithCompanyId = {
         ...data,
-        company_id: selectedCompanyId,
+        company_id: null,
         name: `${data.first_name} ${data.last_name}`.trim(),
       };
 
@@ -215,7 +214,7 @@ export const IntegratedContactWorkflow = ({
                 <PrimaryAction
                   onClick={handleGenerateContact}
                   disabled={
-                    !linkedinBio.trim() || !selectedCompanyId || isGenerating
+                    !linkedinBio.trim() || isGenerating
                   }
                   className="w-full"
                   size="sm"
@@ -296,13 +295,6 @@ export const IntegratedContactWorkflow = ({
                   </AirtableCardContent>
                 </AirtableCard>
 
-                {/* LinkedIn Query Suggestions */}
-                {selectedCompany && (
-                  <LinkedInQuerySuggestions
-                    companyName={selectedCompany.name}
-                    isModalOpen={true}
-                  />
-                )}
               </div>
             </div>
           ) : (
@@ -315,7 +307,7 @@ export const IntegratedContactWorkflow = ({
                     Contact Created
                   </h4>
                   <p className="text-sm text-green-700">
-                    {createdContact.name} at {selectedCompany?.name}
+                    {createdContact.name}
                   </p>
                   <Button
                     variant="outline"
@@ -356,13 +348,13 @@ export const IntegratedContactWorkflow = ({
                   Generating message for:
                 </p>
                 <p className="text-blue-700">
-                  {createdContact.name} at {selectedCompany?.name}
+                  {createdContact.name}
                 </p>
               </div>
 
               <MessageGeneration
                 contact={createdContact}
-                companyName={selectedCompany?.name || ""}
+                companyName=""
                 isOpen={true}
                 onClose={() => {}}
                 onMessageSaved={handleMessageSaved}
