@@ -90,6 +90,7 @@ interface GeneratedContact {
   email?: string;
   linkedin_url?: string;
   contact_id?: string;
+  company_id?: string;
 }
 
 interface PotentialDuplicate {
@@ -370,11 +371,14 @@ export const IntegratedContactWorkflow = ({
 
       if (error) throw error;
 
-      // Store the created contact with the contact_id
-      const contactWithId = { ...generatedContact, contact_id: data.contact_id };
+      // Store the created contact with the contact_id and company_id
+      const contactWithId = { 
+        ...generatedContact, 
+        contact_id: data.contact_id,
+        company_id: data.company_id
+      };
       setCreatedContact(contactWithId);
       onContactCreated();
-      setCurrentStep(3); // Automatically advance to message generation
       toast.success("Contact created successfully!");
     } catch (error) {
       console.error("Error creating contact:", error);
@@ -713,7 +717,7 @@ export const IntegratedContactWorkflow = ({
                   first_name: createdContact.first_name,
                   last_name: createdContact.last_name,
                   role: createdContact.role,
-                  company_id: selectedCompanyId || "",
+                  company_id: createdContact.company_id || "",
                 }}
                 companyName={
                   selectedCompany?.name || createdContact.current_company
