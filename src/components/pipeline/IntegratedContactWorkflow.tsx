@@ -678,46 +678,39 @@ export const IntegratedContactWorkflow = ({
         </div>
 
         {/* Message Generation Section - Always Visible */}
-        {generatedContact && (
-          <div className="mt-6 border-t pt-6">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <h3 className="font-medium">Generate Outreach Message</h3>
-              {!createdContact && (
-                <div className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  Create contact first
-                </div>
-              )}
-            </div>
-
-            {createdContact && (
-              <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
-                <p className="font-medium text-blue-800 mb-1">
-                  Ready to generate message for:
-                </p>
-                <p className="text-blue-700">
-                  {createdContact.first_name} {createdContact.last_name}
-                </p>
-              </div>
-            )}
-
-            <MessageGeneration
-              contact={createdContact ? {
-                contact_id: createdContact.contact_id,
-                first_name: createdContact.first_name,
-                last_name: createdContact.last_name,
-                role: createdContact.role,
-                company_id: createdContact.company_id || "",
-              } : null}
-              companyName={generatedContact?.current_company || ""}
-              isOpen={true}
-              onClose={() => {}}
-              onMessageSaved={handleMessageSaved}
-              embedded={true}
-              disabled={false}
-            />
+        <div className="mt-6 border-t pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Generate Outreach Message</h3>
           </div>
-        )}
+
+          {createdContact && (
+            <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
+              <p className="font-medium text-blue-800 mb-1">
+                Ready to generate message for:
+              </p>
+              <p className="text-blue-700">
+                {createdContact.first_name} {createdContact.last_name}
+              </p>
+            </div>
+          )}
+
+          <MessageGeneration
+            contact={createdContact ? {
+              contact_id: createdContact.contact_id,
+              first_name: createdContact.first_name,
+              last_name: createdContact.last_name,
+              role: createdContact.role,
+              company_id: createdContact.company_id || "",
+            } : null}
+            companyName={generatedContact?.current_company || ""}
+            isOpen={true}
+            onClose={() => {}}
+            onMessageSaved={handleMessageSaved}
+            embedded={true}
+            disabled={false}
+          />
+        </div>
       </div>
 
       <CompanyDuplicateDialog
