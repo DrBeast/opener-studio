@@ -31,7 +31,7 @@ export const SearchAndFilters = ({
         </div>
         
         {selectedCount > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative z-10">
             <span className="text-sm text-muted-foreground">
               {selectedCount} selected
             </span>
@@ -39,6 +39,7 @@ export const SearchAndFilters = ({
               variant="destructive"
               size="sm"
               onClick={onBulkRemove}
+              className="relative z-10"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Remove Selected

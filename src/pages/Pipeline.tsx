@@ -287,8 +287,58 @@ const PipelineDashboard = () => {
   };
 
   const handleBulkRemove = async () => {
-    if (selectedCompanies.size === 0) return;
-    await handleBulkBlacklist(Array.from(selectedCompanies));
+    if (currentView === "companies") {
+      if (selectedCompanies.size === 0) return;
+      await handleBulkBlacklist(Array.from(selectedCompanies));
+    } else {
+      if (selectedContacts.size === 0) return;
+      await handleBulkRemoveContacts(Array.from(selectedContacts));
+    }
+  };
+
+  const handleBulkRemoveContacts = async (contactIds: string[]) => {
+    if (!user) return;
+    
+    try {
+      // Delete associated interactions first
+      const { error: interactionsError } = await supabase
+        .from('interactions')
+        .delete()
+        .in('contact_id', contactIds);
+
+      if (interactionsError) throw interactionsError;
+
+      // Delete associated saved message versions
+      const { error: messagesError } = await supabase
+        .from('saved_message_versions')
+        .delete()
+        .in('contact_id', contactIds);
+
+      if (messagesError) throw messagesError;
+
+      // Delete the contacts
+      const { error: contactsError } = await supabase
+        .from('contacts')
+        .delete()
+        .in('contact_id', contactIds);
+
+      if (contactsError) throw contactsError;
+
+      // Refresh the data
+      await fetchContacts();
+      
+      toast({
+        title: "Success",
+        description: `Removed ${contactIds.length} contact(s) and their associated data`,
+      });
+    } catch (error: any) {
+      console.error('Error removing contacts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove selected contacts",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCreateContact = (companyId: string, companyName: string) => {
