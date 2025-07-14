@@ -221,7 +221,7 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
-  const checkForDuplicateContact = async (first_name: string, last_name: string, role: string, company_id: string | null) => {
+  const checkForDuplicateContact = async (first_name: string, last_name: string, role: string, company_id: string | null = null) => {
     try {
       const { data, error } = await supabase.functions.invoke('check_contact_duplicates', {
         body: { first_name, last_name, role, company_id }
@@ -234,6 +234,26 @@ export const IntegratedContactWorkflow = ({
       console.error('Error checking for duplicate contacts:', error);
       return { isDuplicate: false, potentialDuplicates: [] };
     }
+  };
+
+  const checkAndHandleContactDuplicates = async (companyId: string | null = null) => {
+    if (!generatedContact) return false;
+
+    const contactDuplicateCheck = await checkForDuplicateContact(
+      generatedContact.first_name,
+      generatedContact.last_name,
+      generatedContact.role,
+      companyId
+    );
+
+    if (contactDuplicateCheck.isDuplicate && contactDuplicateCheck.potentialDuplicates.length > 0) {
+      setPotentialContactDuplicates(contactDuplicateCheck.potentialDuplicates);
+      setShowContactDuplicateDialog(true);
+      setPendingCompanyId(companyId);
+      return true; // Duplicates found
+    }
+    
+    return false; // No duplicates
   };
 
   const createNewCompany = async (companyName: string) => {
@@ -255,6 +275,13 @@ export const IntegratedContactWorkflow = ({
 
     setIsCreating(true);
     try {
+      // First check for contact duplicates without any company context
+      const hasContactDuplicates = await checkAndHandleContactDuplicates();
+      if (hasContactDuplicates) {
+        setIsCreating(false);
+        return;
+      }
+
       let finalCompanyId = selectedCompanyId;
 
       // If no company is selected but we have a company name from the generated contact
@@ -271,23 +298,6 @@ export const IntegratedContactWorkflow = ({
           // Create new company
           finalCompanyId = await createNewCompany(generatedContact.current_company);
         }
-      }
-
-      // Check for duplicate contacts before creating
-      const contactDuplicateCheck = await checkForDuplicateContact(
-        generatedContact.first_name,
-        generatedContact.last_name,
-        generatedContact.role,
-        finalCompanyId
-      );
-
-      if (contactDuplicateCheck.isDuplicate && contactDuplicateCheck.potentialDuplicates.length > 0) {
-        // Show contact duplicate dialog
-        setPotentialContactDuplicates(contactDuplicateCheck.potentialDuplicates);
-        setShowContactDuplicateDialog(true);
-        setPendingCompanyId(finalCompanyId);
-        setIsCreating(false);
-        return;
       }
 
       await createContactWithCompany(finalCompanyId);
@@ -337,6 +347,14 @@ export const IntegratedContactWorkflow = ({
   const handleUseExistingCompany = async (companyId: string) => {
     setShowDuplicateDialog(false);
     setIsCreating(true);
+    
+    // Check for contact duplicates with the specific company
+    const hasContactDuplicates = await checkAndHandleContactDuplicates(companyId);
+    if (hasContactDuplicates) {
+      setIsCreating(false);
+      return;
+    }
+
     await createContactWithCompany(companyId);
   };
 
@@ -348,6 +366,14 @@ export const IntegratedContactWorkflow = ({
     
     try {
       const newCompanyId = await createNewCompany(generatedContact.current_company);
+      
+      // Check for contact duplicates with the new company
+      const hasContactDuplicates = await checkAndHandleContactDuplicates(newCompanyId);
+      if (hasContactDuplicates) {
+        setIsCreating(false);
+        return;
+      }
+
       await createContactWithCompany(newCompanyId);
     } catch (error) {
       console.error("Error creating new company:", error);
