@@ -29,6 +29,48 @@ import { LinkedInQuerySuggestions } from "./LinkedInQuerySuggestions";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 
+// localStorage utilities
+const STORAGE_KEY = "contact-workflow-state";
+
+const saveToStorage = (key: string, value: any) => {
+  try {
+    const data = {
+      value,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(`${STORAGE_KEY}-${key}`, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Failed to save to localStorage:", error);
+  }
+};
+
+const loadFromStorage = (key: string) => {
+  try {
+    const stored = localStorage.getItem(`${STORAGE_KEY}-${key}`);
+    if (!stored) return null;
+    
+    const parsed = JSON.parse(stored);
+    // Clear data older than 24 hours
+    if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(`${STORAGE_KEY}-${key}`);
+      return null;
+    }
+    
+    return parsed.value;
+  } catch (error) {
+    console.warn("Failed to load from localStorage:", error);
+    return null;
+  }
+};
+
+const clearStorage = (key: string) => {
+  try {
+    localStorage.removeItem(`${STORAGE_KEY}-${key}`);
+  } catch (error) {
+    console.warn("Failed to clear localStorage:", error);
+  }
+};
+
 interface IntegratedContactWorkflowProps {
   companies: Array<{ company_id: string; name: string }>;
   onContactCreated: () => void;
@@ -63,6 +105,51 @@ export const IntegratedContactWorkflow = ({
   const [createdContact, setCreatedContact] = useState<GeneratedContact | null>(
     null
   );
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    if (!user) return;
+    
+    const storageKey = `${user.id}`;
+    const savedLinkedinBio = loadFromStorage(`${storageKey}-linkedinBio`);
+    const savedGeneratedContact = loadFromStorage(`${storageKey}-generatedContact`);
+    
+    if (savedLinkedinBio) {
+      setLinkedinBio(savedLinkedinBio);
+    }
+    
+    if (savedGeneratedContact) {
+      setGeneratedContact(savedGeneratedContact);
+    }
+  }, [user]);
+
+  // Save linkedinBio to localStorage with debouncing
+  useEffect(() => {
+    if (!user) return;
+    
+    const timeoutId = setTimeout(() => {
+      const storageKey = `${user.id}`;
+      if (linkedinBio.trim()) {
+        saveToStorage(`${storageKey}-linkedinBio`, linkedinBio);
+      } else {
+        clearStorage(`${storageKey}-linkedinBio`);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [linkedinBio, user]);
+
+  // Save generatedContact to localStorage
+  useEffect(() => {
+    if (!user) return;
+    
+    const storageKey = `${user.id}`;
+    if (generatedContact) {
+      saveToStorage(`${storageKey}-generatedContact`, generatedContact);
+    } else {
+      clearStorage(`${storageKey}-generatedContact`);
+    }
+  }, [generatedContact, user]);
 
   const selectedCompany = companies.find(
     (c) => c.company_id === selectedCompanyId
@@ -160,6 +247,12 @@ export const IntegratedContactWorkflow = ({
   };
 
   const resetWorkflow = () => {
+    if (user) {
+      const storageKey = `${user.id}`;
+      clearStorage(`${storageKey}-linkedinBio`);
+      clearStorage(`${storageKey}-generatedContact`);
+    }
+    
     setSelectedCompanyId("");
     setLinkedinBio("");
     setGeneratedContact(null);
