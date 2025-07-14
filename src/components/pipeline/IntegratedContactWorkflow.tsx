@@ -28,6 +28,7 @@ import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
+import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 
 // localStorage utilities
 const STORAGE_KEY = "contact-workflow-state";
@@ -96,6 +97,16 @@ interface PotentialDuplicate {
   reasoning: string;
 }
 
+interface PotentialContactDuplicate {
+  contact_id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  company_name?: string;
+  confidence: 'high' | 'medium' | 'low';
+  reasoning: string;
+}
+
 export const IntegratedContactWorkflow = ({
   companies,
   onContactCreated,
@@ -112,6 +123,8 @@ export const IntegratedContactWorkflow = ({
   );
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [potentialDuplicates, setPotentialDuplicates] = useState<PotentialDuplicate[]>([]);
+  const [showContactDuplicateDialog, setShowContactDuplicateDialog] = useState(false);
+  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<PotentialContactDuplicate[]>([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
 
   // Load state from localStorage on mount
@@ -208,6 +221,21 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
+  const checkForDuplicateContact = async (first_name: string, last_name: string, role: string, company_id: string | null) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check_contact_duplicates', {
+        body: { first_name, last_name, role, company_id }
+      });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error('Error checking for duplicate contacts:', error);
+      return { isDuplicate: false, potentialDuplicates: [] };
+    }
+  };
+
   const createNewCompany = async (companyName: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('add_company_by_name', {
@@ -243,6 +271,23 @@ export const IntegratedContactWorkflow = ({
           // Create new company
           finalCompanyId = await createNewCompany(generatedContact.current_company);
         }
+      }
+
+      // Check for duplicate contacts before creating
+      const contactDuplicateCheck = await checkForDuplicateContact(
+        generatedContact.first_name,
+        generatedContact.last_name,
+        generatedContact.role,
+        finalCompanyId
+      );
+
+      if (contactDuplicateCheck.isDuplicate && contactDuplicateCheck.potentialDuplicates.length > 0) {
+        // Show contact duplicate dialog
+        setPotentialContactDuplicates(contactDuplicateCheck.potentialDuplicates);
+        setShowContactDuplicateDialog(true);
+        setPendingCompanyId(finalCompanyId);
+        setIsCreating(false);
+        return;
       }
 
       await createContactWithCompany(finalCompanyId);
@@ -311,6 +356,18 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
+  const handleUseExistingContact = async (contactId: string) => {
+    setShowContactDuplicateDialog(false);
+    toast.success("Contact already exists in your pipeline!");
+    resetWorkflow();
+  };
+
+  const handleCreateNewContact = async () => {
+    setShowContactDuplicateDialog(false);
+    setIsCreating(true);
+    await createContactWithCompany(pendingCompanyId);
+  };
+
   const resetWorkflow = () => {
     if (user) {
       const storageKey = `${user.id}`;
@@ -324,6 +381,8 @@ export const IntegratedContactWorkflow = ({
     setCreatedContact(null);
     setShowDuplicateDialog(false);
     setPotentialDuplicates([]);
+    setShowContactDuplicateDialog(false);
+    setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
   };
 
@@ -594,6 +653,15 @@ export const IntegratedContactWorkflow = ({
         potentialDuplicates={potentialDuplicates}
         onCreateNew={handleCreateNewCompany}
         onUseExisting={handleUseExistingCompany}
+      />
+
+      <ContactDuplicateDialog
+        isOpen={showContactDuplicateDialog}
+        onClose={() => setShowContactDuplicateDialog(false)}
+        onUseExisting={handleUseExistingContact}
+        onCreateNew={handleCreateNewContact}
+        potentialDuplicates={potentialContactDuplicates}
+        newContactName={generatedContact ? `${generatedContact.first_name} ${generatedContact.last_name}` : ""}
       />
     </div>
   );
