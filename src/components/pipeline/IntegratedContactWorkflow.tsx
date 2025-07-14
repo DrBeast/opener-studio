@@ -49,14 +49,14 @@ const loadFromStorage = (key: string) => {
   try {
     const stored = localStorage.getItem(`${STORAGE_KEY}-${key}`);
     if (!stored) return null;
-    
+
     const parsed = JSON.parse(stored);
     // Clear data older than 24 hours
     if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
       localStorage.removeItem(`${STORAGE_KEY}-${key}`);
       return null;
     }
-    
+
     return parsed.value;
   } catch (error) {
     console.warn("Failed to load from localStorage:", error);
@@ -93,7 +93,7 @@ interface GeneratedContact {
 interface PotentialDuplicate {
   company_id: string;
   name: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   reasoning: string;
 }
 
@@ -103,7 +103,7 @@ interface PotentialContactDuplicate {
   last_name: string;
   role: string;
   company_name?: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   reasoning: string;
 }
 
@@ -122,23 +122,30 @@ export const IntegratedContactWorkflow = ({
     null
   );
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [potentialDuplicates, setPotentialDuplicates] = useState<PotentialDuplicate[]>([]);
-  const [showContactDuplicateDialog, setShowContactDuplicateDialog] = useState(false);
-  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<PotentialContactDuplicate[]>([]);
+  const [potentialDuplicates, setPotentialDuplicates] = useState<
+    PotentialDuplicate[]
+  >([]);
+  const [showContactDuplicateDialog, setShowContactDuplicateDialog] =
+    useState(false);
+  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<
+    PotentialContactDuplicate[]
+  >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
 
   // Load state from localStorage on mount
   useEffect(() => {
     if (!user) return;
-    
+
     const storageKey = `${user.id}`;
     const savedLinkedinBio = loadFromStorage(`${storageKey}-linkedinBio`);
-    const savedGeneratedContact = loadFromStorage(`${storageKey}-generatedContact`);
-    
+    const savedGeneratedContact = loadFromStorage(
+      `${storageKey}-generatedContact`
+    );
+
     if (savedLinkedinBio) {
       setLinkedinBio(savedLinkedinBio);
     }
-    
+
     if (savedGeneratedContact) {
       setGeneratedContact(savedGeneratedContact);
     }
@@ -147,7 +154,7 @@ export const IntegratedContactWorkflow = ({
   // Save linkedinBio to localStorage with debouncing
   useEffect(() => {
     if (!user) return;
-    
+
     const timeoutId = setTimeout(() => {
       const storageKey = `${user.id}`;
       if (linkedinBio.trim()) {
@@ -163,7 +170,7 @@ export const IntegratedContactWorkflow = ({
   // Save generatedContact to localStorage
   useEffect(() => {
     if (!user) return;
-    
+
     const storageKey = `${user.id}`;
     if (generatedContact) {
       saveToStorage(`${storageKey}-generatedContact`, generatedContact);
@@ -208,35 +215,48 @@ export const IntegratedContactWorkflow = ({
 
   const checkForDuplicateCompany = async (companyName: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('check_company_duplicates', {
-        body: { companyName }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "check_company_duplicates",
+        {
+          body: { companyName },
+        }
+      );
 
       if (error) throw error;
 
       return data;
     } catch (error) {
-      console.error('Error checking for duplicate companies:', error);
+      console.error("Error checking for duplicate companies:", error);
       return { isDuplicate: false, potentialDuplicates: [] };
     }
   };
 
-  const checkForDuplicateContact = async (first_name: string, last_name: string, role: string, company_id: string | null = null) => {
+  const checkForDuplicateContact = async (
+    first_name: string,
+    last_name: string,
+    role: string,
+    company_id: string | null = null
+  ) => {
     try {
-      const { data, error } = await supabase.functions.invoke('check_contact_duplicates', {
-        body: { first_name, last_name, role, company_id }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "check_contact_duplicates",
+        {
+          body: { first_name, last_name, role, company_id },
+        }
+      );
 
       if (error) throw error;
 
       return data;
     } catch (error) {
-      console.error('Error checking for duplicate contacts:', error);
+      console.error("Error checking for duplicate contacts:", error);
       return { isDuplicate: false, potentialDuplicates: [] };
     }
   };
 
-  const checkAndHandleContactDuplicates = async (companyId: string | null = null) => {
+  const checkAndHandleContactDuplicates = async (
+    companyId: string | null = null
+  ) => {
     if (!generatedContact) return false;
 
     const contactDuplicateCheck = await checkForDuplicateContact(
@@ -246,26 +266,32 @@ export const IntegratedContactWorkflow = ({
       companyId
     );
 
-    if (contactDuplicateCheck.isDuplicate && contactDuplicateCheck.potentialDuplicates.length > 0) {
+    if (
+      contactDuplicateCheck.isDuplicate &&
+      contactDuplicateCheck.potentialDuplicates.length > 0
+    ) {
       setPotentialContactDuplicates(contactDuplicateCheck.potentialDuplicates);
       setShowContactDuplicateDialog(true);
       setPendingCompanyId(companyId);
       return true; // Duplicates found
     }
-    
+
     return false; // No duplicates
   };
 
   const createNewCompany = async (companyName: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('add_company_by_name', {
-        body: { companyName }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "add_company_by_name",
+        {
+          body: { companyName },
+        }
+      );
 
       if (error) throw error;
       return data.company.company_id;
     } catch (error) {
-      console.error('Error creating company:', error);
+      console.error("Error creating company:", error);
       throw error;
     }
   };
@@ -286,9 +312,14 @@ export const IntegratedContactWorkflow = ({
 
       // If no company is selected but we have a company name from the generated contact
       if (!finalCompanyId && generatedContact.current_company) {
-        const duplicateCheck = await checkForDuplicateCompany(generatedContact.current_company);
-        
-        if (duplicateCheck.isDuplicate && duplicateCheck.potentialDuplicates.length > 0) {
+        const duplicateCheck = await checkForDuplicateCompany(
+          generatedContact.current_company
+        );
+
+        if (
+          duplicateCheck.isDuplicate &&
+          duplicateCheck.potentialDuplicates.length > 0
+        ) {
           // Show duplicate dialog
           setPotentialDuplicates(duplicateCheck.potentialDuplicates);
           setShowDuplicateDialog(true);
@@ -296,7 +327,9 @@ export const IntegratedContactWorkflow = ({
           return;
         } else {
           // Create new company
-          finalCompanyId = await createNewCompany(generatedContact.current_company);
+          finalCompanyId = await createNewCompany(
+            generatedContact.current_company
+          );
         }
       }
 
@@ -347,9 +380,11 @@ export const IntegratedContactWorkflow = ({
   const handleUseExistingCompany = async (companyId: string) => {
     setShowDuplicateDialog(false);
     setIsCreating(true);
-    
+
     // Check for contact duplicates with the specific company
-    const hasContactDuplicates = await checkAndHandleContactDuplicates(companyId);
+    const hasContactDuplicates = await checkAndHandleContactDuplicates(
+      companyId
+    );
     if (hasContactDuplicates) {
       setIsCreating(false);
       return;
@@ -360,15 +395,19 @@ export const IntegratedContactWorkflow = ({
 
   const handleCreateNewCompany = async () => {
     if (!generatedContact?.current_company) return;
-    
+
     setShowDuplicateDialog(false);
     setIsCreating(true);
-    
+
     try {
-      const newCompanyId = await createNewCompany(generatedContact.current_company);
-      
+      const newCompanyId = await createNewCompany(
+        generatedContact.current_company
+      );
+
       // Check for contact duplicates with the new company
-      const hasContactDuplicates = await checkAndHandleContactDuplicates(newCompanyId);
+      const hasContactDuplicates = await checkAndHandleContactDuplicates(
+        newCompanyId
+      );
       if (hasContactDuplicates) {
         setIsCreating(false);
         return;
@@ -400,7 +439,7 @@ export const IntegratedContactWorkflow = ({
       clearStorage(`${storageKey}-linkedinBio`);
       clearStorage(`${storageKey}-generatedContact`);
     }
-    
+
     setSelectedCompanyId("");
     setLinkedinBio("");
     setGeneratedContact(null);
@@ -443,23 +482,17 @@ export const IntegratedContactWorkflow = ({
               {/* Left Column - LinkedIn Input */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Paste their LinkedIn content here
-                  </Label>
-
                   <Textarea
                     value={linkedinBio}
                     onChange={(e) => setLinkedinBio(e.target.value)}
-                    placeholder="Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)"
+                    placeholder="Paste their LinkedIn profile: copy everything (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)"
                     className="min-h-[120px] text-sm"
                   />
                 </div>
 
                 <PrimaryAction
                   onClick={handleGenerateContact}
-                  disabled={
-                    !linkedinBio.trim() || isGenerating
-                  }
+                  disabled={!linkedinBio.trim() || isGenerating}
                   className="w-full"
                   size="sm"
                 >
@@ -482,61 +515,79 @@ export const IntegratedContactWorkflow = ({
                       <h4 className="font-medium mb-3 text-green-800 text-sm">
                         Contact Preview
                       </h4>
-                      
+
                       <div className="space-y-3">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 bg-green-600/10 rounded-full flex items-center justify-center shrink-0">
                             <span className="text-green-700 font-semibold text-sm">
-                              {generatedContact.first_name?.[0]}{generatedContact.last_name?.[0]}
+                              {generatedContact.first_name?.[0]}
+                              {generatedContact.last_name?.[0]}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h5 className="font-medium text-sm truncate text-green-800">
-                              {generatedContact.first_name} {generatedContact.last_name}
+                              {generatedContact.first_name}{" "}
+                              {generatedContact.last_name}
                             </h5>
                             {generatedContact.role && (
-                              <p className="text-xs text-green-700">{generatedContact.role}</p>
+                              <p className="text-xs text-green-700">
+                                {generatedContact.role}
+                              </p>
                             )}
                             {generatedContact.current_company && (
-                              <p className="text-xs text-green-600">{generatedContact.current_company}</p>
+                              <p className="text-xs text-green-600">
+                                {generatedContact.current_company}
+                              </p>
                             )}
                             {generatedContact.location && (
-                              <p className="text-xs text-green-600">{generatedContact.location}</p>
+                              <p className="text-xs text-green-600">
+                                {generatedContact.location}
+                              </p>
                             )}
                           </div>
                         </div>
-                        
+
                         {generatedContact.bio_summary && (
                           <div>
-                            <p className="text-xs font-medium mb-1 text-green-800">Background</p>
+                            <p className="text-xs font-medium mb-1 text-green-800">
+                              Background
+                            </p>
                             <p className="text-xs text-green-700 leading-relaxed">
                               {generatedContact.bio_summary}
                             </p>
                           </div>
                         )}
-                        
+
                         {generatedContact.how_i_can_help && (
                           <div>
-                            <p className="text-xs font-medium mb-1 text-green-800">How I Can Help</p>
+                            <p className="text-xs font-medium mb-1 text-green-800">
+                              How I Can Help
+                            </p>
                             <p className="text-xs text-green-700 leading-relaxed">
                               {generatedContact.how_i_can_help}
                             </p>
                           </div>
                         )}
-                        
+
                         {generatedContact.email && (
                           <div>
-                            <p className="text-xs font-medium mb-1 text-green-800">Email</p>
-                            <p className="text-xs text-green-600">{generatedContact.email}</p>
+                            <p className="text-xs font-medium mb-1 text-green-800">
+                              Email
+                            </p>
+                            <p className="text-xs text-green-600">
+                              {generatedContact.email}
+                            </p>
                           </div>
                         )}
-                        
+
                         {generatedContact.linkedin_url && (
                           <div>
-                            <p className="text-xs font-medium mb-1 text-green-800">LinkedIn</p>
-                            <a 
-                              href={generatedContact.linkedin_url} 
-                              target="_blank" 
+                            <p className="text-xs font-medium mb-1 text-green-800">
+                              LinkedIn
+                            </p>
+                            <a
+                              href={generatedContact.linkedin_url}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-green-600 hover:underline"
                             >
@@ -580,7 +631,8 @@ export const IntegratedContactWorkflow = ({
                           <p>
                             If you're expanding your network, consider reaching
                             out to people in the same function or recruiters. On
-                            LinkedIn, try searching for [company name] [function].
+                            LinkedIn, try searching for [company name]
+                            [function].
                           </p>
                         </div>
                       </div>
@@ -687,7 +739,11 @@ export const IntegratedContactWorkflow = ({
         onUseExisting={handleUseExistingContact}
         onCreateNew={handleCreateNewContact}
         potentialDuplicates={potentialContactDuplicates}
-        newContactName={generatedContact ? `${generatedContact.first_name} ${generatedContact.last_name}` : ""}
+        newContactName={
+          generatedContact
+            ? `${generatedContact.first_name} ${generatedContact.last_name}`
+            : ""
+        }
       />
     </div>
   );
