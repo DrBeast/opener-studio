@@ -24,10 +24,10 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/use-toast";
-import { LinkedInQuerySuggestions } from "./LinkedInQuerySuggestions";
+import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
+import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 
 // localStorage utilities
 const STORAGE_KEY = "contact-workflow-state";
@@ -77,18 +77,23 @@ interface IntegratedContactWorkflowProps {
 }
 
 interface GeneratedContact {
-  contact_id: string;
-  name: string;
   first_name: string;
   last_name: string;
-  role?: string;
-  current_company?: string;
-  location?: string;
-  linkedin_url?: string;
+  role: string;
+  current_company: string;
+  location: string;
+  bio_summary: string;
+  how_i_can_help: string;
+  recent_activity_summary: string;
   email?: string;
-  bio_summary?: string;
-  how_i_can_help?: string;
+  linkedin_url?: string;
+}
+
+interface PotentialDuplicate {
   company_id: string;
+  name: string;
+  confidence: 'high' | 'medium' | 'low';
+  reasoning: string;
 }
 
 export const IntegratedContactWorkflow = ({
@@ -105,6 +110,9 @@ export const IntegratedContactWorkflow = ({
   const [createdContact, setCreatedContact] = useState<GeneratedContact | null>(
     null
   );
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [potentialDuplicates, setPotentialDuplicates] = useState<PotentialDuplicate[]>([]);
+  const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -172,76 +180,132 @@ export const IntegratedContactWorkflow = ({
       if (error) throw error;
 
       if (data?.contact) {
-        const contactWithIds = {
-          ...data.contact,
-          contact_id: crypto.randomUUID(), // Temporary ID for preview
-          company_id: null,
-          first_name: data.contact.name.split(" ")[0] || "",
-          last_name: data.contact.name.split(" ").slice(1).join(" ") || "",
-        };
-        setGeneratedContact(contactWithIds);
+        setGeneratedContact(data.contact);
       } else {
         throw new Error("No contact data received");
       }
     } catch (error: any) {
       console.error("Error generating contact:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate contact information",
-        variant: "destructive",
-      });
+      toast.error("Failed to generate contact information");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const checkForDuplicateCompany = async (companyName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check_company_duplicates', {
+        body: { companyName }
+      });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error('Error checking for duplicate companies:', error);
+      return { isDuplicate: false, potentialDuplicates: [] };
+    }
+  };
+
+  const createNewCompany = async (companyName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('add_company_by_name', {
+        body: { companyName }
+      });
+
+      if (error) throw error;
+      return data.company.company_id;
+    } catch (error) {
+      console.error('Error creating company:', error);
+      throw error;
+    }
+  };
+
   const handleCreateContact = async () => {
-    if (!user || !generatedContact) return;
+    if (!generatedContact || !user) return;
 
     setIsCreating(true);
+    try {
+      let finalCompanyId = selectedCompanyId;
+
+      // If no company is selected but we have a company name from the generated contact
+      if (!finalCompanyId && generatedContact.current_company) {
+        const duplicateCheck = await checkForDuplicateCompany(generatedContact.current_company);
+        
+        if (duplicateCheck.isDuplicate && duplicateCheck.potentialDuplicates.length > 0) {
+          // Show duplicate dialog
+          setPotentialDuplicates(duplicateCheck.potentialDuplicates);
+          setShowDuplicateDialog(true);
+          setIsCreating(false);
+          return;
+        } else {
+          // Create new company
+          finalCompanyId = await createNewCompany(generatedContact.current_company);
+        }
+      }
+
+      await createContactWithCompany(finalCompanyId);
+    } catch (error) {
+      console.error("Error in contact creation flow:", error);
+      toast.error("Failed to create contact");
+      setIsCreating(false);
+    }
+  };
+
+  const createContactWithCompany = async (companyId: string | null) => {
+    if (!generatedContact || !user) return;
+
     try {
       const { data, error } = await supabase
         .from("contacts")
         .insert({
           user_id: user.id,
-          company_id: null,
+          company_id: companyId,
           first_name: generatedContact.first_name,
           last_name: generatedContact.last_name,
           role: generatedContact.role,
+          location: generatedContact.location,
           email: generatedContact.email,
           linkedin_url: generatedContact.linkedin_url,
-          location: generatedContact.location,
           bio_summary: generatedContact.bio_summary,
           how_i_can_help: generatedContact.how_i_can_help,
+          recent_activity_summary: generatedContact.recent_activity_summary,
+          added_at: new Date().toISOString(),
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      const createdContactWithCompanyId = {
-        ...data,
-        company_id: null,
-        name: `${data.first_name} ${data.last_name}`.trim(),
-      };
-
-      setCreatedContact(createdContactWithCompanyId);
-      setGeneratedContact(null);
-
-      toast({
-        title: "Success",
-        description: "Contact created successfully",
-      });
-
+      setCreatedContact(generatedContact);
       onContactCreated();
-    } catch (error: any) {
+      toast.success("Contact created successfully!");
+    } catch (error) {
       console.error("Error creating contact:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create contact",
-        variant: "destructive",
-      });
+      toast.error("Failed to create contact");
     } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleUseExistingCompany = async (companyId: string) => {
+    setShowDuplicateDialog(false);
+    setIsCreating(true);
+    await createContactWithCompany(companyId);
+  };
+
+  const handleCreateNewCompany = async () => {
+    if (!generatedContact?.current_company) return;
+    
+    setShowDuplicateDialog(false);
+    setIsCreating(true);
+    
+    try {
+      const newCompanyId = await createNewCompany(generatedContact.current_company);
+      await createContactWithCompany(newCompanyId);
+    } catch (error) {
+      console.error("Error creating new company:", error);
+      toast.error("Failed to create contact");
       setIsCreating(false);
     }
   };
@@ -257,13 +321,13 @@ export const IntegratedContactWorkflow = ({
     setLinkedinBio("");
     setGeneratedContact(null);
     setCreatedContact(null);
+    setShowDuplicateDialog(false);
+    setPotentialDuplicates([]);
+    setPendingCompanyId(null);
   };
 
   const handleMessageSaved = () => {
-    toast({
-      title: "Success",
-      description: "Message saved and workflow completed!",
-    });
+    toast.success("Message saved and workflow completed!");
     resetWorkflow();
   };
 
@@ -337,11 +401,13 @@ export const IntegratedContactWorkflow = ({
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 bg-green-600/10 rounded-full flex items-center justify-center shrink-0">
                             <span className="text-green-700 font-semibold text-sm">
-                              {generatedContact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              {generatedContact.first_name?.[0]}{generatedContact.last_name?.[0]}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="font-medium text-sm truncate text-green-800">{generatedContact.name}</h5>
+                            <h5 className="font-medium text-sm truncate text-green-800">
+                              {generatedContact.first_name} {generatedContact.last_name}
+                            </h5>
                             {generatedContact.role && (
                               <p className="text-xs text-green-700">{generatedContact.role}</p>
                             )}
@@ -447,7 +513,7 @@ export const IntegratedContactWorkflow = ({
                     Contact Created
                   </h4>
                   <p className="text-sm text-green-700">
-                    {createdContact.name}
+                    {createdContact.first_name} {createdContact.last_name}
                   </p>
                   <Button
                     variant="outline"
@@ -488,13 +554,19 @@ export const IntegratedContactWorkflow = ({
                   Generating message for:
                 </p>
                 <p className="text-blue-700">
-                  {createdContact.name}
+                  {createdContact.first_name} {createdContact.last_name}
                 </p>
               </div>
 
               <MessageGeneration
-                contact={createdContact}
-                companyName=""
+                contact={{
+                  contact_id: crypto.randomUUID(),
+                  first_name: createdContact.first_name,
+                  last_name: createdContact.last_name,
+                  role: createdContact.role,
+                  company_id: "",
+                }}
+                companyName={generatedContact?.current_company || ""}
                 isOpen={true}
                 onClose={() => {}}
                 onMessageSaved={handleMessageSaved}
@@ -513,6 +585,15 @@ export const IntegratedContactWorkflow = ({
           )}
         </div>
       </div>
+
+      <CompanyDuplicateDialog
+        isOpen={showDuplicateDialog}
+        onClose={() => setShowDuplicateDialog(false)}
+        companyName={generatedContact?.current_company || ""}
+        potentialDuplicates={potentialDuplicates}
+        onCreateNew={handleCreateNewCompany}
+        onUseExisting={handleUseExistingCompany}
+      />
     </div>
   );
 };
