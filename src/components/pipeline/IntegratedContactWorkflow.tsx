@@ -40,6 +40,7 @@ interface GeneratedContact {
   first_name: string;
   last_name: string;
   role?: string;
+  current_company?: string;
   location?: string;
   linkedin_url?: string;
   email?: string;
@@ -270,31 +271,101 @@ export const IntegratedContactWorkflow = ({
                 )}
               </div>
 
-              {/* Right Column - Info Box */}
+              {/* Right Column - Contact Preview or Info Box */}
               <div className="space-y-4">
-                <AirtableCard className="bg-blue-50 border-blue-200">
-                  <AirtableCardContent className="p-3">
-                    <div className="flex items-start gap-2">
-                      <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-                      <div className="text-xs text-blue-800">
-                        <p className="font-medium mb-1">
-                          Who should I contact?
-                        </p>
-                        <p className="mb-1">
-                          Whether you are looking for referrals or exploring
-                          roles, the most relevant contacts are people you
-                          already know: classmates, friends, ex-colleagues.
-                        </p>
-                        <p>
-                          If you're expanding your network, consider reaching
-                          out to people in the same function or recruiters. On
-                          LinkedIn, try searching for [company name] [function].
-                        </p>
+                {generatedContact ? (
+                  <AirtableCard className="border-primary/20 bg-primary/5">
+                    <AirtableCardContent className="p-4">
+                      <h4 className="font-medium mb-3 text-primary text-sm">
+                        Contact Preview
+                      </h4>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                            <span className="text-primary font-semibold text-sm">
+                              {generatedContact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-sm truncate">{generatedContact.name}</h5>
+                            {generatedContact.role && (
+                              <p className="text-xs text-muted-foreground">{generatedContact.role}</p>
+                            )}
+                            {generatedContact.current_company && (
+                              <p className="text-xs text-primary">{generatedContact.current_company}</p>
+                            )}
+                            {generatedContact.location && (
+                              <p className="text-xs text-muted-foreground">{generatedContact.location}</p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {generatedContact.bio_summary && (
+                          <div>
+                            <p className="text-xs font-medium mb-1">Background</p>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {generatedContact.bio_summary}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {generatedContact.how_i_can_help && (
+                          <div>
+                            <p className="text-xs font-medium mb-1">How I Can Help</p>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {generatedContact.how_i_can_help}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {generatedContact.email && (
+                          <div>
+                            <p className="text-xs font-medium mb-1">Email</p>
+                            <p className="text-xs text-primary">{generatedContact.email}</p>
+                          </div>
+                        )}
+                        
+                        {generatedContact.linkedin_url && (
+                          <div>
+                            <p className="text-xs font-medium mb-1">LinkedIn</p>
+                            <a 
+                              href={generatedContact.linkedin_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline"
+                            >
+                              View Profile
+                            </a>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </AirtableCardContent>
-                </AirtableCard>
-
+                    </AirtableCardContent>
+                  </AirtableCard>
+                ) : (
+                  <AirtableCard className="bg-blue-50 border-blue-200">
+                    <AirtableCardContent className="p-3">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                        <div className="text-xs text-blue-800">
+                          <p className="font-medium mb-1">
+                            Who should I contact?
+                          </p>
+                          <p className="mb-1">
+                            Whether you are looking for referrals or exploring
+                            roles, the most relevant contacts are people you
+                            already know: classmates, friends, ex-colleagues.
+                          </p>
+                          <p>
+                            If you're expanding your network, consider reaching
+                            out to people in the same function or recruiters. On
+                            LinkedIn, try searching for [company name] [function].
+                          </p>
+                        </div>
+                      </div>
+                    </AirtableCardContent>
+                  </AirtableCard>
+                )}
               </div>
             </div>
           ) : (
