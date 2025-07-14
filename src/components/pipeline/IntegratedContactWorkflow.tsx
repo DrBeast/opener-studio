@@ -176,218 +176,207 @@ export const IntegratedContactWorkflow = ({
 
   return (
     <div className="space-y-6 bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <UserPlus className="h-5 w-5 text-primary" />
-        <h3 className="font-medium">Add New Contact</h3>
-        {createdContact && (
-          <div className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-            ✓ Complete
-          </div>
-        )}
-      </div>
-
-      {!createdContact ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: LinkedIn Input */}
-          <div className="space-y-4">
-            {/* Company Selection */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Target Company</Label>
-              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a company" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companies.map((company) => (
-                    <SelectItem key={company.company_id} value={company.company_id}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
-                LinkedIn Profile Content
-              </Label>
-              <div className="text-xs text-gray-600 mb-2">
-                Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
-                and paste here.
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Contact Creation Panel */}
+        <div
+          className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+            !createdContact
+              ? "border-primary/20 bg-primary/5"
+              : "border-gray-200 bg-gray-50/50"
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Add New Contact</h3>
+            {createdContact && (
+              <div className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                ✓ Complete
               </div>
-              <Textarea
-                value={linkedinBio}
-                onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder="Paste the contact's LinkedIn profile content here..."
-                className="min-h-[200px] text-sm"
-              />
-            </div>
-
-            {/* Generate Contact Button */}
-            <PrimaryAction
-              onClick={handleGenerateContact}
-              disabled={
-                !linkedinBio.trim() || !selectedCompanyId || isGenerating
-              }
-              className="w-full"
-              size="sm"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Contact...
-                </>
-              ) : (
-                "Generate Contact"
-              )}
-            </PrimaryAction>
-
-            {/* Generated Contact Preview */}
-            {generatedContact && (
-              <AirtableCard className="border-green-200 bg-green-50">
-                <AirtableCardContent className="p-3">
-                  <h4 className="font-medium mb-2 text-green-800 text-sm">
-                    Generated Contact
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <User className="h-3 w-3 text-green-600" />
-                      <span className="font-medium">
-                        {generatedContact.name}
-                      </span>
-                    </div>
-                    {generatedContact.role && (
-                      <div className="flex items-center gap-2">
-                        <Building className="h-3 w-3 text-green-600" />
-                        <span>{generatedContact.role}</span>
-                      </div>
-                    )}
-                  </div>
-                  <PrimaryAction
-                    onClick={handleCreateContact}
-                    disabled={isCreating}
-                    className="w-full mt-3"
-                    size="sm"
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Contact"
-                    )}
-                  </PrimaryAction>
-                </AirtableCardContent>
-              </AirtableCard>
             )}
           </div>
 
-          {/* Right: Info Box with LinkedIn Queries */}
-          <div className="space-y-4">
-            {/* Info Box */}
-            <AirtableCard className="bg-blue-50 border-blue-200">
-              <AirtableCardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-2">
-                      How to Find the Right Contacts
-                    </p>
-                    <p className="mb-2">
-                      Start with your existing network. Provide their LinkedIn bios,
-                      and AI will do the rest.
-                    </p>
-                    <p className="font-medium">
-                      Feel free to use the suggested queries below:
-                    </p>
+          {!createdContact ? (
+            <>
+              {/* Info Box */}
+              <AirtableCard className="bg-blue-50 border-blue-200">
+                <AirtableCardContent className="p-3">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                    <div className="text-xs text-blue-800">
+                      <p className="font-medium mb-1">
+                        How to Find the Right Contacts
+                      </p>
+                      <p className="mb-1">
+                        Start with your existing network. Provide their LinkedIn
+                        bios, and AI will do the rest.
+                      </p>
+                      <p className="font-medium">
+                        Feel free to use the suggested queries below:
+                      </p>
+                    </div>
                   </div>
+                </AirtableCardContent>
+              </AirtableCard>
+
+              {/* LinkedIn Query Suggestions */}
+              {selectedCompany && (
+                <LinkedInQuerySuggestions
+                  companyName={selectedCompany.name}
+                  isModalOpen={true}
+                />
+              )}
+
+              {/* LinkedIn Bio Input */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  LinkedIn Profile Content
+                </Label>
+                <div className="text-xs text-gray-600 mb-2">
+                  Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
+                  and paste here.
+                </div>
+                <Textarea
+                  value={linkedinBio}
+                  onChange={(e) => setLinkedinBio(e.target.value)}
+                  placeholder="Paste the contact's LinkedIn profile content here..."
+                  className="min-h-[120px] text-sm"
+                />
+              </div>
+
+              {/* Generate Contact Button */}
+              <PrimaryAction
+                onClick={handleGenerateContact}
+                disabled={
+                  !linkedinBio.trim() || !selectedCompanyId || isGenerating
+                }
+                className="w-full"
+                size="sm"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Contact...
+                  </>
+                ) : (
+                  "Generate Contact"
+                )}
+              </PrimaryAction>
+
+              {/* Generated Contact Preview */}
+              {generatedContact && (
+                <AirtableCard className="border-green-200 bg-green-50">
+                  <AirtableCardContent className="p-3">
+                    <h4 className="font-medium mb-2 text-green-800 text-sm">
+                      Generated Contact
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <User className="h-3 w-3 text-green-600" />
+                        <span className="font-medium">
+                          {generatedContact.name}
+                        </span>
+                      </div>
+                      {generatedContact.role && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-3 w-3 text-green-600" />
+                          <span>{generatedContact.role}</span>
+                        </div>
+                      )}
+                    </div>
+                    <PrimaryAction
+                      onClick={handleCreateContact}
+                      disabled={isCreating}
+                      className="w-full mt-3"
+                      size="sm"
+                    >
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Create Contact"
+                      )}
+                    </PrimaryAction>
+                  </AirtableCardContent>
+                </AirtableCard>
+              )}
+            </>
+          ) : (
+            /* Contact Created State */
+            <AirtableCard className="border-green-200 bg-green-50">
+              <AirtableCardContent className="p-3">
+                <div className="text-center space-y-2">
+                  <div className="text-green-600">✓</div>
+                  <h4 className="font-medium text-green-800 text-sm">
+                    Contact Created
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    {createdContact.name} at {selectedCompany?.name}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetWorkflow}
+                    className="text-xs"
+                  >
+                    Create Another Contact
+                  </Button>
                 </div>
               </AirtableCardContent>
             </AirtableCard>
-
-            {/* LinkedIn Query Suggestions */}
-            {selectedCompany && (
-              <LinkedInQuerySuggestions
-                companyName={selectedCompany.name}
-                isModalOpen={true}
-              />
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Contact Created State */
-        <AirtableCard className="border-green-200 bg-green-50">
-          <AirtableCardContent className="p-3">
-            <div className="text-center space-y-2">
-              <div className="text-green-600">✓</div>
-              <h4 className="font-medium text-green-800 text-sm">
-                Contact Created
-              </h4>
-              <p className="text-sm text-green-700">
-                {createdContact.name} at {selectedCompany?.name}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetWorkflow}
-                className="text-xs"
-              >
-                Create Another Contact
-              </Button>
-            </div>
-          </AirtableCardContent>
-        </AirtableCard>
-      )}
-
-      {/* Message Generation Panel */}
-      <div
-        className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-          createdContact
-            ? "border-primary/20 bg-primary/5"
-            : "border-gray-200 bg-gray-50/50"
-        }`}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <MessageCircle className="h-5 w-5 text-primary" />
-          <h3 className="font-medium">Generate Message</h3>
-          {!createdContact && (
-            <div className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              Waiting for contact
-            </div>
           )}
         </div>
 
-        {createdContact ? (
-          <div className="space-y-4">
-            <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="font-medium text-blue-800 mb-1">
-                Generating message for:
-              </p>
-              <p className="text-blue-700">
-                {createdContact.name} at {selectedCompany?.name}
-              </p>
-            </div>
+        {/* Message Generation Panel */}
+        <div
+          className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+            createdContact
+              ? "border-primary/20 bg-primary/5"
+              : "border-gray-200 bg-gray-50/50"
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Generate Message</h3>
+            {!createdContact && (
+              <div className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                Waiting for contact
+              </div>
+            )}
+          </div>
 
-            <MessageGeneration
-              contact={createdContact}
-              companyName={selectedCompany?.name || ""}
-              isOpen={true}
-              onClose={() => {}}
-              onMessageSaved={handleMessageSaved}
-              embedded={true}
-            />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-48 text-gray-400">
-            <div className="text-center">
-              <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">
-                Create a contact first to generate a message
-              </p>
+          {createdContact ? (
+            <div className="space-y-4">
+              <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="font-medium text-blue-800 mb-1">
+                  Generating message for:
+                </p>
+                <p className="text-blue-700">
+                  {createdContact.name} at {selectedCompany?.name}
+                </p>
+              </div>
+
+              <MessageGeneration
+                contact={createdContact}
+                companyName={selectedCompany?.name || ""}
+                isOpen={true}
+                onClose={() => {}}
+                onMessageSaved={handleMessageSaved}
+                embedded={true}
+              />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-center h-48 text-gray-400">
+              <div className="text-center">
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">
+                  Create a contact first to generate a message
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
