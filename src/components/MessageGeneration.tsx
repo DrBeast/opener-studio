@@ -33,12 +33,13 @@ interface ContactData {
 }
 
 interface MessageGenerationProps {
-  contact: ContactData;
+  contact: ContactData | null;
   companyName: string;
   isOpen: boolean;
   onClose: () => void;
   onMessageSaved?: () => void;
   embedded?: boolean;
+  disabled?: boolean;
 }
 
 interface GeneratedMessageResponse {
@@ -59,6 +60,7 @@ export function MessageGeneration({
   onClose,
   onMessageSaved,
   embedded = false,
+  disabled = false,
 }: MessageGenerationProps) {
   const [medium, setMedium] = useState<string>("LinkedIn connection note");
   const [objective, setObjective] = useState<string>("");
@@ -141,6 +143,11 @@ export function MessageGeneration({
   }, [objective, customObjective]);
 
   const generateMessages = useCallback(async () => {
+    if (!contact) {
+      toast.error("Please create a contact first");
+      return;
+    }
+
     const effectiveObjective = getEffectiveObjective();
     if (!effectiveObjective) {
       toast.error("Please select or provide a message objective");
@@ -218,7 +225,7 @@ export function MessageGeneration({
     } finally {
       setIsGenerating(false);
     }
-  }, [contact.contact_id, medium, getEffectiveObjective, additionalContext]);
+  }, [contact?.contact_id, medium, getEffectiveObjective, additionalContext]);
 
   const handleMessageEdit = useCallback(
     (version: string, text: string) => {
@@ -248,8 +255,8 @@ export function MessageGeneration({
           .from("saved_message_versions")
           .insert({
             user_id: (await supabase.auth.getUser()).data.user?.id,
-            contact_id: contact.contact_id,
-            company_id: contact.company_id,
+            contact_id: contact?.contact_id,
+            company_id: contact?.company_id,
             version_name: version,
             message_text: messageText,
             medium: medium,
@@ -260,15 +267,15 @@ export function MessageGeneration({
         if (error) throw error;
 
         const interactionDescription = `You sent a ${medium.toLowerCase()} to ${
-          contact.first_name || ""
-        } ${contact.last_name || ""}: "${messageText}"`;
+          contact?.first_name || ""
+        } ${contact?.last_name || ""}: "${messageText}"`;
 
         const { error: interactionError } = await supabase
           .from("interactions")
           .insert({
             user_id: (await supabase.auth.getUser()).data.user?.id,
-            contact_id: contact.contact_id,
-            company_id: contact.company_id,
+            contact_id: contact?.contact_id,
+            company_id: contact?.company_id,
             interaction_type: "message_draft",
             description: interactionDescription,
             medium: medium,
@@ -384,7 +391,7 @@ export function MessageGeneration({
           {/* Generate Button */}
           <Button
             onClick={generateMessages}
-            disabled={isGenerating || !getEffectiveObjective()}
+            disabled={disabled || isGenerating || !getEffectiveObjective() || !contact}
             className="w-full"
             size={embedded ? "sm" : "default"}
           >
@@ -487,6 +494,8 @@ export function MessageGeneration({
       </div>
     ),
     [
+      disabled,
+      contact,
       medium,
       objective,
       customObjective,
@@ -518,9 +527,9 @@ export function MessageGeneration({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Generate Message for {contact.first_name || ""}{" "}
-            {contact.last_name || ""}
-            {contact.role && ` (${contact.role})`} at {companyName}
+            Generate Message for {contact?.first_name || ""}{" "}
+            {contact?.last_name || ""}
+            {contact?.role && ` (${contact.role})`} at {companyName}
           </DialogTitle>
           <DialogDescription className="space-y-2">
             <p>
