@@ -1,4 +1,3 @@
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -53,7 +52,10 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/job-targets" element={<JobTargets />} />
                 {/* Redirect authenticated users to pipeline */}
-                <Route path="/dashboard" element={<Navigate to="/pipeline" replace />} />
+                <Route
+                  path="/dashboard"
+                  element={<Navigate to="/pipeline" replace />}
+                />
               </Route>
 
               {/* Admin Routes (not linked anywhere) */}

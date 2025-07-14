@@ -1,9 +1,17 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, UserPlus, Users, Building2, Eye, EyeOff } from "lucide-react";
+import {
+  Edit,
+  Plus,
+  Sparkles,
+  UserPlus,
+  Users,
+  Building2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -69,7 +77,9 @@ const PipelineDashboard = () => {
   } = useContacts();
 
   // State variables
-  const [currentView, setCurrentView] = useState<"companies" | "contacts">("companies");
+  const [currentView, setCurrentView] = useState<"companies" | "contacts">(
+    "companies"
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -338,29 +348,6 @@ const PipelineDashboard = () => {
       <div className="mx-auto py-8 ">
         <ProfileBreadcrumbs />
 
-        {/* Top Section (Like Profile Page) */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="grid gap-8">
-            <div className="space-y-8">
-              <div className="flex flex-row items-center justify-between">
-                <div>
-                  <PageTitle>Company Targets and Contacts</PageTitle>
-                  <PageDescription>
-                    Manage your target companies and track your networking
-                    progress
-                  </PageDescription>
-                </div>
-              </div>
-
-              <InfoBox
-                title="💡 Pipeline Overview"
-                description="Click the icons under Contacts to Generate Contacts and Add them manually. AI-powered contact identification can only leverage publicly available information such as company websites - it cannot access LinkedIn profiles yet. For best results, we strongly recommend manually adding contacts from your existing network or new contacts you discover through LinkedIn research. This ensures you connect with the most relevant people at your target companies. Once you have contacts, use the Message icon to craft the messages. When you Save Messages, the will be summarized in the Interactions column. Full history can be viewed by clicking a company row under Company details."
-                icon={<UserPlus className="h-6 w-6 text-blue-600" />}
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Placeholder Targets Modal */}
         {isTargetsModalOpen && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
@@ -381,7 +368,7 @@ const PipelineDashboard = () => {
 
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
-          <IntegratedContactWorkflow 
+          <IntegratedContactWorkflow
             companies={companies}
             onContactCreated={() => {
               fetchContacts();
@@ -415,7 +402,7 @@ const PipelineDashboard = () => {
                     Contacts ({contacts.length})
                   </Button>
                 </div>
-                
+
                 {/* Show/Hide Inactive Toggle */}
                 <div className="flex items-center gap-2">
                   <Button
@@ -430,7 +417,11 @@ const PipelineDashboard = () => {
                     }}
                     className="flex items-center gap-2"
                   >
-                    {(currentView === "companies" ? showInactiveCompanies : showInactiveContacts) ? (
+                    {(
+                      currentView === "companies"
+                        ? showInactiveCompanies
+                        : showInactiveContacts
+                    ) ? (
                       <>
                         <EyeOff className="h-4 w-4" />
                         Hide Inactive
@@ -450,7 +441,11 @@ const PipelineDashboard = () => {
                 <SearchAndFilters
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
-                  selectedCount={currentView === "companies" ? selectedCompanies.size : selectedContacts.size}
+                  selectedCount={
+                    currentView === "companies"
+                      ? selectedCompanies.size
+                      : selectedContacts.size
+                  }
                   onBulkRemove={handleBulkRemove}
                 />
                 <div className="flex items-center gap-3">
@@ -513,29 +508,31 @@ const PipelineDashboard = () => {
                   onOpenContactRecommendation={handleOpenContactRecommendation}
                 />
               )
+            ) : filteredContacts.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+                  No contacts found
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {searchTerm
+                    ? "Try adjusting your search term."
+                    : "Start by adding contacts to your companies."}
+                </p>
+              </div>
             ) : (
-              filteredContacts.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-2 text-sm font-semibold text-muted-foreground">No contacts found</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {searchTerm ? "Try adjusting your search term." : "Start by adding contacts to your companies."}
-                  </p>
-                </div>
-              ) : (
-                <ContactsTable
-                  contacts={filteredContacts}
-                  onContactClick={handleContactClick}
-                  onGenerateMessage={handleGenerateMessage}
-                  selectedContacts={selectedContacts}
-                  onSelectContact={handleContactSelect}
-                  onSelectAll={handleContactSelectAll}
-                  sortField={contactSortField}
-                  sortDirection={contactSortDirection}
-                  onSort={handleContactSort}
-                  onToggleStatus={toggleContactStatus}
-                />
-              )
+              <ContactsTable
+                contacts={filteredContacts}
+                onContactClick={handleContactClick}
+                onGenerateMessage={handleGenerateMessage}
+                selectedContacts={selectedContacts}
+                onSelectContact={handleContactSelect}
+                onSelectAll={handleContactSelectAll}
+                sortField={contactSortField}
+                sortDirection={contactSortDirection}
+                onSort={handleContactSort}
+                onToggleStatus={toggleContactStatus}
+              />
             )}
           </CardContent>
         </Card>
@@ -590,11 +587,13 @@ const PipelineDashboard = () => {
         {/* Unified Generate Contacts Modal */}
         <GenerateContactsModal
           isOpen={generateContactsModal.isOpen}
-          onClose={() => setGenerateContactsModal({
-            isOpen: false,
-            companyId: "",
-            companyName: "",
-          })}
+          onClose={() =>
+            setGenerateContactsModal({
+              isOpen: false,
+              companyId: "",
+              companyName: "",
+            })
+          }
           companyId={generateContactsModal.companyId}
           companyName={generateContactsModal.companyName}
           onSuccess={handleCompanyUpdated}
