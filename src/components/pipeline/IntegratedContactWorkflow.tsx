@@ -207,8 +207,7 @@ export const IntegratedContactWorkflow = ({
                   <Textarea
                     value={linkedinBio}
                     onChange={(e) => setLinkedinBio(e.target.value)}
-                    placeholder=" Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
-                    and paste it here (Ctrl + V)..."
+                    placeholder=" Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)..."
                     className="min-h-[120px] text-sm"
                   />
                 </div>
