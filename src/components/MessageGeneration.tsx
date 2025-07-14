@@ -33,13 +33,12 @@ interface ContactData {
 }
 
 interface MessageGenerationProps {
-  contact: ContactData | null;
+  contact: ContactData;
   companyName: string;
   isOpen: boolean;
   onClose: () => void;
   onMessageSaved?: () => void;
   embedded?: boolean;
-  disabled?: boolean;
 }
 
 interface GeneratedMessageResponse {
@@ -60,7 +59,6 @@ export function MessageGeneration({
   onClose,
   onMessageSaved,
   embedded = false,
-  disabled = false,
 }: MessageGenerationProps) {
   const [medium, setMedium] = useState<string>("LinkedIn connection note");
   const [objective, setObjective] = useState<string>("");
@@ -143,11 +141,6 @@ export function MessageGeneration({
   }, [objective, customObjective]);
 
   const generateMessages = useCallback(async () => {
-    if (!contact?.contact_id) {
-      toast.error("No contact selected");
-      return;
-    }
-
     const effectiveObjective = getEffectiveObjective();
     if (!effectiveObjective) {
       toast.error("Please select or provide a message objective");
@@ -225,7 +218,7 @@ export function MessageGeneration({
     } finally {
       setIsGenerating(false);
     }
-  }, [contact?.contact_id, medium, getEffectiveObjective, additionalContext]);
+  }, [contact.contact_id, medium, getEffectiveObjective, additionalContext]);
 
   const handleMessageEdit = useCallback(
     (version: string, text: string) => {
@@ -249,11 +242,6 @@ export function MessageGeneration({
 
   const saveMessage = useCallback(
     async (version: string, messageText: string) => {
-      if (!contact?.contact_id) {
-        toast.error("No contact selected");
-        return;
-      }
-
       try {
         const effectiveObjective = getEffectiveObjective();
         const { data, error } = await supabase
@@ -396,7 +384,7 @@ export function MessageGeneration({
           {/* Generate Button */}
           <Button
             onClick={generateMessages}
-            disabled={isGenerating || !getEffectiveObjective() || !contact?.contact_id || disabled}
+            disabled={isGenerating || !getEffectiveObjective()}
             className="w-full"
             size={embedded ? "sm" : "default"}
           >
@@ -530,9 +518,9 @@ export function MessageGeneration({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Generate Message for {contact?.first_name || ""}{" "}
-            {contact?.last_name || ""}
-            {contact?.role && ` (${contact.role})`} at {companyName}
+            Generate Message for {contact.first_name || ""}{" "}
+            {contact.last_name || ""}
+            {contact.role && ` (${contact.role})`} at {companyName}
           </DialogTitle>
           <DialogDescription className="space-y-2">
             <p>

@@ -29,7 +29,6 @@ import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
-import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 
 // localStorage utilities
 const STORAGE_KEY = "contact-workflow-state";
@@ -89,8 +88,6 @@ interface GeneratedContact {
   recent_activity_summary: string;
   email?: string;
   linkedin_url?: string;
-  contact_id?: string;
-  company_id?: string;
 }
 
 interface PotentialDuplicate {
@@ -134,8 +131,6 @@ export const IntegratedContactWorkflow = ({
     PotentialContactDuplicate[]
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
-  const [showContactDetails, setShowContactDetails] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -146,9 +141,6 @@ export const IntegratedContactWorkflow = ({
     const savedGeneratedContact = loadFromStorage(
       `${storageKey}-generatedContact`
     );
-    const savedCreatedContact = loadFromStorage(
-      `${storageKey}-createdContact`
-    );
 
     if (savedLinkedinBio) {
       setLinkedinBio(savedLinkedinBio);
@@ -156,10 +148,6 @@ export const IntegratedContactWorkflow = ({
 
     if (savedGeneratedContact) {
       setGeneratedContact(savedGeneratedContact);
-    }
-
-    if (savedCreatedContact) {
-      setCreatedContact(savedCreatedContact);
     }
   }, [user]);
 
@@ -190,18 +178,6 @@ export const IntegratedContactWorkflow = ({
       clearStorage(`${storageKey}-generatedContact`);
     }
   }, [generatedContact, user]);
-
-  // Save createdContact to localStorage
-  useEffect(() => {
-    if (!user) return;
-
-    const storageKey = `${user.id}`;
-    if (createdContact) {
-      saveToStorage(`${storageKey}-createdContact`, createdContact);
-    } else {
-      clearStorage(`${storageKey}-createdContact`);
-    }
-  }, [createdContact, user]);
 
   const selectedCompany = companies.find(
     (c) => c.company_id === selectedCompanyId
@@ -390,13 +366,7 @@ export const IntegratedContactWorkflow = ({
 
       if (error) throw error;
 
-      // Store the created contact with the contact_id and company_id
-      const contactWithId = { 
-        ...generatedContact, 
-        contact_id: data.contact_id,
-        company_id: data.company_id
-      };
-      setCreatedContact(contactWithId);
+      setCreatedContact(generatedContact);
       onContactCreated();
       toast.success("Contact created successfully!");
     } catch (error) {
@@ -468,7 +438,6 @@ export const IntegratedContactWorkflow = ({
       const storageKey = `${user.id}`;
       clearStorage(`${storageKey}-linkedinBio`);
       clearStorage(`${storageKey}-generatedContact`);
-      clearStorage(`${storageKey}-createdContact`);
     }
 
     setSelectedCompanyId("");
@@ -480,15 +449,11 @@ export const IntegratedContactWorkflow = ({
     setShowContactDuplicateDialog(false);
     setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
-    setShowContactDetails(false);
   };
 
   const handleMessageSaved = () => {
-    toast.success("Message saved!");
-    // Open the contact details modal on the Messages tab
-    if (createdContact?.contact_id) {
-      setShowContactDetails(true);
-    }
+    toast.success("Message saved and workflow completed!");
+    resetWorkflow();
   };
 
   return (
@@ -713,30 +678,49 @@ export const IntegratedContactWorkflow = ({
           <div className="flex items-center gap-2 mb-4">
             <MessageCircle className="h-5 w-5 text-primary" />
             <h3 className="font-medium">Generate Message</h3>
-            {createdContact && (
-              <div className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                ✓ Ready
+            {!createdContact && (
+              <div className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                Waiting for contact
               </div>
             )}
           </div>
 
-          <MessageGeneration
-            contact={createdContact ? {
-              contact_id: createdContact.contact_id || "",
-              first_name: createdContact.first_name,
-              last_name: createdContact.last_name,
-              role: createdContact.role,
-              company_id: createdContact.company_id || "",
-            } : null}
-            companyName={
-              selectedCompany?.name || createdContact?.current_company || ""
-            }
-            isOpen={true}
-            onClose={() => {}}
-            onMessageSaved={handleMessageSaved}
-            embedded={true}
-            disabled={!createdContact}
-          />
+          {createdContact ? (
+            <div className="space-y-4">
+              <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="font-medium text-blue-800 mb-1">
+                  Generating message for:
+                </p>
+                <p className="text-blue-700">
+                  {createdContact.first_name} {createdContact.last_name}
+                </p>
+              </div>
+
+              <MessageGeneration
+                contact={{
+                  contact_id: crypto.randomUUID(),
+                  first_name: createdContact.first_name,
+                  last_name: createdContact.last_name,
+                  role: createdContact.role,
+                  company_id: "",
+                }}
+                companyName={generatedContact?.current_company || ""}
+                isOpen={true}
+                onClose={() => {}}
+                onMessageSaved={handleMessageSaved}
+                embedded={true}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-gray-400">
+              <div className="text-center">
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">
+                  Create a contact first to generate a message
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -761,17 +745,6 @@ export const IntegratedContactWorkflow = ({
             : ""
         }
       />
-
-      {/* Contact Details Modal for Messages */}
-      {showContactDetails && createdContact?.contact_id && (
-        <EnhancedContactDetails
-          contactId={createdContact.contact_id}
-          isOpen={showContactDetails}
-          onClose={() => setShowContactDetails(false)}
-          onContactUpdated={() => {}}
-          defaultTab="messages"
-        />
-      )}
     </div>
   );
 };
