@@ -201,16 +201,14 @@ export const IntegratedContactWorkflow = ({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
-                    LinkedIn Profile Content
+                    Paste their LinkedIn content here
                   </Label>
-                  <div className="text-xs text-gray-600 mb-2">
-                    Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
-                    and paste here.
-                  </div>
+                  
                   <Textarea
                     value={linkedinBio}
                     onChange={(e) => setLinkedinBio(e.target.value)}
-                    placeholder="Paste the contact's LinkedIn profile content here..."
+                    placeholder=" Copy everything from their LinkedIn profile (Ctrl+A, Ctrl+C)
+                    and paste it here (Ctrl + V)..."
                     className="min-h-[120px] text-sm"
                   />
                 </div>
