@@ -713,51 +713,30 @@ export const IntegratedContactWorkflow = ({
           <div className="flex items-center gap-2 mb-4">
             <MessageCircle className="h-5 w-5 text-primary" />
             <h3 className="font-medium">Generate Message</h3>
-            {!createdContact && (
-              <div className="ml-auto text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                Waiting for contact
+            {createdContact && (
+              <div className="ml-auto text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                ✓ Ready
               </div>
             )}
           </div>
 
-          {createdContact ? (
-            <div className="space-y-4">
-              <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded">
-                <p className="font-medium text-blue-800 mb-1">
-                  Generating message for:
-                </p>
-                <p className="text-blue-700">
-                  {createdContact.first_name} {createdContact.last_name}
-                </p>
-              </div>
-
-              <MessageGeneration
-                contact={{
-                  contact_id: createdContact.contact_id || "",
-                  first_name: createdContact.first_name,
-                  last_name: createdContact.last_name,
-                  role: createdContact.role,
-                  company_id: createdContact.company_id || "",
-                }}
-                companyName={
-                  selectedCompany?.name || createdContact.current_company
-                }
-                isOpen={true}
-                onClose={() => {}}
-                onMessageSaved={handleMessageSaved}
-                embedded={true}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-48 text-gray-400">
-              <div className="text-center">
-                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">
-                  Create a contact first to generate a message
-                </p>
-              </div>
-            </div>
-          )}
+          <MessageGeneration
+            contact={createdContact ? {
+              contact_id: createdContact.contact_id || "",
+              first_name: createdContact.first_name,
+              last_name: createdContact.last_name,
+              role: createdContact.role,
+              company_id: createdContact.company_id || "",
+            } : null}
+            companyName={
+              selectedCompany?.name || createdContact?.current_company || ""
+            }
+            isOpen={true}
+            onClose={() => {}}
+            onMessageSaved={handleMessageSaved}
+            embedded={true}
+            disabled={!createdContact}
+          />
         </div>
       </div>
 
