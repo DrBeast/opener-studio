@@ -11,7 +11,6 @@ const corsHeaders = {
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
 
 interface ProcessedContact {
-  name: string;
   first_name: string;
   last_name: string;
   role?: string;
@@ -101,7 +100,6 @@ serve(async (req) => {
     Your task is to process this LinkedIn profile content and extract structured contact information. Please provide the following information in a JSON object:
 
     {
-      "name": "Full Name of the contact",
       "first_name": "First name only (e.g., 'John')",
       "last_name": "Last name only (everything after first name, e.g., 'Smith' or 'Smith Johnson')",
       "role": "The contact's job title/role",
@@ -145,16 +143,13 @@ serve(async (req) => {
         ? JSON.parse(data.candidates[0].content.parts[0].text)
         : data;
 
-      if (typeof processedContact !== 'object' || !processedContact.name) {
+      if (typeof processedContact !== 'object' || !processedContact.first_name) {
         throw new Error("AI response is not a valid contact object.");
       }
 
-      // Ensure first_name and last_name are properly set
-      if (!processedContact.first_name || !processedContact.last_name) {
-        // Fallback: parse name into first and last name
-        const nameParts = processedContact.name.trim().split(' ');
-        processedContact.first_name = nameParts[0] || '';
-        processedContact.last_name = nameParts.slice(1).join(' ') || '';
+      // Ensure last_name is set (fallback if empty)
+      if (!processedContact.last_name) {
+        processedContact.last_name = '';
       }
 
     } catch (parseError) {
