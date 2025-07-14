@@ -134,6 +134,7 @@ export const IntegratedContactWorkflow = ({
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -373,6 +374,7 @@ export const IntegratedContactWorkflow = ({
       const contactWithId = { ...generatedContact, contact_id: data.contact_id };
       setCreatedContact(contactWithId);
       onContactCreated();
+      setCurrentStep(3); // Automatically advance to message generation
       toast.success("Contact created successfully!");
     } catch (error) {
       console.error("Error creating contact:", error);
