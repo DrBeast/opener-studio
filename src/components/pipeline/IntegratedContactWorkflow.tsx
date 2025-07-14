@@ -146,6 +146,9 @@ export const IntegratedContactWorkflow = ({
     const savedGeneratedContact = loadFromStorage(
       `${storageKey}-generatedContact`
     );
+    const savedCreatedContact = loadFromStorage(
+      `${storageKey}-createdContact`
+    );
 
     if (savedLinkedinBio) {
       setLinkedinBio(savedLinkedinBio);
@@ -153,6 +156,10 @@ export const IntegratedContactWorkflow = ({
 
     if (savedGeneratedContact) {
       setGeneratedContact(savedGeneratedContact);
+    }
+
+    if (savedCreatedContact) {
+      setCreatedContact(savedCreatedContact);
     }
   }, [user]);
 
@@ -183,6 +190,18 @@ export const IntegratedContactWorkflow = ({
       clearStorage(`${storageKey}-generatedContact`);
     }
   }, [generatedContact, user]);
+
+  // Save createdContact to localStorage
+  useEffect(() => {
+    if (!user) return;
+
+    const storageKey = `${user.id}`;
+    if (createdContact) {
+      saveToStorage(`${storageKey}-createdContact`, createdContact);
+    } else {
+      clearStorage(`${storageKey}-createdContact`);
+    }
+  }, [createdContact, user]);
 
   const selectedCompany = companies.find(
     (c) => c.company_id === selectedCompanyId
@@ -449,6 +468,7 @@ export const IntegratedContactWorkflow = ({
       const storageKey = `${user.id}`;
       clearStorage(`${storageKey}-linkedinBio`);
       clearStorage(`${storageKey}-generatedContact`);
+      clearStorage(`${storageKey}-createdContact`);
     }
 
     setSelectedCompanyId("");
