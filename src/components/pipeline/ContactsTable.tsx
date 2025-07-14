@@ -24,6 +24,8 @@ import {
   Building,
   MapPin,
   Linkedin,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
@@ -44,6 +46,7 @@ interface Contact {
   recent_activity_summary: string;
   added_at: string;
   updated_at: string;
+  status: 'active' | 'inactive';
   // Extended with company info from join
   company_name?: string;
   company_industry?: string;
@@ -59,6 +62,7 @@ interface ContactsTableProps {
   sortField: string;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
+  onToggleStatus?: (contactId: string, newStatus: 'active' | 'inactive') => void;
 }
 
 const ContactInteractionOverviewCell = ({ contactId }: { contactId: string }) => {
@@ -152,6 +156,7 @@ export const ContactsTable = ({
   sortField,
   sortDirection,
   onSort,
+  onToggleStatus,
 }: ContactsTableProps) => {
   const SortButton = ({
     field,
@@ -204,6 +209,9 @@ export const ContactsTable = ({
               <TableHead className="min-w-[180px]">
                 <SortButton field="company">Company</SortButton>
               </TableHead>
+              <TableHead className="w-[100px]">
+                Status
+              </TableHead>
               <TableHead className="hidden md:table-cell min-w-[120px]">
                 Location
               </TableHead>
@@ -228,7 +236,7 @@ export const ContactsTable = ({
                 <TableRow
                   key={contact.contact_id}
                   className={cn(
-                    "cursor-pointer hover:bg-muted/50",
+                    "group cursor-pointer hover:bg-muted/50",
                     isSelected ? "bg-muted/20" : ""
                   )}
                   onClick={() => onContactClick(contact.contact_id)}
@@ -265,6 +273,44 @@ export const ContactsTable = ({
                       <div className="text-sm">
                         {companyInfo || "-"}
                       </div>
+                    </div>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+                        contact.status === 'active' 
+                          ? "bg-green-100 text-green-800" 
+                          : "bg-gray-100 text-gray-600"
+                      )}>
+                        {contact.status === 'active' ? (
+                          <UserCheck className="h-3 w-3" />
+                        ) : (
+                          <UserX className="h-3 w-3" />
+                        )}
+                        {contact.status}
+                      </div>
+                      {onToggleStatus && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="p-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleStatus(
+                              contact.contact_id, 
+                              contact.status === 'active' ? 'inactive' : 'active'
+                            );
+                          }}
+                          title={`Mark as ${contact.status === 'active' ? 'inactive' : 'active'}`}
+                        >
+                          {contact.status === 'active' ? (
+                            <UserX className="h-3 w-3" />
+                          ) : (
+                            <UserCheck className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">

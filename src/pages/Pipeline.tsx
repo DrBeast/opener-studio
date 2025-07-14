@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, UserPlus, Users, Building2 } from "lucide-react";
+import { Edit, Plus, Sparkles, UserPlus, Users, Building2, Eye, EyeOff } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -47,6 +47,9 @@ const PipelineDashboard = () => {
     sortField: companySortField,
     sortDirection: companySortDirection,
     handleSort: handleCompanySort,
+    showInactive: showInactiveCompanies,
+    setShowInactive: setShowInactiveCompanies,
+    toggleCompanyStatus,
   } = useCompanies();
 
   const {
@@ -59,6 +62,9 @@ const PipelineDashboard = () => {
     sortField: contactSortField,
     sortDirection: contactSortDirection,
     handleSort: handleContactSort,
+    showInactive: showInactiveContacts,
+    setShowInactive: setShowInactiveContacts,
+    toggleContactStatus,
   } = useContacts();
 
   // State variables
@@ -458,6 +464,34 @@ const PipelineDashboard = () => {
                     Contacts ({contacts.length})
                   </Button>
                 </div>
+                
+                {/* Show/Hide Inactive Toggle */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (currentView === "companies") {
+                        setShowInactiveCompanies(!showInactiveCompanies);
+                      } else {
+                        setShowInactiveContacts(!showInactiveContacts);
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    {(currentView === "companies" ? showInactiveCompanies : showInactiveContacts) ? (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                        Hide Inactive
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        Show Inactive
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {/* Search and Actions */}
@@ -548,6 +582,7 @@ const PipelineDashboard = () => {
                   sortField={contactSortField}
                   sortDirection={contactSortDirection}
                   onSort={handleContactSort}
+                  onToggleStatus={toggleContactStatus}
                 />
               )
             )}

@@ -30,6 +30,7 @@ export interface Company {
   ai_match_reasoning?: string;
   user_priority?: 'Top' | 'Medium' | 'Maybe';
   is_blacklisted?: boolean;
+  status?: 'active' | 'inactive';
   match_quality_score?: number;
   interaction_summary?: string;
   contacts?: Contact[];
@@ -47,6 +48,7 @@ export const useCompanies = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [showInactive, setShowInactive] = useState(false);
 
   // Get any newly created companies from location state
   const newCompanies = location.state?.newCompanies || [];
@@ -281,12 +283,42 @@ export const useCompanies = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedCompanies.size === companies.length) {
+    if (selectedCompanies.size === filteredCompanies.length) {
       setSelectedCompanies(new Set());
     } else {
-      setSelectedCompanies(new Set(companies.map(c => c.company_id)));
+      setSelectedCompanies(new Set(filteredCompanies.map(c => c.company_id)));
     }
   };
+
+  const toggleCompanyStatus = async (companyId: string, newStatus: 'active' | 'inactive') => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ status: newStatus })
+        .eq('company_id', companyId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      await fetchCompanies();
+      toast({
+        title: "Success",
+        description: `Company marked as ${newStatus}`,
+      });
+    } catch (error: any) {
+      console.error("Error updating company status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update company status",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Filter companies based on showInactive toggle
+  const filteredCompanies = showInactive 
+    ? companies 
+    : companies.filter(company => company.status !== 'inactive');
 
   useEffect(() => {
     if (user) {
@@ -295,7 +327,8 @@ export const useCompanies = () => {
   }, [user]);
 
   return {
-    companies,
+    companies: filteredCompanies,
+    allCompanies: companies,
     isLoading,
     fetchCompanies,
     handleSetPriority,
@@ -308,6 +341,9 @@ export const useCompanies = () => {
     handleSelectAll,
     sortField,
     sortDirection,
-    handleSort
+    handleSort,
+    showInactive,
+    setShowInactive,
+    toggleCompanyStatus,
   };
 };

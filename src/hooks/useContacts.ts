@@ -19,6 +19,7 @@ export interface Contact {
   recent_activity_summary: string;
   added_at: string;
   updated_at: string;
+  status: 'active' | 'inactive';
   // Extended with company info from join
   company_name?: string;
   company_industry?: string;
@@ -31,6 +32,7 @@ export const useContacts = () => {
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [showInactive, setShowInactive] = useState(false);
 
   const fetchContacts = async () => {
     if (!user) return;
@@ -98,12 +100,43 @@ export const useContacts = () => {
     }
   };
 
+  const toggleContactStatus = async (contactId: string, newStatus: 'active' | 'inactive') => {
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .update({ status: newStatus })
+        .eq("contact_id", contactId)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+
+      await fetchContacts();
+      toast({
+        title: "Success",
+        description: `Contact marked as ${newStatus}`,
+      });
+    } catch (error: any) {
+      console.error("Error updating contact status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update contact status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filter contacts based on showInactive toggle
+  const filteredContacts = showInactive 
+    ? contacts 
+    : contacts.filter(contact => contact.status === 'active');
+
   useEffect(() => {
     fetchContacts();
   }, [user]);
 
   return {
-    contacts,
+    contacts: filteredContacts,
+    allContacts: contacts,
     isLoading,
     fetchContacts,
     selectedContacts,
@@ -112,5 +145,8 @@ export const useContacts = () => {
     sortField,
     sortDirection,
     handleSort,
+    showInactive,
+    setShowInactive,
+    toggleContactStatus,
   };
 };

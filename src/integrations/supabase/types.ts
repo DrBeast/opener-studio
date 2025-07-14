@@ -30,6 +30,7 @@ export type Database = {
           match_quality_score: number | null
           name: string
           public_private: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
           user_notes: string | null
@@ -52,6 +53,7 @@ export type Database = {
           match_quality_score?: number | null
           name: string
           public_private?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           match_quality_score?: number | null
           name?: string
           public_private?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -97,6 +100,7 @@ export type Database = {
           location: string | null
           recent_activity_summary: string | null
           role: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
           user_notes: string | null
@@ -114,6 +118,7 @@ export type Database = {
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -131,6 +136,7 @@ export type Database = {
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
