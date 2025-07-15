@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { MEDIUM_OPTIONS } from "/workspaces/connectorai/supabase/functions/_shared/constants"; // Adjust the import path as needed
+import { MEDIUM_OPTIONS } from "../../supabase/functions/_shared/constants"; // Adjust the import path as needed
 
 interface ContactData {
   contact_id: string;
