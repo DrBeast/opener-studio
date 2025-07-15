@@ -92,11 +92,10 @@ export type Database = {
           bio_summary: string | null
           company_id: string | null
           contact_id: string
-          email: string | null
           first_name: string | null
           how_i_can_help: string | null
           last_name: string | null
-          linkedin_url: string | null
+          linkedin_bio: string | null
           location: string | null
           recent_activity_summary: string | null
           role: string | null
@@ -110,11 +109,10 @@ export type Database = {
           bio_summary?: string | null
           company_id?: string | null
           contact_id?: string
-          email?: string | null
           first_name?: string | null
           how_i_can_help?: string | null
           last_name?: string | null
-          linkedin_url?: string | null
+          linkedin_bio?: string | null
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null
@@ -128,11 +126,10 @@ export type Database = {
           bio_summary?: string | null
           company_id?: string | null
           contact_id?: string
-          email?: string | null
           first_name?: string | null
           how_i_can_help?: string | null
           last_name?: string | null
-          linkedin_url?: string | null
+          linkedin_bio?: string | null
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null

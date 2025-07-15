@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Copy,
   Save,
@@ -62,21 +62,94 @@ export function MessageGeneration({
   embedded = false,
   disabled = false,
 }: MessageGenerationProps) {
-  const [medium, setMedium] = useState<string>("LinkedIn connection note");
-  const [objective, setObjective] = useState<string>("");
-  const [customObjective, setCustomObjective] = useState<string>("");
-  const [additionalContext, setAdditionalContext] = useState<string>("");
+  // Generate a unique storage key based on contact to maintain separate states
+  const storageKey = `messageGeneration_${contact?.contact_id || 'default'}`;
+
+  // Helper function to get initial state from localStorage
+  const getInitialState = (key: string, defaultValue: any) => {
+    try {
+      const stored = localStorage.getItem(`${storageKey}_${key}`);
+      return stored ? JSON.parse(stored) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  };
+
+  // State with localStorage persistence
+  const [medium, setMedium] = useState<string>(() => 
+    getInitialState('medium', "LinkedIn connection note")
+  );
+  const [objective, setObjective] = useState<string>(() => 
+    getInitialState('objective', "")
+  );
+  const [customObjective, setCustomObjective] = useState<string>(() => 
+    getInitialState('customObjective', "")
+  );
+  const [additionalContext, setAdditionalContext] = useState<string>(() => 
+    getInitialState('additionalContext', "")
+  );
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedMessages, setGeneratedMessages] = useState<{
-    [key: string]: { text: string; reasoning: string };
-  }>({});
+    [key: string]: { text: string };
+  }>(() => getInitialState('generatedMessages', {}));
   const [editedMessages, setEditedMessages] = useState<{
     [key: string]: string;
-  }>({});
-  const [maxLength, setMaxLength] = useState<number>(300);
+  }>(() => getInitialState('editedMessages', {}));
+  const [maxLength, setMaxLength] = useState<number>(() => 
+    getInitialState('maxLength', 300)
+  );
   const [showAIReasoning, setShowAIReasoning] = useState<{
     [key: string]: boolean;
-  }>({});
+  }>(() => getInitialState('showAIReasoning', {}));
+
+  // Effect to save state to localStorage whenever it changes
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_medium`, JSON.stringify(medium));
+    }
+  }, [medium, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_objective`, JSON.stringify(objective));
+    }
+  }, [objective, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_customObjective`, JSON.stringify(customObjective));
+    }
+  }, [customObjective, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_additionalContext`, JSON.stringify(additionalContext));
+    }
+  }, [additionalContext, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_generatedMessages`, JSON.stringify(generatedMessages));
+    }
+  }, [generatedMessages, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_editedMessages`, JSON.stringify(editedMessages));
+    }
+  }, [editedMessages, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_maxLength`, JSON.stringify(maxLength));
+    }
+  }, [maxLength, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(`${storageKey}_showAIReasoning`, JSON.stringify(showAIReasoning));
+    }
+  }, [showAIReasoning, storageKey, contact?.contact_id]);
 
   console.log("Debug - MessageGeneration received contact:", contact);
 
@@ -431,15 +504,7 @@ export function MessageGeneration({
                   </div>
                 </div>
 
-                {/* AI Reasoning */}
-                {showAIReasoning[version] && (
-                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                    <p className="font-medium mb-1 text-blue-900">
-                      Why this approach works for you:
-                    </p>
-                    <p className="text-blue-800">{content.reasoning}</p>
-                  </div>
-                )}
+                {/* AI Reasoning - Note: reasoning removed from API response */}
 
                 {/* Editable Message Text */}
                 <div className="space-y-2">
