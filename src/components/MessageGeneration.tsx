@@ -315,7 +315,7 @@ export function MessageGeneration({
               onValueChange={handleMediumChange}
               className="grid grid-cols-1 gap-2"
             >
-              {mediumOptions.map((option) => (
+              {MEDIUM_OPTIONS.map((option) => (
                 <div key={option.id} className="flex items-center space-x-2">
                   <RadioGroupItem value={option.id} id={option.id} />
                   <Label htmlFor={option.id} className="text-sm flex-1">
