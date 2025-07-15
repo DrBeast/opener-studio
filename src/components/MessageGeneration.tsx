@@ -51,7 +51,6 @@ interface GeneratedMessageResponse {
     version2: string;
     version3: string;
   };
-  ai_reasoning: string;
 }
 
 export function MessageGeneration({
@@ -82,8 +81,7 @@ export function MessageGeneration({
   console.log("Debug - MessageGeneration received contact:", contact);
 
   const objectiveOptions = [
-    "Get to know and build relationship",
-    "Get informational interview",
+    "Get info interview",
     "Ask for referral",
     "Explore roles",
     "Follow up on previous conversation",
@@ -180,15 +178,12 @@ export function MessageGeneration({
       const messageVersions = {
         "Version 1": {
           text: data.generated_messages.version1,
-          reasoning: data.ai_reasoning,
         },
         "Version 2": {
           text: data.generated_messages.version2,
-          reasoning: data.ai_reasoning,
         },
         "Version 3": {
           text: data.generated_messages.version3,
-          reasoning: data.ai_reasoning,
         },
       };
 

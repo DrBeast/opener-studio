@@ -18,7 +18,7 @@ interface GeneratedMessageOutput {
     version2: string;
     version3: string;
   };
-  ai_reasoning: string;
+
 }
 
 
@@ -183,7 +183,7 @@ serve(async (req) => {
 
   Generate 3 distinct message versions that utilize different approaches, eg leverage different aspects of the user's background, highlight different skills, or take different angles on the contact's needs. Each version should be authentic, specific, and aligned with the user's objective.
 
-  Generate the output as a JSON object with 'messages' (containing version1, version2, version3) and 'ai_reasoning' (explaining your approach in "you" language):
+  Generate the output as a JSON object with 'messages' (containing version1, version2, version3):
 
   {
     "messages": {
@@ -191,7 +191,7 @@ serve(async (req) => {
       "version2": "...",
       "version3": "..."
     },
-    "ai_reasoning": "..."
+
   }
   `;
 
@@ -241,7 +241,7 @@ serve(async (req) => {
             ? JSON.parse(data.candidates[0].content.parts[0].text)
             : data;
 
-        if (typeof generatedOutput !== 'object' || typeof generatedOutput.messages !== 'object' || typeof generatedOutput.ai_reasoning !== 'string') {
+        if (typeof generatedOutput !== 'object' || typeof generatedOutput.messages !== 'object' ) {
              throw new Error("AI response structure is incorrect or missing required fields.");
         }
 
@@ -270,7 +270,6 @@ serve(async (req) => {
       status: 'success',
       message: 'Messages generated successfully.',
       generated_messages: generatedOutput.messages,
-      ai_reasoning: generatedOutput.ai_reasoning
     }), {
       headers: {
         ...corsHeaders,
