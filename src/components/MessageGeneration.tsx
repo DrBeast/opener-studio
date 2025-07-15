@@ -78,7 +78,7 @@ export function MessageGeneration({
     [key: string]: boolean;
   }>({});
 
-  console.log('Debug - MessageGeneration received contact:', contact);
+  console.log("Debug - MessageGeneration received contact:", contact);
 
   const mediumOptions = [
     {
@@ -317,12 +317,14 @@ export function MessageGeneration({
   // Memoize the MessageContent to prevent unnecessary re-renders
   const MessageContent = useMemo(
     () => (
-      <div className={`space-y-4 ${embedded ? 'mt-0' : 'mt-4'}`}>
+      <div className={`space-y-4 ${embedded ? "mt-0" : "mt-4"}`}>
         {/* Message Configuration */}
-        <div className={`space-y-3 ${embedded ? 'space-y-2' : 'space-y-4'}`}>
+        <div className={`space-y-3 ${embedded ? "space-y-2" : "space-y-4"}`}>
           {/* Medium Selection */}
           <div className="space-y-2">
-            <Label className={embedded ? 'text-sm' : ''}>Communication Medium</Label>
+            <Label className={embedded ? "text-sm" : ""}>
+              Communication Medium
+            </Label>
             <RadioGroup
               value={medium}
               onValueChange={handleMediumChange}
@@ -347,17 +349,23 @@ export function MessageGeneration({
 
           {/* Message Objective */}
           <div className="space-y-2">
-            <Label className={embedded ? 'text-sm' : ''}>
+            <Label className={embedded ? "text-sm" : ""}>
               Message Objective <span className="text-red-500">*</span>
             </Label>
-            <div className={`grid gap-2 ${embedded ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div
+              className={`grid gap-2 ${
+                embedded ? "grid-cols-1" : "grid-cols-2"
+              }`}
+            >
               {objectiveOptions.map((option) => (
                 <Button
                   key={option}
                   type="button"
                   variant={objective === option ? "default" : "outline"}
                   size={embedded ? "sm" : "sm"}
-                  className={`justify-start text-left h-auto py-2 px-3 border-purple-400 ${embedded ? 'text-xs' : ''}`}
+                  className={`justify-start text-left h-auto py-2 px-3 border-purple-400 ${
+                    embedded ? "text-xs" : ""
+                  }`}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
@@ -377,13 +385,20 @@ export function MessageGeneration({
 
           {/* Additional Context */}
           <div className="space-y-2">
-            <Label htmlFor="additional-context" className={embedded ? 'text-sm' : ''}>
+            <Label
+              htmlFor="additional-context"
+              className={embedded ? "text-sm" : ""}
+            >
               Additional Context (Optional)
             </Label>
             <Textarea
-              className={`bg-white ${embedded ? 'text-sm' : ''}`}
+              className={`bg-white ${embedded ? "text-sm" : ""}`}
               id="additional-context"
-              placeholder={embedded ? "Additional context for the message..." : "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."}
+              placeholder={
+                embedded
+                  ? "Additional context for the message..."
+                  : "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
+              }
               value={additionalContext}
               onChange={handleAdditionalContextChange}
               rows={embedded ? 2 : 3}
@@ -394,20 +409,17 @@ export function MessageGeneration({
           <Button
             onClick={generateMessages}
             disabled={
-              isGenerating || 
-              !getEffectiveObjective() || 
-              !contact?.contact_id
+              isGenerating || !getEffectiveObjective() || !contact?.contact_id
             }
             className="w-full"
             size={embedded ? "sm" : "default"}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
-            {isGenerating 
-              ? "Generating..." 
-              : !contact?.contact_id 
-                ? "Create contact first" 
-                : "Generate Messages"
-            }
+            {isGenerating
+              ? "Generating..."
+              : !contact?.contact_id
+              ? "Create contact first"
+              : "Generate Messages"}
           </Button>
         </div>
 
