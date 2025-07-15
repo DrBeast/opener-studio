@@ -96,68 +96,50 @@ serve(async (req) => {
       status: 500,
     });
   }
+// new version of fetch
+    // --- REVISED: Fetching all data concurrently for better performance ---
+    const [userProfileResult, userSummaryResult, contactResult] = await Promise.all([
+      supabaseClient.from('user_profiles').select('background_input').eq('user_id', user.id).single(),
+      supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single(),
+      supabaseClient.from('contacts').select('*, companies(*)').eq('contact_id', contact_id).eq('user_id', user.id).single()
+    ]);
 
-  // 1. Fetch user's overall processed background summary
-  const { data: userSummaryData, error: fetchSummaryError } = await supabaseClient
-    .from('user_summaries')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+    // Validate all fetched data
+    if (userProfileResult.error || !userProfileResult.data) {
+        throw new Error(userProfileResult.error?.message || "Failed to fetch user profile.");
+    }
+    if (userSummaryResult.error || !userSummaryResult.data) {
+        throw new Error(userSummaryResult.error?.message || "Failed to fetch user summary.");
+    }
+    if (contactResult.error || !contactResult.data) {
+        throw new Error(contactResult.error?.message || "Failed to fetch contact details.");
+    }
 
-  if (fetchSummaryError || !userSummaryData) {
-    console.error('Error fetching user summary:', fetchSummaryError?.message || 'Summary not found.');
-    return new Response(JSON.stringify({
-      status: 'error',
-      message: 'Failed to fetch user background summary.',
-      error: fetchSummaryError?.message || 'User summary data missing.'
-    }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-      },
-      status: 500,
-    });
-  }
-
-  const userSummary = userSummaryData;
-
-  // 2. Fetch target contact details
-  const { data: contactData, error: fetchContactError } = await supabaseClient
-    .from('contacts')
-    .select('*, companies(*)')
-    .eq('contact_id', contact_id)
-    .eq('user_id', userId)
-    .single();
-
-  if (fetchContactError || !contactData) {
-    console.error(`Error fetching contact data for ID ${contact_id}:`, fetchContactError?.message || 'Contact not found.');
-    return new Response(JSON.stringify({
-      status: 'error',
-      message: 'Failed to fetch contact details.',
-      error: fetchContactError?.message || `Contact with ID ${contact_id} not found for this user.`
-    }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-      },
-      status: 500,
-    });
-  }
-
+  const userProfile = userProfileResult.data.background_input;
+  const userSummary = userSummaryResult.data;
+  const contactData = contactResult.data;
   const companyData = contactData.companies;
-  const maxLength = MAX_MESSAGE_LENGTH[medium] || 500;
+  const maxLength = MAX_MESSAGE_LENGTH[medium] || 1000;
 
-  // 3. Enhanced prompt for authentic, specific messaging with clear asks
+  // 3. Enhanced hybrid prompt for authentic, specific messaging with clear asks
   const prompt = `
-  You are an AI assistant helping a professional craft authentic, specific outreach messages for job search networking. Your role is to help them articulate their unique value proposition in a way that feels genuine and includes a clear, well-defined ask.
-
-  CRITICAL GUIDELINES:
+  You are an AI assistant helping a professional craft authentic, specific outreach messages for job search networking. Your role is to help them write a message to a selected contact that effectively achieves the stated objecive taking into account the user's professional background and the contact's details. 
+  
+  SPECIFIC INSTRUCTIONS FOR MESSAGE CREATION:
+  0. Start all messages with the word TEST
   1. ALWAYS include a clear, specific ask based on the objective - never leave it vague
+    - For "get to know and build relationship": "I'd be happy to connect as I'm [specific reason]"
+     - For "get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
+     - For "ask for referral": "Could you point me to the right people at [Company] to explore opportunities?"
+     - For "explore roles": "I'd like to connect to discover [specific type] roles at [Company]"
+     - For "follow up": Reference the previous interaction and include a specific next step
   2. AVOID generic praise like "I'm impressed with your work" unless you have very specific examples
-  3. Focus on specific industry challenges, technologies, or domain expertise rather than generic statements
-  4. Use concrete examples from the user's background that relate to the company's specific needs
-  5. The message should feel authentic and professional, not sales-y
-  6. LinkedIn connection requests can have implied objectives (to connect), but other mediums need explicit asks
+  3. Focus on user's specific highlights, such as industry challenges solved, technologies they worked with, or domain expertise rather than generic statements. Use concrete examples from the user's background that relate to the specific needs of the contact and their current company / role
+  5. The message should feel authentic and professional, not sales-y. Lead with Hi <firstname>. Be brief, but not too casual. 
+  6. Try to articulate the users unique value proposition: how they can be useful to the contact's company in their target role.
+  7. Follow additional user guidance provided in Additional Context, if not null.
+  8. Leverage what you know about the user's relationship with the contact, if available: worked at the same company, went to the same school, come from the same industry ,share a niche hobby. Look into their past interactions if available. Look into Additional Context: the user might provide information on their relationship with the contact.
+  9. Based on the language in contact's LinikedIn profile, try to match the tone and style of the message to the contact's communication style. Try to use any specific terms or phrases they use in their profile. 
 
   User Background Summary:
   Overall Professional Summary: ${userSummary.overall_blurb ?? 'N/A'}
@@ -184,19 +166,16 @@ serve(async (req) => {
   Message Objective: ${objective}
   Additional Context: ${additional_context ?? 'None provided'}
 
-  SPECIFIC INSTRUCTIONS FOR MESSAGE CREATION:
+ Now, here is the complete, raw background information for both individuals. Your main task is to analyze this raw text to find specific, non-obvious details—like shared niche skills, past projects, unique experiences, or personal interests—that will make the outreach message exceptionally compelling and personalized.
 
-  1. Lead with specific expertise/domain knowledge that relates to the company's industry and challenges
-  2. Mention concrete technologies, processes, or industry challenges you've tackled
-  3. Include a clear, specific ask that matches the objective:
-     - For "get to know and build relationship": "I'd be happy to connect as I'm [specific reason]"
-     - For "get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
-     - For "ask for referral": "Could you point me to the right people at [Company] to explore opportunities?"
-     - For "explore roles": "I'd like to connect to discover [specific type] roles at [Company]"
-     - For "follow up": Reference the previous interaction and include a specific next step
-  4. Avoid generic phrases like "I'm impressed with your work" unless you can be very specific
-  5. Use industry-specific terminology and challenges where relevant
-  6. Keep the tone professional but authentic
+      **USER'S RAW BACKGROUND INFO (e.g., from their full LinkedIn profile or CV):**
+      ---
+      ${userProfile.background_input} 
+      ---
+
+      **CONTACT'S RAW BACKGROUND INFO (e.g., from their full LinkedIn profile):**
+      ---
+      ${contactData.linkedin_bio} 
 
   REASONING INSTRUCTIONS:
   For the AI reasoning, explain your approach using "you" language directed at the user:
@@ -204,13 +183,10 @@ serve(async (req) => {
   - "Your background with [specific technology/process] directly relates to [company's needs]"
   - "You are demonstrating value by mentioning [specific expertise] because..."
   - "This approach works because you are showing how you can solve [specific problem]"
-
   Explain how each message positions the user authentically, why the specific ask is appropriate, and how this approach will resonate professionally while avoiding generic networking language.
+  Explain how you used the user's relationship with the contact to create a stronger connection.
 
-  Generate 3 distinct message versions that:
-  - Version 1: Focus on technical/domain expertise alignment
-  - Version 2: Emphasize problem-solving capabilities with specific examples
-  - Version 3: Highlight leadership/strategic experience relevant to their role
+  Generate 3 distinct message versions that utilize different approaches, eg leverage different aspects of the user's background, highlight different skills, or take different angles on the contact's needs. Each version should be authentic, specific, and aligned with the user's objective.
 
   Generate the output as a JSON object with 'messages' (containing version1, version2, version3) and 'ai_reasoning' (explaining your approach in "you" language):
 
@@ -220,9 +196,10 @@ serve(async (req) => {
       "version2": "...",
       "version3": "..."
     },
-    "ai_reasoning": "Your experience positions you... [explanation using 'you' language]"
+    "ai_reasoning": "..."
   }
   `;
+
 
   // 4. Make the call to the Gemini API
   try {
