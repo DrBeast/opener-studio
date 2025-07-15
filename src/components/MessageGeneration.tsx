@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { MEDIUM_OPTIONS } from "/workspaces/connectorai/supabase/functions/_shared/constants"; // Adjust the import path as needed
 
 interface ContactData {
   contact_id: string;
@@ -80,22 +81,6 @@ export function MessageGeneration({
 
   console.log("Debug - MessageGeneration received contact:", contact);
 
-  const mediumOptions = [
-    {
-      id: "LinkedIn connection note",
-      label: "LinkedIn Connection Note",
-      maxLength: 300,
-    },
-    {
-      id: "LinkedIn message to 1st connection",
-      label: "LinkedIn Message to 1st Connection",
-      maxLength: 400,
-    },
-    { id: "LinkedIn InMail", label: "LinkedIn InMail", maxLength: 400 },
-    { id: "Cold email", label: "Email", maxLength: 500 },
-    { id: "Forwardable intro", label: "Forwardable Intro", maxLength: 1000 },
-  ];
-
   const objectiveOptions = [
     "Get to know and build relationship",
     "Get informational interview",
@@ -109,7 +94,7 @@ export function MessageGeneration({
   const handleMediumChange = useCallback((value: string) => {
     console.log("Medium changed to:", value);
     setMedium(value);
-    const selectedOption = mediumOptions.find((option) => option.id === value);
+    const selectedOption = MEDIUM_OPTIONS.find((option) => option.id === value);
     if (selectedOption) {
       setMaxLength(selectedOption.maxLength);
     }

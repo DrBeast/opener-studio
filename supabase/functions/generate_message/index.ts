@@ -1,6 +1,8 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
+import { MEDIUM_OPTIONS } from "/workspaces/connectorai/supabase/functions/_shared/constants"; // Adjust the import path as needed
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,14 +21,6 @@ interface GeneratedMessageOutput {
   ai_reasoning: string;
 }
 
-const MAX_MESSAGE_LENGTH: { [key: string]: number } = {
-  'LinkedIn connection note': 300,
-  'LinkedIn message to 1st connection': 400,
-  'LinkedIn InMail': 400,
-  'Cold email': 500,
-  'Chat': 300,
-  'Forwardable intro': 1000,
-};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -65,6 +59,7 @@ serve(async (req) => {
 
   const userId = user.id;
   const { contact_id, medium, objective, additional_context } = await req.json();
+  const maxLength = MEDIUM_OPTIONS.find(opt => opt.id === medium)?.maxLength || 8000;
 
   if (!contact_id || !medium || !objective) {
     return new Response(JSON.stringify({
@@ -119,7 +114,6 @@ serve(async (req) => {
   const userSummary = userSummaryResult.data;
   const contactData = contactResult.data;
   const companyData = contactData.companies;
-  const maxLength = MAX_MESSAGE_LENGTH[medium] || 1000;
 
   // 3. Enhanced hybrid prompt for authentic, specific messaging with clear asks
   const prompt = `
@@ -135,11 +129,12 @@ serve(async (req) => {
      - For "follow up": Reference the previous interaction and include a specific next step
   2. AVOID generic praise like "I'm impressed with your work" unless you have very specific examples
   3. Focus on user's specific highlights, such as industry challenges solved, technologies they worked with, or domain expertise rather than generic statements. Use concrete examples from the user's background that relate to the specific needs of the contact and their current company / role
-  5. The message should feel authentic and professional, not sales-y. Lead with Hi <firstname>. Be brief, but not too casual. 
+  5. The message should feel authentic and professional, not sales-y, and adjusted for the medium. Lead with Hi <firstname>. For LinkedIn connection notes, be brief, but not too casual. For emails and InMails, use a more formal tone and formatting by default (unless instructed differently by the user in Additional Context), eg "Hi <first name>, <empty line>, <message body>, <empty line>, Best regards, <user's name>". 
   6. Try to articulate the users unique value proposition: how they can be useful to the contact's company in their target role.
   7. Follow additional user guidance provided in Additional Context, if not null.
   8. Leverage what you know about the user's relationship with the contact, if available: worked at the same company, went to the same school, come from the same industry ,share a niche hobby. Look into their past interactions if available. Look into Additional Context: the user might provide information on their relationship with the contact.
   9. Based on the language in contact's LinikedIn profile, try to match the tone and style of the message to the contact's communication style. Try to use any specific terms or phrases they use in their profile. 
+  10. Consider MAX_MESSAGE_LENGTH as a hard limit for the message length. If the message exceeds this length, truncate it to fit within the limit. For emails, InMails, and messages to 1st connections, aim for around 1,000 chars or less, to ensure the message is concise and to the point, while still hitting on the most relevant points. 
 
   User Background Summary:
   Overall Professional Summary: ${userSummary.overall_blurb ?? 'N/A'}
