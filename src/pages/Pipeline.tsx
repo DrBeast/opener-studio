@@ -11,6 +11,7 @@ import {
   Building2,
   Eye,
   EyeOff,
+  MessageCircle,
 } from "lucide-react";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
@@ -26,6 +27,7 @@ import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal
 import { TargetsModal } from "@/components/TargetsModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 import { IntegratedContactWorkflow } from "@/components/pipeline/IntegratedContactWorkflow";
+import { MessageGeneration } from "@/components/MessageGeneration";
 
 // Design System Imports
 import {
@@ -99,6 +101,7 @@ const PipelineDashboard = () => {
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
+  const [contactForMessage, setContactForMessage] = useState<any>(null);
 
   // Generate Contacts Modal state
   const [generateContactsModal, setGenerateContactsModal] = useState<{
@@ -371,6 +374,13 @@ const PipelineDashboard = () => {
     setIsTargetsModalOpen(true);
   };
 
+  // Handler to receive contact from workflow
+  const handleContactCreated = (newContact: any) => {
+    console.log("Parent received new contact:", newContact);
+    setContactForMessage(newContact);
+    fetchContacts();
+  };
+
   // Updated function to open the unified generate contacts modal
   const handleOpenContactRecommendation = (
     companyId: string,
@@ -418,12 +428,55 @@ const PipelineDashboard = () => {
 
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
-          <IntegratedContactWorkflow
-            companies={companies}
-            onContactCreated={() => {
-              fetchContacts();
-            }}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
+            <IntegratedContactWorkflow
+              companies={companies}
+              onContactCreated={handleContactCreated}
+            />
+            
+            {/* Message Generation Panel */}
+            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+              !contactForMessage 
+                ? "border-gray-200 bg-gray-50/50" 
+                : "border-primary/20 bg-primary/5"
+            }`}>
+              <div className="flex items-center gap-2 mb-4">
+                <MessageCircle className="h-5 w-5 text-primary" />
+                <h3 className="font-medium">Generate Outreach Message</h3>
+              </div>
+
+              {contactForMessage && (
+                <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
+                  <p className="font-medium text-blue-800 mb-1">
+                    Ready to generate message for:
+                  </p>
+                  <p className="text-blue-700">
+                    {contactForMessage.first_name} {contactForMessage.last_name}
+                  </p>
+                </div>
+              )}
+
+              <MessageGeneration
+                contact={contactForMessage}
+                companyName={
+                  contactForMessage?.company_id
+                    ? companies.find(c => c.company_id === contactForMessage.company_id)?.name || ""
+                    : contactForMessage?.current_company || ""
+                }
+                isOpen={true}
+                onClose={() => {}}
+                onMessageSaved={() => {
+                  toast({
+                    title: "Success", 
+                    description: "Message saved and workflow completed!"
+                  });
+                  setContactForMessage(null);
+                }}
+                embedded={true}
+                disabled={!contactForMessage}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Full-Width Card with Table */}
