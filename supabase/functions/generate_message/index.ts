@@ -1,7 +1,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
-import { MEDIUM_OPTIONS } from '../_shared/constants';
+import { MEDIUM_OPTIONS } from '../../../src/shared/constants.ts';
 
 
 const corsHeaders = {
