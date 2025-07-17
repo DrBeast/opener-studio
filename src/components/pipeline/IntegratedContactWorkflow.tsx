@@ -133,6 +133,8 @@ export const IntegratedContactWorkflow = ({
     PotentialContactDuplicate[]
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
+  // State to track if contact was actually created in database
+  const [createdContact, setCreatedContact] = useState<CreatedContact | null>(null);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -255,9 +257,10 @@ export const IntegratedContactWorkflow = ({
       // Step 3: Perform the database insert
       const newContact = await performDatabaseInsert(finalCompanyId);
 
-      // Step 4: If successful, pass to parent
+      // Step 4: If successful, set created contact and pass to parent
       if (newContact) {
         console.log("[Auto Create] Success. Calling onContactCreated with:", newContact);
+        setCreatedContact(newContact);
         onContactCreated(newContact);
         toast.success("Contact created successfully!");
       }
@@ -372,6 +375,7 @@ export const IntegratedContactWorkflow = ({
     setIsCreating(true);
     const newContact = await performDatabaseInsert(companyId);
     if (newContact) {
+      setCreatedContact(newContact);
       onContactCreated(newContact);
       toast.success("Contact created successfully with existing company!");
     }
@@ -388,12 +392,14 @@ export const IntegratedContactWorkflow = ({
       );
       const newContact = await performDatabaseInsert(newCompanyId);
       if (newContact) {
+        setCreatedContact(newContact);
         onContactCreated(newContact);
         toast.success("Contact created successfully with new company!");
       }
     } catch (error) {
       console.error("Error creating new company:", error);
       toast.error("Failed to create contact");
+    } finally {
       setIsCreating(false);
     }
   };
@@ -409,6 +415,7 @@ export const IntegratedContactWorkflow = ({
     setIsCreating(true);
     const newContact = await performDatabaseInsert(pendingCompanyId);
     if (newContact) {
+      setCreatedContact(newContact);
       onContactCreated(newContact);
       toast.success("Contact created successfully!");
     }
@@ -425,15 +432,16 @@ export const IntegratedContactWorkflow = ({
     setSelectedCompanyId("");
     setLinkedinBio("");
     setGeneratedContact(null);
+    setCreatedContact(null);
     setShowDuplicateDialog(false);
     setPotentialDuplicates([]);
     setShowContactDuplicateDialog(false);
     setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
   };
-
+  
   // Check if we have a created contact to determine the current phase
-  const hasCreatedContact = generatedContact && !isGenerating && !isCreating;
+  const hasCreatedContact = createdContact && !isGenerating && !isCreating;
   
   return (
     <div className="space-y-4">
@@ -501,10 +509,10 @@ export const IntegratedContactWorkflow = ({
                 </div>
                 <div>
                   <h4 className="font-medium text-green-900">
-                    {generatedContact.first_name} {generatedContact.last_name}
+                    {createdContact.first_name} {createdContact.last_name}
                   </h4>
                   <p className="text-sm text-green-700">
-                    {generatedContact.role} at {generatedContact.current_company}
+                    {createdContact.role} at {createdContact.current_company}
                   </p>
                 </div>
               </div>
