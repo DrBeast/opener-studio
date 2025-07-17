@@ -65,7 +65,7 @@ serve(async (req) => {
         role,
         email,
         linkedin_url,
-        companies!inner(name)
+        companies(name)
       `)
       .eq('user_id', user.id)
       .eq('status', 'active');
@@ -101,11 +101,13 @@ serve(async (req) => {
     // Create a list of existing contacts for analysis
     const contactList = existingContacts.map(c => {
       const company = Array.isArray(c.companies) ? c.companies[0] : c.companies;
-      return `- ${c.first_name} ${c.last_name} at ${company?.name || 'Unknown Company'} (${c.role || 'Unknown Role'}) (ID: ${c.contact_id})`;
+      const companyText = company?.name ? ` at ${company.name}` : '';
+      return `- ${c.first_name} ${c.last_name}${companyText} (${c.role || 'Unknown Role'}) (ID: ${c.contact_id})`;
     }).join('\n');
 
     const contactFullName = `${first_name} ${last_name}`;
-    const newContactInfo = `${contactFullName} at ${companyName || 'Unknown Company'} (${role || 'Unknown Role'})`;
+    const companyText = companyName ? ` at ${companyName}` : '';
+    const newContactInfo = `${contactFullName}${companyText} (${role || 'Unknown Role'})`;
 
     const prompt = `You are helping to identify duplicate contacts. A user wants to add a new contact: "${newContactInfo}".
 

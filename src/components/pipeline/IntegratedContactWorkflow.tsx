@@ -229,7 +229,8 @@ export const IntegratedContactWorkflow = ({
       const hasContactDuplicates = await checkForDuplicateContact(
         contactData.first_name,
         contactData.last_name,
-        contactData.role
+        contactData.role,
+        selectedCompanyId
       );
       
       if (hasContactDuplicates.isDuplicate) {
