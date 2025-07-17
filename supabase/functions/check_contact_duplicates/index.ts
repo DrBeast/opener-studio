@@ -63,9 +63,8 @@ serve(async (req) => {
         first_name,
         last_name,
         role,
-        email,
-        linkedin_url,
-        companies!inner(name)
+        company_id,
+        companies(name)
       `)
       .eq('user_id', user.id)
       .eq('status', 'active');
@@ -100,7 +99,7 @@ serve(async (req) => {
 
     // Create a list of existing contacts for analysis
     const contactList = existingContacts.map(c => {
-      const company = Array.isArray(c.companies) ? c.companies[0] : c.companies;
+      const company = c.companies;
       return `- ${c.first_name} ${c.last_name} at ${company?.name || 'Unknown Company'} (${c.role || 'Unknown Role'}) (ID: ${c.contact_id})`;
     }).join('\n');
 
@@ -177,7 +176,7 @@ Rules:
           first_name: exactMatch.first_name,
           last_name: exactMatch.last_name,
           role: exactMatch.role,
-          company_name: Array.isArray(exactMatch.companies) ? exactMatch.companies[0]?.name : exactMatch.companies?.name,
+           company_name: exactMatch.companies?.name,
           confidence: 'high',
           reasoning: 'Exact name match'
         }] : []
@@ -213,7 +212,7 @@ Rules:
           first_name: exactMatch.first_name,
           last_name: exactMatch.last_name,
           role: exactMatch.role,
-          company_name: Array.isArray(exactMatch.companies) ? exactMatch.companies[0]?.name : exactMatch.companies?.name,
+          company_name: exactMatch.companies?.name,
           confidence: 'high',
           reasoning: 'Exact name match (fallback)'
         }] : []
