@@ -417,7 +417,6 @@ export const IntegratedContactWorkflow = ({
         {
           body: {
             linkedin_bio: linkedinBio,
-            selected_company_id: selectedCompanyId || null,
           },
         }
       );
