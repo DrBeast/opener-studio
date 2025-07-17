@@ -28,6 +28,7 @@ import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
+import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 
 // localStorage utilities (no changes)
 const STORAGE_KEY = "contact-workflow-state";
@@ -101,6 +102,15 @@ interface PotentialDuplicate {
   reasoning: string;
 }
 
+interface PotentialContactDuplicate {
+  contact_id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  company_name?: string;
+  confidence: "high" | "medium" | "low";
+  reasoning: string;
+}
 
 export const IntegratedContactWorkflow = ({
   companies,
@@ -116,6 +126,11 @@ export const IntegratedContactWorkflow = ({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [potentialDuplicates, setPotentialDuplicates] = useState<
     PotentialDuplicate[]
+  >([]);
+  const [showContactDuplicateDialog, setShowContactDuplicateDialog] =
+    useState(false);
+  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<
+    PotentialContactDuplicate[]
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
   // State to track if contact was actually created in database
@@ -192,6 +207,8 @@ export const IntegratedContactWorkflow = ({
         
         // Step 2: Automatically create the contact
         await handleAutoCreateContact(data.contact);
+        
+        setLinkedinBio("");
       } else {
         throw new Error("No contact data received");
       }
@@ -210,7 +227,21 @@ export const IntegratedContactWorkflow = ({
     console.log("[Auto Create] Starting contact creation flow. Preview data:", contactData);
 
     try {
-      // Check for company duplicates
+      // Step 1: Check for contact duplicates FIRST
+      const hasContactDuplicates = await checkForDuplicateContact(
+        contactData.first_name,
+        contactData.last_name,
+        contactData.role
+      );
+      
+      if (hasContactDuplicates.isDuplicate) {
+        setPotentialContactDuplicates(hasContactDuplicates.potentialDuplicates);
+        setShowContactDuplicateDialog(true);
+        setIsCreating(false);
+        return;
+      }
+
+      // Step 2: Only check for company duplicates if contact is new
       let finalCompanyId = selectedCompanyId;
       if (!finalCompanyId && contactData.current_company) {
         const companyCheck = await checkForDuplicateCompany(contactData.current_company);
@@ -223,15 +254,14 @@ export const IntegratedContactWorkflow = ({
         finalCompanyId = await createNewCompany(contactData.current_company);
       }
 
-      // Perform the database insert
+      // Step 3: Perform the database insert (contact is definitely new at this point)
       const newContact = await performDatabaseInsert(finalCompanyId);
 
-      // If successful, set created contact and pass to parent
+      // Step 4: If successful, set created contact and pass to parent
       if (newContact) {
         console.log("[Auto Create] Success. Calling onContactCreated with:", newContact);
         setCreatedContact(newContact);
         onContactCreated(newContact);
-        setLinkedinBio(""); // Clear bio after successful creation
         toast.success("Contact created successfully!");
       }
     } catch (error) {
@@ -258,6 +288,26 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
+  const checkForDuplicateContact = async (
+    first_name: string,
+    last_name: string,
+    role: string,
+    company_id: string | null = null
+  ) => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "check_contact_duplicates",
+        {
+          body: { first_name, last_name, role, company_id },
+        }
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error checking for duplicate contacts:", error);
+      return { isDuplicate: false, potentialDuplicates: [] };
+    }
+  };
 
   const createNewCompany = async (companyName: string) => {
     try {
@@ -353,6 +403,150 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
+  const handleUseExistingContact = async (contactId: string) => {
+    setShowContactDuplicateDialog(false);
+    setIsCreating(true);
+    
+    try {
+      console.log("[Update Contact] Starting update for contact:", contactId);
+      
+      // Step 1: Regenerate the contact profile using the new LinkedIn bio
+      console.log("[Update Contact] Calling add_contact_by_bio edge function");
+      const { data, error } = await supabase.functions.invoke(
+        "add_contact_by_bio",
+        {
+          body: {
+            linkedin_bio: linkedinBio,
+          },
+        }
+      );
+
+      if (error) {
+        console.error("[Update Contact] Edge function error:", error);
+        throw error;
+      }
+
+      if (!data?.contact) {
+        console.error("[Update Contact] No contact data received from edge function");
+        throw new Error("No contact data received from edge function");
+      }
+
+      console.log("[Update Contact] Edge function response:", data.contact);
+
+      // Step 2: Update the existing contact with the new information
+      console.log("[Update Contact] Updating contact in database");
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .update({
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          role: data.contact.role,
+          location: data.contact.location,
+          linkedin_bio: linkedinBio,
+          bio_summary: data.contact.bio_summary,
+          how_i_can_help: data.contact.how_i_can_help,
+          recent_activity_summary: data.contact.recent_activity_summary,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('contact_id', contactId);
+
+      if (updateError) {
+        console.error("[Update Contact] Database update error:", updateError);
+        throw updateError;
+      }
+
+      console.log("[Update Contact] Contact updated successfully");
+
+      // Step 3: Fetch the updated contact data for message generation
+      console.log("[Update Contact] Fetching updated contact data");
+      const { data: updatedContact, error: fetchError } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('contact_id', contactId)
+        .single();
+
+      if (fetchError) {
+        console.error("[Update Contact] Fetch error:", fetchError);
+        throw fetchError;
+      }
+
+      console.log("[Update Contact] Fetched updated contact:", updatedContact);
+
+      if (updatedContact) {
+        // Create a contact object that matches our CreatedContact interface
+        const contactForGeneration: CreatedContact = {
+          contact_id: updatedContact.contact_id,
+          first_name: updatedContact.first_name || '',
+          last_name: updatedContact.last_name || '',
+          role: updatedContact.role || '',
+          current_company: data.contact.current_company || '',
+          location: updatedContact.location || '',
+          bio_summary: updatedContact.bio_summary || '',
+          how_i_can_help: updatedContact.how_i_can_help || '',
+          recent_activity_summary: updatedContact.recent_activity_summary || '',
+          company_id: updatedContact.company_id
+        };
+
+        // If there's a company_id, fetch the company name
+        if (updatedContact.company_id) {
+          console.log("[Update Contact] Fetching company name for:", updatedContact.company_id);
+          const { data: company } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('company_id', updatedContact.company_id)
+            .single();
+          
+          if (company) {
+            contactForGeneration.current_company = company.name;
+            console.log("[Update Contact] Company name:", company.name);
+          }
+        }
+
+        console.log("[Update Contact] Final contact object:", contactForGeneration);
+        setCreatedContact(contactForGeneration);
+        onContactCreated(contactForGeneration);
+        toast.success("Contact profile updated with latest LinkedIn data!");
+      }
+    } catch (error) {
+      console.error("[Update Contact] Full error details:", error);
+      toast.error("Failed to update contact profile");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCreateNewContact = async () => {
+    setShowContactDuplicateDialog(false);
+    setIsCreating(true);
+    
+    try {
+      // Step 1: Check for company duplicates if we have a company name but no company ID
+      let finalCompanyId = selectedCompanyId;
+      if (!finalCompanyId && generatedContact?.current_company) {
+        const companyCheck = await checkForDuplicateCompany(generatedContact.current_company);
+        if (companyCheck.isDuplicate) {
+          setPotentialDuplicates(companyCheck.potentialDuplicates);
+          setShowDuplicateDialog(true);
+          setIsCreating(false);
+          return;
+        }
+        finalCompanyId = await createNewCompany(generatedContact.current_company);
+      }
+
+      // Step 2: Create the contact with the final company ID
+      const newContact = await performDatabaseInsert(finalCompanyId);
+      if (newContact) {
+        setCreatedContact(newContact);
+        onContactCreated(newContact);
+        toast.success("Contact created successfully!");
+      }
+    } catch (error) {
+      console.error("Error creating new contact:", error);
+      toast.error("Failed to create contact");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const resetWorkflow = () => {
     if (user) {
@@ -367,6 +561,8 @@ export const IntegratedContactWorkflow = ({
     setCreatedContact(null);
     setShowDuplicateDialog(false);
     setPotentialDuplicates([]);
+    setShowContactDuplicateDialog(false);
+    setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
   };
   
@@ -388,8 +584,17 @@ export const IntegratedContactWorkflow = ({
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">How to add a contact:</p>
-                <p>Go to their LinkedIn profile, copy everything (Ctrl+A, Ctrl+C), then paste it below (Ctrl+V).</p>
+               <p className="font-medium mb-1">Who should I contact?</p>
+                      <p className="mb-1">
+                        Whether you are looking for referrals or exploring
+                        roles, the most relevant contacts are people you already
+                        know: classmates, friends, ex-colleagues.
+                      </p>
+                      <p>
+                        If you're expanding your network, consider reaching out
+                        to people in the same function or recruiters. On
+                        LinkedIn, try searching for [company name] [function].
+                      </p>
               </div>
             </div>
           </div>
@@ -399,7 +604,7 @@ export const IntegratedContactWorkflow = ({
             <Textarea
               value={linkedinBio}
               onChange={(e) => setLinkedinBio(e.target.value)}
-              placeholder="Paste their LinkedIn profile here..."
+              placeholder="Go the their LinkedIn profile, copy everything (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)"
               className="min-h-[120px] text-sm resize-none"
             />
 
@@ -475,6 +680,18 @@ export const IntegratedContactWorkflow = ({
         companyName={generatedContact?.current_company || ""}
       />
 
+      <ContactDuplicateDialog
+        isOpen={showContactDuplicateDialog}
+        onClose={() => setShowContactDuplicateDialog(false)}
+        potentialDuplicates={potentialContactDuplicates}
+        onUseExisting={handleUseExistingContact}
+        onCreateNew={handleCreateNewContact}
+        newContactName={
+          generatedContact
+            ? `${generatedContact.first_name} ${generatedContact.last_name}`
+            : ""
+        }
+      />
     </div>
   );
 };
