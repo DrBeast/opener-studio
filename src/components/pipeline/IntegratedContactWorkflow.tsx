@@ -102,6 +102,15 @@ interface PotentialDuplicate {
   reasoning: string;
 }
 
+interface PotentialContactDuplicate {
+  contact_id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  company_name?: string;
+  confidence: "high" | "medium" | "low";
+  reasoning: string;
+}
 
 export const IntegratedContactWorkflow = ({
   companies,
@@ -117,6 +126,11 @@ export const IntegratedContactWorkflow = ({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [potentialDuplicates, setPotentialDuplicates] = useState<
     PotentialDuplicate[]
+  >([]);
+  const [showContactDuplicateDialog, setShowContactDuplicateDialog] =
+    useState(false);
+  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<
+    PotentialContactDuplicate[]
   >([]);
   const [pendingCompanyId, setPendingCompanyId] = useState<string | null>(null);
   // State to track if contact was actually created in database
@@ -213,7 +227,21 @@ export const IntegratedContactWorkflow = ({
     console.log("[Auto Create] Starting contact creation flow. Preview data:", contactData);
 
     try {
-      // Step 1: Check for company duplicates
+      // Step 1: Check for contact duplicates FIRST
+      const hasContactDuplicates = await checkForDuplicateContact(
+        contactData.first_name,
+        contactData.last_name,
+        contactData.role
+      );
+      
+      if (hasContactDuplicates.isDuplicate) {
+        setPotentialContactDuplicates(hasContactDuplicates.potentialDuplicates);
+        setShowContactDuplicateDialog(true);
+        setIsCreating(false);
+        return;
+      }
+
+      // Step 2: Only check for company duplicates if contact is new
       let finalCompanyId = selectedCompanyId;
       if (!finalCompanyId && contactData.current_company) {
         const companyCheck = await checkForDuplicateCompany(contactData.current_company);
@@ -226,10 +254,10 @@ export const IntegratedContactWorkflow = ({
         finalCompanyId = await createNewCompany(contactData.current_company);
       }
 
-      // Step 2: Perform the database insert
+      // Step 3: Perform the database insert (contact is definitely new at this point)
       const newContact = await performDatabaseInsert(finalCompanyId);
 
-      // Step 3: If successful, set created contact and pass to parent
+      // Step 4: If successful, set created contact and pass to parent
       if (newContact) {
         console.log("[Auto Create] Success. Calling onContactCreated with:", newContact);
         setCreatedContact(newContact);
@@ -260,6 +288,26 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
+  const checkForDuplicateContact = async (
+    first_name: string,
+    last_name: string,
+    role: string,
+    company_id: string | null = null
+  ) => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "check_contact_duplicates",
+        {
+          body: { first_name, last_name, role, company_id },
+        }
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error checking for duplicate contacts:", error);
+      return { isDuplicate: false, potentialDuplicates: [] };
+    }
+  };
 
   const createNewCompany = async (companyName: string) => {
     try {
@@ -356,6 +404,7 @@ export const IntegratedContactWorkflow = ({
   };
 
   const handleUseExistingContact = async (contactId: string) => {
+    setShowContactDuplicateDialog(false);
     setIsCreating(true);
     
     try {
@@ -467,6 +516,7 @@ export const IntegratedContactWorkflow = ({
   };
 
   const handleCreateNewContact = async () => {
+    setShowContactDuplicateDialog(false);
     setIsCreating(true);
     
     try {
@@ -511,6 +561,8 @@ export const IntegratedContactWorkflow = ({
     setCreatedContact(null);
     setShowDuplicateDialog(false);
     setPotentialDuplicates([]);
+    setShowContactDuplicateDialog(false);
+    setPotentialContactDuplicates([]);
     setPendingCompanyId(null);
   };
   
