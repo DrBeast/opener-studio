@@ -183,11 +183,12 @@ export const IntegratedContactWorkflow = ({
     }
   }, [generatedContact, user]);
 
-  const handleGenerateContact = async () => {
+  const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
 
     setIsGenerating(true);
     try {
+      // Step 1: Generate contact from bio
       const { data, error } = await supabase.functions.invoke(
         "add_contact_by_bio",
         {
@@ -201,15 +202,70 @@ export const IntegratedContactWorkflow = ({
 
       if (data?.contact) {
         setGeneratedContact(data.contact);
+        
+        // Step 2: Automatically create the contact
+        await handleAutoCreateContact(data.contact);
+        
         setLinkedinBio("");
       } else {
         throw new Error("No contact data received");
       }
     } catch (error: any) {
-      console.error("Error generating contact:", error);
-      toast.error("Failed to generate contact information");
+      console.error("Error processing bio:", error);
+      toast.error("Failed to process LinkedIn bio");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleAutoCreateContact = async (contactData: GeneratedContact) => {
+    if (!user) return;
+
+    setIsCreating(true);
+    console.log("[Auto Create] Starting contact creation flow. Preview data:", contactData);
+
+    try {
+      // Step 1: Check for contact duplicates first
+      const hasContactDuplicates = await checkForDuplicateContact(
+        contactData.first_name,
+        contactData.last_name,
+        contactData.role
+      );
+      
+      if (hasContactDuplicates.isDuplicate) {
+        setPotentialContactDuplicates(hasContactDuplicates.potentialDuplicates);
+        setShowContactDuplicateDialog(true);
+        setIsCreating(false);
+        return;
+      }
+
+      // Step 2: Determine the company ID
+      let finalCompanyId = selectedCompanyId;
+      if (!finalCompanyId && contactData.current_company) {
+        const companyCheck = await checkForDuplicateCompany(contactData.current_company);
+        if (companyCheck.isDuplicate) {
+          setPotentialDuplicates(companyCheck.potentialDuplicates);
+          setShowDuplicateDialog(true);
+          setIsCreating(false);
+          return;
+        }
+        finalCompanyId = await createNewCompany(contactData.current_company);
+      }
+
+      // Step 3: Perform the database insert
+      const newContact = await performDatabaseInsert(finalCompanyId);
+
+      // Step 4: If successful, pass to parent
+      if (newContact) {
+        console.log("[Auto Create] Success. Calling onContactCreated with:", newContact);
+        onContactCreated(newContact);
+        toast.success("Contact created successfully!");
+      }
+    } catch (error) {
+      console.error("Error in auto create:", error);
+      toast.error("Failed to create contact automatically");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -250,28 +306,6 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
-  const checkAndHandleContactDuplicates = async (
-    companyId: string | null = null
-  ) => {
-    if (!generatedContact) return false;
-    const contactDuplicateCheck = await checkForDuplicateContact(
-      generatedContact.first_name,
-      generatedContact.last_name,
-      generatedContact.role,
-      companyId
-    );
-    if (
-      contactDuplicateCheck.isDuplicate &&
-      contactDuplicateCheck.potentialDuplicates.length > 0
-    ) {
-      setPotentialContactDuplicates(contactDuplicateCheck.potentialDuplicates);
-      setShowContactDuplicateDialog(true);
-      setPendingCompanyId(companyId);
-      return true;
-    }
-    return false;
-  };
-
   const createNewCompany = async (companyName: string) => {
     try {
       const { data, error } = await supabase.functions.invoke(
@@ -288,8 +322,6 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
-  // --- REVISED ---
-  // This function now only performs the database insert and returns the result.
   const performDatabaseInsert = async (
     companyId: string | null
   ): Promise<CreatedContact | null> => {
@@ -333,59 +365,6 @@ export const IntegratedContactWorkflow = ({
       toast.error("Failed to save contact to database.");
       return null;
     }
-  };
-
-  // This is the main handler function. It orchestrates all checks and sets the state.
-  const handleCreateContact = async () => {
-    if (!generatedContact) return;
-    setIsCreating(true);
-    console.log(
-      "[Handler] Starting contact creation flow. Preview data:",
-      generatedContact
-    );
-
-    // Step 1: Check for contact duplicates first.
-    const hasContactDuplicates = await checkForDuplicateContact(
-      generatedContact.first_name,
-      generatedContact.last_name,
-      generatedContact.role
-    );
-    if (hasContactDuplicates.isDuplicate) {
-      setPotentialContactDuplicates(hasContactDuplicates.potentialDuplicates);
-      setShowContactDuplicateDialog(true);
-      setIsCreating(false);
-      return;
-    }
-
-    // Step 2: Determine the company ID.
-    let finalCompanyId = selectedCompanyId;
-    if (!finalCompanyId && generatedContact.current_company) {
-      const companyCheck = await checkForDuplicateCompany(
-        generatedContact.current_company
-      );
-      if (companyCheck.isDuplicate) {
-        setPotentialDuplicates(companyCheck.potentialDuplicates);
-        setShowDuplicateDialog(true);
-        setIsCreating(false);
-        return;
-      }
-      finalCompanyId = await createNewCompany(generatedContact.current_company);
-    }
-
-    // Step 3: Perform the database insert.
-    const newContact = await performDatabaseInsert(finalCompanyId);
-
-    // Step 4: If successful, pass to parent
-    if (newContact) {
-      console.log(
-        "[Handler] DB insert successful. Calling onContactCreated with:",
-        newContact
-      );
-      onContactCreated(newContact);
-      toast.success("Contact created successfully!");
-    }
-
-    setIsCreating(false);
   };
 
   const handleUseExistingCompany = async (companyId: string) => {
@@ -453,197 +432,117 @@ export const IntegratedContactWorkflow = ({
     setPendingCompanyId(null);
   };
 
-  const handleMessageSaved = () => {
-    toast.success("Message saved and workflow completed!");
-    resetWorkflow();
-  };
-
+  // Check if we have a created contact to determine the current phase
+  const hasCreatedContact = generatedContact && !isGenerating && !isCreating;
+  
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-      {/* Contact Creation Panel */}
-      <div className="space-y-4 p-4 rounded-lg border-2 transition-all border-primary/20 bg-primary/5">
-        <div className="flex items-center gap-2 mb-4">
-          <UserPlus className="h-5 w-5 text-primary" />
-          <h3 className="font-medium">Add New Contact</h3>
-        </div>
+    <div className="space-y-4">
+      {/* Phase 1: Bio Input */}
+      {!hasCreatedContact && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="h-5 w-5 text-primary" />
+            <h3 className="font-medium">Add New Contact</h3>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Left Column - LinkedIn Input */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Textarea
-                value={linkedinBio}
-                onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder="Paste their LinkedIn profile: copy everything (Ctrl+A, Ctrl+C) and paste it here (Ctrl + V)"
-                className="min-h-[120px] text-sm"
-              />
+          {/* Info Box */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">How to add a contact:</p>
+                <p>Go to their LinkedIn profile, copy everything (Ctrl+A, Ctrl+C), then paste it below (Ctrl+V).</p>
+              </div>
             </div>
+          </div>
+
+          {/* Bio Input */}
+          <div className="space-y-3">
+            <Textarea
+              value={linkedinBio}
+              onChange={(e) => setLinkedinBio(e.target.value)}
+              placeholder="Paste their LinkedIn profile here..."
+              className="min-h-[120px] text-sm resize-none"
+            />
 
             <PrimaryAction
-              onClick={handleGenerateContact}
-              disabled={!linkedinBio.trim() || isGenerating}
+              onClick={handleProcessBio}
+              disabled={!linkedinBio.trim() || isGenerating || isCreating}
               className="w-full"
-              size="sm"
+              size="default"
             >
-              {isGenerating ? (
+              {isGenerating || isCreating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Contact...
+                  Processing Bio...
                 </>
               ) : (
-                "Generate Contact"
+                "Process Bio"
               )}
             </PrimaryAction>
           </div>
-
-          {/* Right Column - Contact Preview or Info Box */}
-          <div className="space-y-4">
-            {generatedContact ? (
-              <AirtableCard className="border-green-200 bg-green-50">
-                <AirtableCardContent className="p-4">
-                  <h4 className="font-medium mb-3 text-green-800 text-sm">
-                    Contact Preview
-                  </h4>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-green-600/10 rounded-full flex items-center justify-center shrink-0">
-                        <span className="text-green-700 font-semibold text-sm">
-                          {generatedContact.first_name?.[0]}
-                          {generatedContact.last_name?.[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h5 className="font-medium text-sm truncate text-green-800">
-                          {generatedContact.first_name}{" "}
-                          {generatedContact.last_name}
-                        </h5>
-                        {generatedContact.role && (
-                          <p className="text-xs text-green-700">
-                            {generatedContact.role}
-                          </p>
-                        )}
-                        {generatedContact.current_company && (
-                          <p className="text-xs text-green-600">
-                            {generatedContact.current_company}
-                          </p>
-                        )}
-                        {generatedContact.location && (
-                          <p className="text-xs text-green-600">
-                            {generatedContact.location}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {generatedContact.bio_summary && (
-                      <div>
-                        <p className="text-xs font-medium mb-1 text-green-800">
-                          Background
-                        </p>
-                        <p className="text-xs text-green-700 leading-relaxed">
-                          {generatedContact.bio_summary}
-                        </p>
-                      </div>
-                    )}
-
-                    {generatedContact.how_i_can_help && (
-                      <div>
-                        <p className="text-xs font-medium mb-1 text-green-800">
-                          How I Can Help
-                        </p>
-                        <p className="text-xs text-green-700 leading-relaxed">
-                          {generatedContact.how_i_can_help}
-                        </p>
-                      </div>
-                    )}
-
-                    {generatedContact.email && (
-                      <div>
-                        <p className="text-xs font-medium mb-1 text-green-800">
-                          Email
-                        </p>
-                        <p className="text-xs text-green-600">
-                          {generatedContact.email}
-                        </p>
-                      </div>
-                    )}
-
-                    {generatedContact.linkedin_url && (
-                      <div>
-                        <p className="text-xs font-medium mb-1 text-green-800">
-                          LinkedIn
-                        </p>
-                        <a
-                          href={generatedContact.linkedin_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-green-600 hover:underline"
-                        >
-                          View Profile
-                        </a>
-                      </div>
-                    )}
-
-                    <PrimaryAction
-                      onClick={handleCreateContact}
-                      disabled={isCreating}
-                      className="w-full mt-4"
-                      size="sm"
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        "Create Contact"
-                      )}
-                    </PrimaryAction>
-                  </div>
-                </AirtableCardContent>
-              </AirtableCard>
-            ) : (
-              <AirtableCard className="bg-blue-50 border-blue-200">
-                <AirtableCardContent className="p-3">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-                    <div className="text-xs text-blue-800">
-                      <p className="font-medium mb-1">Who should I contact?</p>
-                      <p className="mb-1">
-                        Whether you are looking for referrals or exploring
-                        roles, the most relevant contacts are people you already
-                        know: classmates, friends, ex-colleagues.
-                      </p>
-                      <p>
-                        If you're expanding your network, consider reaching out
-                        to people in the same function or recruiters. On
-                        LinkedIn, try searching for [company name] [function].
-                      </p>
-                    </div>
-                  </div>
-                </AirtableCardContent>
-              </AirtableCard>
-            )}
-          </div>
         </div>
-      </div>
+      )}
 
+      {/* Phase 2: Contact Created */}
+      {hasCreatedContact && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <UserPlus className="h-5 w-5 text-green-600" />
+            <h3 className="font-medium text-green-800">Contact Created</h3>
+          </div>
+
+          {/* Compact Contact Card */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <User className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-green-900">
+                    {generatedContact.first_name} {generatedContact.last_name}
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    {generatedContact.role} at {generatedContact.current_company}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs text-green-600 font-medium">Active</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetWorkflow}
+            className="w-full"
+          >
+            Add Another Contact
+          </Button>
+        </div>
+      )}
+
+      {/* Duplicate Dialogs */}
       <CompanyDuplicateDialog
         isOpen={showDuplicateDialog}
         onClose={() => setShowDuplicateDialog(false)}
-        companyName={generatedContact?.current_company || ""}
         potentialDuplicates={potentialDuplicates}
-        onCreateNew={handleCreateNewCompany}
         onUseExisting={handleUseExistingCompany}
+        onCreateNew={handleCreateNewCompany}
+        companyName={generatedContact?.current_company || ""}
       />
 
       <ContactDuplicateDialog
         isOpen={showContactDuplicateDialog}
         onClose={() => setShowContactDuplicateDialog(false)}
+        potentialDuplicates={potentialContactDuplicates}
         onUseExisting={handleUseExistingContact}
         onCreateNew={handleCreateNewContact}
-        potentialDuplicates={potentialContactDuplicates}
         newContactName={
           generatedContact
             ? `${generatedContact.first_name} ${generatedContact.last_name}`

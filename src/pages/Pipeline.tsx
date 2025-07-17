@@ -429,52 +429,107 @@ const PipelineDashboard = () => {
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
-            <IntegratedContactWorkflow
-              companies={companies}
-              onContactCreated={handleContactCreated}
-            />
+            {/* Left Panel - Contact Creation */}
+            <div className="space-y-4 p-4 rounded-lg border-2 transition-all border-primary/20 bg-primary/5">
+              <IntegratedContactWorkflow
+                companies={companies}
+                onContactCreated={handleContactCreated}
+              />
+            </div>
             
-            {/* Message Generation Panel */}
-            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+            {/* Right Panel - Message Generation */}
+            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all relative ${
               !contactForMessage 
                 ? "border-gray-200 bg-gray-50/50" 
                 : "border-primary/20 bg-primary/5"
             }`}>
               <div className="flex items-center gap-2 mb-4">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                <h3 className="font-medium">Generate Outreach Message</h3>
+                <MessageCircle className={`h-5 w-5 ${!contactForMessage ? 'text-gray-400' : 'text-primary'}`} />
+                <h3 className={`font-medium ${!contactForMessage ? 'text-gray-500' : 'text-gray-900'}`}>
+                  Draft a Message
+                </h3>
               </div>
 
-              {contactForMessage && (
-                <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
-                  <p className="font-medium text-blue-800 mb-1">
-                    Ready to generate message for:
-                  </p>
-                  <p className="text-blue-700">
-                    {contactForMessage.first_name} {contactForMessage.last_name}
-                  </p>
+              {/* Disabled State Overlay */}
+              {!contactForMessage && (
+                <div className="absolute inset-0 bg-gray-100/60 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                  <div className="text-center p-6">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <MessageCircle className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 font-medium">First, process a contact's bio to activate</p>
+                  </div>
                 </div>
               )}
 
-              <MessageGeneration
-                contact={contactForMessage}
-                companyName={
-                  contactForMessage?.company_id
-                    ? companies.find(c => c.company_id === contactForMessage.company_id)?.name || ""
-                    : contactForMessage?.current_company || ""
-                }
-                isOpen={true}
-                onClose={() => {}}
-                onMessageSaved={() => {
-                  toast({
-                    title: "Success", 
-                    description: "Message saved and workflow completed!"
-                  });
-                  setContactForMessage(null);
-                }}
-                embedded={true}
-                disabled={!contactForMessage}
-              />
+              {/* Preview of disabled message generation */}
+              <div className={`space-y-4 ${!contactForMessage ? 'opacity-30' : ''}`}>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Communication Medium
+                  </label>
+                  <div className="flex items-center space-x-2 opacity-60">
+                    <div className="w-4 h-4 rounded-full border-2 border-gray-400 bg-gray-400"></div>
+                    <span className="text-sm">LinkedIn Connection Note</span>
+                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">300 chars</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Message Objective
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="px-3 py-2 text-sm bg-gray-200 rounded border text-gray-600">
+                      Get info interview
+                    </div>
+                    <div className="px-3 py-2 text-sm bg-gray-100 rounded border text-gray-500">
+                      Ask for referral
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  disabled 
+                  className="w-full px-4 py-2 bg-gray-200 text-gray-500 rounded font-medium cursor-not-allowed"
+                >
+                  Generate Messages
+                </button>
+              </div>
+
+              {/* Active Message Generation */}
+              {contactForMessage && (
+                <div className="mt-4">
+                  <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
+                    <p className="font-medium text-blue-800 mb-1">
+                      Ready to generate message for:
+                    </p>
+                    <p className="text-blue-700">
+                      {contactForMessage.first_name} {contactForMessage.last_name}
+                    </p>
+                  </div>
+
+                  <MessageGeneration
+                    contact={contactForMessage}
+                    companyName={
+                      contactForMessage?.company_id
+                        ? companies.find(c => c.company_id === contactForMessage.company_id)?.name || ""
+                        : contactForMessage?.current_company || ""
+                    }
+                    isOpen={true}
+                    onClose={() => {}}
+                    onMessageSaved={() => {
+                      toast({
+                        title: "Success", 
+                        description: "Message saved and workflow completed!"
+                      });
+                      setContactForMessage(null);
+                    }}
+                    embedded={true}
+                    disabled={false}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
