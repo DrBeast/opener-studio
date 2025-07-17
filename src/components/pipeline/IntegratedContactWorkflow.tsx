@@ -207,8 +207,6 @@ export const IntegratedContactWorkflow = ({
         
         // Step 2: Automatically create the contact
         await handleAutoCreateContact(data.contact);
-        
-        setLinkedinBio("");
       } else {
         throw new Error("No contact data received");
       }
@@ -262,6 +260,7 @@ export const IntegratedContactWorkflow = ({
         console.log("[Auto Create] Success. Calling onContactCreated with:", newContact);
         setCreatedContact(newContact);
         onContactCreated(newContact);
+        setLinkedinBio(""); // Clear bio after successful creation
         toast.success("Contact created successfully!");
       }
     } catch (error) {
@@ -544,6 +543,7 @@ export const IntegratedContactWorkflow = ({
       if (newContact) {
         setCreatedContact(newContact);
         onContactCreated(newContact);
+        setLinkedinBio(""); // Clear bio after successful creation
         toast.success("Contact created successfully!");
       }
     } catch (error) {
