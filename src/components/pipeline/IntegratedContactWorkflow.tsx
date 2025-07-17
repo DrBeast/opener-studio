@@ -435,6 +435,13 @@ export const IntegratedContactWorkflow = ({
 
       // Step 2: Update the existing contact with the new information
       console.log("[Update Contact] Updating contact in database");
+      
+      // Validate essential fields exist
+      if (!data.contact.first_name || !data.contact.last_name) {
+        console.error("[Update Contact] Missing essential contact fields:", data.contact);
+        throw new Error("Missing essential contact information from processed bio");
+      }
+      
       const { error: updateError } = await supabase
         .from('contacts')
         .update({
@@ -445,7 +452,6 @@ export const IntegratedContactWorkflow = ({
           linkedin_bio: linkedinBio,
           bio_summary: data.contact.bio_summary,
           how_i_can_help: data.contact.how_i_can_help,
-          recent_activity_summary: data.contact.recent_activity_summary,
           updated_at: new Date().toISOString(),
         })
         .eq('contact_id', contactId);
