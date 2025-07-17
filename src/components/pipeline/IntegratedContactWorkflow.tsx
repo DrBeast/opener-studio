@@ -405,8 +405,56 @@ export const IntegratedContactWorkflow = ({
 
   const handleUseExistingContact = async (contactId: string) => {
     setShowContactDuplicateDialog(false);
-    toast.success("Contact already exists in your pipeline!");
-    resetWorkflow();
+    setIsCreating(true);
+    
+    try {
+      // Fetch the existing contact data
+      const { data: existingContact, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('contact_id', contactId)
+        .single();
+      
+      if (error) throw error;
+      
+      if (existingContact) {
+        // Create a contact object that matches our CreatedContact interface
+        const contactForGeneration: CreatedContact = {
+          contact_id: existingContact.contact_id,
+          first_name: existingContact.first_name || '',
+          last_name: existingContact.last_name || '',
+          role: existingContact.role || '',
+          current_company: '', // We'll need to get this from the company table
+          location: existingContact.location || '',
+          bio_summary: existingContact.bio_summary || '',
+          how_i_can_help: existingContact.how_i_can_help || '',
+          recent_activity_summary: existingContact.recent_activity_summary || '',
+          company_id: existingContact.company_id
+        };
+        
+        // If there's a company_id, fetch the company name
+        if (existingContact.company_id) {
+          const { data: company } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('company_id', existingContact.company_id)
+            .single();
+          
+          if (company) {
+            contactForGeneration.current_company = company.name;
+          }
+        }
+        
+        setCreatedContact(contactForGeneration);
+        onContactCreated(contactForGeneration);
+        toast.success("Contact already exists - ready for message generation!");
+      }
+    } catch (error) {
+      console.error("Error fetching existing contact:", error);
+      toast.error("Failed to load existing contact");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCreateNewContact = async () => {
