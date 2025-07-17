@@ -65,7 +65,7 @@ serve(async (req) => {
         role,
         email,
         linkedin_url,
-        companies!inner(name)
+        companies(name)
       `)
       .eq('user_id', user.id)
       .eq('status', 'active');
