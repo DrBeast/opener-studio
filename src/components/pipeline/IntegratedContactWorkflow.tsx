@@ -227,7 +227,7 @@ export const IntegratedContactWorkflow = ({
     console.log("[Auto Create] Starting contact creation flow. Preview data:", contactData);
 
     try {
-      // Step 1: Check for contact duplicates first
+      // Step 1: Check for contact duplicates FIRST
       const hasContactDuplicates = await checkForDuplicateContact(
         contactData.first_name,
         contactData.last_name,
@@ -241,7 +241,7 @@ export const IntegratedContactWorkflow = ({
         return;
       }
 
-      // Step 2: Determine the company ID
+      // Step 2: Only check for company duplicates if contact is new
       let finalCompanyId = selectedCompanyId;
       if (!finalCompanyId && contactData.current_company) {
         const companyCheck = await checkForDuplicateCompany(contactData.current_company);
@@ -254,7 +254,7 @@ export const IntegratedContactWorkflow = ({
         finalCompanyId = await createNewCompany(contactData.current_company);
       }
 
-      // Step 3: Perform the database insert
+      // Step 3: Perform the database insert (contact is definitely new at this point)
       const newContact = await performDatabaseInsert(finalCompanyId);
 
       // Step 4: If successful, set created contact and pass to parent
