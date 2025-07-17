@@ -493,13 +493,34 @@ export const IntegratedContactWorkflow = ({
   const handleCreateNewContact = async () => {
     setShowContactDuplicateDialog(false);
     setIsCreating(true);
-    const newContact = await performDatabaseInsert(pendingCompanyId);
-    if (newContact) {
-      setCreatedContact(newContact);
-      onContactCreated(newContact);
-      toast.success("Contact created successfully!");
+    
+    try {
+      // Step 1: Check for company duplicates if we have a company name but no company ID
+      let finalCompanyId = selectedCompanyId;
+      if (!finalCompanyId && generatedContact?.current_company) {
+        const companyCheck = await checkForDuplicateCompany(generatedContact.current_company);
+        if (companyCheck.isDuplicate) {
+          setPotentialDuplicates(companyCheck.potentialDuplicates);
+          setShowDuplicateDialog(true);
+          setIsCreating(false);
+          return;
+        }
+        finalCompanyId = await createNewCompany(generatedContact.current_company);
+      }
+
+      // Step 2: Create the contact with the final company ID
+      const newContact = await performDatabaseInsert(finalCompanyId);
+      if (newContact) {
+        setCreatedContact(newContact);
+        onContactCreated(newContact);
+        toast.success("Contact created successfully!");
+      }
+    } catch (error) {
+      console.error("Error creating new contact:", error);
+      toast.error("Failed to create contact");
+    } finally {
+      setIsCreating(false);
     }
-    setIsCreating(false);
   };
 
   const resetWorkflow = () => {
