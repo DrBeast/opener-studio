@@ -1,8 +1,30 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
-import { MEDIUM_OPTIONS } from '../../../src/shared/constants.ts';
 
+// Medium options moved from shared constants
+const MEDIUM_OPTIONS = [
+  {
+    id: "LinkedIn connection note",
+    label: "LinkedIn Connection Note",
+    maxLength: 200,
+  },
+  {
+    id: "LinkedIn connection note / Premium",
+    label: "LinkedIn Connection Note / Premium",
+    maxLength: 300,
+  },
+  {
+    id: "LinkedIn message to 1st connection",
+    label: "LinkedIn Message to 1st Connection",
+    maxLength: 8000,
+  },
+  { 
+    id: "Email or InMail", 
+    label: "Email or InMail", 
+    maxLength: 2000 
+  },
+];
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
