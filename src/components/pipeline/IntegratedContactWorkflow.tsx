@@ -28,7 +28,7 @@ import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
-import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
+
 
 // localStorage utilities (no changes)
 const STORAGE_KEY = "contact-workflow-state";
@@ -680,18 +680,6 @@ export const IntegratedContactWorkflow = ({
         companyName={generatedContact?.current_company || ""}
       />
 
-      <ContactDuplicateDialog
-        isOpen={showContactDuplicateDialog}
-        onClose={() => setShowContactDuplicateDialog(false)}
-        potentialDuplicates={potentialContactDuplicates}
-        onUseExisting={handleUseExistingContact}
-        onCreateNew={handleCreateNewContact}
-        newContactName={
-          generatedContact
-            ? `${generatedContact.first_name} ${generatedContact.last_name}`
-            : ""
-        }
-      />
     </div>
   );
 };
