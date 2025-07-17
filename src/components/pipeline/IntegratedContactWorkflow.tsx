@@ -345,8 +345,7 @@ export const IntegratedContactWorkflow = ({
           last_name: generatedContact.last_name,
           role: generatedContact.role,
           location: generatedContact.location,
-          email: generatedContact.email,
-          linkedin_url: generatedContact.linkedin_url,
+          linkedin_bio: linkedinBio, // Store the original LinkedIn bio
           bio_summary: generatedContact.bio_summary,
           how_i_can_help: generatedContact.how_i_can_help,
           recent_activity_summary: generatedContact.recent_activity_summary,
