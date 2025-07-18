@@ -115,7 +115,6 @@ serve(async (req)=>{
   You are an AI assistant helping a professional craft authentic, specific outreach messages for job search networking. Your role is to help them write a message to a selected contact that effectively achieves the stated objecive taking into account the user's professional background and the contact's details. 
   
   SPECIFIC INSTRUCTIONS FOR MESSAGE CREATION:
-  0. Start all messages with the word TEST
   1. ALWAYS include a clear, specific ask based on the objective - never leave it vague
     - For "get to know and build relationship": "I'd be happy to connect as I'm [specific reason]"
      - For "get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
