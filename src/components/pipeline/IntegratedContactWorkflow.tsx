@@ -10,10 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AirtableCard,
-  AirtableCardContent,
-} from "@/components/ui/airtable-card";
-import {
   Info,
   Loader2,
   User,
@@ -300,7 +296,7 @@ export const IntegratedContactWorkflow = ({
       );
 
       // Step 1: Update the existing contact in the database with the new parsed info.
-      // We only update fields that come from the bio, preserving user_notes etc.
+      // We only update fields that come from the bio, preserving user_notes and interaction history.
       const { data: updatedContact, error: updateError } = await supabase
         .from("contacts")
         .update({
@@ -356,7 +352,6 @@ export const IntegratedContactWorkflow = ({
 
   return (
     <div className="space-y-4">
-      {/* --- UI REMAINS THE SAME, BUT LOGIC IS CLEANER --- */}
       {!createdContact && (
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
@@ -379,7 +374,7 @@ export const IntegratedContactWorkflow = ({
             <Textarea
               value={linkedinBio}
               onChange={(e) => setLinkedinBio(e.target.value)}
-              placeholder="Paste their LinkedIn profile here..."
+              placeholder="Copy all content on their LinkedIn profile page (CTRL/CMD + A, CTRL/CMD + C) and paste it here (CTRL/CMD + V)."
               className="min-h-[120px] text-sm resize-none"
             />
             <PrimaryAction
@@ -436,7 +431,7 @@ export const IntegratedContactWorkflow = ({
         isOpen={showContactDuplicateDialog}
         onClose={() => setShowContactDuplicateDialog(false)}
         potentialDuplicates={potentialContactDuplicates}
-        onUseExisting={handleUpdateExistingContact} // Correctly wired up
+        onUseExisting={handleUpdateExistingContact}
         onCreateNew={handleCreateNewContactAnyway}
         newContactName={
           pendingContactData

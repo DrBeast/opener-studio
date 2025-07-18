@@ -19,7 +19,7 @@ interface PotentialContactDuplicate {
   last_name: string;
   role: string;
   company_name?: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   reasoning: string;
 }
 
@@ -44,23 +44,23 @@ export function ContactDuplicateDialog({
 
   const getConfidenceBadgeVariant = (confidence: string) => {
     switch (confidence) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'secondary';
+      case "high":
+        return "destructive";
+      case "medium":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
-      case 'high':
-        return 'text-red-600';
-      case 'medium':
-        return 'text-orange-600';
+      case "high":
+        return "text-red-600";
+      case "medium":
+        return "text-orange-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
@@ -76,8 +76,8 @@ export function ContactDuplicateDialog({
         <DialogHeader>
           <DialogTitle>Possible Duplicate Contact</DialogTitle>
           <DialogDescription>
-            We found existing contacts that might be the same as "{newContactName}". 
-            Please review and choose an action:
+            We found existing contacts that might be the same as "
+            {newContactName}". Please review and choose an action:
           </DialogDescription>
         </DialogHeader>
 
@@ -93,16 +93,21 @@ export function ContactDuplicateDialog({
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">Potential duplicates found:</h4>
-            
-            <RadioGroup value={selectedContactId} onValueChange={setSelectedContactId}>
+            <h4 className="font-medium text-gray-900">
+              Potential duplicates found:
+            </h4>
+
+            <RadioGroup
+              value={selectedContactId}
+              onValueChange={setSelectedContactId}
+            >
               {potentialDuplicates.map((duplicate) => (
                 <div
                   key={duplicate.contact_id}
                   className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedContactId === duplicate.contact_id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                   onClick={() => setSelectedContactId(duplicate.contact_id)}
                 >
@@ -110,14 +115,20 @@ export function ContactDuplicateDialog({
                     <RadioGroupItem
                       value={duplicate.contact_id}
                       checked={selectedContactId === duplicate.contact_id}
-                      onChange={() => setSelectedContactId(duplicate.contact_id)}
+                      onChange={() =>
+                        setSelectedContactId(duplicate.contact_id)
+                      }
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">
                           {duplicate.first_name} {duplicate.last_name}
                         </span>
-                        <Badge variant={getConfidenceBadgeVariant(duplicate.confidence)}>
+                        <Badge
+                          variant={getConfidenceBadgeVariant(
+                            duplicate.confidence
+                          )}
+                        >
                           {duplicate.confidence} confidence
                         </Badge>
                       </div>
@@ -132,7 +143,11 @@ export function ContactDuplicateDialog({
                           </>
                         )}
                       </div>
-                      <p className={`text-sm ${getConfidenceColor(duplicate.confidence)}`}>
+                      <p
+                        className={`text-sm ${getConfidenceColor(
+                          duplicate.confidence
+                        )}`}
+                      >
                         {duplicate.reasoning}
                       </p>
                     </div>
