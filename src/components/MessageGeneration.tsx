@@ -381,15 +381,15 @@ export function MessageGeneration({
             <RadioGroup
               value={medium}
               onValueChange={handleMediumChange}
-              className="grid grid-cols-1 gap-2"
+              className={`grid grid-cols-1 ${embedded ? 'gap-1' : 'gap-2'}`}
             >
               {MEDIUM_OPTIONS.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
+                <div key={option.id} className={`flex items-center space-x-2 ${embedded ? 'py-1' : ''}`}>
                   <RadioGroupItem value={option.id} id={option.id} />
-                  <Label htmlFor={option.id} className="text-sm flex-1">
+                  <Label htmlFor={option.id} className={`${embedded ? 'text-xs' : 'text-sm'} flex-1`}>
                     {option.label}
                   </Label>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className={`${embedded ? 'text-xs px-1.5 py-0.5' : 'text-xs'}`}>
                     {option.maxLength >= 1000
                       ? `${option.maxLength / 1000}k`
                       : option.maxLength}{" "}
@@ -407,7 +407,7 @@ export function MessageGeneration({
             </Label>
             <div
               className={`grid gap-2 ${
-                embedded ? "grid-cols-1" : "grid-cols-2"
+                embedded ? "grid-cols-2" : "grid-cols-2"
               }`}
             >
               {objectiveOptions.map((option) => (
@@ -416,9 +416,7 @@ export function MessageGeneration({
                   type="button"
                   variant={objective === option ? "default" : "outline"}
                   size={embedded ? "sm" : "sm"}
-                  className={`justify-start text-left h-auto py-2 px-3 border-purple-400 ${
-                    embedded ? "text-xs" : ""
-                  }`}
+                  className={`justify-start text-left h-auto ${embedded ? 'py-1.5 px-2 text-xs' : 'py-2 px-3'} border-purple-400`}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
