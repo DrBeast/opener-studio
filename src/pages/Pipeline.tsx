@@ -377,7 +377,24 @@ const PipelineDashboard = () => {
   // Handler to receive contact from workflow
   const handleContactCreated = (newContact: any) => {
     console.log("Parent received new contact:", newContact);
-    setContactForMessage(newContact);
+    
+    // Ensure the contact object has the correct structure for MessageGeneration
+    const contactForGeneration = {
+      contact_id: newContact.contact_id,
+      first_name: newContact.first_name,
+      last_name: newContact.last_name,
+      role: newContact.role,
+      company_id: newContact.company_id,
+      // Include other properties that might be needed
+      current_company: newContact.current_company,
+      location: newContact.location,
+      bio_summary: newContact.bio_summary,
+      how_i_can_help: newContact.how_i_can_help,
+      recent_activity_summary: newContact.recent_activity_summary,
+    };
+    
+    console.log("Contact prepared for message generation:", contactForGeneration);
+    setContactForMessage(contactForGeneration);
     fetchContacts();
   };
 
