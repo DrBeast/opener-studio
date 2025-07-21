@@ -106,6 +106,55 @@ export const IntegratedContactWorkflow = ({
   const [pendingContactData, setPendingContactData] =
     useState<ContactBioData | null>(null);
 
+  // Persist state to localStorage
+  const persistState = (key: string, value: any) => {
+    if (user) {
+      localStorage.setItem(`contact_workflow_${user.id}_${key}`, JSON.stringify(value));
+    }
+  };
+
+  const getPersistedState = (key: string) => {
+    if (user) {
+      const stored = localStorage.getItem(`contact_workflow_${user.id}_${key}`);
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  };
+
+  const clearPersistedState = () => {
+    if (user) {
+      localStorage.removeItem(`contact_workflow_${user.id}_linkedinBio`);
+      localStorage.removeItem(`contact_workflow_${user.id}_isLoading`);
+      localStorage.removeItem(`contact_workflow_${user.id}_pendingContactData`);
+    }
+  };
+
+  // Restore state on component mount
+  useEffect(() => {
+    if (user) {
+      const restoredBio = getPersistedState('linkedinBio');
+      const restoredLoading = getPersistedState('isLoading');
+      const restoredPendingData = getPersistedState('pendingContactData');
+      
+      if (restoredBio) setLinkedinBio(restoredBio);
+      if (restoredLoading) setIsLoading(restoredLoading);
+      if (restoredPendingData) setPendingContactData(restoredPendingData);
+    }
+  }, [user]);
+
+  // Persist state changes
+  useEffect(() => {
+    persistState('linkedinBio', linkedinBio);
+  }, [linkedinBio, user]);
+
+  useEffect(() => {
+    persistState('isLoading', isLoading);
+  }, [isLoading, user]);
+
+  useEffect(() => {
+    persistState('pendingContactData', pendingContactData);
+  }, [pendingContactData, user]);
+
   // --- Main Handler for the "Process Bio" button ---
   const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
@@ -171,6 +220,7 @@ export const IntegratedContactWorkflow = ({
     if (newContact) {
       onContactCreated(newContact);
       setLinkedinBio("");
+      clearPersistedState();
       toast.success("Contact created successfully!");
     }
   };
@@ -267,6 +317,7 @@ export const IntegratedContactWorkflow = ({
     if (newContact) {
       onContactCreated(newContact);
       setLinkedinBio("");
+      clearPersistedState();
       toast.success("Contact created successfully!");
     }
     setIsLoading(false);
@@ -286,6 +337,7 @@ export const IntegratedContactWorkflow = ({
     if (newContact) {
       onContactCreated(newContact);
       setLinkedinBio("");
+      clearPersistedState();
       toast.success("Contact created successfully!");
     }
     setIsLoading(false);
@@ -332,6 +384,7 @@ export const IntegratedContactWorkflow = ({
       );
       onContactCreated(finalContactObject); // Notify the parent
       setLinkedinBio("");
+      clearPersistedState();
       toast.success("Contact profile updated successfully!");
     } catch (error) {
       console.error("Error updating existing contact:", error);
@@ -352,6 +405,7 @@ export const IntegratedContactWorkflow = ({
   const resetWorkflow = () => {
     setLinkedinBio("");
     setPendingContactData(null);
+    clearPersistedState();
   };
 
   return (
