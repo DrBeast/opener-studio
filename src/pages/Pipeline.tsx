@@ -102,6 +102,7 @@ const PipelineDashboard = () => {
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
   const [contactForMessage, setContactForMessage] = useState<any>(null);
+  const [createdContact, setCreatedContact] = useState<any>(null);
 
   // Generate Contacts Modal state
   const [generateContactsModal, setGenerateContactsModal] = useState<{
@@ -374,6 +375,12 @@ const PipelineDashboard = () => {
     setIsTargetsModalOpen(true);
   };
 
+  // Handler to reset the workflow
+  const handleWorkflowReset = () => {
+    setCreatedContact(null);
+    setContactForMessage(null);
+  };
+
   // Handler to receive contact from workflow
   const handleContactCreated = (newContact: any) => {
     console.log("Parent received new contact:", newContact);
@@ -443,6 +450,7 @@ const PipelineDashboard = () => {
                 companies={companies}
                 onContactCreated={handleContactCreated}
                 createdContact={contactForMessage}
+                onReset={handleWorkflowReset}
               />
             </div>
 
@@ -490,7 +498,7 @@ const PipelineDashboard = () => {
                         title: "Success",
                         description: "Message saved and workflow completed!",
                       });
-                      setContactForMessage(null);
+                      handleWorkflowReset();
                     }}
                     embedded={true}
                     disabled={false}

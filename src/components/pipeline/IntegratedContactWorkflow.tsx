@@ -64,6 +64,7 @@ interface IntegratedContactWorkflowProps {
   companies: Array<{ company_id: string; name: string }>;
   onContactCreated: (newContact: CreatedContact) => void;
   createdContact?: CreatedContact | null;
+  onReset?: () => void;
 }
 
 interface PotentialDuplicate {
@@ -87,6 +88,7 @@ export const IntegratedContactWorkflow = ({
   companies,
   onContactCreated,
   createdContact,
+  onReset,
 }: IntegratedContactWorkflowProps) => {
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
@@ -129,9 +131,9 @@ export const IntegratedContactWorkflow = ({
     }
   };
 
-  // Restore state on component mount
+  // Restore state on component mount (only if no contact for message exists)
   useEffect(() => {
-    if (user) {
+    if (user && !createdContact) {
       const restoredBio = getPersistedState('linkedinBio');
       const restoredLoading = getPersistedState('isLoading');
       const restoredPendingData = getPersistedState('pendingContactData');
@@ -139,8 +141,11 @@ export const IntegratedContactWorkflow = ({
       if (restoredBio) setLinkedinBio(restoredBio);
       if (restoredLoading) setIsLoading(restoredLoading);
       if (restoredPendingData) setPendingContactData(restoredPendingData);
+    } else if (createdContact) {
+      // Clear persisted state if contact is already in message generation
+      clearPersistedState();
     }
-  }, [user]);
+  }, [user, createdContact]);
 
   // Persist state changes
   useEffect(() => {
@@ -221,6 +226,7 @@ export const IntegratedContactWorkflow = ({
       onContactCreated(newContact);
       setLinkedinBio("");
       clearPersistedState();
+      onReset?.(); // Trigger reset in parent
       toast.success("Contact created successfully!");
     }
   };
