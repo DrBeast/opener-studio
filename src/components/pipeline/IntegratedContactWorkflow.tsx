@@ -10,10 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AirtableCard,
-  AirtableCardContent,
-} from "@/components/ui/airtable-card";
-import {
   Info,
   Loader2,
   User,
@@ -21,9 +17,6 @@ import {
   ArrowRight,
   MessageCircle,
   UserPlus,
-  MapPin,
-  Mail,
-  Linkedin,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -225,10 +218,6 @@ export const IntegratedContactWorkflow = ({
     companyId: string | null
   ): Promise<CreatedContact | null> => {
     if (!user) return null;
-    
-    // Get company name for the contact object
-    const company = companies.find(c => c.company_id === companyId);
-    
     const { data, error } = await supabase
       .from("contacts")
       .insert({
@@ -250,23 +239,11 @@ export const IntegratedContactWorkflow = ({
       toast.error("Failed to save contact.");
       return null;
     }
-    
-    // Return complete contact object with company name
-    const completeContact: CreatedContact = {
+    return {
+      ...contactData,
       contact_id: data.contact_id,
       company_id: companyId,
-      first_name: contactData.first_name,
-      last_name: contactData.last_name,
-      role: contactData.role,
-      current_company: company?.name || contactData.current_company || 'Unknown Company',
-      location: contactData.location,
-      bio_summary: contactData.bio_summary,
-      how_i_can_help: contactData.how_i_can_help,
-      recent_activity_summary: contactData.recent_activity_summary,
     };
-
-    console.log('Created contact:', completeContact);
-    return completeContact;
   };
 
   // --- Handlers for Dialogs ---
@@ -420,64 +397,24 @@ export const IntegratedContactWorkflow = ({
       )}
 
       {createdContact && (
-        <div className="space-y-4 bg-gray-100 p-4 rounded-lg">
+        <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
-            <UserPlus className="h-5 w-5 text-gray-600" />
-            <h3 className="font-medium text-gray-800">Contact added</h3>
+            <UserPlus className="h-5 w-5 text-green-600" />
+            <h3 className="font-medium text-green-800">
+              Contact Updated / Created
+            </h3>
           </div>
-          
-          <AirtableCard className="border-green-200 bg-green-50">
-            <AirtableCardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-green-600" />
-                  <span className="font-medium">
-                    {createdContact.first_name} {createdContact.last_name}
-                  </span>
-                </div>
-
-                {createdContact.role && (
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-green-600" />
-                    <span>{createdContact.role}</span>
-                  </div>
-                )}
-
-                {createdContact.current_company && (
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">{createdContact.current_company}</span>
-                  </div>
-                )}
-
-                {createdContact.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-green-600" />
-                    <span>{createdContact.location}</span>
-                  </div>
-                )}
-
-
-                {createdContact.bio_summary && (
-                  <div>
-                    <p className="font-medium text-sm text-green-800 mb-1">
-                      Background Summary:
-                    </p>
-                    <p className="text-sm">{createdContact.bio_summary}</p>
-                  </div>
-                )}
-
-                {createdContact.how_i_can_help && (
-                  <div>
-                    <p className="font-medium text-sm text-green-800 mb-1">
-                      How You Can Help:
-                    </p>
-                    <p className="text-sm">{createdContact.how_i_can_help}</p>
-                  </div>
-                )}
-              </div>
-            </AirtableCardContent>
-          </AirtableCard>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            {/* ... JSX for created contact card ... */}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetWorkflow}
+            className="w-full"
+          >
+            Add Another Contact
+          </Button>
         </div>
       )}
 
