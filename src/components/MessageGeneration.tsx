@@ -63,7 +63,7 @@ export function MessageGeneration({
   disabled = false,
 }: MessageGenerationProps) {
   // Generate a unique storage key based on contact to maintain separate states
-  const storageKey = `messageGeneration_${contact?.contact_id || 'default'}`;
+  const storageKey = `messageGeneration_${contact?.contact_id || "default"}`;
 
   // Helper function to get initial state from localStorage
   const getInitialState = (key: string, defaultValue: any) => {
@@ -76,31 +76,31 @@ export function MessageGeneration({
   };
 
   // State with localStorage persistence
-  const [medium, setMedium] = useState<string>(() => 
-    getInitialState('medium', "LinkedIn connection note")
+  const [medium, setMedium] = useState<string>(() =>
+    getInitialState("medium", "LinkedIn connection note")
   );
-  const [objective, setObjective] = useState<string>(() => 
-    getInitialState('objective', "")
+  const [objective, setObjective] = useState<string>(() =>
+    getInitialState("objective", "")
   );
-  const [customObjective, setCustomObjective] = useState<string>(() => 
-    getInitialState('customObjective', "")
+  const [customObjective, setCustomObjective] = useState<string>(() =>
+    getInitialState("customObjective", "")
   );
-  const [additionalContext, setAdditionalContext] = useState<string>(() => 
-    getInitialState('additionalContext', "")
+  const [additionalContext, setAdditionalContext] = useState<string>(() =>
+    getInitialState("additionalContext", "")
   );
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedMessages, setGeneratedMessages] = useState<{
     [key: string]: { text: string };
-  }>(() => getInitialState('generatedMessages', {}));
+  }>(() => getInitialState("generatedMessages", {}));
   const [editedMessages, setEditedMessages] = useState<{
     [key: string]: string;
-  }>(() => getInitialState('editedMessages', {}));
-  const [maxLength, setMaxLength] = useState<number>(() => 
-    getInitialState('maxLength', 300)
+  }>(() => getInitialState("editedMessages", {}));
+  const [maxLength, setMaxLength] = useState<number>(() =>
+    getInitialState("maxLength", 300)
   );
   const [showAIReasoning, setShowAIReasoning] = useState<{
     [key: string]: boolean;
-  }>(() => getInitialState('showAIReasoning', {}));
+  }>(() => getInitialState("showAIReasoning", {}));
 
   // Effect to save state to localStorage whenever it changes
   useEffect(() => {
@@ -111,43 +111,64 @@ export function MessageGeneration({
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_objective`, JSON.stringify(objective));
+      localStorage.setItem(
+        `${storageKey}_objective`,
+        JSON.stringify(objective)
+      );
     }
   }, [objective, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_customObjective`, JSON.stringify(customObjective));
+      localStorage.setItem(
+        `${storageKey}_customObjective`,
+        JSON.stringify(customObjective)
+      );
     }
   }, [customObjective, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_additionalContext`, JSON.stringify(additionalContext));
+      localStorage.setItem(
+        `${storageKey}_additionalContext`,
+        JSON.stringify(additionalContext)
+      );
     }
   }, [additionalContext, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_generatedMessages`, JSON.stringify(generatedMessages));
+      localStorage.setItem(
+        `${storageKey}_generatedMessages`,
+        JSON.stringify(generatedMessages)
+      );
     }
   }, [generatedMessages, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_editedMessages`, JSON.stringify(editedMessages));
+      localStorage.setItem(
+        `${storageKey}_editedMessages`,
+        JSON.stringify(editedMessages)
+      );
     }
   }, [editedMessages, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_maxLength`, JSON.stringify(maxLength));
+      localStorage.setItem(
+        `${storageKey}_maxLength`,
+        JSON.stringify(maxLength)
+      );
     }
   }, [maxLength, storageKey, contact?.contact_id]);
 
   useEffect(() => {
     if (contact?.contact_id) {
-      localStorage.setItem(`${storageKey}_showAIReasoning`, JSON.stringify(showAIReasoning));
+      localStorage.setItem(
+        `${storageKey}_showAIReasoning`,
+        JSON.stringify(showAIReasoning)
+      );
     }
   }, [showAIReasoning, storageKey, contact?.contact_id]);
 
@@ -367,7 +388,7 @@ export function MessageGeneration({
     additionalContext
   );
 
-  // Memoize the MessageContent to prevent unnecessary re-renders
+  // Memorize the MessageContent to prevent unnecessary re-renders
   const MessageContent = useMemo(
     () => (
       <div className={`space-y-4 ${embedded ? "mt-0" : "mt-4"}`}>
@@ -381,15 +402,28 @@ export function MessageGeneration({
             <RadioGroup
               value={medium}
               onValueChange={handleMediumChange}
-              className={`grid grid-cols-1 ${embedded ? 'gap-1' : 'gap-2'}`}
+              className={`grid grid-cols-1 ${embedded ? "gap-1" : "gap-2"}`}
             >
               {MEDIUM_OPTIONS.map((option) => (
-                <div key={option.id} className={`flex items-center space-x-2 ${embedded ? 'py-1' : ''}`}>
+                <div
+                  key={option.id}
+                  className={`flex items-center space-x-2 ${
+                    embedded ? "py-1" : ""
+                  }`}
+                >
                   <RadioGroupItem value={option.id} id={option.id} />
-                  <Label htmlFor={option.id} className={`${embedded ? 'text-xs' : 'text-sm'} flex-1`}>
+                  <Label
+                    htmlFor={option.id}
+                    className={`${embedded ? "text-xs" : "text-sm"} flex-1`}
+                  >
                     {option.label}
                   </Label>
-                  <Badge variant="outline" className={`${embedded ? 'text-xs px-1.5 py-0.5' : 'text-xs'}`}>
+                  <Badge
+                    variant="outline"
+                    className={`${
+                      embedded ? "text-xs px-1.5 py-0.5" : "text-xs"
+                    }`}
+                  >
                     {option.maxLength >= 1000
                       ? `${option.maxLength / 1000}k`
                       : option.maxLength}{" "}
@@ -416,7 +450,9 @@ export function MessageGeneration({
                   type="button"
                   variant={objective === option ? "default" : "outline"}
                   size={embedded ? "sm" : "sm"}
-                  className={`justify-start text-left h-auto ${embedded ? 'py-1.5 px-2 text-xs' : 'py-2 px-3'} border-purple-400`}
+                  className={`justify-start text-left h-auto ${
+                    embedded ? "py-1.5 px-2 text-xs" : "py-2 px-3"
+                  } border-purple-400`}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
@@ -501,8 +537,6 @@ export function MessageGeneration({
                     </Button>
                   </div>
                 </div>
-
-                {/* AI Reasoning - Note: reasoning removed from API response */}
 
                 {/* Editable Message Text */}
                 <div className="space-y-2">

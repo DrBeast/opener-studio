@@ -21,7 +21,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
-import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
 import {
   AirtableCard,

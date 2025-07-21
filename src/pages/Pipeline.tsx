@@ -428,24 +428,6 @@ const PipelineDashboard = () => {
       <div className="mx-auto py-8 ">
         <ProfileBreadcrumbs />
 
-        {/* Placeholder Targets Modal */}
-        {isTargetsModalOpen && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <h3 className="text-lg font-medium text-gray-800">
-                Edit Targets (Placeholder)
-              </h3>
-              <p>This is a placeholder for the Targets modal.</p>
-              <button
-                onClick={() => setIsTargetsModalOpen(false)}
-                className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
@@ -483,78 +465,15 @@ const PipelineDashboard = () => {
                     !contactForMessage ? "text-gray-500" : "text-gray-900"
                   }`}
                 >
-                  Draft a Message
+                  {contactForMessage
+                    ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
+                    : "Create a Contact first"}
                 </h3>
-              </div>
-
-              {/* Disabled State Overlay */}
-              {!contactForMessage && (
-                <div className="absolute inset-0 bg-gray-100/60 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-                  <div className="text-center p-6">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MessageCircle className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <p className="text-gray-600 font-medium">
-                      First, process a contact's bio to activate
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Preview of disabled message generation */}
-              <div
-                className={`space-y-4 ${
-                  !contactForMessage ? "opacity-30" : ""
-                }`}
-              >
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Communication Medium
-                  </label>
-                  <div className="flex items-center space-x-2 opacity-60">
-                    <div className="w-4 h-4 rounded-full border-2 border-gray-400 bg-gray-400"></div>
-                    <span className="text-sm">LinkedIn Connection Note</span>
-                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                      300 chars
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Message Objective
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="px-3 py-2 text-sm bg-gray-200 rounded border text-gray-600">
-                      Get info interview
-                    </div>
-                    <div className="px-3 py-2 text-sm bg-gray-100 rounded border text-gray-500">
-                      Ask for referral
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  disabled
-                  className="w-full px-4 py-2 bg-gray-200 text-gray-500 rounded font-medium cursor-not-allowed"
-                >
-                  Generate Messages
-                </button>
               </div>
 
               {/* Active Message Generation */}
               {contactForMessage && (
                 <div className="mt-4">
-                  <div className="text-sm p-3 bg-blue-50 border border-blue-200 rounded mb-4">
-                    <p className="font-medium text-blue-800 mb-1">
-                      Ready to generate message for:
-                    </p>
-                    <p className="text-blue-700">
-                      {contactForMessage.first_name}{" "}
-                      {contactForMessage.last_name}
-                    </p>
-                  </div>
-
                   <MessageGeneration
                     contact={contactForMessage}
                     companyName={
