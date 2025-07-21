@@ -447,10 +447,15 @@ const PipelineDashboard = () => {
         <div className="mx-auto w-[95%] mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
             {/* Left Panel - Contact Creation */}
-            <div className="space-y-4 p-4 rounded-lg border-2 transition-all border-primary/20 bg-primary/5">
+            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+              !contactForMessage 
+                ? "border-primary/20 bg-primary/5" 
+                : "border-gray-200 bg-gray-50"
+            }`}>
               <IntegratedContactWorkflow
                 companies={companies}
                 onContactCreated={handleContactCreated}
+                createdContact={contactForMessage}
               />
             </div>
             

@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
+import { AirtableCard, AirtableCardContent } from "@/components/ui/airtable-card";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 
@@ -60,6 +61,7 @@ interface ContactBioData {
 interface IntegratedContactWorkflowProps {
   companies: Array<{ company_id: string; name: string }>;
   onContactCreated: (newContact: CreatedContact) => void;
+  createdContact?: CreatedContact | null;
 }
 
 interface PotentialDuplicate {
@@ -82,13 +84,11 @@ interface PotentialContactDuplicate {
 export const IntegratedContactWorkflow = ({
   companies,
   onContactCreated,
+  createdContact,
 }: IntegratedContactWorkflowProps) => {
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [createdContact, setCreatedContact] = useState<CreatedContact | null>(
-    null
-  );
 
   // State for dialogs and pending data
   const [showCompanyDuplicateDialog, setShowCompanyDuplicateDialog] =
@@ -167,7 +167,6 @@ export const IntegratedContactWorkflow = ({
     // With the final company ID, insert the new contact.
     const newContact = await performDatabaseInsert(contactData, finalCompanyId);
     if (newContact) {
-      setCreatedContact(newContact);
       onContactCreated(newContact);
       setLinkedinBio("");
       toast.success("Contact created successfully!");
@@ -233,16 +232,23 @@ export const IntegratedContactWorkflow = ({
         recent_activity_summary: contactData.recent_activity_summary,
         added_at: new Date().toISOString(),
       })
-      .select()
+      .select("*, companies(name)")
       .single();
     if (error) {
       toast.error("Failed to save contact.");
       return null;
     }
     return {
-      ...contactData,
       contact_id: data.contact_id,
       company_id: companyId,
+      first_name: contactData.first_name,
+      last_name: contactData.last_name,
+      role: contactData.role,
+      current_company: data.companies?.name || contactData.current_company,
+      location: contactData.location,
+      bio_summary: contactData.bio_summary,
+      how_i_can_help: contactData.how_i_can_help,
+      recent_activity_summary: contactData.recent_activity_summary,
     };
   };
 
@@ -257,7 +263,6 @@ export const IntegratedContactWorkflow = ({
       companyId
     );
     if (newContact) {
-      setCreatedContact(newContact);
       onContactCreated(newContact);
       setLinkedinBio("");
       toast.success("Contact created successfully!");
@@ -277,7 +282,6 @@ export const IntegratedContactWorkflow = ({
       newCompanyId
     );
     if (newContact) {
-      setCreatedContact(newContact);
       onContactCreated(newContact);
       setLinkedinBio("");
       toast.success("Contact created successfully!");
@@ -321,10 +325,9 @@ export const IntegratedContactWorkflow = ({
       };
 
       console.log(
-        "[Update Contact] Setting createdContact state with:",
+        "[Update Contact] Notifying parent with:",
         finalContactObject
       );
-      setCreatedContact(finalContactObject);
       onContactCreated(finalContactObject); // Notify the parent
       setLinkedinBio("");
       toast.success("Contact profile updated successfully!");
@@ -346,7 +349,6 @@ export const IntegratedContactWorkflow = ({
 
   const resetWorkflow = () => {
     setLinkedinBio("");
-    setCreatedContact(null);
     setPendingContactData(null);
   };
 
@@ -400,21 +402,50 @@ export const IntegratedContactWorkflow = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <UserPlus className="h-5 w-5 text-green-600" />
-            <h3 className="font-medium text-green-800">
-              Contact Updated / Created
-            </h3>
+            <h3 className="font-medium text-green-800">Contact added</h3>
           </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            {/* ... JSX for created contact card ... */}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetWorkflow}
-            className="w-full"
-          >
-            Add Another Contact
-          </Button>
+          
+          <AirtableCard className="bg-green-50 border-green-200">
+            <AirtableCardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      {createdContact.first_name} {createdContact.last_name}
+                    </h4>
+                    <p className="text-sm text-gray-600">{createdContact.role}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-700">{createdContact.current_company}</span>
+                  </div>
+                  
+                  {createdContact.location && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">📍 {createdContact.location}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {createdContact.bio_summary && (
+                  <div className="pt-2 border-t border-green-200">
+                    <p className="text-xs text-gray-600 font-medium mb-1">Bio Summary</p>
+                    <p className="text-sm text-gray-700 line-clamp-2">{createdContact.bio_summary}</p>
+                  </div>
+                )}
+                
+                {createdContact.how_i_can_help && (
+                  <div className="pt-2 border-t border-green-200">
+                    <p className="text-xs text-gray-600 font-medium mb-1">How I Can Help</p>
+                    <p className="text-sm text-gray-700 line-clamp-2">{createdContact.how_i_can_help}</p>
+                  </div>
+                )}
+              </div>
+            </AirtableCardContent>
+          </AirtableCard>
         </div>
       )}
 
