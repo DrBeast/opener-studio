@@ -301,41 +301,41 @@ const PipelineDashboard = () => {
 
   const handleBulkRemoveContacts = async (contactIds: string[]) => {
     if (!user) return;
-    
+
     try {
       // Delete associated interactions first
       const { error: interactionsError } = await supabase
-        .from('interactions')
+        .from("interactions")
         .delete()
-        .in('contact_id', contactIds);
+        .in("contact_id", contactIds);
 
       if (interactionsError) throw interactionsError;
 
       // Delete associated saved message versions
       const { error: messagesError } = await supabase
-        .from('saved_message_versions')
+        .from("saved_message_versions")
         .delete()
-        .in('contact_id', contactIds);
+        .in("contact_id", contactIds);
 
       if (messagesError) throw messagesError;
 
       // Delete the contacts
       const { error: contactsError } = await supabase
-        .from('contacts')
+        .from("contacts")
         .delete()
-        .in('contact_id', contactIds);
+        .in("contact_id", contactIds);
 
       if (contactsError) throw contactsError;
 
       // Refresh the data
       await fetchContacts();
-      
+
       toast({
         title: "Success",
         description: `Removed ${contactIds.length} contact(s) and their associated data`,
       });
     } catch (error: any) {
-      console.error('Error removing contacts:', error);
+      console.error("Error removing contacts:", error);
       toast({
         title: "Error",
         description: "Failed to remove selected contacts",
@@ -377,7 +377,7 @@ const PipelineDashboard = () => {
   // Handler to receive contact from workflow
   const handleContactCreated = (newContact: any) => {
     console.log("Parent received new contact:", newContact);
-    
+
     // Ensure the contact object has the correct structure for MessageGeneration
     const contactForGeneration = {
       contact_id: newContact.contact_id,
@@ -392,8 +392,11 @@ const PipelineDashboard = () => {
       how_i_can_help: newContact.how_i_can_help,
       recent_activity_summary: newContact.recent_activity_summary,
     };
-    
-    console.log("Contact prepared for message generation:", contactForGeneration);
+
+    console.log(
+      "Contact prepared for message generation:",
+      contactForGeneration
+    );
     setContactForMessage(contactForGeneration);
     fetchContacts();
   };
@@ -447,27 +450,39 @@ const PipelineDashboard = () => {
         <div className="mx-auto w-[95%] mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
             {/* Left Panel - Contact Creation */}
-            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-              !contactForMessage 
-                ? "border-primary/20 bg-primary/5" 
-                : "border-gray-200 bg-gray-50"
-            }`}>
+            <div
+              className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                !contactForMessage
+                  ? "border-primary/20 bg-primary/5"
+                  : "border-gray-200 bg-gray-50"
+              }`}
+            >
               <IntegratedContactWorkflow
                 companies={companies}
                 onContactCreated={handleContactCreated}
                 createdContact={contactForMessage}
               />
             </div>
-            
+
             {/* Right Panel - Message Generation */}
-            <div className={`space-y-4 p-4 rounded-lg border-2 transition-all relative ${
-              !contactForMessage 
-                ? "border-gray-200 bg-gray-50/50" 
-                : "border-primary/20 bg-primary/5"
-            }`}>
+            <div
+              className={`space-y-4 p-4 rounded-lg border-2 transition-all relative ${
+                !contactForMessage
+                  ? "border-gray-200 bg-gray-50/50"
+                  : "border-primary/20 bg-primary/5"
+              }`}
+            >
               <div className="flex items-center gap-2 mb-4">
-                <MessageCircle className={`h-5 w-5 ${!contactForMessage ? 'text-gray-400' : 'text-primary'}`} />
-                <h3 className={`font-medium ${!contactForMessage ? 'text-gray-500' : 'text-gray-900'}`}>
+                <MessageCircle
+                  className={`h-5 w-5 ${
+                    !contactForMessage ? "text-gray-400" : "text-primary"
+                  }`}
+                />
+                <h3
+                  className={`font-medium ${
+                    !contactForMessage ? "text-gray-500" : "text-gray-900"
+                  }`}
+                >
                   Draft a Message
                 </h3>
               </div>
@@ -479,13 +494,19 @@ const PipelineDashboard = () => {
                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MessageCircle className="h-6 w-6 text-gray-400" />
                     </div>
-                    <p className="text-gray-600 font-medium">First, process a contact's bio to activate</p>
+                    <p className="text-gray-600 font-medium">
+                      First, process a contact's bio to activate
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Preview of disabled message generation */}
-              <div className={`space-y-4 ${!contactForMessage ? 'opacity-30' : ''}`}>
+              <div
+                className={`space-y-4 ${
+                  !contactForMessage ? "opacity-30" : ""
+                }`}
+              >
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Communication Medium
@@ -493,7 +514,9 @@ const PipelineDashboard = () => {
                   <div className="flex items-center space-x-2 opacity-60">
                     <div className="w-4 h-4 rounded-full border-2 border-gray-400 bg-gray-400"></div>
                     <span className="text-sm">LinkedIn Connection Note</span>
-                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">300 chars</span>
+                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">
+                      300 chars
+                    </span>
                   </div>
                 </div>
 
@@ -511,8 +534,8 @@ const PipelineDashboard = () => {
                   </div>
                 </div>
 
-                <button 
-                  disabled 
+                <button
+                  disabled
                   className="w-full px-4 py-2 bg-gray-200 text-gray-500 rounded font-medium cursor-not-allowed"
                 >
                   Generate Messages
@@ -527,7 +550,8 @@ const PipelineDashboard = () => {
                       Ready to generate message for:
                     </p>
                     <p className="text-blue-700">
-                      {contactForMessage.first_name} {contactForMessage.last_name}
+                      {contactForMessage.first_name}{" "}
+                      {contactForMessage.last_name}
                     </p>
                   </div>
 
@@ -535,15 +559,17 @@ const PipelineDashboard = () => {
                     contact={contactForMessage}
                     companyName={
                       contactForMessage?.company_id
-                        ? companies.find(c => c.company_id === contactForMessage.company_id)?.name || ""
+                        ? companies.find(
+                            (c) => c.company_id === contactForMessage.company_id
+                          )?.name || ""
                         : contactForMessage?.current_company || ""
                     }
                     isOpen={true}
                     onClose={() => {}}
                     onMessageSaved={() => {
                       toast({
-                        title: "Success", 
-                        description: "Message saved and workflow completed!"
+                        title: "Success",
+                        description: "Message saved and workflow completed!",
                       });
                       setContactForMessage(null);
                     }}

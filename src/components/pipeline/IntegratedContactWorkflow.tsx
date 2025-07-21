@@ -23,7 +23,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { PrimaryAction } from "@/components/ui/design-system";
-import { AirtableCard, AirtableCardContent } from "@/components/ui/airtable-card";
+import {
+  AirtableCard,
+  AirtableCardContent,
+} from "@/components/ui/airtable-card";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 
@@ -404,7 +407,7 @@ export const IntegratedContactWorkflow = ({
             <UserPlus className="h-5 w-5 text-green-600" />
             <h3 className="font-medium text-green-800">Contact added</h3>
           </div>
-          
+
           <AirtableCard className="bg-green-50 border-green-200">
             <AirtableCardContent className="p-4">
               <div className="space-y-3">
@@ -413,34 +416,48 @@ export const IntegratedContactWorkflow = ({
                     <h4 className="font-medium text-gray-900">
                       {createdContact.first_name} {createdContact.last_name}
                     </h4>
-                    <p className="text-sm text-gray-600">{createdContact.role}</p>
+                    <p className="text-sm text-gray-600">
+                      {createdContact.role}
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-700">{createdContact.current_company}</span>
+                    <span className="text-gray-700">
+                      {createdContact.current_company}
+                    </span>
                   </div>
-                  
+
                   {createdContact.location && (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">📍 {createdContact.location}</span>
+                      <span className="text-gray-600">
+                        📍 {createdContact.location}
+                      </span>
                     </div>
                   )}
                 </div>
-                
+
                 {createdContact.bio_summary && (
                   <div className="pt-2 border-t border-green-200">
-                    <p className="text-xs text-gray-600 font-medium mb-1">Bio Summary</p>
-                    <p className="text-sm text-gray-700 line-clamp-2">{createdContact.bio_summary}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">
+                      Bio Summary
+                    </p>
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {createdContact.bio_summary}
+                    </p>
                   </div>
                 )}
-                
+
                 {createdContact.how_i_can_help && (
                   <div className="pt-2 border-t border-green-200">
-                    <p className="text-xs text-gray-600 font-medium mb-1">How I Can Help</p>
-                    <p className="text-sm text-gray-700 line-clamp-2">{createdContact.how_i_can_help}</p>
+                    <p className="text-xs text-gray-600 font-medium mb-1">
+                      How I Can Help
+                    </p>
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {createdContact.how_i_can_help}
+                    </p>
                   </div>
                 )}
               </div>
