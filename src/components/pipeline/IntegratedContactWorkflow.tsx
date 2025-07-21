@@ -225,6 +225,10 @@ export const IntegratedContactWorkflow = ({
     companyId: string | null
   ): Promise<CreatedContact | null> => {
     if (!user) return null;
+    
+    // Get company name for the contact object
+    const company = companies.find(c => c.company_id === companyId);
+    
     const { data, error } = await supabase
       .from("contacts")
       .insert({
@@ -246,11 +250,23 @@ export const IntegratedContactWorkflow = ({
       toast.error("Failed to save contact.");
       return null;
     }
-    return {
-      ...contactData,
+    
+    // Return complete contact object with company name
+    const completeContact: CreatedContact = {
       contact_id: data.contact_id,
       company_id: companyId,
+      first_name: contactData.first_name,
+      last_name: contactData.last_name,
+      role: contactData.role,
+      current_company: company?.name || contactData.current_company || 'Unknown Company',
+      location: contactData.location,
+      bio_summary: contactData.bio_summary,
+      how_i_can_help: contactData.how_i_can_help,
+      recent_activity_summary: contactData.recent_activity_summary,
     };
+
+    console.log('Created contact:', completeContact);
+    return completeContact;
   };
 
   // --- Handlers for Dialogs ---
@@ -441,21 +457,6 @@ export const IntegratedContactWorkflow = ({
                   </div>
                 )}
 
-                {createdContact.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">{createdContact.email}</span>
-                  </div>
-                )}
-
-                {createdContact.linkedin_url && (
-                  <div className="flex items-center gap-2">
-                    <Linkedin className="h-4 w-4 text-green-600" />
-                    <span className="text-sm truncate">
-                      {createdContact.linkedin_url}
-                    </span>
-                  </div>
-                )}
 
                 {createdContact.bio_summary && (
                   <div>
