@@ -10,11 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   Info,
   Loader2,
   User,
@@ -22,7 +17,6 @@ import {
   ArrowRight,
   MessageCircle,
   UserPlus,
-  ChevronUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,7 +91,6 @@ export const IntegratedContactWorkflow = ({
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // State for dialogs and pending data
   const [showCompanyDuplicateDialog, setShowCompanyDuplicateDialog] =
@@ -369,29 +362,18 @@ export const IntegratedContactWorkflow = ({
             <UserPlus className="h-5 w-5 text-primary" />
             <h3 className="font-medium">Add New Contact</h3>
           </div>
-          <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen}>
-            <CollapsibleTrigger className="w-full">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:bg-blue-100 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-800 text-left">
-                      <p className="font-medium">Who should I contact?</p>
-                    </div>
-                  </div>
-                  <ChevronUp className={`h-4 w-4 text-blue-600 transition-transform ${isInfoOpen ? 'rotate-180' : ''}`} />
-                </div>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="bg-blue-50 border-l border-r border-b border-blue-200 rounded-b-lg p-4 -mt-1">
-                <p className="text-sm text-blue-800">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Who should I contact?</p>
+                <p>
                   Start with people you already know. For new contacts, try
                   searching LinkedIn for "[company name] [function]".
                 </p>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </div>
           <div className="space-y-3">
             <Textarea
               value={linkedinBio}
