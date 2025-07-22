@@ -21,13 +21,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
-import { PrimaryAction } from "@/components/ui/design-system";
+import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
 import {
   AirtableCard,
   AirtableCardContent,
 } from "@/components/ui/airtable-card";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
+import { LucideTarget } from "lucide-react";
 
 // --- Interface Definitions ---
 // Represents the final, complete Contact object stored in your database
@@ -360,20 +361,9 @@ export const IntegratedContactWorkflow = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <UserPlus className="h-5 w-5 text-primary" />
-            <h3 className="font-medium">Add New Contact</h3>
+            <h3 className="font-medium">Add profile and create contact</h3>
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Who should I contact?</p>
-                <p>
-                  Start with people you already know. For new contacts, try
-                  searching LinkedIn for "[company name] [function]".
-                </p>
-              </div>
-            </div>
-          </div>
+
           <div className="space-y-3">
             <Textarea
               value={linkedinBio}
@@ -397,6 +387,18 @@ export const IntegratedContactWorkflow = ({
               )}
             </PrimaryAction>
           </div>
+
+          <InfoBox
+            title="Who should I contact?"
+            description={
+              <p>
+                Start with people you already know. For new contacts, try
+                searching LinkedIn for{" "}
+                <strong>[company name] [function]</strong>.
+              </p>
+            }
+            icon={<LucideTarget className="h-4 w-4 text-blue-600" />}
+          />
         </div>
       )}
 

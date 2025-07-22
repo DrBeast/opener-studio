@@ -432,22 +432,22 @@ const PipelineDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="mx-auto py-8 ">
+      <div className="mx-auto ">
         <ProfileBreadcrumbs />
 
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
-          <Collapsible 
-            open={isWorkflowExpanded} 
+          <Collapsible
+            open={isWorkflowExpanded}
             onOpenChange={setIsWorkflowExpanded}
             className="bg-white rounded-lg border border-gray-200"
           >
-            <CollapsibleTrigger className="w-full p-6 text-left">
+            <CollapsibleTrigger className="w-full p-6 text-center align-center">
               <CollapsibleWide expanded={isWorkflowExpanded}>
-                Add New Contact
+                Expand your network
               </CollapsibleWide>
             </CollapsibleTrigger>
-            
+
             <CollapsibleContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 pt-0">
                 {/* Left Panel - Contact Creation */}
@@ -465,58 +465,70 @@ const PipelineDashboard = () => {
                   />
                 </div>
 
-            {/* Right Panel - Message Generation */}
-            <div
-              className={`space-y-4 p-4 rounded-lg border-2 transition-all relative ${
-                !contactForMessage
-                  ? "border-gray-200 bg-gray-50/50"
-                  : "border-primary/20 bg-primary/5"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <MessageCircle
-                  className={`h-5 w-5 ${
-                    !contactForMessage ? "text-gray-400" : "text-primary"
-                  }`}
-                />
-                <h3
-                  className={`font-medium ${
-                    !contactForMessage ? "text-gray-500" : "text-gray-900"
+                {/* Right Panel - Message Generation */}
+                <div
+                  className={`p-4 rounded-lg border-2 transition-all relative ${
+                    !contactForMessage
+                      ? "border-gray-200 bg-gray-50/50" // Inactive styles
+                      : "border-primary/20 bg-primary/5" // Active styles
                   }`}
                 >
-                  {contactForMessage
-                    ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
-                    : "Create a Contact first"}
-                </h3>
-              </div>
+                  {/* Conditional overlay --- */}
+                  {!contactForMessage && (
+                    <div className="absolute inset-0 bg-gray-200/40 rounded-lg z-10"></div>
+                  )}
 
-              {/* Active Message Generation */}
-              {contactForMessage && (
-                <div className="mt-4">
-                  <MessageGeneration
-                    contact={contactForMessage}
-                    companyName={
-                      contactForMessage?.company_id
-                        ? companies.find(
-                            (c) => c.company_id === contactForMessage.company_id
-                          )?.name || ""
-                        : contactForMessage?.current_company || ""
-                    }
-                    isOpen={true}
-                    onClose={() => {}}
-                    onMessageSaved={() => {
-                      toast({
-                        title: "Success",
-                        description: "Message saved and workflow completed!",
-                      });
-                      setContactForMessage(null);
-                    }}
-                    embedded={true}
-                    disabled={false}
-                  />
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageCircle
+                      className={`h-5 w-5 ${
+                        !contactForMessage
+                          ? "text-foreground"
+                          : "text-foreground"
+                      }`}
+                    />
+                    <h3
+                      className={`font-medium ${
+                        !contactForMessage
+                          ? "text-foreground"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {contactForMessage
+                        ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
+                        : "Generate message: create contact first"}
+                    </h3>
+                  </div>
+
+                  {/* The MessageGeneration component is always rendered */}
+                  <div
+                    className={`mt-4 ${
+                      !contactForMessage ? "pointer-events-none" : ""
+                    }`}
+                  >
+                    <MessageGeneration
+                      contact={contactForMessage}
+                      companyName={
+                        contactForMessage?.company_id
+                          ? companies.find(
+                              (c) =>
+                                c.company_id === contactForMessage.company_id
+                            )?.name || ""
+                          : contactForMessage?.current_company || ""
+                      }
+                      isOpen={true}
+                      onClose={() => {}}
+                      onMessageSaved={() => {
+                        toast({
+                          title: "Success",
+                          description: "Message saved and workflow completed!",
+                        });
+                        setContactForMessage(null);
+                      }}
+                      embedded={true}
+                      disabled={!contactForMessage}
+                    />
+                  </div>
                 </div>
-              )}
-              </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
