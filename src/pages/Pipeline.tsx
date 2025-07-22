@@ -13,6 +13,12 @@ import {
   EyeOff,
   MessageCircle,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { CollapsibleWide } from "@/components/ui/design-system/buttons";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -102,6 +108,7 @@ const PipelineDashboard = () => {
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
   const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
   const [contactForMessage, setContactForMessage] = useState<any>(null);
+  const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(true);
 
   // Generate Contacts Modal state
   const [generateContactsModal, setGenerateContactsModal] = useState<{
@@ -430,21 +437,33 @@ const PipelineDashboard = () => {
 
         {/* Integrated Contact Creation and Message Generation */}
         <div className="mx-auto w-[95%] mb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white rounded-lg border border-gray-200 p-6">
-            {/* Left Panel - Contact Creation */}
-            <div
-              className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-                !contactForMessage
-                  ? "border-primary/20 bg-primary/5"
-                  : "border-gray-200 bg-gray-50"
-              }`}
-            >
-              <IntegratedContactWorkflow
-                companies={companies}
-                onContactCreated={handleContactCreated}
-                createdContact={contactForMessage}
-              />
-            </div>
+          <Collapsible 
+            open={isWorkflowExpanded} 
+            onOpenChange={setIsWorkflowExpanded}
+            className="bg-white rounded-lg border border-gray-200"
+          >
+            <CollapsibleTrigger className="w-full p-6 text-left">
+              <CollapsibleWide expanded={isWorkflowExpanded}>
+                Add New Contact
+              </CollapsibleWide>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 pt-0">
+                {/* Left Panel - Contact Creation */}
+                <div
+                  className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                    !contactForMessage
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-gray-200 bg-gray-50"
+                  }`}
+                >
+                  <IntegratedContactWorkflow
+                    companies={companies}
+                    onContactCreated={handleContactCreated}
+                    createdContact={contactForMessage}
+                  />
+                </div>
 
             {/* Right Panel - Message Generation */}
             <div
@@ -497,8 +516,10 @@ const PipelineDashboard = () => {
                   />
                 </div>
               )}
-            </div>
-          </div>
+              </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Full-Width Card with Table */}
