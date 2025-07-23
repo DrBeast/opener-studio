@@ -6,6 +6,7 @@ import {
   MessageCircle,
   ThumbsUp,
   ThumbsDown,
+  ChevronDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -21,6 +22,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Collapsible, 
+  CollapsibleContent, 
+  CollapsibleTrigger 
+} from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
@@ -102,6 +109,9 @@ export function MessageGeneration({
   const [showAIReasoning, setShowAIReasoning] = useState<{
     [key: string]: boolean;
   }>(() => getInitialState("showAIReasoning", {}));
+  const [isContextExpanded, setIsContextExpanded] = useState<boolean>(() =>
+    getInitialState("isContextExpanded", false)
+  );
 
   // Effect to save state to localStorage whenever it changes
   useEffect(() => {
@@ -172,6 +182,15 @@ export function MessageGeneration({
       );
     }
   }, [showAIReasoning, storageKey, contact?.contact_id]);
+
+  useEffect(() => {
+    if (contact?.contact_id) {
+      localStorage.setItem(
+        `${storageKey}_isContextExpanded`,
+        JSON.stringify(isContextExpanded)
+      );
+    }
+  }, [isContextExpanded, storageKey, contact?.contact_id]);
 
   console.log("Debug - MessageGeneration received contact:", contact);
 
@@ -393,28 +412,26 @@ export function MessageGeneration({
   // Memorize the MessageContent to prevent unnecessary re-renders
   const MessageContent = useMemo(
     () => (
-      <div className={`space-y-4 ${embedded ? "mt-0" : "mt-4"}`}>
+      <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
         {/* Message Configuration */}
-        <div className={`space-y-3 ${embedded ? "space-y-2" : "space-y-4"}`}>
-          {/* Message Objective */}
-          <div className="space-y-2">
-            <Label className={embedded ? "text-sm" : ""}>
+        <div className="space-y-4">
+          {/* Message Objective - Chip Style */}
+          <div className="space-y-3">
+            <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
               What are you trying to achieve with this message?
             </Label>
-            <div
-              className={`grid gap-2 ${
-                embedded ? "grid-cols-2" : "grid-cols-2"
-              }`}
-            >
+            <div className="flex flex-wrap gap-2">
               {objectiveOptions.map((option) => (
                 <Button
                   key={option}
                   type="button"
                   variant={objective === option ? "default" : "outline"}
-                  size={embedded ? "sm" : "sm"}
-                  className={`justify-start text-left h-auto ${
-                    embedded ? "py-1.5 px-2 text-xs" : "py-2 px-3"
-                  } border-purple-400`}
+                  size="sm"
+                  className={`h-8 px-3 rounded-full text-xs font-medium transition-all hover:scale-105 ${
+                    objective === option 
+                      ? "bg-primary text-primary-foreground shadow-md" 
+                      : "hover:border-primary/50"
+                  }`}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
@@ -427,67 +444,87 @@ export function MessageGeneration({
                 placeholder="Describe your custom objective..."
                 value={customObjective}
                 onChange={handleCustomObjectiveChange}
-                className="mt-2 bg-white"
+                className="mt-3 bg-white transition-all focus:ring-2 focus:ring-primary/20"
               />
             )}
           </div>
 
-          {/* Additional Context */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="additional-context"
-              className={embedded ? "text-sm" : ""}
-            >
-              Additional context (optional)
+          {/* Medium Selection - Card Style */}
+          <div className="space-y-3">
+            <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
+              Communication Medium
             </Label>
-            <Textarea
-              className={`bg-white ${embedded ? "text-sm" : ""}`}
-              id="additional-context"
-              placeholder={
-                "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, relevant projects, recent company news)"
-              }
-              value={additionalContext}
-              onChange={handleAdditionalContextChange}
-              rows={embedded ? 2 : 3}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {MEDIUM_OPTIONS.map((option) => (
+                <Card
+                  key={option.id}
+                  className={`p-3 cursor-pointer transition-all hover:shadow-md ${
+                    medium === option.id
+                      ? "ring-2 ring-primary bg-primary/5 border-primary"
+                      : "hover:border-primary/30"
+                  }`}
+                  onClick={() => handleMediumChange(option.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className={`h-3 w-3 rounded-full border-2 ${
+                          medium === option.id
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground"
+                        }`}
+                      />
+                      <Label
+                        className={`cursor-pointer font-medium ${
+                          embedded ? "text-xs" : "text-sm"
+                        }`}
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs font-medium"
+                    >
+                      {option.maxLength >= 1000
+                        ? `${option.maxLength / 1000}k`
+                        : option.maxLength}{" "}
+                      chars
+                    </Badge>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
 
-          {/* Medium Selection */}
-          <div className="space-y-2">
-            <RadioGroup
-              value={medium}
-              onValueChange={handleMediumChange}
-              className={`grid grid-cols-1 ${embedded ? "gap-1" : "gap-2"}`}
-            >
-              {MEDIUM_OPTIONS.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-2 ${
-                    embedded ? "py-1" : ""
+          {/* Additional Context - Collapsible */}
+          <Collapsible open={isContextExpanded} onOpenChange={setIsContextExpanded}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between p-0 h-auto hover:bg-transparent"
+              >
+                <Label className={`font-medium cursor-pointer ${embedded ? "text-sm" : ""}`}>
+                  Additional context (optional)
+                </Label>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    isContextExpanded ? "transform rotate-180" : ""
                   }`}
-                >
-                  <RadioGroupItem value={option.id} id={option.id} />
-                  <Label
-                    htmlFor={option.id}
-                    className={`${embedded ? "text-xs" : "text-sm"} flex-1`}
-                  >
-                    {option.label}
-                  </Label>
-                  <Badge
-                    variant="outline"
-                    className={`${
-                      embedded ? "text-xs px-1.5 py-0.5" : "text-xs"
-                    }`}
-                  >
-                    {option.maxLength >= 1000
-                      ? `${option.maxLength / 1000}k`
-                      : option.maxLength}{" "}
-                    chars
-                  </Badge>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <Textarea
+                className={`bg-white transition-all focus:ring-2 focus:ring-primary/20 ${embedded ? "text-sm" : ""}`}
+                id="additional-context"
+                placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, relevant projects, recent company news)"
+                value={additionalContext}
+                onChange={handleAdditionalContextChange}
+                rows={embedded ? 3 : 4}
+              />
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Generate Button */}
           <Button
@@ -495,7 +532,7 @@ export function MessageGeneration({
             disabled={
               isGenerating || !getEffectiveObjective() || !contact?.contact_id
             }
-            className="w-full"
+            className="w-full bg-primary hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
             size={embedded ? "sm" : "default"}
           >
             <MessageCircle className="mr-2 h-4 w-4" />
@@ -507,50 +544,64 @@ export function MessageGeneration({
           </Button>
         </div>
 
-        {/* Generated Messages */}
+        {/* Generated Messages - Tabbed Interface */}
         {Object.keys(generatedMessages).length > 0 && (
-          <div className="space-y-6">
-            {Object.entries(generatedMessages).map(([version, content]) => (
-              <Card key={version} className="p-4 relative">
-                <div className="flex justify-between mb-2 items-center">
-                  <h4 className="font-medium text-base">{version}</h4>
-                  <div className="space-x-1">
-                    <div className="text-xs text-muted-foreground text-right">
-                      {(editedMessages[version] || content.text).length}/
-                      {maxLength}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Editable Message Text */}
-                <div className="space-y-2">
-                  <Textarea
-                    value={editedMessages[version] || content.text}
-                    onChange={(e) => handleMessageEdit(version, e.target.value)}
-                    className="w-full resize-none"
-                    rows={6}
-                    maxLength={maxLength}
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-2 mt-3">
-                  <PrimaryAction
-                    size="sm"
-                    onClick={() => {
-                      copyMessage(editedMessages[version] || content.text);
-                      saveMessage(
-                        version,
-                        editedMessages[version] || content.text
-                      );
-                    }}
+          <div className="space-y-4">
+            <Tabs defaultValue="Version 1" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+                {Object.keys(generatedMessages).map((version) => (
+                  <TabsTrigger
+                    key={version}
+                    value={version}
+                    className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
                   >
-                    <Save className="mr-1 h-4 w-4" />
-                    Copy and Save to History
-                  </PrimaryAction>
-                </div>
-              </Card>
-            ))}
+                    {version}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {Object.entries(generatedMessages).map(([version, content]) => (
+                <TabsContent key={version} value={version} className="mt-4">
+                  <Card className="p-4 border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-semibold text-base text-foreground">{version}</h4>
+                      <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                        {(editedMessages[version] || content.text).length}/{maxLength}
+                      </div>
+                    </div>
+
+                    {/* Editable Message Text */}
+                    <div className="space-y-3">
+                      <Textarea
+                        value={editedMessages[version] || content.text}
+                        onChange={(e) => handleMessageEdit(version, e.target.value)}
+                        className="w-full resize-none bg-background border-muted-foreground/20 focus:border-primary transition-all"
+                        rows={6}
+                        maxLength={maxLength}
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-2 mt-4">
+                      <PrimaryAction
+                        size="sm"
+                        onClick={() => {
+                          copyMessage(editedMessages[version] || content.text);
+                          saveMessage(
+                            version,
+                            editedMessages[version] || content.text
+                          );
+                        }}
+                        className="shadow-md hover:shadow-lg transition-all"
+                      >
+                        <Save className="mr-1 h-4 w-4" />
+                        Copy and Save to History
+                      </PrimaryAction>
+                    </div>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
           </div>
         )}
       </div>
@@ -577,6 +628,8 @@ export function MessageGeneration({
       copyMessage,
       saveMessage,
       toggleAIReasoning,
+      isContextExpanded,
+      setIsContextExpanded,
     ]
   );
 

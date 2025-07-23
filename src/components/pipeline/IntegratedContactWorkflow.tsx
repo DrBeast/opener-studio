@@ -390,13 +390,7 @@ export const IntegratedContactWorkflow = ({
 
           <InfoBox
             title="Who should I contact?"
-            description={
-              <p>
-                Start with people you already know. For new contacts, try
-                searching LinkedIn for{" "}
-                <strong>[company name] [function]</strong>.
-              </p>
-            }
+            description="Start with people you already know. For new contacts, try searching LinkedIn for [company name] [function]."
             icon={<LucideTarget className="h-4 w-4 text-blue-600" />}
           />
         </div>
