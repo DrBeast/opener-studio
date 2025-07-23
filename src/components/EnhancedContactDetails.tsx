@@ -519,39 +519,6 @@ export function EnhancedContactDetails({
                       className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="email"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="linkedin_url"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      LinkedIn URL
-                    </Label>
-                    <Input
-                      id="linkedin_url"
-                      name="linkedin_url"
-                      value={formData.linkedin_url || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -564,7 +531,7 @@ export function EnhancedContactDetails({
                   <Textarea
                     id="user_notes"
                     name="user_notes"
-                    rows={4}
+                    rows={2}
                     value={formData.user_notes || ""}
                     onChange={handleChange}
                     placeholder="Add your personal notes about this contact..."
@@ -605,6 +572,7 @@ export function EnhancedContactDetails({
 
             {/* Enhanced Messages Tab */}
             <TabsContent value="messages" className="space-y-6 pt-6">
+              {/*
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   Generate Outreach Message
@@ -649,6 +617,7 @@ export function EnhancedContactDetails({
                   </div>
                 </div>
               </div>
+               */}
 
               <MessageGeneration
                 contact={contact}

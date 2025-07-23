@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
+import { PrimaryAction } from "@/components/ui/design-system/buttons";
 
 interface ContactData {
   contact_id: string;
@@ -175,10 +176,11 @@ export function MessageGeneration({
   console.log("Debug - MessageGeneration received contact:", contact);
 
   const objectiveOptions = [
-    "Get info interview",
-    "Ask for referral",
-    "Explore roles",
-    "Follow up on previous conversation",
+    "Explore roles, find hiring managers",
+    "Request a referral for a role you applied for",
+    "Get informational interview",
+    "Build relationship, open-ended",
+    "Follow up",
     "Custom objective",
   ];
 
@@ -394,50 +396,10 @@ export function MessageGeneration({
       <div className={`space-y-4 ${embedded ? "mt-0" : "mt-4"}`}>
         {/* Message Configuration */}
         <div className={`space-y-3 ${embedded ? "space-y-2" : "space-y-4"}`}>
-          {/* Medium Selection */}
-          <div className="space-y-2">
-            <Label className={embedded ? "text-sm" : ""}>
-              Communication Medium
-            </Label>
-            <RadioGroup
-              value={medium}
-              onValueChange={handleMediumChange}
-              className={`grid grid-cols-1 ${embedded ? "gap-1" : "gap-2"}`}
-            >
-              {MEDIUM_OPTIONS.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-2 ${
-                    embedded ? "py-1" : ""
-                  }`}
-                >
-                  <RadioGroupItem value={option.id} id={option.id} />
-                  <Label
-                    htmlFor={option.id}
-                    className={`${embedded ? "text-xs" : "text-sm"} flex-1`}
-                  >
-                    {option.label}
-                  </Label>
-                  <Badge
-                    variant="outline"
-                    className={`${
-                      embedded ? "text-xs px-1.5 py-0.5" : "text-xs"
-                    }`}
-                  >
-                    {option.maxLength >= 1000
-                      ? `${option.maxLength / 1000}k`
-                      : option.maxLength}{" "}
-                    chars
-                  </Badge>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-
           {/* Message Objective */}
           <div className="space-y-2">
             <Label className={embedded ? "text-sm" : ""}>
-              Message Objective <span className="text-red-500">*</span>
+              What are you trying to achieve with this message?
             </Label>
             <div
               className={`grid gap-2 ${
@@ -476,20 +438,55 @@ export function MessageGeneration({
               htmlFor="additional-context"
               className={embedded ? "text-sm" : ""}
             >
-              Additional Context (Optional)
+              Additional context (optional)
             </Label>
             <Textarea
               className={`bg-white ${embedded ? "text-sm" : ""}`}
               id="additional-context"
               placeholder={
-                embedded
-                  ? "Additional context for the message..."
-                  : "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, recent company news)..."
+                "Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, relevant projects, recent company news)"
               }
               value={additionalContext}
               onChange={handleAdditionalContextChange}
               rows={embedded ? 2 : 3}
             />
+          </div>
+
+          {/* Medium Selection */}
+          <div className="space-y-2">
+            <RadioGroup
+              value={medium}
+              onValueChange={handleMediumChange}
+              className={`grid grid-cols-1 ${embedded ? "gap-1" : "gap-2"}`}
+            >
+              {MEDIUM_OPTIONS.map((option) => (
+                <div
+                  key={option.id}
+                  className={`flex items-center space-x-2 ${
+                    embedded ? "py-1" : ""
+                  }`}
+                >
+                  <RadioGroupItem value={option.id} id={option.id} />
+                  <Label
+                    htmlFor={option.id}
+                    className={`${embedded ? "text-xs" : "text-sm"} flex-1`}
+                  >
+                    {option.label}
+                  </Label>
+                  <Badge
+                    variant="outline"
+                    className={`${
+                      embedded ? "text-xs px-1.5 py-0.5" : "text-xs"
+                    }`}
+                  >
+                    {option.maxLength >= 1000
+                      ? `${option.maxLength / 1000}k`
+                      : option.maxLength}{" "}
+                    chars
+                  </Badge>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
 
           {/* Generate Button */}
@@ -513,28 +510,15 @@ export function MessageGeneration({
         {/* Generated Messages */}
         {Object.keys(generatedMessages).length > 0 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-medium">Your Message Options</h3>
             {Object.entries(generatedMessages).map(([version, content]) => (
               <Card key={version} className="p-4 relative">
                 <div className="flex justify-between mb-2 items-center">
                   <h4 className="font-medium text-base">{version}</h4>
                   <div className="space-x-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleAIReasoning(version)}
-                    >
-                      {showAIReasoning[version] ? (
-                        <ThumbsDown className="h-4 w-4" />
-                      ) : (
-                        <ThumbsUp className="h-4 w-4" />
-                      )}
-                      <span className="ml-1 hidden sm:inline">
-                        {showAIReasoning[version]
-                          ? "Hide Insights"
-                          : "Show AI Insights"}
-                      </span>
-                    </Button>
+                    <div className="text-xs text-muted-foreground text-right">
+                      {(editedMessages[version] || content.text).length}/
+                      {maxLength}
+                    </div>
                   </div>
                 </div>
 
@@ -547,45 +531,23 @@ export function MessageGeneration({
                     rows={6}
                     maxLength={maxLength}
                   />
-                  <div className="text-xs text-muted-foreground text-right">
-                    {(editedMessages[version] || content.text).length}/
-                    {maxLength} characters
-                  </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 mt-3">
-                  <Button
+                  <PrimaryAction
                     size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      copyMessage(editedMessages[version] || content.text)
-                    }
-                  >
-                    <Copy className="mr-1 h-4 w-4" />
-                    Copy
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
+                    onClick={() => {
+                      copyMessage(editedMessages[version] || content.text);
                       saveMessage(
                         version,
                         editedMessages[version] || content.text
-                      )
-                    }
+                      );
+                    }}
                   >
                     <Save className="mr-1 h-4 w-4" />
-                    Save to History
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleMessageEdit(version, content.text)}
-                  >
-                    <RotateCcw className="mr-1 h-4 w-4" />
-                    Reset
-                  </Button>
+                    Copy and Save to History
+                  </PrimaryAction>
                 </div>
               </Card>
             ))}

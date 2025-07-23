@@ -1,20 +1,17 @@
 export const MEDIUM_OPTIONS = [
   {
       id: "LinkedIn connection note",
-      label: "LinkedIn Connection Note",
+      label: "LinkedIn connection note",
       maxLength: 200,
     },
     {
       id: "LinkedIn connection note / Premium",
-      label: "LinkedIn Connection Note / Premium",
+      label: "LinkedIn connection note / Premium",
       maxLength: 300,
     },
-    {
-      id: "LinkedIn message to 1st connection",
-      label: "LinkedIn Message to 1st Connection",
-      maxLength: 8000,
-    },
-    { id: "Email or InMail", 
-      label: "Email or InMail", 
-      maxLength: 2000 },
+  {
+    id: "LinkedIn message, email, InMail",
+    label: "LinkedIn message, email, InMail",
+    maxLength: 2000
+  }
   ];

@@ -12,14 +12,10 @@ const MEDIUM_OPTIONS = [
     label: "LinkedIn Connection Note / Premium",
     maxLength: 300
   },
+
   {
-    id: "LinkedIn message to 1st connection",
-    label: "LinkedIn Message to 1st Connection",
-    maxLength: 8000
-  },
-  {
-    id: "Email or InMail",
-    label: "Email or InMail",
+    id: "LinkedIn message, email, InMail",
+    label: "LinkedIn message, email, InMail",
     maxLength: 2000
   }
 ];
@@ -115,20 +111,21 @@ serve(async (req)=>{
   You are an AI assistant helping a professional craft authentic, specific outreach messages for job search networking. Your role is to help them write a message to a selected contact that effectively achieves the stated objecive taking into account the user's professional background and the contact's details. 
   
   SPECIFIC INSTRUCTIONS FOR MESSAGE CREATION:
-  1. ALWAYS include a clear, specific ask based on the objective - never leave it vague
-    - For "get to know and build relationship": "I'd be happy to connect as I'm [specific reason]"
-     - For "get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
-     - For "ask for referral": "Could you point me to the right people at [Company] to explore opportunities?"
-     - For "explore roles": "I'd like to connect to discover [specific type] roles at [Company]"
-     - For "follow up": Reference the previous interaction and include a specific next step
-  2. AVOID generic praise like "I'm impressed with your work" unless you have very specific examples
+  1. ALWAYS include a clear, specific ask based on the objective - never leave it vague. For example:
+    - For "Explore roles, find hiring managers": "I'd like to connect to discover [specific type] roles at [Company] and connect with hiring managers"
+    - For "Request a referral for a role you applied for": "Could you point me to the right people at [Company] to explore opportunities?"
+    - For "Get informational interview": "Please let me know if we can have an intro chat" or "Could we schedule a brief call"
+    - For "Build relationship, open-ended": "I'd be happy to connect as I can help with [specific example of how I can help or what I can learn from you]"
+    - For "Follow up": Reference the previous interactions and include a specific next step based on the previous messages and the additional context, if provided.
+    - For "Custom objective": Do your best to follow the specific ask provided by the user.
+  2. AVOID generic praise like "I'm impressed with your work".
   3. Focus on user's specific highlights, such as industry challenges solved, technologies they worked with, or domain expertise rather than generic statements. Use concrete examples from the user's background that relate to the specific needs of the contact and their current company / role
   5. The message should feel authentic and professional, not sales-y, and adjusted for the medium. Lead with Hi <firstname>. For LinkedIn connection notes, be brief, but not too casual. For emails and InMails, use a more formal tone and formatting by default (unless instructed differently by the user in Additional Context), eg "Hi <first name>, <empty line>, <message body>, <empty line>, Best regards, <user's name>". 
   6. Try to articulate the users unique value proposition: how they can be useful to the contact's company in their target role.
   7. Follow additional user guidance provided in Additional Context, if not null.
   8. Leverage what you know about the user's relationship with the contact, if available: worked at the same company, went to the same school, come from the same industry ,share a niche hobby. Look into their past interactions if available. Look into Additional Context: the user might provide information on their relationship with the contact.
   9. Based on the language in contact's LinikedIn profile, try to match the tone and style of the message to the contact's communication style. Try to use any specific terms or phrases they use in their profile. 
-  10. Consider MAX_MESSAGE_LENGTH as a hard limit for the message length. If the message exceeds this length, truncate it to fit within the limit. For emails, InMails, and messages to 1st connections, aim for around 1,000 chars or less, to ensure the message is concise and to the point, while still hitting on the most relevant points. 
+  10. Consider MAX_MESSAGE_LENGTH as a hard limit for the message length. If the message exceeds this length, redraft it to fit within the limit. For emails, InMails, and messages to 1st connections, aim for around 1,000 chars or less, to ensure the message is concise and to the point, while still hitting on the most relevant points. 
 
   User Background Summary:
   Overall Professional Summary: ${userSummary.overall_blurb ?? 'N/A'}
