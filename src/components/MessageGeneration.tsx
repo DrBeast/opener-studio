@@ -454,18 +454,18 @@ export function MessageGeneration({
             <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
               Communication Medium
             </Label>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2">
               {MEDIUM_OPTIONS.map((option) => (
                 <Card
                   key={option.id}
-                  className={`p-2 cursor-pointer transition-all hover:shadow-md flex-shrink-0 min-w-fit ${
+                  className={`p-2 cursor-pointer transition-all hover:shadow-md flex-1 ${
                     medium === option.id
                       ? "ring-2 ring-primary bg-primary/5 border-primary"
                       : "hover:border-primary/30"
                   }`}
                   onClick={() => handleMediumChange(option.id)}
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 justify-center">
                     <div
                       className={`h-2.5 w-2.5 rounded-full border-2 flex-shrink-0 ${
                         medium === option.id
@@ -473,7 +473,7 @@ export function MessageGeneration({
                           : "border-muted-foreground"
                       }`}
                     />
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 text-center">
                       <Label
                         className={`cursor-pointer font-medium leading-tight ${
                           embedded ? "text-xs" : "text-sm"
