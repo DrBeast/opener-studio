@@ -449,48 +449,48 @@ export function MessageGeneration({
             )}
           </div>
 
-          {/* Medium Selection - Card Style */}
+          {/* Medium Selection - Compact Single Line */}
           <div className="space-y-3">
             <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
               Communication Medium
             </Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               {MEDIUM_OPTIONS.map((option) => (
                 <Card
                   key={option.id}
-                  className={`p-3 cursor-pointer transition-all hover:shadow-md ${
+                  className={`p-2 cursor-pointer transition-all hover:shadow-md flex-shrink-0 min-w-fit ${
                     medium === option.id
                       ? "ring-2 ring-primary bg-primary/5 border-primary"
                       : "hover:border-primary/30"
                   }`}
                   onClick={() => handleMediumChange(option.id)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className={`h-3 w-3 rounded-full border-2 ${
-                          medium === option.id
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground"
-                        }`}
-                      />
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`h-2.5 w-2.5 rounded-full border-2 flex-shrink-0 ${
+                        medium === option.id
+                          ? "border-primary bg-primary"
+                          : "border-muted-foreground"
+                      }`}
+                    />
+                    <div className="flex flex-col gap-0.5">
                       <Label
-                        className={`cursor-pointer font-medium ${
+                        className={`cursor-pointer font-medium leading-tight ${
                           embedded ? "text-xs" : "text-sm"
                         }`}
                       >
                         {option.label}
                       </Label>
+                      <Badge
+                        variant="secondary"
+                        className="text-xs font-medium w-fit"
+                      >
+                        {option.maxLength >= 1000
+                          ? `${option.maxLength / 1000}k`
+                          : option.maxLength}{" "}
+                        chars
+                      </Badge>
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs font-medium"
-                    >
-                      {option.maxLength >= 1000
-                        ? `${option.maxLength / 1000}k`
-                        : option.maxLength}{" "}
-                      chars
-                    </Badge>
                   </div>
                 </Card>
               ))}
