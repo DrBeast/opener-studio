@@ -413,23 +413,23 @@ export function MessageGeneration({
   const MessageContent = useMemo(
     () => (
       <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
-        <div className="space-y-4">
-          {/* Message Objective - Chip Style */}
-          <div className="space-y-3">
-            <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
-              What are you trying to achieve with this message?
+        <div className="space-y-8">
+          {/* Message Objective - Flat Buttons */}
+          <div className="space-y-4">
+            <Label className="text-lg font-semibold text-foreground">
+              What are you trying to achieve?
             </Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {objectiveOptions.map((option) => (
                 <Button
                   key={option}
                   type="button"
-                  variant={objective === option ? "default" : "outline"}
+                  variant="ghost"
                   size="sm"
-                  className={`h-8 px-3 rounded-full text-xs font-medium transition-all hover:scale-105 ${
+                  className={`h-10 px-4 text-sm font-medium border-2 transition-colors ${
                     objective === option
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "hover:border-primary/50"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:bg-primary-muted hover:border-primary"
                   }`}
                   onClick={() => handleObjectiveChange(option)}
                 >
@@ -443,97 +443,77 @@ export function MessageGeneration({
                 placeholder="Describe your custom objective..."
                 value={customObjective}
                 onChange={handleCustomObjectiveChange}
-                className="mt-3 bg-white transition-all focus:ring-2 focus:ring-primary/20"
+                className="mt-4 border-2 border-input-border focus:border-primary"
               />
             )}
           </div>
 
-          {/* Medium Selection - Compact Single Line */}
-          <div className="space-y-3">
-            <div className="flex gap-2">
+          {/* Medium Selection - Flat Cards */}
+          <div className="space-y-4">
+            <div className="flex gap-3">
               {MEDIUM_OPTIONS.map((option) => (
-                <Card
+                <button
                   key={option.id}
-                  className={`p-2 cursor-pointer transition-all hover:shadow-md flex-1 ${
+                  className={`flex-1 p-4 border-2 transition-colors cursor-pointer ${
                     medium === option.id
-                      ? "bg-primary/5 border-primary"
-                      : "hover:border-primary/30"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:bg-primary-muted hover:border-primary"
                   }`}
                   onClick={() => handleMediumChange(option.id)}
                 >
-                  <div className="flex items-center space-x-2 justify-center">
-                    <div className="flex flex-col gap-0.5 text-center">
-                      <Label
-                        className={`cursor-pointer font-medium leading-tight ${
-                          embedded ? "text-xs" : "text-sm"
-                        }`}
-                      >
-                        {option.label}
-                      </Label>
-                      <Badge
-                        variant="secondary"
-                        className="text-xs font-medium w-fit"
-                      >
-                        {option.maxLength >= 1000
-                          ? `${option.maxLength / 1000}k`
-                          : option.maxLength}{" "}
-                        chars
-                      </Badge>
+                  <div className="text-center space-y-1">
+                    <div className="font-semibold text-sm">{option.label}</div>
+                    <div className="text-xs opacity-80">
+                      {option.maxLength >= 1000
+                        ? `${option.maxLength / 1000}k`
+                        : option.maxLength}{" "}
+                      chars
                     </div>
                   </div>
-                </Card>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Additional Context - Collapsible */}
+          {/* Additional Context - Flat Collapsible */}
           <Collapsible
             open={isContextExpanded}
             onOpenChange={setIsContextExpanded}
           >
             <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between p-0 h-auto hover:bg-transparent"
-              >
-                <Label
-                  className={`font-medium cursor-pointer ${
-                    embedded ? "text-sm" : ""
-                  }`}
-                >
+              <button className="w-full flex justify-between items-center p-4 border-2 border-border bg-card text-foreground hover:bg-primary-muted hover:border-primary transition-colors">
+                <Label className="text-lg font-semibold cursor-pointer">
                   Additional context (optional)
                 </Label>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
+                  className={`h-5 w-5 transition-transform duration-200 ${
                     isContextExpanded ? "transform rotate-180" : ""
                   }`}
                 />
-              </Button>
+              </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2">
+            <CollapsibleContent className="mt-4">
               <Textarea
-                className={`bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
-                  embedded ? "text-sm" : ""
-                }`}
+                className="bg-card border-2 border-input-border focus:border-primary"
                 id="additional-context"
-                placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, relevant projects, recent company news)"
+                placeholder="Any specific details you'd like the AI to consider when crafting your message..."
                 value={additionalContext}
                 onChange={handleAdditionalContextChange}
-                rows={embedded ? 3 : 4}
+                rows={4}
               />
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Generate Button */}
+          {/* Generate Button - Flat */}
           <Button
             onClick={generateMessages}
             disabled={
               isGenerating || !getEffectiveObjective() || !contact?.contact_id
             }
-            className="w-full bg-primary hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
-            size={embedded ? "sm" : "default"}
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold border-0 transition-colors"
+            size="lg"
           >
-            <MessageCircle className="mr-2 h-4 w-4" />
+            <MessageCircle className="mr-2 h-5 w-5" />
             {isGenerating
               ? "Generating..."
               : !contact?.contact_id
