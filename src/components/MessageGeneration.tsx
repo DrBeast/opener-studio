@@ -22,10 +22,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Collapsible, 
-  CollapsibleContent, 
-  CollapsibleTrigger 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -413,7 +413,6 @@ export function MessageGeneration({
   const MessageContent = useMemo(
     () => (
       <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
-        {/* Message Configuration */}
         <div className="space-y-4">
           {/* Message Objective - Chip Style */}
           <div className="space-y-3">
@@ -428,8 +427,8 @@ export function MessageGeneration({
                   variant={objective === option ? "default" : "outline"}
                   size="sm"
                   className={`h-8 px-3 rounded-full text-xs font-medium transition-all hover:scale-105 ${
-                    objective === option 
-                      ? "bg-primary text-primary-foreground shadow-md" 
+                    objective === option
+                      ? "bg-primary text-primary-foreground shadow-md"
                       : "hover:border-primary/50"
                   }`}
                   onClick={() => handleObjectiveChange(option)}
@@ -451,28 +450,18 @@ export function MessageGeneration({
 
           {/* Medium Selection - Compact Single Line */}
           <div className="space-y-3">
-            <Label className={`font-medium ${embedded ? "text-sm" : ""}`}>
-              Communication Medium
-            </Label>
             <div className="flex gap-2">
               {MEDIUM_OPTIONS.map((option) => (
                 <Card
                   key={option.id}
                   className={`p-2 cursor-pointer transition-all hover:shadow-md flex-1 ${
                     medium === option.id
-                      ? "ring-2 ring-primary bg-primary/5 border-primary"
+                      ? "bg-primary/5 border-primary"
                       : "hover:border-primary/30"
                   }`}
                   onClick={() => handleMediumChange(option.id)}
                 >
                   <div className="flex items-center space-x-2 justify-center">
-                    <div
-                      className={`h-2.5 w-2.5 rounded-full border-2 flex-shrink-0 ${
-                        medium === option.id
-                          ? "border-primary bg-primary"
-                          : "border-muted-foreground"
-                      }`}
-                    />
                     <div className="flex flex-col gap-0.5 text-center">
                       <Label
                         className={`cursor-pointer font-medium leading-tight ${
@@ -498,13 +487,20 @@ export function MessageGeneration({
           </div>
 
           {/* Additional Context - Collapsible */}
-          <Collapsible open={isContextExpanded} onOpenChange={setIsContextExpanded}>
+          <Collapsible
+            open={isContextExpanded}
+            onOpenChange={setIsContextExpanded}
+          >
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 className="w-full justify-between p-0 h-auto hover:bg-transparent"
               >
-                <Label className={`font-medium cursor-pointer ${embedded ? "text-sm" : ""}`}>
+                <Label
+                  className={`font-medium cursor-pointer ${
+                    embedded ? "text-sm" : ""
+                  }`}
+                >
                   Additional context (optional)
                 </Label>
                 <ChevronDown
@@ -516,7 +512,9 @@ export function MessageGeneration({
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2">
               <Textarea
-                className={`bg-white transition-all focus:ring-2 focus:ring-primary/20 ${embedded ? "text-sm" : ""}`}
+                className={`bg-white transition-all focus:ring-2 focus:ring-primary/20 ${
+                  embedded ? "text-sm" : ""
+                }`}
                 id="additional-context"
                 placeholder="Any specific details you'd like the AI to consider when crafting your message (e.g., previous interactions, specific interests, relevant projects, recent company news)"
                 value={additionalContext}
@@ -559,14 +557,17 @@ export function MessageGeneration({
                   </TabsTrigger>
                 ))}
               </TabsList>
-              
+
               {Object.entries(generatedMessages).map(([version, content]) => (
                 <TabsContent key={version} value={version} className="mt-4">
                   <Card className="p-4 border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-semibold text-base text-foreground">{version}</h4>
+                      <h4 className="font-semibold text-base text-foreground">
+                        {version}
+                      </h4>
                       <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {(editedMessages[version] || content.text).length}/{maxLength}
+                        {(editedMessages[version] || content.text).length}/
+                        {maxLength}
                       </div>
                     </div>
 
@@ -574,7 +575,9 @@ export function MessageGeneration({
                     <div className="space-y-3">
                       <Textarea
                         value={editedMessages[version] || content.text}
-                        onChange={(e) => handleMessageEdit(version, e.target.value)}
+                        onChange={(e) =>
+                          handleMessageEdit(version, e.target.value)
+                        }
                         className="w-full resize-none bg-background border-muted-foreground/20 focus:border-primary transition-all"
                         rows={6}
                         maxLength={maxLength}
