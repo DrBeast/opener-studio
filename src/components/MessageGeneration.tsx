@@ -19,9 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -31,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
+import { PrimaryAction, Chip } from "@/components/ui/design-system/buttons";
 
 interface ContactData {
   contact_id: string;
@@ -414,27 +412,19 @@ export function MessageGeneration({
     () => (
       <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
         <div className="space-y-8">
-          {/* Message Objective - Flat Buttons */}
           <div className="space-y-4">
             <Label className="text-lg font-semibold text-foreground">
               What are you trying to achieve?
             </Label>
             <div className="flex flex-wrap gap-3">
               {objectiveOptions.map((option) => (
-                <Button
+                <Chip
                   key={option}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className={`h-10 px-4 text-sm font-medium border-2 transition-colors ${
-                    objective === option
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-primary-muted hover:border-primary"
-                  }`}
+                  isSelected={objective === option}
                   onClick={() => handleObjectiveChange(option)}
                 >
                   {option}
-                </Button>
+                </Chip>
               ))}
             </div>
 
@@ -621,29 +611,19 @@ export function MessageGeneration({
   }
 
   return (
+    // It is possible that this part is never used, as it is always embedded
+    // But keeping it for consistency with the original code structure
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             Generate Message for {contact?.first_name || ""}{" "}
             {contact?.last_name || ""}
-            {contact?.role && ` (${contact.role})`} at {companyName}
           </DialogTitle>
-          <DialogDescription className="space-y-2">
-            <p>
-              You are creating a personalized outreach message that highlights
-              your value proposition and builds authentic connections.
-            </p>
-            <p className="text-sm text-primary">
-              <strong>Your approach:</strong> You are framing this outreach
-              around genuine interest and mutual value, focusing on how your
-              experience can contribute rather than what you need. This
-              authentic approach helps avoid the "sales-y" feeling and creates
-              meaningful professional connections.
-            </p>
+          <DialogDescription>
+            Select your medium and objective to craft a personalized message.
           </DialogDescription>
         </DialogHeader>
-
         {MessageContent}
       </DialogContent>
     </Dialog>

@@ -150,3 +150,33 @@ export const CollapsibleWide = React.forwardRef<
   )
 );
 CollapsibleWide.displayName = "CollapsibleWide";
+
+// Chip Component for selectable options, inspired by Airtable
+interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isSelected: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
+  ({ isSelected, children, className, ...props }, ref) => {
+    return (
+      <Button
+        ref={ref}
+        variant="outline"
+        size="sm"
+        className={cn(
+          "h-auto px-3 py-1.5 text-sm font-normal rounded-full border-border transition-colors shadow-none hover:shadow-none", // Base styles for the chip
+          isSelected
+            ? "bg-primary text-primary-foreground border-primary hover:bg-primary/80" // Selected state styles
+            : "bg-background text-foreground hover:bg-primary-muted hover:border-border", // Unselected state styles
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </Button>
+    );
+  }
+);
+Chip.displayName = "Chip";

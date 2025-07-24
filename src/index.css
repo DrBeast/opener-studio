@@ -5,7 +5,7 @@
 @layer base {
   :root {
     /* Flat Design Color System */
-    --background: 0 0% 98%; /* Clean white background */
+    --background: 0 0% 100%; /* Clean white background */
     --foreground: 0 0% 20%; /* High contrast dark text */
     --secondary-foreground: 0 0% 45%; /* Medium gray for secondary text */
 
@@ -22,15 +22,15 @@
     --primary-muted: 279 68.2% 89.6%; /* Very light purple */
 
     /* Secondary - light neutral */
-    --secondary: 0 0% 98%; /* Light gray background */
+    --secondary: 0 0% 98%; /* Almost-white gray background */
     --secondary-foreground: 0 0% 20%; /* Dark text */
 
     /* Muted - minimal grays */
-    --muted: 0 0% 96%; /* Light gray */
+    --muted: 0 0% 90%; /* Light gray */
     --muted-foreground: 0 0% 45%; /* Medium gray */
 
     /* Accent - subtle highlight */
-    --accent: 0 0% 96%; /* Light gray accent */
+    --accent: 279 68.2% 89.6%; /* Very light purple, same as --primary-muted */
     --accent-foreground: 0 0% 20%; /* Dark text */
 
     /* Status colors - bright and clear */
