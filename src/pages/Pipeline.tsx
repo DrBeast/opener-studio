@@ -13,12 +13,22 @@ import {
   EyeOff,
   MessageCircle,
 } from "lucide-react";
+
+// Design System Imports
+import {
+  Card,
+  CardContent,
+  PrimaryAction,
+  OutlineAction,
+  CollapsibleWide,
+  Modal,
+} from "@/components/ui/design-system";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CollapsibleWide } from "@/components/ui/design-system/buttons";
+
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
@@ -35,16 +45,6 @@ import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 import { IntegratedContactWorkflow } from "@/components/pipeline/IntegratedContactWorkflow";
 import { MessageGeneration } from "@/components/MessageGeneration";
 
-// Design System Imports
-import {
-  Card,
-  CardContent,
-  PrimaryAction,
-  OutlineAction,
-  PageTitle,
-  PageDescription,
-  InfoBox,
-} from "@/components/ui/design-system";
 import { Button } from "@/components/ui/button";
 
 const PipelineDashboard = () => {

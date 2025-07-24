@@ -9,18 +9,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import {
   Save,
   MessageCircle,
   Calendar,
-  Plus,
+  UserPlus,
   Pencil,
   Trash,
   Check,
   RefreshCw,
   Building,
+  User,
 } from "lucide-react";
+
+import {
+  PrimaryAction,
+  OutlineAction,
+  Modal,
+} from "@/components/ui/design-system";
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -30,7 +37,6 @@ import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 import { format } from "date-fns";
-import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface ContactData {
@@ -93,6 +99,7 @@ export function EnhancedContactDetails({
   const [isLogInteractionOpen, setIsLogInteractionOpen] = useState(false);
   const [isPlanInteractionOpen, setIsPlanInteractionOpen] = useState(false);
   const [companyContacts, setCompanyContacts] = useState<ContactData[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     overview,
@@ -373,278 +380,351 @@ export function EnhancedContactDetails({
         </div>
       );
     }
-
-    return (
-      <div className="flex flex-col">
-        <div className="flex items-start justify-between">
-          <div>
-            {overview?.overview ? (
-              <p className="text-sm text-foreground">{overview.overview}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No interaction summary available
-              </p>
-            )}
-
-            {overview?.interactionCount !== undefined && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {overview.interactionCount} total
-                {overview.pastCount !== undefined &&
-                  overview.plannedCount !== undefined &&
-                  ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
-              </p>
-            )}
-          </div>
-
-          <OutlineAction
-            size="sm"
-            onClick={regenerateOverview}
-            className="ml-2 h-8 w-8 p-0"
-            title="Regenerate summary"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </OutlineAction>
-        </div>
-      </div>
-    );
   };
 
   if (!contact || !formData) {
     return null;
   }
 
+  const contactName = `${contact?.first_name || ""} ${
+    contact?.last_name || ""
+  }`;
+  const companyName = contact?.companies?.name || "No Company";
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto fixed top-[8vh] left-1/2 transform -translate-x-1/2 translate-y-0">
-          <DialogHeader className="border-b border-gray-300 pb-4">
-            <DialogTitle className="flex items-center text-xl font-semibold text-foreground">
-              {formData.first_name || ""} {formData.last_name || ""}
-            </DialogTitle>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={contactName}
+        icon={<User />}
+        description={`${contact?.role || "Contact"} at ${companyName}`}
+        className="sm:max-w-4xl"
+      >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
+          <TabsList className="grid w-full grid-cols-3 bg-gray-0 p-1 rounded-lg gap-2">
+            <TabsTrigger
+              value="details"
+              className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+            >
+              Contact Details
+            </TabsTrigger>
+            <TabsTrigger
+              value="messages"
+              className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+            >
+              Messages
+            </TabsTrigger>
+            <TabsTrigger
+              value="interactions"
+              className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
+            >
+              Interactions
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="flex items-center">
-              <DialogDescription className="flex items-center">
-                <Building className="h-4 w-4 text-foreground mr-2" />
-                {contact.companies?.name}
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-0">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-0 p-1 rounded-lg gap-2">
-              <TabsTrigger
-                value="details"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
-              >
-                Contact Details
-              </TabsTrigger>
-              <TabsTrigger
-                value="messages"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
-              >
-                Messages
-              </TabsTrigger>
-              <TabsTrigger
-                value="interactions"
-                className="data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-600 font-medium data-[state=inactive]:bg-gray-300 data-[state=inactive]:text-gray-600"
-              >
-                Interactions
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Contact Details Tab */}
-            <TabsContent value="details" className="space-y-6 pt-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="first_name"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      First Name
-                    </Label>
-                    <Input
-                      id="first_name"
-                      name="first_name"
-                      value={formData.first_name || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="last_name"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Last Name
-                    </Label>
-                    <Input
-                      id="last_name"
-                      name="last_name"
-                      value={formData.last_name || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="role"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Role
-                    </Label>
-                    <Input
-                      id="role"
-                      name="role"
-                      value={formData.role || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="location"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Location
-                    </Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      value={formData.location || ""}
-                      onChange={handleChange}
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                    />
-                  </div>
-                </div>
-
+          {/* Contact Details Tab */}
+          <TabsContent value="details" className="space-y-6 pt-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label
-                    htmlFor="user_notes"
-                    className="text-sm font-medium text-gray-700"
+                    htmlFor="first_name"
+                    className="text-sm font-medium text-foreground"
                   >
-                    Your Notes
+                    First Name
                   </Label>
-                  <Textarea
-                    id="user_notes"
-                    name="user_notes"
-                    rows={2}
-                    value={formData.user_notes || ""}
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    value={formData.first_name || ""}
                     onChange={handleChange}
-                    placeholder="Add your personal notes about this contact..."
                     className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                   />
                 </div>
 
-                {formData.bio_summary && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">
-                      Background Summary
-                    </Label>
-                    <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 text-sm text-gray-900">
-                      {formData.bio_summary}
-                    </div>
-                  </div>
-                )}
-
-                {formData.how_i_can_help && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">
-                      How I Can Help
-                    </Label>
-                    <div className="rounded-lg border border-gray-200 p-4 bg-blue-50 text-sm text-gray-900">
-                      {formData.how_i_can_help}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-6 border-t border-gray-200">
-                  <PrimaryAction type="submit" disabled={isLoading}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {isLoading ? "Saving..." : "Save Changes"}
-                  </PrimaryAction>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="last_name"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Last Name
+                  </Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    value={formData.last_name || ""}
+                    onChange={handleChange}
+                    className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  />
                 </div>
-              </form>
-            </TabsContent>
 
-            {/* Enhanced Messages Tab */}
-            <TabsContent value="messages" className="space-y-6 pt-6">
-              {/*
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Generate Outreach Message
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  You are crafting a personalized message to build genuine
-                  connections and articulate your value proposition
-                  authentically, focusing on mutual learning rather than just
-                  asking for opportunities.
-                </p>
-              </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="role"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Role
+                  </Label>
+                  <Input
+                    id="role"
+                    name="role"
+                    value={formData.role || ""}
+                    onChange={handleChange}
+                    className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  />
+                </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <MessageCircle className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <strong className="text-blue-900">
-                        How AI helps you succeed:
-                      </strong>
-                      <p className="text-blue-800 mt-1">
-                        Your experience and skills are analyzed in relation to
-                        this contact's role and company needs. The AI helps you
-                        frame your outreach around genuine interest and mutual
-                        value, avoiding the "sales-y" feeling by focusing on how
-                        you can contribute rather than what you need.
-                      </p>
-                    </div>
-
-                    <div>
-                      <strong className="text-blue-900">
-                        Your value proposition approach:
-                      </strong>
-                      <p className="text-blue-800 mt-1">
-                        You are positioning yourself as someone who can bring
-                        value to their work and company goals. Your professional
-                        background is leveraged to demonstrate authentic
-                        interest in their industry and challenges, making the
-                        connection feel natural and mutually beneficial.
-                      </p>
-                    </div>
-                  </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="location"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Location
+                  </Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    value={formData.location || ""}
+                    onChange={handleChange}
+                    className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  />
                 </div>
               </div>
-               */}
 
-              <MessageGeneration
-                contact={contact}
-                companyName={contact.companies?.name || "Unknown Company"}
-                isOpen={true}
-                onClose={() => {}}
-                onMessageSaved={handleMessageSaved}
-                embedded={true}
-              />
-            </TabsContent>
-
-            {/* Simplified Interactions Tab */}
-            <TabsContent value="interactions" className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">
-                  Interaction Summary
+                <Label
+                  htmlFor="user_notes"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Your Notes
                 </Label>
-                <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
-                  {renderInteractionSummary()}
-                </div>
+                <Textarea
+                  id="user_notes"
+                  name="user_notes"
+                  rows={2}
+                  value={formData.user_notes || ""}
+                  onChange={handleChange}
+                  placeholder="Add your personal notes about this contact..."
+                  className="bg-white border-border focus:border-purple-500 focus:ring-purple-500"
+                />
               </div>
 
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Interactions
-                </h3>
-                <div className="flex gap-2">
+              {formData.bio_summary && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground">
+                    Background Summary
+                  </Label>
+                  <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
+                    {formData.bio_summary}
+                  </div>
+                </div>
+              )}
+
+              {formData.how_i_can_help && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground">
+                    How I Can Help
+                  </Label>
+                  <div className="rounded-lg border  p-4 bg-blue-50 text-sm text-gray-900">
+                    {formData.how_i_can_help}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4">
+                <PrimaryAction type="submit" disabled={isLoading}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </PrimaryAction>
+              </div>
+            </form>
+          </TabsContent>
+
+          {/* Enhanced Messages Tab */}
+          <TabsContent value="messages" className="space-y-6 pt-6">
+            <MessageGeneration
+              contact={contact}
+              companyName={contact.companies?.name || "Unknown Company"}
+              isOpen={true}
+              onClose={() => {}}
+              onMessageSaved={handleMessageSaved}
+              embedded={true}
+            />
+          </TabsContent>
+
+          {/* Simplified Interactions Tab */}
+          <TabsContent value="interactions" className="space-y-6 pt-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">
+                Interaction Summary
+              </Label>
+              <div className="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                {renderInteractionSummary()}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Interactions
+              </h3>
+              <div className="flex gap-2">
+                <PrimaryAction
+                  size="sm"
+                  onClick={() => setIsLogInteractionOpen(true)}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Log Interaction
+                </PrimaryAction>
+                <OutlineAction
+                  size="sm"
+                  onClick={() => setIsPlanInteractionOpen(true)}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Plan Interaction
+                </OutlineAction>
+              </div>
+            </div>
+
+            {interactions.length > 0 ? (
+              <div className="space-y-4">
+                {interactions.map((interaction) => (
+                  <div
+                    key={interaction.interaction_id}
+                    className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 space-y-2">
+                        {editingInteraction === interaction.interaction_id ? (
+                          <div className="space-y-3">
+                            <div>
+                              <Label
+                                htmlFor={`date-${interaction.interaction_id}`}
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Date
+                              </Label>
+                              <Input
+                                id={`date-${interaction.interaction_id}`}
+                                type="date"
+                                value={
+                                  editingValues[interaction.interaction_id]
+                                    ?.date || ""
+                                }
+                                onChange={(e) =>
+                                  setEditingValues({
+                                    ...editingValues,
+                                    [interaction.interaction_id]: {
+                                      ...editingValues[
+                                        interaction.interaction_id
+                                      ],
+                                      date: e.target.value,
+                                    },
+                                  })
+                                }
+                                className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                              />
+                            </div>
+                            <div>
+                              <Label
+                                htmlFor={`desc-${interaction.interaction_id}`}
+                                className="text-sm font-medium text-gray-700"
+                              >
+                                Description
+                              </Label>
+                              <Textarea
+                                id={`desc-${interaction.interaction_id}`}
+                                value={
+                                  editingValues[interaction.interaction_id]
+                                    ?.description || ""
+                                }
+                                onChange={(e) =>
+                                  setEditingValues({
+                                    ...editingValues,
+                                    [interaction.interaction_id]: {
+                                      ...editingValues[
+                                        interaction.interaction_id
+                                      ],
+                                      description: e.target.value,
+                                    },
+                                  })
+                                }
+                                rows={3}
+                                className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <PrimaryAction
+                                size="sm"
+                                onClick={() =>
+                                  handleSaveInteraction(
+                                    interaction.interaction_id
+                                  )
+                                }
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                Save
+                              </PrimaryAction>
+                              <OutlineAction
+                                size="sm"
+                                onClick={handleCancelEdit}
+                              >
+                                Cancel
+                              </OutlineAction>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div
+                              className="text-sm font-medium text-gray-600 cursor-pointer hover:text-purple-600 transition-colors"
+                              onClick={() =>
+                                handleEditInteraction(
+                                  interaction.interaction_id,
+                                  interaction.interaction_date,
+                                  interaction.description || ""
+                                )
+                              }
+                            >
+                              {formatDate(interaction.interaction_date)}
+                            </div>
+                            <div
+                              className="text-sm mt-1 cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200 transition-colors text-gray-900"
+                              onClick={() =>
+                                handleEditInteraction(
+                                  interaction.interaction_id,
+                                  interaction.interaction_date,
+                                  interaction.description || ""
+                                )
+                              }
+                            >
+                              {interaction.description}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {editingInteraction !== interaction.interaction_id && (
+                        <OutlineAction
+                          size="sm"
+                          className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 border-gray-200"
+                          onClick={() =>
+                            handleDeleteInteraction(interaction.interaction_id)
+                          }
+                        >
+                          <Trash className="h-4 w-4" />
+                        </OutlineAction>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+                <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-gray-600 mb-4">
+                  No interactions logged for this contact yet
+                </p>
+                <div className="flex gap-2 justify-center">
                   <PrimaryAction
                     size="sm"
                     onClick={() => setIsLogInteractionOpen(true)}
@@ -661,169 +741,10 @@ export function EnhancedContactDetails({
                   </OutlineAction>
                 </div>
               </div>
-
-              {interactions.length > 0 ? (
-                <div className="space-y-4">
-                  {interactions.map((interaction) => (
-                    <div
-                      key={interaction.interaction_id}
-                      className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 space-y-2">
-                          {editingInteraction === interaction.interaction_id ? (
-                            <div className="space-y-3">
-                              <div>
-                                <Label
-                                  htmlFor={`date-${interaction.interaction_id}`}
-                                  className="text-sm font-medium text-gray-700"
-                                >
-                                  Date
-                                </Label>
-                                <Input
-                                  id={`date-${interaction.interaction_id}`}
-                                  type="date"
-                                  value={
-                                    editingValues[interaction.interaction_id]
-                                      ?.date || ""
-                                  }
-                                  onChange={(e) =>
-                                    setEditingValues({
-                                      ...editingValues,
-                                      [interaction.interaction_id]: {
-                                        ...editingValues[
-                                          interaction.interaction_id
-                                        ],
-                                        date: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                                />
-                              </div>
-                              <div>
-                                <Label
-                                  htmlFor={`desc-${interaction.interaction_id}`}
-                                  className="text-sm font-medium text-gray-700"
-                                >
-                                  Description
-                                </Label>
-                                <Textarea
-                                  id={`desc-${interaction.interaction_id}`}
-                                  value={
-                                    editingValues[interaction.interaction_id]
-                                      ?.description || ""
-                                  }
-                                  onChange={(e) =>
-                                    setEditingValues({
-                                      ...editingValues,
-                                      [interaction.interaction_id]: {
-                                        ...editingValues[
-                                          interaction.interaction_id
-                                        ],
-                                        description: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  rows={3}
-                                  className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                                />
-                              </div>
-                              <div className="flex gap-2">
-                                <PrimaryAction
-                                  size="sm"
-                                  onClick={() =>
-                                    handleSaveInteraction(
-                                      interaction.interaction_id
-                                    )
-                                  }
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Save
-                                </PrimaryAction>
-                                <OutlineAction
-                                  size="sm"
-                                  onClick={handleCancelEdit}
-                                >
-                                  Cancel
-                                </OutlineAction>
-                              </div>
-                            </div>
-                          ) : (
-                            <div>
-                              <div
-                                className="text-sm font-medium text-gray-600 cursor-pointer hover:text-purple-600 transition-colors"
-                                onClick={() =>
-                                  handleEditInteraction(
-                                    interaction.interaction_id,
-                                    interaction.interaction_date,
-                                    interaction.description || ""
-                                  )
-                                }
-                              >
-                                {formatDate(interaction.interaction_date)}
-                              </div>
-                              <div
-                                className="text-sm mt-1 cursor-pointer hover:bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200 transition-colors text-gray-900"
-                                onClick={() =>
-                                  handleEditInteraction(
-                                    interaction.interaction_id,
-                                    interaction.interaction_date,
-                                    interaction.description || ""
-                                  )
-                                }
-                              >
-                                {interaction.description}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {editingInteraction !== interaction.interaction_id && (
-                          <OutlineAction
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 border-gray-200"
-                            onClick={() =>
-                              handleDeleteInteraction(
-                                interaction.interaction_id
-                              )
-                            }
-                          >
-                            <Trash className="h-4 w-4" />
-                          </OutlineAction>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
-                  <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    No interactions logged for this contact yet
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    <PrimaryAction
-                      size="sm"
-                      onClick={() => setIsLogInteractionOpen(true)}
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Log Interaction
-                    </PrimaryAction>
-                    <OutlineAction
-                      size="sm"
-                      onClick={() => setIsPlanInteractionOpen(true)}
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Plan Interaction
-                    </OutlineAction>
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+            )}
+          </TabsContent>
+        </Tabs>
+      </Modal>
 
       {/* Log Interaction Modal */}
       {contact && (

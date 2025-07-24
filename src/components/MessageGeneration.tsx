@@ -454,7 +454,7 @@ export function MessageGeneration({
               {MEDIUM_OPTIONS.map((option) => (
                 <button
                   key={option.id}
-                  className={`flex-1 p-4 border-2 transition-colors cursor-pointer ${
+                  className={`flex-1 p-1  transition-colors cursor-pointer ${
                     medium === option.id
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-card text-foreground border-border hover:bg-primary-muted hover:border-primary"
@@ -462,7 +462,7 @@ export function MessageGeneration({
                   onClick={() => handleMediumChange(option.id)}
                 >
                   <div className="text-center space-y-1">
-                    <div className="font-semibold text-sm">{option.label}</div>
+                    <div className="font-semibold text-xs">{option.label}</div>
                     <div className="text-xs opacity-80">
                       {option.maxLength >= 1000
                         ? `${option.maxLength / 1000}k`
