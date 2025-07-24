@@ -4,12 +4,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
 const MEDIUM_OPTIONS = [
   {
     id: "LinkedIn connection note",
-    label: "LinkedIn Connection Note",
+    label: "LinkedIn connection Note",
     maxLength: 200
   },
   {
-    id: "LinkedIn connection note / Premium",
-    label: "LinkedIn Connection Note / Premium",
+    id: "Premium LinkedIn connection note",
+    label: "Premium LinkedIn connection note",
     maxLength: 300
   },
 

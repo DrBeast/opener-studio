@@ -369,7 +369,7 @@ export const IntegratedContactWorkflow = ({
               value={linkedinBio}
               onChange={(e) => setLinkedinBio(e.target.value)}
               placeholder="Copy all content on their LinkedIn profile page (CTRL/CMD + A, CTRL/CMD + C) and paste it here (CTRL/CMD + V)."
-              className="min-h-[120px] text-sm resize-none"
+              className="min-h-[120px] text-sm resize-none bg-background border-border"
             />
             <PrimaryAction
               onClick={handleProcessBio}

@@ -32,7 +32,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* LEFT SIDE: Logo, DEV Badge, and Onboarding Button */}
@@ -112,9 +112,9 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             </div>
           )}
 
-          <SettingsModal 
-            isOpen={isSettingsOpen} 
-            onClose={() => setIsSettingsOpen(false)} 
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
           />
 
           {/* Mobile Menu (simplified for now) */}

@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
-import { PrimaryAction, Chip } from "@/components/ui/design-system/buttons";
+import {
+  PrimaryAction,
+  Chip,
+  Button,
+} from "@/components/ui/design-system/buttons";
 
 interface ContactData {
   contact_id: string;
@@ -438,41 +442,14 @@ export function MessageGeneration({
             )}
           </div>
 
-          {/* Medium Selection - Flat Cards */}
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              {MEDIUM_OPTIONS.map((option) => (
-                <button
-                  key={option.id}
-                  className={`flex-1 p-1  transition-colors cursor-pointer ${
-                    medium === option.id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-primary-muted hover:border-primary"
-                  }`}
-                  onClick={() => handleMediumChange(option.id)}
-                >
-                  <div className="text-center space-y-1">
-                    <div className="font-semibold text-xs">{option.label}</div>
-                    <div className="text-xs opacity-80">
-                      {option.maxLength >= 1000
-                        ? `${option.maxLength / 1000}k`
-                        : option.maxLength}{" "}
-                      chars
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Additional Context - Flat Collapsible */}
           <Collapsible
             open={isContextExpanded}
             onOpenChange={setIsContextExpanded}
           >
             <CollapsibleTrigger asChild>
-              <button className="w-full flex justify-between items-center p-4 border-2 border-border bg-card text-foreground hover:bg-primary-muted hover:border-primary transition-colors">
-                <Label className="text-lg font-semibold cursor-pointer">
+              <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-background text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
+                <Label className="text-sm font-semibold cursor-pointer">
                   Additional context (optional)
                 </Label>
                 <ChevronDown
@@ -480,13 +457,13 @@ export function MessageGeneration({
                     isContextExpanded ? "transform rotate-180" : ""
                   }`}
                 />
-              </button>
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
               <Textarea
-                className="bg-card border-2 border-input-border focus:border-primary"
+                className="bg-background border-border "
                 id="additional-context"
-                placeholder="Any specific details you'd like the AI to consider when crafting your message..."
+                placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
                 value={additionalContext}
                 onChange={handleAdditionalContextChange}
                 rows={4}
@@ -494,22 +471,50 @@ export function MessageGeneration({
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Generate Button - Flat */}
-          <Button
-            onClick={generateMessages}
-            disabled={
-              isGenerating || !getEffectiveObjective() || !contact?.contact_id
-            }
-            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold border-0 transition-colors"
-            size="lg"
-          >
-            <MessageCircle className="mr-2 h-5 w-5" />
-            {isGenerating
-              ? "Generating..."
-              : !contact?.contact_id
-              ? "Create contact first"
-              : "Generate Messages"}
-          </Button>
+          {/* Medium Selection - Flat Cards */}
+          <div className="space-y-2">
+            <div className="">
+              <div className="flex gap-3">
+                {MEDIUM_OPTIONS.map((option) => (
+                  <Button
+                    key={option.id}
+                    variant={option}
+                    className={`flex-1 p-1 transition-colors cursor-pointer ${
+                      medium === option.id
+                        ? "bg-secondary text-primary"
+                        : "bg-secondary text-secondary-foreground/80 hover:text-primary/60"
+                    }`}
+                    onClick={() => handleMediumChange(option.id)}
+                  >
+                    <div className="text-center space-y-1 font-semibold text-xs">
+                      {option.label} /{" "}
+                      {option.maxLength >= 1000
+                        ? `${option.maxLength / 1000}k`
+                        : option.maxLength}{" "}
+                      chars
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Generate Button - Flat */}
+            <PrimaryAction
+              onClick={generateMessages}
+              disabled={
+                isGenerating || !getEffectiveObjective() || !contact?.contact_id
+              }
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold border-0 transition-colors"
+              size="lg"
+            >
+              <MessageCircle className="mr-2 h-5 w-5" />
+              {isGenerating
+                ? "Generating..."
+                : !contact?.contact_id
+                ? "Create contact first"
+                : "Generate Messages"}
+            </PrimaryAction>
+          </div>
         </div>
 
         {/* Generated Messages - Tabbed Interface */}
@@ -528,19 +533,10 @@ export function MessageGeneration({
                 ))}
               </TabsList>
 
+              {/* Generated Messages - Preview */}
               {Object.entries(generatedMessages).map(([version, content]) => (
                 <TabsContent key={version} value={version} className="mt-4">
-                  <Card className="p-4 border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-semibold text-base text-foreground">
-                        {version}
-                      </h4>
-                      <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {(editedMessages[version] || content.text).length}/
-                        {maxLength}
-                      </div>
-                    </div>
-
+                  <Card className="p-4 bg-inherit border-none">
                     {/* Editable Message Text */}
                     <div className="space-y-3">
                       <Textarea
@@ -548,14 +544,19 @@ export function MessageGeneration({
                         onChange={(e) =>
                           handleMessageEdit(version, e.target.value)
                         }
-                        className="w-full resize-none bg-background border-muted-foreground/20 focus:border-primary transition-all"
+                        className="w-full resize-none bg-background border-border transition-colors"
                         rows={6}
                         maxLength={maxLength}
                       />
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-end space-x-2 mt-4">
+                    {/* Char Count and Action Buttons */}
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="text-xs text-muted-foreground  px-2 ">
+                        {(editedMessages[version] || content.text).length}/
+                        {maxLength}
+                      </div>
+
                       <PrimaryAction
                         size="sm"
                         onClick={() => {

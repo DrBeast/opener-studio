@@ -431,332 +431,324 @@ const PipelineDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="mx-auto ">
-        <ProfileBreadcrumbs />
+    <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-6">
+      <Collapsible
+        open={isWorkflowExpanded}
+        onOpenChange={setIsWorkflowExpanded}
+        className="bg-gray-100 w-[98%] mx-auto"
+      >
+        <CollapsibleTrigger className="w-full p-6 text-center ">
+          <CollapsibleWide expanded={isWorkflowExpanded}>
+            Expand your network
+          </CollapsibleWide>
+        </CollapsibleTrigger>
 
-        {/* Integrated Contact Creation and Message Generation */}
-        <div className="mx-auto w-[95%] mb-6">
-          <Collapsible
-            open={isWorkflowExpanded}
-            onOpenChange={setIsWorkflowExpanded}
-            className="bg-white rounded-lg border border-gray-200"
-          >
-            <CollapsibleTrigger className="w-full p-6 text-center align-center">
-              <CollapsibleWide expanded={isWorkflowExpanded}>
-                Expand your network
-              </CollapsibleWide>
-            </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 pt-0 pb-0">
+            {/* Left Panel - Contact Creation - MAKE THIS A CARD*/}
+            <div
+              className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                !contactForMessage
+                  ? "border-primary/20 bg-primary/5"
+                  : "border-gray-200 bg-gray-50"
+              }`}
+            >
+              <IntegratedContactWorkflow
+                companies={companies}
+                onContactCreated={handleContactCreated}
+                createdContact={contactForMessage}
+              />
+            </div>
 
-            <CollapsibleContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 pt-0">
-                {/* Left Panel - Contact Creation */}
-                <div
-                  className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-                    !contactForMessage
-                      ? "border-primary/20 bg-primary/5"
-                      : "border-gray-200 bg-gray-50"
+            {/* Right Panel - Message Generation - MAKE THIS A CARD TOO */}
+            <div
+              className={`p-4 rounded-lg border-2 transition-all relative ${
+                !contactForMessage
+                  ? "border-gray-200 bg-gray-50/50" // Inactive styles
+                  : "border-primary/20 bg-primary/5" // Active styles
+              }`}
+            >
+              {/* Conditional overlay --- */}
+              {!contactForMessage && (
+                <div className="absolute inset-0 bg-gray-200/40 rounded-lg z-10"></div>
+              )}
+
+              <div className="flex items-center gap-2 mb-4">
+                <MessageCircle
+                  className={`h-5 w-5 ${
+                    !contactForMessage ? "text-foreground" : "text-foreground"
                   }`}
-                >
-                  <IntegratedContactWorkflow
-                    companies={companies}
-                    onContactCreated={handleContactCreated}
-                    createdContact={contactForMessage}
-                  />
-                </div>
-
-                {/* Right Panel - Message Generation */}
-                <div
-                  className={`p-4 rounded-lg border-2 transition-all relative ${
-                    !contactForMessage
-                      ? "border-gray-200 bg-gray-50/50" // Inactive styles
-                      : "border-primary/20 bg-primary/5" // Active styles
-                  }`}
-                >
-                  {/* Conditional overlay --- */}
-                  {!contactForMessage && (
-                    <div className="absolute inset-0 bg-gray-200/40 rounded-lg z-10"></div>
-                  )}
-
-                  <div className="flex items-center gap-2 mb-4">
-                    <MessageCircle
-                      className={`h-5 w-5 ${
-                        !contactForMessage
-                          ? "text-foreground"
-                          : "text-foreground"
-                      }`}
-                    />
-                    <h3
-                      className={`font-medium ${
-                        !contactForMessage
-                          ? "text-foreground"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {contactForMessage
-                        ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
-                        : "Generate message: create contact first"}
-                    </h3>
-                  </div>
-
-                  {/* The MessageGeneration component is always rendered */}
-                  <div
-                    className={`mt-4 ${
-                      !contactForMessage ? "pointer-events-none" : ""
-                    }`}
-                  >
-                    <MessageGeneration
-                      contact={contactForMessage}
-                      companyName={
-                        contactForMessage?.company_id
-                          ? companies.find(
-                              (c) =>
-                                c.company_id === contactForMessage.company_id
-                            )?.name || ""
-                          : contactForMessage?.current_company || ""
-                      }
-                      isOpen={true}
-                      onClose={() => {}}
-                      onMessageSaved={() => {
-                        toast({
-                          title: "Success",
-                          description: "Message saved and workflow completed!",
-                        });
-                        setContactForMessage(null);
-                      }}
-                      embedded={true}
-                      disabled={!contactForMessage}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-
-        {/* Full-Width Card with Table */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              {/* View Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
-                  <Button
-                    variant={currentView === "companies" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentView("companies")}
-                    className="flex items-center gap-2"
-                  >
-                    <Building2 className="h-4 w-4" />
-                    Companies ({companies.length})
-                  </Button>
-                  <Button
-                    variant={currentView === "contacts" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentView("contacts")}
-                    className="flex items-center gap-2"
-                  >
-                    <Users className="h-4 w-4" />
-                    Contacts ({contacts.length})
-                  </Button>
-                </div>
-
-                {/* Show/Hide Inactive Toggle */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (currentView === "companies") {
-                        setShowInactiveCompanies(!showInactiveCompanies);
-                      } else {
-                        setShowInactiveContacts(!showInactiveContacts);
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    {(
-                      currentView === "companies"
-                        ? showInactiveCompanies
-                        : showInactiveContacts
-                    ) ? (
-                      <>
-                        <EyeOff className="h-4 w-4" />
-                        Hide Inactive
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4" />
-                        Show Inactive
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Search and Actions */}
-              <div className="flex items-center justify-between gap-4">
-                <SearchAndFilters
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  selectedCount={
-                    currentView === "companies"
-                      ? selectedCompanies.size
-                      : selectedContacts.size
-                  }
-                  onBulkRemove={handleBulkRemove}
                 />
-                <div className="flex items-center gap-3">
-                  {currentView === "companies" && (
+                <h3
+                  className={`font-medium ${
+                    !contactForMessage ? "text-foreground" : "text-foreground"
+                  }`}
+                >
+                  {contactForMessage
+                    ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
+                    : "Generate message: create contact first"}
+                </h3>
+              </div>
+
+              {/* The MessageGeneration component is always rendered */}
+              <div
+                className={`mt-4 ${
+                  !contactForMessage ? "pointer-events-none" : ""
+                }`}
+              >
+                <MessageGeneration
+                  contact={contactForMessage}
+                  companyName={
+                    contactForMessage?.company_id
+                      ? companies.find(
+                          (c) => c.company_id === contactForMessage.company_id
+                        )?.name || ""
+                      : contactForMessage?.current_company || ""
+                  }
+                  isOpen={true}
+                  onClose={() => {}}
+                  onMessageSaved={() => {
+                    toast({
+                      title: "Success",
+                      description: "Message saved and workflow completed!",
+                    });
+                    setContactForMessage(null);
+                  }}
+                  embedded={true}
+                  disabled={!contactForMessage}
+                />
+              </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Integrated Contact Creation and Message Generation |   <div className=" md:p-6 lg:p-8 space-y-6">*/}
+      <div className="mx-auto w-[95%] mb-6 "></div>
+      <ProfileBreadcrumbs />
+
+      {/* Full-Width Card with Table */}
+      <Card className="shadow-xl border-0  bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            {/* View Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
+                <Button
+                  variant={currentView === "companies" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentView("companies")}
+                  className="flex items-center gap-2"
+                >
+                  <Building2 className="h-4 w-4" />
+                  Companies ({companies.length})
+                </Button>
+                <Button
+                  variant={currentView === "contacts" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentView("contacts")}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Contacts ({contacts.length})
+                </Button>
+              </div>
+
+              {/* Show/Hide Inactive Toggle */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (currentView === "companies") {
+                      setShowInactiveCompanies(!showInactiveCompanies);
+                    } else {
+                      setShowInactiveContacts(!showInactiveContacts);
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  {(
+                    currentView === "companies"
+                      ? showInactiveCompanies
+                      : showInactiveContacts
+                  ) ? (
                     <>
-                      <OutlineAction onClick={handleOpenTargetsModal}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Targets
-                      </OutlineAction>
-                      <PrimaryAction
-                        onClick={handleGenerateCompanies}
-                        disabled={isGeneratingCompanies}
-                      >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        {isGeneratingCompanies
-                          ? "Generating..."
-                          : "Generate More Companies"}
-                      </PrimaryAction>
-                      <PrimaryAction onClick={handleAddCompany}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Company
-                      </PrimaryAction>
+                      <EyeOff className="h-4 w-4" />
+                      Hide Inactive
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      Show Inactive
                     </>
                   )}
-                </div>
+                </Button>
               </div>
             </div>
 
-            {currentView === "companies" ? (
-              filteredCompanies.length === 0 ? (
-                <EmptyState
-                  searchTerm={searchTerm}
-                  hasFilters={false}
-                  onAddCompany={handleAddCompany}
-                  onGenerateCompanies={handleGenerateCompanies}
-                  isGeneratingCompanies={isGeneratingCompanies}
-                />
-              ) : (
-                <EnhancedCompaniesTable
-                  companies={filteredCompanies}
-                  onCompanyClick={handleCompanyClick}
-                  onSetPriority={handleSetPriority}
-                  onBlacklist={handleBlacklist}
-                  newCompanyIds={newCompanyIds}
-                  highlightNew={highlightNew}
-                  selectedCompanies={selectedCompanies}
-                  onSelectCompany={handleSelectCompany}
-                  onSelectAll={handleSelectAll}
-                  sortField={companySortField}
-                  sortDirection={companySortDirection}
-                  onSort={handleCompanySort}
-                  onCreateContact={(companyId, companyName) => {
-                    const company = filteredCompanies.find(
-                      (c) => c.company_id === companyId
-                    );
-                    handleCreateContact(companyId, company?.name || "");
-                  }}
-                  onContactClick={handleContactClick}
-                  onGenerateMessage={handleGenerateMessage}
-                  onOpenContactRecommendation={handleOpenContactRecommendation}
-                />
-              )
-            ) : filteredContacts.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
-                  No contacts found
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {searchTerm
-                    ? "Try adjusting your search term."
-                    : "Start by adding contacts to your companies."}
-                </p>
+            {/* Search and Actions */}
+            <div className="flex items-center justify-between gap-4">
+              <SearchAndFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedCount={
+                  currentView === "companies"
+                    ? selectedCompanies.size
+                    : selectedContacts.size
+                }
+                onBulkRemove={handleBulkRemove}
+              />
+              <div className="flex items-center gap-3">
+                {currentView === "companies" && (
+                  <>
+                    <OutlineAction onClick={handleOpenTargetsModal}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit Targets
+                    </OutlineAction>
+                    <PrimaryAction
+                      onClick={handleGenerateCompanies}
+                      disabled={isGeneratingCompanies}
+                    >
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      {isGeneratingCompanies
+                        ? "Generating..."
+                        : "Generate More Companies"}
+                    </PrimaryAction>
+                    <PrimaryAction onClick={handleAddCompany}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Company
+                    </PrimaryAction>
+                  </>
+                )}
               </div>
+            </div>
+          </div>
+
+          {currentView === "companies" ? (
+            filteredCompanies.length === 0 ? (
+              <EmptyState
+                searchTerm={searchTerm}
+                hasFilters={false}
+                onAddCompany={handleAddCompany}
+                onGenerateCompanies={handleGenerateCompanies}
+                isGeneratingCompanies={isGeneratingCompanies}
+              />
             ) : (
-              <ContactsTable
-                contacts={filteredContacts}
+              <EnhancedCompaniesTable
+                companies={filteredCompanies}
+                onCompanyClick={handleCompanyClick}
+                onSetPriority={handleSetPriority}
+                onBlacklist={handleBlacklist}
+                newCompanyIds={newCompanyIds}
+                highlightNew={highlightNew}
+                selectedCompanies={selectedCompanies}
+                onSelectCompany={handleSelectCompany}
+                onSelectAll={handleSelectAll}
+                sortField={companySortField}
+                sortDirection={companySortDirection}
+                onSort={handleCompanySort}
+                onCreateContact={(companyId, companyName) => {
+                  const company = filteredCompanies.find(
+                    (c) => c.company_id === companyId
+                  );
+                  handleCreateContact(companyId, company?.name || "");
+                }}
                 onContactClick={handleContactClick}
                 onGenerateMessage={handleGenerateMessage}
-                selectedContacts={selectedContacts}
-                onSelectContact={handleContactSelect}
-                onSelectAll={handleContactSelectAll}
-                sortField={contactSortField}
-                sortDirection={contactSortDirection}
-                onSort={handleContactSort}
-                onToggleStatus={toggleContactStatus}
+                onOpenContactRecommendation={handleOpenContactRecommendation}
               />
-            )}
-          </CardContent>
-        </Card>
+            )
+          ) : filteredContacts.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+                No contacts found
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {searchTerm
+                  ? "Try adjusting your search term."
+                  : "Start by adding contacts to your companies."}
+              </p>
+            </div>
+          ) : (
+            <ContactsTable
+              contacts={filteredContacts}
+              onContactClick={handleContactClick}
+              onGenerateMessage={handleGenerateMessage}
+              selectedContacts={selectedContacts}
+              onSelectContact={handleContactSelect}
+              onSelectAll={handleContactSelectAll}
+              sortField={contactSortField}
+              sortDirection={contactSortDirection}
+              onSort={handleContactSort}
+              onToggleStatus={toggleContactStatus}
+            />
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Modals */}
-        <AddCompanyModal
-          isOpen={isAddCompanyModalOpen}
-          onClose={() => setIsAddCompanyModalOpen(false)}
-          onAddCompany={handleCompanyAdded}
-          isLoading={false}
+      {/* Modals */}
+      <AddCompanyModal
+        isOpen={isAddCompanyModalOpen}
+        onClose={() => setIsAddCompanyModalOpen(false)}
+        onAddCompany={handleCompanyAdded}
+        isLoading={false}
+      />
+
+      {selectedCompany && (
+        <CompanyDetails
+          company={selectedCompany}
+          isOpen={!!selectedCompany}
+          onClose={handleCompanyDetailClose}
+          onCompanyUpdated={handleCompanyUpdated}
         />
+      )}
 
-        {selectedCompany && (
-          <CompanyDetails
-            company={selectedCompany}
-            isOpen={!!selectedCompany}
-            onClose={handleCompanyDetailClose}
-            onCompanyUpdated={handleCompanyUpdated}
-          />
-        )}
+      <EnhancedContactModal
+        isOpen={contactModal.isOpen}
+        onClose={() =>
+          setContactModal({
+            isOpen: false,
+            companyId: "",
+            companyName: "",
+          })
+        }
+        companyId={contactModal.companyId}
+        companyName={contactModal.companyName}
+        onSuccess={handleCompanyUpdated}
+      />
 
-        <EnhancedContactModal
-          isOpen={contactModal.isOpen}
-          onClose={() =>
-            setContactModal({
-              isOpen: false,
-              companyId: "",
-              companyName: "",
-            })
-          }
-          companyId={contactModal.companyId}
-          companyName={contactModal.companyName}
-          onSuccess={handleCompanyUpdated}
+      {/* Enhanced Contact Details Modal */}
+      {selectedContactId && (
+        <EnhancedContactDetails
+          contactId={selectedContactId}
+          isOpen={isContactDetailsOpen}
+          onClose={handleContactDetailClose}
+          onContactUpdated={handleCompanyUpdated}
+          defaultTab={contactDetailsTab}
         />
+      )}
 
-        {/* Enhanced Contact Details Modal */}
-        {selectedContactId && (
-          <EnhancedContactDetails
-            contactId={selectedContactId}
-            isOpen={isContactDetailsOpen}
-            onClose={handleContactDetailClose}
-            onContactUpdated={handleCompanyUpdated}
-            defaultTab={contactDetailsTab}
-          />
-        )}
+      <TargetsModal
+        isOpen={isTargetsModalOpen}
+        onClose={() => setIsTargetsModalOpen(false)}
+      />
 
-        <TargetsModal
-          isOpen={isTargetsModalOpen}
-          onClose={() => setIsTargetsModalOpen(false)}
-        />
-
-        {/* Unified Generate Contacts Modal */}
-        <GenerateContactsModal
-          isOpen={generateContactsModal.isOpen}
-          onClose={() =>
-            setGenerateContactsModal({
-              isOpen: false,
-              companyId: "",
-              companyName: "",
-            })
-          }
-          companyId={generateContactsModal.companyId}
-          companyName={generateContactsModal.companyName}
-          onSuccess={handleCompanyUpdated}
-        />
-      </div>
+      {/* Unified Generate Contacts Modal */}
+      <GenerateContactsModal
+        isOpen={generateContactsModal.isOpen}
+        onClose={() =>
+          setGenerateContactsModal({
+            isOpen: false,
+            companyId: "",
+            companyName: "",
+          })
+        }
+        companyId={generateContactsModal.companyId}
+        companyName={generateContactsModal.companyName}
+        onSuccess={handleCompanyUpdated}
+      />
     </div>
   );
 };

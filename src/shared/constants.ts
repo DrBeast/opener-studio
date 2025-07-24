@@ -5,8 +5,8 @@ export const MEDIUM_OPTIONS = [
       maxLength: 200,
     },
     {
-      id: "LinkedIn connection note / Premium",
-      label: "LinkedIn connection note / Premium",
+      id: "Premium LinkedIn connection note",
+      label: "Premium LinkedIn connection note",
       maxLength: 300,
     },
   {
