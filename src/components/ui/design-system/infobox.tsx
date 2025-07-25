@@ -35,7 +35,7 @@ const InfoBox = React.forwardRef<HTMLDivElement, InfoBoxProps>(
     <Card
       ref={ref}
       // Apply the specific styling for the info box
-      className={cn("bg-blue-50 border-blue-200 mb-8", className)}
+      className={cn("bg-blue-50 border-blue-200 mb-8 shadow-none", className)}
       {...props}
     >
       <CardContent className="p-6">

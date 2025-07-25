@@ -1,31 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
+import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Info,
-  Loader2,
-  User,
-  Building,
-  ArrowRight,
-  MessageCircle,
-  UserPlus,
-} from "lucide-react";
+import { Loader2, Building, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
-import {
-  AirtableCard,
-  AirtableCardContent,
-} from "@/components/ui/airtable-card";
+import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 import { LucideTarget } from "lucide-react";
@@ -403,8 +383,8 @@ export const IntegratedContactWorkflow = ({
             <h3 className="font-medium text-green-800">Contact added</h3>
           </div>
 
-          <AirtableCard className="bg-green-50 border-green-200">
-            <AirtableCardContent className="p-4">
+          <PrimaryCard className="bg-green-50 border-green-200">
+            <CardContent className="p-4">
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
@@ -456,8 +436,8 @@ export const IntegratedContactWorkflow = ({
                   </div>
                 )}
               </div>
-            </AirtableCardContent>
-          </AirtableCard>
+            </CardContent>
+          </PrimaryCard>
         </div>
       )}
 

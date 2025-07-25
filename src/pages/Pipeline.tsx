@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+
+// Icons Imports
 import {
   Edit,
   Plus,
@@ -21,7 +23,6 @@ import {
   PrimaryAction,
   OutlineAction,
   CollapsibleWide,
-  Modal,
 } from "@/components/ui/design-system";
 import {
   Collapsible,
@@ -431,104 +432,105 @@ const PipelineDashboard = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-6">
-      <Collapsible
-        open={isWorkflowExpanded}
-        onOpenChange={setIsWorkflowExpanded}
-        className="bg-gray-100 w-[98%] mx-auto"
-      >
-        <CollapsibleTrigger className="w-full p-6 text-center ">
-          <CollapsibleWide expanded={isWorkflowExpanded}>
-            Expand your network
-          </CollapsibleWide>
-        </CollapsibleTrigger>
-
-        <CollapsibleContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 pt-0 pb-0">
-            {/* Left Panel - Contact Creation - MAKE THIS A CARD*/}
-            <div
-              className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-                !contactForMessage
-                  ? "border-primary/20 bg-primary/5"
-                  : "border-gray-200 bg-gray-50"
-              }`}
+    <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2 ">
+      <div className="w-[95%] mx-auto">
+        <Collapsible
+          open={isWorkflowExpanded}
+          onOpenChange={setIsWorkflowExpanded}
+          className=" mx-auto w-full"
+        >
+          <CollapsibleTrigger className="w-full pt-4 pb-4 text-center ">
+            <CollapsibleWide
+              expanded={isWorkflowExpanded}
+              icon={<UserPlus className="h-6 w-6" />}
             >
-              <IntegratedContactWorkflow
-                companies={companies}
-                onContactCreated={handleContactCreated}
-                createdContact={contactForMessage}
-              />
-            </div>
+              Expand your network
+            </CollapsibleWide>
+          </CollapsibleTrigger>
 
-            {/* Right Panel - Message Generation - MAKE THIS A CARD TOO */}
-            <div
-              className={`p-4 rounded-lg border-2 transition-all relative ${
-                !contactForMessage
-                  ? "border-gray-200 bg-gray-50/50" // Inactive styles
-                  : "border-primary/20 bg-primary/5" // Active styles
-              }`}
-            >
-              {/* Conditional overlay --- */}
-              {!contactForMessage && (
-                <div className="absolute inset-0 bg-gray-200/40 rounded-lg z-10"></div>
-              )}
-
-              <div className="flex items-center gap-2 mb-4">
-                <MessageCircle
-                  className={`h-5 w-5 ${
-                    !contactForMessage ? "text-foreground" : "text-foreground"
-                  }`}
-                />
-                <h3
-                  className={`font-medium ${
-                    !contactForMessage ? "text-foreground" : "text-foreground"
-                  }`}
-                >
-                  {contactForMessage
-                    ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
-                    : "Generate message: create contact first"}
-                </h3>
-              </div>
-
-              {/* The MessageGeneration component is always rendered */}
+          <CollapsibleContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-0 pb-4">
+              {/* Left Panel - Contact Creation - MAKE THIS A CARD*/}
               <div
-                className={`mt-4 ${
-                  !contactForMessage ? "pointer-events-none" : ""
+                className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                  !contactForMessage
+                    ? "border-primary/20 bg-primary/5"
+                    : "border-gray-200 bg-gray-50"
                 }`}
               >
-                <MessageGeneration
-                  contact={contactForMessage}
-                  companyName={
-                    contactForMessage?.company_id
-                      ? companies.find(
-                          (c) => c.company_id === contactForMessage.company_id
-                        )?.name || ""
-                      : contactForMessage?.current_company || ""
-                  }
-                  isOpen={true}
-                  onClose={() => {}}
-                  onMessageSaved={() => {
-                    toast({
-                      title: "Success",
-                      description: "Message saved and workflow completed!",
-                    });
-                    setContactForMessage(null);
-                  }}
-                  embedded={true}
-                  disabled={!contactForMessage}
+                <IntegratedContactWorkflow
+                  companies={companies}
+                  onContactCreated={handleContactCreated}
+                  createdContact={contactForMessage}
                 />
               </div>
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
 
-      {/* Integrated Contact Creation and Message Generation |   <div className=" md:p-6 lg:p-8 space-y-6">*/}
-      <div className="mx-auto w-[95%] mb-6 "></div>
-      <ProfileBreadcrumbs />
+              {/* Right Panel - Message Generation - MAKE THIS A CARD TOO */}
+              <div
+                className={`p-4 rounded-lg border-2 transition-all relative ${
+                  !contactForMessage
+                    ? "border-gray-200 bg-gray-50/50" // Inactive styles
+                    : "border-primary/20 bg-primary/5" // Active styles
+                }`}
+              >
+                {/* Conditional overlay --- */}
+                {!contactForMessage && (
+                  <div className="absolute inset-0 bg-gray-200/40 rounded-lg z-10"></div>
+                )}
+
+                <div className="flex items-center gap-2 mb-4">
+                  <MessageCircle
+                    className={`h-5 w-5 ${
+                      !contactForMessage ? "text-foreground" : "text-foreground"
+                    }`}
+                  />
+                  <h3
+                    className={`font-medium ${
+                      !contactForMessage ? "text-foreground" : "text-foreground"
+                    }`}
+                  >
+                    {contactForMessage
+                      ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
+                      : "Generate message: create contact first"}
+                  </h3>
+                </div>
+
+                {/* The MessageGeneration component is always rendered */}
+                <div
+                  className={`mt-4 ${
+                    !contactForMessage ? "pointer-events-none" : ""
+                  }`}
+                >
+                  <MessageGeneration
+                    contact={contactForMessage}
+                    companyName={
+                      contactForMessage?.company_id
+                        ? companies.find(
+                            (c) => c.company_id === contactForMessage.company_id
+                          )?.name || ""
+                        : contactForMessage?.current_company || ""
+                    }
+                    isOpen={true}
+                    onClose={() => {}}
+                    onMessageSaved={() => {
+                      toast({
+                        title: "Success",
+                        description: "Message saved and workflow completed!",
+                      });
+                      setContactForMessage(null);
+                    }}
+                    embedded={true}
+                    disabled={!contactForMessage}
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
 
       {/* Full-Width Card with Table */}
-      <Card className="shadow-xl border-0  bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
+      <Card className="bg-background mx-auto w-[95%]">
         <CardContent className="p-8">
           <div className="space-y-6">
             {/* View Toggle */}
@@ -687,7 +689,6 @@ const PipelineDashboard = () => {
           )}
         </CardContent>
       </Card>
-
       {/* Modals */}
       <AddCompanyModal
         isOpen={isAddCompanyModalOpen}
@@ -695,7 +696,6 @@ const PipelineDashboard = () => {
         onAddCompany={handleCompanyAdded}
         isLoading={false}
       />
-
       {selectedCompany && (
         <CompanyDetails
           company={selectedCompany}
@@ -704,7 +704,6 @@ const PipelineDashboard = () => {
           onCompanyUpdated={handleCompanyUpdated}
         />
       )}
-
       <EnhancedContactModal
         isOpen={contactModal.isOpen}
         onClose={() =>
@@ -718,7 +717,6 @@ const PipelineDashboard = () => {
         companyName={contactModal.companyName}
         onSuccess={handleCompanyUpdated}
       />
-
       {/* Enhanced Contact Details Modal */}
       {selectedContactId && (
         <EnhancedContactDetails
@@ -729,12 +727,10 @@ const PipelineDashboard = () => {
           defaultTab={contactDetailsTab}
         />
       )}
-
       <TargetsModal
         isOpen={isTargetsModalOpen}
         onClose={() => setIsTargetsModalOpen(false)}
       />
-
       {/* Unified Generate Contacts Modal */}
       <GenerateContactsModal
         isOpen={generateContactsModal.isOpen}

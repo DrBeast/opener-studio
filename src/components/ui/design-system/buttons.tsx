@@ -110,6 +110,7 @@ interface CollapsibleTriggerButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   expanded: boolean;
   children: React.ReactNode;
+  icon?: React.ReactNode;
   className?: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
@@ -123,6 +124,7 @@ export const CollapsibleWide = React.forwardRef<
     {
       expanded,
       children,
+      icon,
       className = "",
       variant = "outline",
       size = "default",
@@ -135,12 +137,16 @@ export const CollapsibleWide = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "w-full flex items-center justify-between h-14 text-base font-medium border-2 shadow-none hover:shadow-none",
+        "w-full flex items-center justify-between h-14 text-base font-medium border-none shadow-none hover:shadow-none",
         className
       )}
       {...props}
     >
-      <span>{children}</span>
+      <div className="flex items-center gap-3">
+        {icon && <div className="text-primary">{icon}</div>}
+        <span>{children}</span>
+      </div>
+      {/* Render the chevron icon based on the expanded state */}
       {expanded ? (
         <ChevronUp className="h-5 w-5" />
       ) : (
@@ -156,6 +162,7 @@ interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isSelected: boolean;
   children: React.ReactNode;
   className?: string;
+  icon?: React.ReactNode;
 }
 
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
