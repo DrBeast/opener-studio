@@ -368,13 +368,7 @@ export const AddContact = ({
           <InfoBox
             className="text-sm"
             title="Who should I contact?"
-            description={
-              <p>
-                Start with people you already know. For new contacts, think of
-                companies you are interested in, then try searching LinkedIn for{" "}
-                <strong>[company name] [function]</strong>.
-              </p>
-            }
+            description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
             icon={<LucideTarget className="h-4 w-4" />}
           />
         </div>

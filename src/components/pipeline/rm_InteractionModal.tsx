@@ -18,10 +18,10 @@ import { Calendar, Clock, CheckCircle } from "lucide-react";
 
 // Design System Imports
 import {
-  ActionModal,
   PrimaryAction,
   OutlineAction
 } from "@/components/ui/design-system";
+import { Modal } from "@/components/ui/design-system/modals";
 
 interface InteractionModalProps {
   isOpen: boolean;
@@ -110,7 +110,7 @@ export const InteractionModal = ({
   };
 
   return (
-    <ActionModal
+    <Modal
       isOpen={isOpen}
       onClose={handleClose}
       title={mode === 'log' ? 'Log New Interaction' : 'Schedule Follow-up Action'}
@@ -188,6 +188,6 @@ export const InteractionModal = ({
           </PrimaryAction>
         </div>
       </form>
-    </ActionModal>
+    </Modal>
   );
 };
