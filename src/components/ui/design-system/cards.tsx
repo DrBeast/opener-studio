@@ -24,7 +24,7 @@ const PrimaryCard = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Card
     ref={ref}
-    className={cn("border-border shadow-sm bg-background", className)}
+    className={cn("border-border shadow-md bg-background", className)}
     {...props}
   />
 ));

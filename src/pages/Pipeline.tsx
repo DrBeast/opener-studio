@@ -544,7 +544,7 @@ const PipelineDashboard = () => {
       </div>
 
       {/* Full-Width Card with Table */}
-      <Card className="bg-background mx-auto w-[95%] ">
+      <PrimaryCard className="mx-auto w-[95%] ">
         <CardContent className="p-8 ">
           <div className="space-y-6">
             {/* View Toggle */}
@@ -702,7 +702,7 @@ const PipelineDashboard = () => {
             />
           )}
         </CardContent>
-      </Card>
+      </PrimaryCard>
       {/* Modals */}
       <AddCompanyModal
         isOpen={isAddCompanyModalOpen}

@@ -574,26 +574,6 @@ export const EnhancedCompaniesTable = ({
                           className="flex items-center gap-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {/* NEW: Bot button for Generate Contacts */}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10 hover:text-purple-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenContactRecommendation(
-                                company.company_id,
-                                company.name
-                              );
-                            }}
-                            title="Generate contacts with AI"
-                          >
-                            <Bot
-                              className="h-4 w-4"
-                              style={{ transform: "scale(1.5)" }}
-                            />
-                          </Button>
-                          {/* END NEW */}
                           <Button
                             size="sm"
                             variant="ghost"
