@@ -38,9 +38,9 @@ const InfoBox = React.forwardRef<HTMLDivElement, InfoBoxProps>(
       className={cn("bg-blue-50 border-blue-200 mb-8 shadow-none", className)}
       {...props}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
             {icon} {/* Render the icon prop */}
           </div>
           <div>

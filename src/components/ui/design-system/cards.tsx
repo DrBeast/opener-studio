@@ -9,7 +9,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border border-gray-200 bg-white shadow-lg",
+      "rounded-lg border border-border bg-background shadow-sm",
       className
     )}
     {...props}
@@ -24,7 +24,7 @@ const PrimaryCard = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Card
     ref={ref}
-    className={cn("border-gray-200 shadow-sm", className)}
+    className={cn("border-border shadow-sm bg-background", className)}
     {...props}
   />
 ));

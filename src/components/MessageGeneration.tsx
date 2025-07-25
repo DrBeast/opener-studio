@@ -33,7 +33,11 @@ import {
   PrimaryAction,
   Chip,
   Button,
-} from "@/components/ui/design-system/buttons";
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/design-system";
 
 interface ContactData {
   contact_id: string;
@@ -337,13 +341,10 @@ export function MessageGeneration({
   );
 
   const copyMessage = useCallback((text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => toast.success("Message copied to clipboard!"))
-      .catch((err) => {
-        console.error("Failed to copy message:", err);
-        toast.error("Failed to copy message to clipboard");
-      });
+    navigator.clipboard.writeText(text).catch((err) => {
+      console.error("Failed to copy message:", err);
+      toast.error("Failed to copy message to clipboard");
+    });
   }, []);
 
   const saveMessage = useCallback(
@@ -384,7 +385,7 @@ export function MessageGeneration({
 
         if (interactionError) throw interactionError;
 
-        toast.success("Message saved to conversation history!");
+        toast.success("Message copied and saved to conversation history!");
 
         if (onMessageSaved) {
           onMessageSaved();
@@ -415,7 +416,7 @@ export function MessageGeneration({
   const MessageContent = useMemo(
     () => (
       <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
-        <div className="space-y-8">
+        <div className="space-y-4">
           <div className="space-y-4">
             <Label className="text-lg font-semibold text-foreground">
               What are you trying to achieve?
@@ -459,7 +460,7 @@ export function MessageGeneration({
                 />
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-4">
+            <CollapsibleContent className="mt-2">
               <Textarea
                 className="bg-background border-border "
                 id="additional-context"
@@ -472,7 +473,7 @@ export function MessageGeneration({
           </Collapsible>
 
           {/* Medium Selection - Flat Cards */}
-          <div className="space-y-2">
+          <div className="space-y-2 mt-2">
             <div className="">
               <div className="flex gap-3">
                 {MEDIUM_OPTIONS.map((option) => (
@@ -504,7 +505,7 @@ export function MessageGeneration({
               disabled={
                 isGenerating || !getEffectiveObjective() || !contact?.contact_id
               }
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold border-0 transition-colors"
+              className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold border-0 transition-colors"
               size="lg"
             >
               <MessageCircle className="mr-2 h-5 w-5" />
@@ -521,12 +522,12 @@ export function MessageGeneration({
         {Object.keys(generatedMessages).length > 0 && (
           <div className="space-y-4">
             <Tabs defaultValue="Version 1" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+              <TabsList className="grid w-full grid-cols-3 bg-secondary">
                 {Object.keys(generatedMessages).map((version) => (
                   <TabsTrigger
                     key={version}
                     value={version}
-                    className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                    className="w-[98%] rounded-lg mx-auto text-sm font-medium bg-background data-[state=active]:bg-primary-muted data-[state=active]:border-primary-muted border-2 border-border"
                   >
                     {version}
                   </TabsTrigger>
@@ -535,8 +536,8 @@ export function MessageGeneration({
 
               {/* Generated Messages - Preview */}
               {Object.entries(generatedMessages).map(([version, content]) => (
-                <TabsContent key={version} value={version} className="mt-4">
-                  <Card className="p-4 bg-inherit border-none">
+                <TabsContent key={version} value={version} className="">
+                  <Card className=" bg-inherit border-none">
                     {/* Editable Message Text */}
                     <div className="space-y-3">
                       <Textarea
