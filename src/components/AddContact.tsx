@@ -333,21 +333,15 @@ export const AddContact = ({
   return (
     <div className="space-y-4">
       {!createdContact && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-4">
-            <UserPlus className="h-5 w-5 text-foreground" />
-            <h3 className="font-medium text-lg ">
-              Add profile and create contact
-            </h3>
-          </div>
-
-          <div className="space-y-4">
+        <div className="space-y-6 ">
+          <div className="space-y-4 ">
             <Textarea
               value={linkedinBio}
               onChange={(e) => setLinkedinBio(e.target.value)}
               placeholder="Copy all content on their LinkedIn profile page (CTRL/CMD + A, CTRL/CMD + C) and paste it here (CTRL/CMD + V)."
               className="min-h-[120px] text-sm resize-none bg-secondary border-border"
             />
+
             <PrimaryAction
               onClick={handleProcessBio}
               disabled={!linkedinBio.trim() || isLoading}
@@ -364,13 +358,6 @@ export const AddContact = ({
               )}
             </PrimaryAction>
           </div>
-
-          <InfoBox
-            className="text-sm"
-            title="Who should I contact?"
-            description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
-            icon={<LucideTarget className="h-4 w-4" />}
-          />
         </div>
       )}
 

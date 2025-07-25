@@ -41,7 +41,6 @@ const Modal = ({
             {icon && (
               <div className="text-primary">
                 {React.cloneElement(icon as React.ReactElement, {
-                  // Made the icon larger
                   className: "h-10 w-10",
                 })}
               </div>

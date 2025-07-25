@@ -34,7 +34,9 @@ export const AddContactModal = ({
   onSuccess,
 }: AddContactModalProps) => {
   const { companies } = useCompanies();
-  const [createdContact, setCreatedContact] = useState<CreatedContact | null>(null);
+  const [createdContact, setCreatedContact] = useState<CreatedContact | null>(
+    null
+  );
 
   const handleContactCreated = (newContact: CreatedContact) => {
     setCreatedContact(newContact);
@@ -50,8 +52,9 @@ export const AddContactModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={companyName ? `Create New Contact at ${companyName}` : "Create New Contact"}
+      title="Create New Contact"
       icon={<UserPlus />}
+      description={`${companyName}`}
       className="sm:max-w-2xl"
     >
       <div className="space-y-6">
@@ -60,12 +63,6 @@ export const AddContactModal = ({
           onContactCreated={handleContactCreated}
           createdContact={createdContact}
         />
-        
-        <div className="flex justify-end gap-3 pt-4">
-          <OutlineAction type="button" onClick={handleClose}>
-            {createdContact ? "Close" : "Cancel"}
-          </OutlineAction>
-        </div>
       </div>
     </Modal>
   );

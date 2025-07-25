@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   MessageCircle,
+  LucideTarget,
 } from "lucide-react";
 
 // Design System Imports
@@ -24,6 +25,7 @@ import {
   PrimaryAction,
   OutlineAction,
   CollapsibleWide,
+  InfoBox,
 } from "@/components/ui/design-system";
 import {
   Collapsible,
@@ -451,7 +453,7 @@ const PipelineDashboard = () => {
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-0 pb-4 ">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-0 pb-4">
               {/* Left Panel - Contact Creation*/}
               <PrimaryCard
                 className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
@@ -461,10 +463,22 @@ const PipelineDashboard = () => {
                 }`}
               >
                 <CardContent>
+                  <div className="flex items-center gap-2 mb-4">
+                    <UserPlus className="h-5 w-5 text-foreground " />
+                    <h3 className="font-medium text-lg">
+                      Add profile and create contact
+                    </h3>
+                  </div>
                   <AddContact
                     companies={companies}
                     onContactCreated={handleContactCreated}
                     createdContact={contactForMessage}
+                  />
+                  <InfoBox
+                    className="text-sm mt-4 mb-0"
+                    title="Who should I contact?"
+                    description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
+                    icon={<LucideTarget className="h-4 w-4" />}
                   />
                 </CardContent>
               </PrimaryCard>

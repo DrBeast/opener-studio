@@ -477,9 +477,9 @@ export function MessageGeneration({
             <div className="">
               <div className="flex gap-3">
                 {MEDIUM_OPTIONS.map((option) => (
-                   <Button
-                     key={option.id}
-                     variant="outline"
+                  <Button
+                    key={option.id}
+                    variant="option"
                     className={`flex-1 p-1 transition-colors cursor-pointer ${
                       medium === option.id
                         ? "bg-secondary text-primary"
