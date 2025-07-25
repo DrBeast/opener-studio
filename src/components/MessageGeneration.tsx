@@ -418,7 +418,7 @@ export function MessageGeneration({
       <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
         <div className="space-y-4">
           <div className="space-y-4">
-            <Label className="text-lg font-semibold text-foreground">
+            <Label className="text-md font-semibold text-foreground">
               What are you trying to achieve?
             </Label>
             <div className="flex flex-wrap gap-3">

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Building, Bot, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { AddContactModal } from "@/components/AddContactModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 import {
   Chipcard,
@@ -170,7 +170,7 @@ export const CompanySelectionModal = ({
               onSuccess={handleSuccess}
             />
           ) : (
-            <EnhancedContactModal
+            <AddContactModal
               isOpen={isContactModalOpen}
               onClose={handleCloseContactModal}
               companyId={selectedCompany.company_id}

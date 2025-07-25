@@ -6,8 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
-import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
-import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
+import { CompanyDuplicateDialog } from "./pipeline/CompanyDuplicateDialog";
+import { ContactDuplicateDialog } from "./pipeline/ContactDuplicateDialog";
 import { LucideTarget } from "lucide-react";
 
 // --- Interface Definitions ---
@@ -23,8 +23,6 @@ interface CreatedContact {
   bio_summary: string;
   how_i_can_help: string;
   recent_activity_summary: string;
-  email?: string;
-  linkedin_url?: string;
 }
 
 // Represents the temporary data parsed from a bio
@@ -37,11 +35,9 @@ interface ContactBioData {
   bio_summary: string;
   how_i_can_help: string;
   recent_activity_summary: string;
-  email?: string;
-  linkedin_url?: string;
 }
 
-interface IntegratedContactWorkflowProps {
+interface AddContactProps {
   companies: Array<{ company_id: string; name: string }>;
   onContactCreated: (newContact: CreatedContact) => void;
   createdContact?: CreatedContact | null;
@@ -64,11 +60,11 @@ interface PotentialContactDuplicate {
   reasoning: string;
 }
 
-export const IntegratedContactWorkflow = ({
+export const AddContact = ({
   companies,
   onContactCreated,
   createdContact,
-}: IntegratedContactWorkflowProps) => {
+}: AddContactProps) => {
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +83,7 @@ export const IntegratedContactWorkflow = ({
   const [pendingContactData, setPendingContactData] =
     useState<ContactBioData | null>(null);
 
-  // --- Main Handler for the "Process Bio" button ---
+  // --- Main Handler for the "Process Bio" button (INCLUDE INTO DEDICATED FUNCTION LATER) ---
   const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
 
@@ -281,7 +277,6 @@ export const IntegratedContactWorkflow = ({
       console.log(
         `[Update Contact] User chose to update existing contact: ${contactId}`
       );
-
       // Step 1: Update the existing contact in the database with the new parsed info.
       // We only update fields that come from the bio, preserving user_notes and interaction history.
       const { data: updatedContact, error: updateError } = await supabase
@@ -341,7 +336,9 @@ export const IntegratedContactWorkflow = ({
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <UserPlus className="h-5 w-5 text-foreground" />
-            <h3 className="font-medium">Add profile and create contact</h3>
+            <h3 className="font-medium text-lg ">
+              Add profile and create contact
+            </h3>
           </div>
 
           <div className="space-y-4">
@@ -373,8 +370,8 @@ export const IntegratedContactWorkflow = ({
             title="Who should I contact?"
             description={
               <p>
-                Start with people you already know. For new contacts, try
-                searching LinkedIn for{" "}
+                Start with people you already know. For new contacts, think of
+                companies you are interested in, then try searching LinkedIn for{" "}
                 <strong>[company name] [function]</strong>.
               </p>
             }

@@ -15,8 +15,6 @@ interface ProcessedContact {
   last_name: string;
   role?: string;
   location?: string;
-  linkedin_url?: string;
-  email?: string;
   bio_summary?: string;
   how_i_can_help?: string;
   current_company?: string;
@@ -105,10 +103,8 @@ serve(async (req) => {
       "role": "The contact's job title/role",
       "current_company": "The company where the contact currently works",
       "location": "The contact's location (if available)",
-      "linkedin_url": "LinkedIn URL if found (may not be present in bio text)",
-      "email": "Public email address if found (very unlikely). Do NOT guess or generate email addresses.",
       "bio_summary": "A brief, 1-2 sentence summary of the contact's background and relevance based on their LinkedIn content",
-      "how_i_can_help": "${userSummary ? 'A brief, 1-2 sentence explanation of how the user (referring to their background and skills) can potentially be of help or provide value to this specific contact or their team/company' : 'A brief note about potential collaboration opportunities'}"
+      "how_i_can_help": "2-3 sentence explanation of how the user can potentially be of help or provide value to this specific contact or their team/company. Use examples from the user's background to provide examples and justification. Aim to show the logical connection between the user's expertise and the contact's needs, eg 'I can see you are working on this problem - I have solved a similar one before, I can help you with that'."
     }
 
     Ensure the output is a valid JSON object. Focus on accuracy and only include information that can be reliably extracted from the provided LinkedIn content.

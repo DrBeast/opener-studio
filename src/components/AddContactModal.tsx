@@ -18,11 +18,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
-import { LinkedInQuerySuggestions } from "./LinkedInQuerySuggestions";
+import { LinkedInQuerySuggestions } from "../components/pipeline/LinkedInQuerySuggestions";
 import { Modal } from "@/components/ui/design-system/modals";
 import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
 
-interface EnhancedContactModalProps {
+interface AddContactModalProps {
   isOpen: boolean;
   onClose: () => void;
   companyId: string;
@@ -40,13 +40,13 @@ interface GeneratedContact {
   how_i_can_help?: string;
 }
 
-export const EnhancedContactModal = ({
+export const AddContactModal = ({
   isOpen,
   onClose,
   companyId,
   companyName,
   onSuccess,
-}: EnhancedContactModalProps) => {
+}: AddContactModalProps) => {
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -146,10 +146,11 @@ export const EnhancedContactModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`Add New Contact - ${companyName}`}
+      title={`Create New Contact at ${companyName}`}
       icon={<UserPlus />}
       className="sm:max-w-2xl"
     >
+      {/* REPLACE THIS WITH ADDCONTACT OR REMOVE ALTOGETHER */}
       <div className="space-y-6">
         {/* Info Box */}
         <AirtableCard className="bg-blue-50 border-blue-200">

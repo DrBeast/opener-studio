@@ -41,10 +41,10 @@ import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
 import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
 import { ContactsTable } from "@/components/pipeline/ContactsTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
-import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { AddContactModal } from "../components/AddContactModal";
 import { TargetsModal } from "@/components/TargetsModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
-import { IntegratedContactWorkflow } from "@/components/pipeline/IntegratedContactWorkflow";
+import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
 
 import { Button } from "@/components/ui/button";
@@ -394,7 +394,6 @@ const PipelineDashboard = () => {
       last_name: newContact.last_name,
       role: newContact.role,
       company_id: newContact.company_id,
-      // Include other properties that might be needed
       current_company: newContact.current_company,
       location: newContact.location,
       bio_summary: newContact.bio_summary,
@@ -434,6 +433,7 @@ const PipelineDashboard = () => {
 
   return (
     <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2 ">
+      {/* Collapsible Section for Integrated Flow */}
       <div className="w-[95%] mx-auto">
         <Collapsible
           open={isWorkflowExpanded}
@@ -461,7 +461,7 @@ const PipelineDashboard = () => {
                 }`}
               >
                 <CardContent>
-                  <IntegratedContactWorkflow
+                  <AddContact
                     companies={companies}
                     onContactCreated={handleContactCreated}
                     createdContact={contactForMessage}
@@ -469,7 +469,7 @@ const PipelineDashboard = () => {
                 </CardContent>
               </PrimaryCard>
 
-              {/* Left Panel - Contact Creation*/}
+              {/* Right Panel - Message Generation*/}
               <PrimaryCard
                 className={`p-4 rounded-lg border-2 transition-all relative ${
                   !contactForMessage
@@ -492,7 +492,7 @@ const PipelineDashboard = () => {
                       }`}
                     />
                     <h3
-                      className={`font-medium ${
+                      className={`font-medium text-lg ${
                         !contactForMessage
                           ? "text-foreground"
                           : "text-foreground"
@@ -718,7 +718,7 @@ const PipelineDashboard = () => {
           onCompanyUpdated={handleCompanyUpdated}
         />
       )}
-      <EnhancedContactModal
+      <AddContactModal
         isOpen={contactModal.isOpen}
         onClose={() =>
           setContactModal({

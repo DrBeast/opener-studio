@@ -41,7 +41,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
-import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { AddContactModal } from "@/components/AddContactModal";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { OutlineAction, PrimaryAction, Chipcard } from "./ui/design-system";
 
@@ -1009,7 +1009,7 @@ export function CompanyDetails({
         )}
 
         {/* Add Contact Modal */}
-        <EnhancedContactModal
+        <AddContactModal
           isOpen={isAddContactOpen}
           onClose={() => setIsAddContactOpen(false)}
           companyId={company.company_id}
