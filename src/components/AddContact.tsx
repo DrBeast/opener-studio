@@ -332,7 +332,7 @@ export const AddContact = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full">
       {!createdContact && (
         <div className="space-y-6 ">
           <div className="space-y-4 ">
@@ -362,8 +362,10 @@ export const AddContact = ({
         </div>
       )}
 
-      {createdContact && (
-        <ContactPreview contact={createdContact} />
+{createdContact && (
+        <div className="h-full">
+          <ContactPreview contact={createdContact} className="h-full" />
+        </div>
       )}
 
       {/* --- DIALOGS --- */}

@@ -454,11 +454,11 @@ const PipelineDashboard = () => {
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-0 pb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch pt-0 pb-4">
               {/* Left Panel - Contact Creation*/}
 {!contactForMessage ? (
                 <PrimaryCard
-                  className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                  className={`space-y-4 h-full p-4 rounded-lg border-2 transition-all ${
                     !contactForMessage
                       ? "border-primary" // Active styles
                       : "border-border " // Inactive styles
@@ -501,7 +501,7 @@ const PipelineDashboard = () => {
                 </PrimaryCard>
               ) : (
                 // When a contact exists, replace the parent card entirely
-                <div className="space-y-4">
+                <div className="space-y-4 h-full">
                   <AddContact
                     companies={companies}
                     onContactCreated={handleContactCreated}
@@ -512,7 +512,7 @@ const PipelineDashboard = () => {
 
               {/* Right Panel - Message Generation*/}
               <PrimaryCard
-                className={`p-4 rounded-lg border-2 transition-all relative ${
+                className={`h-full p-4 rounded-lg border-2 transition-all relative ${
                   !contactForMessage
                     ? "border-border" // Inactive styles
                     : "border-primary" // Active styles

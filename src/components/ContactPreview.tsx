@@ -2,6 +2,7 @@ import React from "react";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Briefcase, MapPin, Building, Linkedin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContactPreviewProps {
   contact: {
@@ -14,6 +15,7 @@ interface ContactPreviewProps {
     how_i_can_help?: string;
     linkedin_url?: string;
   };
+  className?: string;
 }
 
 const getInitials = (first?: string, last?: string) => {
@@ -22,11 +24,11 @@ const getInitials = (first?: string, last?: string) => {
   return (f + l).toUpperCase() || "?";
 };
 
-export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
+export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact, className }) => {
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (
-    <PrimaryCard className="bg-green-50 border-green-200">
+    <PrimaryCard className={cn("bg-green-50 border-green-200", className)}>
       <CardContent className="p-4">
         {/* Main Flex Container */}
         <div className="flex items-start gap-3">
