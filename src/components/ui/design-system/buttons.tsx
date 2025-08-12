@@ -176,7 +176,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
           "h-auto px-3 py-1.5 text-sm font-normal rounded-full border-border transition-colors shadow-none hover:shadow-none", // Base styles for the chip
           isSelected
             ? "bg-primary text-primary-foreground border-primary hover:bg-primary/80" // Selected state styles
-            : "bg-background text-foreground hover:bg-primary-muted hover:border-border", // Unselected state styles
+            : "bg-secondary text-foreground hover:bg-primary-muted hover:border-border", // Unselected state styles
           className
         )}
         {...props}

@@ -363,11 +363,6 @@ export const AddContact = ({
 
       {createdContact && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <UserPlus className="h-5 w-5 text-green-600" />
-            <h3 className="font-medium text-green-800">Contact added</h3>
-          </div>
-
           <PrimaryCard className="bg-green-50 border-green-200">
             <CardContent className="p-4">
               <div className="space-y-3">

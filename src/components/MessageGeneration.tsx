@@ -449,7 +449,7 @@ export function MessageGeneration({
             onOpenChange={setIsContextExpanded}
           >
             <CollapsibleTrigger asChild>
-              <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-background text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
+              <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-secondary text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
                 <Label className="text-sm font-semibold cursor-pointer">
                   Additional context (optional)
                 </Label>
@@ -462,7 +462,7 @@ export function MessageGeneration({
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <Textarea
-                className="bg-background border-border "
+                className="bg-secondary border-border "
                 id="additional-context"
                 placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
                 value={additionalContext}
@@ -482,8 +482,8 @@ export function MessageGeneration({
                     variant="option"
                     className={`flex-1 p-1 transition-colors cursor-pointer ${
                       medium === option.id
-                        ? "bg-secondary text-primary"
-                        : "bg-secondary text-secondary-foreground/80 hover:text-primary/60"
+                        ? "bg-background text-primary"
+                        : "bg-background text-secondary-foreground/80 hover:text-primary/60"
                     }`}
                     onClick={() => handleMediumChange(option.id)}
                   >

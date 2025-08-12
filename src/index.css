@@ -11,22 +11,13 @@
     --secondary-foreground: 0 0% 45%; /* Medium gray for secondary text */
     --muted: 0 0% 90%; /* Light gray */
 
-    /* Card and surfaces - minimal borders */
-    --card: 0 0% 100%; /* Pure white */
-    --card-foreground: 0 0% 20%; /* Dark text */
-
-    --popover: 0 0% 100%; /* Pure white */
-    --popover-foreground: 0 0% 20%; /* Dark text */
-
     /* Primary - bright, high contrast purple */
     --primary: 280 90% 50.9%; /* Bright purple button color */
-    --primary-hover: 280 90% 60%; /* Bright purple button color */
-    --primary-foreground: 0 0% 100%; /* White text */
     --primary-muted: 279 68.2% 89.6%; /* Very light purple */
+    --primary-foreground: 0 0% 100%; /* Clean white text for primary colored elements */
 
-    /* Secondary - light neutral */
+    /* Secondary - light gray for text areas */
     --secondary: 0 0% 98%; /* Almost-white gray background */
-    --secondary-foreground: 0 0% 20%; /* Dark text */
 
     --muted-foreground: 0 0% 45%; /* Medium gray */
 

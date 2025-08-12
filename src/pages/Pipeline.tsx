@@ -26,6 +26,7 @@ import {
   OutlineAction,
   CollapsibleWide,
   InfoBox,
+  CardTitle,
 } from "@/components/ui/design-system";
 import {
   Collapsible,
@@ -458,28 +459,47 @@ const PipelineDashboard = () => {
               <PrimaryCard
                 className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
                   !contactForMessage
-                    ? "border-primary"
-                    : "border-border bg-muted"
+                    ? "border-primary" // Active styles
+                    : "border-border bg-muted" // Inactive styles
                 }`}
               >
                 <CardContent>
                   <div className="flex items-center gap-2 mb-4">
-                    <UserPlus className="h-5 w-5 text-foreground " />
-                    <h3 className="font-medium text-lg">
-                      Add profile and create contact
-                    </h3>
+                    <UserPlus
+                      className={`h-5 w-5 ${
+                        !contactForMessage
+                          ? "text-primary" // Active styles
+                          : "text-foreground" // Inactive styles
+                      }`}
+                    />
+                    <CardTitle
+                      className={`font-medium text-lg ${
+                        !contactForMessage
+                          ? "text-primary" // Active styles
+                          : "text-foreground" // Inactive styles
+                      }`}
+                    >
+                      {
+                        contactForMessage
+                          ? "Contact created" // Active styles
+                          : "Add profile and create contact" // Inactive styles
+                      }
+                    </CardTitle>
                   </div>
+
                   <AddContact
                     companies={companies}
                     onContactCreated={handleContactCreated}
                     createdContact={contactForMessage}
                   />
-                  <InfoBox
-                    className="text-sm mt-4 mb-0"
-                    title="Who should I contact?"
-                    description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
-                    icon={<LucideTarget className="h-4 w-4" />}
-                  />
+                  {!contactForMessage && (
+                    <InfoBox
+                      className="text-sm mt-4 mb-0"
+                      title="Who should I contact?"
+                      description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
+                      icon={<LucideTarget className="h-4 w-4" />}
+                    />
+                  )}
                 </CardContent>
               </PrimaryCard>
 
@@ -501,21 +521,21 @@ const PipelineDashboard = () => {
                     <MessageCircle
                       className={`h-5 w-5 ${
                         !contactForMessage
-                          ? "text-foreground"
-                          : "text-foreground"
+                          ? "text-foreground" // Inactive styles
+                          : "text-primary" // Active styles
                       }`}
                     />
-                    <h3
+                    <CardTitle
                       className={`font-medium text-lg ${
                         !contactForMessage
-                          ? "text-foreground"
-                          : "text-foreground"
+                          ? "text-foreground" // Inactive styles
+                          : "text-primary" // Active styles
                       }`}
                     >
                       {contactForMessage
                         ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
                         : "Generate message: create contact first"}
-                    </h3>
+                    </CardTitle>
                   </div>
 
                   {/* The MessageGeneration component is always rendered */}
@@ -539,7 +559,7 @@ const PipelineDashboard = () => {
                       onMessageSaved={() => {
                         toast({
                           title: "Success",
-                          description: "Message saved and workflow completed!",
+                          description: "Message copied and saved to history!",
                         });
                         setContactForMessage(null);
                       }}
@@ -550,7 +570,6 @@ const PipelineDashboard = () => {
                 </CardContent>
               </PrimaryCard>
 
-              {/* Right Panel - Message Generation - MAKE THIS A CARD TOO */}
               <div></div>
             </div>
           </CollapsibleContent>
