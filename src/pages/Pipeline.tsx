@@ -456,52 +456,59 @@ const PipelineDashboard = () => {
           <CollapsibleContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-0 pb-4">
               {/* Left Panel - Contact Creation*/}
-              <PrimaryCard
-                className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
-                  !contactForMessage
-                    ? "border-primary" // Active styles
-                    : "border-border " // Inactive styles
-                }`}
-              >
-                <CardContent>
-                  <div className="flex items-center gap-2 mb-4">
-                    <UserPlus
-                      className={`h-5 w-5 ${
-                        !contactForMessage
-                          ? "text-primary" // Active styles
-                          : "text-foreground" // Inactive styles
-                      }`}
-                    />
-                    <CardTitle
-                      className={`font-medium text-lg ${
-                        !contactForMessage
-                          ? "text-primary" // Active styles
-                          : "text-foreground" // Inactive styles
-                      }`}
-                    >
-                      {
-                        contactForMessage
-                          ? "Contact created" // Active styles
-                          : "Add profile and create contact" // Inactive styles
-                      }
-                    </CardTitle>
-                  </div>
+{!contactForMessage ? (
+                <PrimaryCard
+                  className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
+                    !contactForMessage
+                      ? "border-primary" // Active styles
+                      : "border-border " // Inactive styles
+                  }`}
+                >
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-4">
+                      <UserPlus
+                        className={`h-5 w-5 ${
+                          !contactForMessage
+                            ? "text-primary" // Active styles
+                            : "text-foreground" // Inactive styles
+                        }`}
+                      />
+                      <CardTitle
+                        className={`font-medium text-lg ${
+                          !contactForMessage
+                            ? "text-primary" // Active styles
+                            : "text-foreground" // Inactive styles
+                        }`}
+                      >
+                        {"Add profile and create contact"}
+                      </CardTitle>
+                    </div>
 
+                    <AddContact
+                      companies={companies}
+                      onContactCreated={handleContactCreated}
+                      createdContact={contactForMessage}
+                    />
+                    {!contactForMessage && (
+                      <InfoBox
+                        className="text-sm mt-4 mb-0"
+                        title="Who should I contact?"
+                        description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
+                        icon={<LucideTarget className="h-4 w-4" />}
+                      />
+                    )}
+                  </CardContent>
+                </PrimaryCard>
+              ) : (
+                // When a contact exists, replace the parent card entirely
+                <div className="space-y-4">
                   <AddContact
                     companies={companies}
                     onContactCreated={handleContactCreated}
                     createdContact={contactForMessage}
                   />
-                  {!contactForMessage && (
-                    <InfoBox
-                      className="text-sm mt-4 mb-0"
-                      title="Who should I contact?"
-                      description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
-                      icon={<LucideTarget className="h-4 w-4" />}
-                    />
-                  )}
-                </CardContent>
-              </PrimaryCard>
+                </div>
+              )}
 
               {/* Right Panel - Message Generation*/}
               <PrimaryCard
