@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary:
           // Tailwind: bg-purple-600 (#9333ea, hsl(262, 83%, 58%)), text-white (#fff), hover:bg-purple-700 (#7e22ce, hsl(262, 84%, 48%))
-          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary-hover))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary-hover))] shadow-none transition-all duration-200 shrink-0",
 
         destructive:
           // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
@@ -23,7 +23,7 @@ const buttonVariants = cva(
 
         option:
           // Tailwind: bg-blue-600 (#2563eb, hsl(221, 83%, 53%)), text-white (#fff), hover:bg-blue-700 (#1d4ed8, hsl(221, 77%, 44%))
-          "bg-[hsl(var(--option))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--option))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--primary-muted))] hover:text-[hsl(var(--primary-hover))] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary-muted))] shadow-none transition-all duration-200 shrink-0",
 
         outline:
           // Tailwind: border-gray-300 (#d1d5db, hsl(220, 13%, 91%)), bg-white (#fff, hsl(0, 0%, 100%)), text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-50 (#f9fafb, hsl(220, 20%, 98%))
@@ -170,15 +170,15 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
     return (
       <Button
         ref={ref}
-        variant="outline"
-        size="sm"
-        className={cn(
-          "h-auto px-3 py-1.5 text-sm font-normal rounded-full border-border transition-colors shadow-none hover:shadow-none", // Base styles for the chip
+        variant={
           isSelected
-            ? "bg-primary text-primary-foreground border-primary hover:bg-primary/80" // Selected state styles
-            : "bg-secondary text-foreground hover:bg-primary-muted hover:border-border", // Unselected state styles
-          className
-        )}
+            ? "primary" // Active style
+            : "option" // Inactive style
+        }
+        size="sm"
+        className={
+          "h-auto px-3 py-1.5 text-sm font-normal rounded-full  transition-colors shadow-none hover:shadow-none"
+        }
         {...props}
       >
         {children}

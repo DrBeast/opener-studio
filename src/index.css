@@ -13,6 +13,7 @@
 
     /* Primary - bright, high contrast purple */
     --primary: 280 90% 50.9%; /* Bright purple button color */
+    --primary-hover: 280 80% 60%; /* Slightly lighter purple for primary button hover*/
     --primary-muted: 279 68.2% 89.6%; /* Very light purple */
     --primary-foreground: 0 0% 100%; /* Clean white text for primary colored elements */
 

@@ -480,10 +480,10 @@ export function MessageGeneration({
                   <Button
                     key={option.id}
                     variant="option"
-                    className={`flex-1 p-1 transition-colors cursor-pointer ${
+                    className={`bg-inherit hover:bg-inherit flex-1 p-1 border-none transition-colors cursor-pointer ${
                       medium === option.id
-                        ? "bg-background text-primary"
-                        : "bg-background text-secondary-foreground/80 hover:text-primary/60"
+                        ? "text-primary"
+                        : "text-secondary-foreground"
                     }`}
                     onClick={() => handleMediumChange(option.id)}
                   >
@@ -505,7 +505,7 @@ export function MessageGeneration({
               disabled={
                 isGenerating || !getEffectiveObjective() || !contact?.contact_id
               }
-              className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold border-0 transition-colors"
+              className="w-full h-12"
               size="lg"
             >
               <MessageCircle className="mr-2 h-5 w-5" />

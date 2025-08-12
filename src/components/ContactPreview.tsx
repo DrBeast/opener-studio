@@ -26,7 +26,7 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (
-    <PrimaryCard className="bg-green-50 border-green-200">
+    <PrimaryCard className="bg-green-50">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
@@ -40,16 +40,18 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
               {contact.first_name} {contact.last_name}
             </h4>
             {contact.role && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+              <p className="text-sm text-foreground flex items-center gap-1.5">
                 <Briefcase className="h-4 w-4" /> {contact.role}
               </p>
             )}
-            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-3 text-sm text-foreground">
               {contact.current_company && (
                 <span className="inline-flex items-center gap-1.5">
                   <Building className="h-4 w-4" /> {contact.current_company}
                 </span>
               )}
+            </div>
+            <div className="flex flex-wrap gap-3 text-sm text-foreground">
               {contact.location && (
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" /> {contact.location}
@@ -61,8 +63,10 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
 
         {contact.bio_summary && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-foreground mb-1">Background:</p>
-            <p className="text-sm leading-6 text-muted-foreground">
+            <p className="text-sm font-medium text-foreground mb-1">
+              Background:
+            </p>
+            <p className="text-sm leading-6 text-foreground">
               {contact.bio_summary}
             </p>
           </div>
@@ -70,8 +74,10 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
 
         {contact.how_i_can_help && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-foreground mb-1">How You Can Help:</p>
-            <p className="text-sm leading-6 text-primary">
+            <p className="text-sm font-medium text-foreground mb-1">
+              How You Can Help:
+            </p>
+            <p className="text-sm leading-6 text-foreground">
               {contact.how_i_can_help}
             </p>
           </div>

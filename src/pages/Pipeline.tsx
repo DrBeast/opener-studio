@@ -460,7 +460,7 @@ const PipelineDashboard = () => {
                 className={`space-y-4 p-4 rounded-lg border-2 transition-all ${
                   !contactForMessage
                     ? "border-primary" // Active styles
-                    : "border-border bg-muted" // Inactive styles
+                    : "border-border " // Inactive styles
                 }`}
               >
                 <CardContent>
