@@ -9,6 +9,7 @@ import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./pipeline/CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./pipeline/ContactDuplicateDialog";
 import { LucideTarget } from "lucide-react";
+import { ContactPreview } from "./ContactPreview";
 
 // --- Interface Definitions ---
 // Represents the final, complete Contact object stored in your database
@@ -362,63 +363,7 @@ export const AddContact = ({
       )}
 
       {createdContact && (
-        <div className="space-y-4">
-          <PrimaryCard className="bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      {createdContact.first_name} {createdContact.last_name}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {createdContact.role}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-700">
-                      {createdContact.current_company}
-                    </span>
-                  </div>
-
-                  {createdContact.location && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-600">
-                        📍 {createdContact.location}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {createdContact.bio_summary && (
-                  <div className="pt-2 border-t border-green-200">
-                    <p className="text-xs text-gray-600 font-medium mb-1">
-                      Bio Summary
-                    </p>
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {createdContact.bio_summary}
-                    </p>
-                  </div>
-                )}
-
-                {createdContact.how_i_can_help && (
-                  <div className="pt-2 border-t border-green-200">
-                    <p className="text-xs text-gray-600 font-medium mb-1">
-                      How I Can Help
-                    </p>
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      {createdContact.how_i_can_help}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </PrimaryCard>
-        </div>
+        <ContactPreview contact={createdContact} />
       )}
 
       {/* --- DIALOGS --- */}
