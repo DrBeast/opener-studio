@@ -26,75 +26,82 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact }) => {
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (
-    <PrimaryCard className="bg-green-50">
+    <PrimaryCard className="bg-green-50 border-green-200">
       <CardContent className="p-4">
+        {/* Main Flex Container */}
         <div className="flex items-start gap-3">
+          {/* Avatar (Left Column) */}
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-primary/10 text-primary text-sm">
               {initials}
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 space-y-1">
-            <h4 className="font-semibold text-foreground">
-              {contact.first_name} {contact.last_name}
-            </h4>
-            {contact.role && (
-              <p className="text-sm text-foreground flex items-center gap-1.5">
-                <Briefcase className="h-4 w-4" /> {contact.role}
-              </p>
+          {/* --- REVISED: All text content is now in this container (Right Column) --- */}
+          <div className="flex-1 space-y-3">
+            {/* Name, Role, Company, Location */}
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">
+                {contact.first_name} {contact.last_name}
+              </h4>
+              {contact.role && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Briefcase className="h-4 w-4" /> {contact.role}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                {contact.current_company && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Building className="h-4 w-4" /> {contact.current_company}
+                  </span>
+                )}
+                {contact.location && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" /> {contact.location}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Background Summary */}
+            {contact.bio_summary && (
+              <div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  Background:
+                </p>
+                <p className="text-sm leading-6 text-foreground">
+                  {contact.bio_summary}
+                </p>
+              </div>
             )}
-            <div className="flex flex-wrap gap-3 text-sm text-foreground">
-              {contact.current_company && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Building className="h-4 w-4" /> {contact.current_company}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm text-foreground">
-              {contact.location && (
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" /> {contact.location}
-                </span>
-              )}
-            </div>
+
+            {/* How You Can Help */}
+            {contact.how_i_can_help && (
+              <div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  How You Can Help:
+                </p>
+                <p className="text-sm leading-6 text-foreground">
+                  {contact.how_i_can_help}
+                </p>
+              </div>
+            )}
+
+            {/* LinkedIn Link */}
+            {contact.linkedin_url && (
+              <div>
+                <a
+                  href={contact.linkedin_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Linkedin className="h-4 w-4" /> LinkedIn
+                </a>
+              </div>
+            )}
           </div>
         </div>
-
-        {contact.bio_summary && (
-          <div className="mt-4">
-            <p className="text-sm font-medium text-foreground mb-1">
-              Background:
-            </p>
-            <p className="text-sm leading-6 text-foreground">
-              {contact.bio_summary}
-            </p>
-          </div>
-        )}
-
-        {contact.how_i_can_help && (
-          <div className="mt-4">
-            <p className="text-sm font-medium text-foreground mb-1">
-              How You Can Help:
-            </p>
-            <p className="text-sm leading-6 text-foreground">
-              {contact.how_i_can_help}
-            </p>
-          </div>
-        )}
-
-        {contact.linkedin_url && (
-          <div className="mt-4">
-            <a
-              href={contact.linkedin_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Linkedin className="h-4 w-4" /> LinkedIn
-            </a>
-          </div>
-        )}
       </CardContent>
     </PrimaryCard>
   );
