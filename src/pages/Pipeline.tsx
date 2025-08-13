@@ -456,7 +456,7 @@ const PipelineDashboard = () => {
           <CollapsibleContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch pt-0 pb-4">
               {/* Left Panel - Contact Creation*/}
-{!contactForMessage ? (
+              {!contactForMessage ? (
                 <PrimaryCard
                   className={`space-y-4 h-full p-4 rounded-lg border-2 transition-all ${
                     !contactForMessage
