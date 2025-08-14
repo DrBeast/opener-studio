@@ -6,15 +6,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/airtable-ds/dialog";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Badge } from "@/components/ui/airtable-ds/badge";
 import { Building2, AlertTriangle } from "lucide-react";
 
 interface PotentialDuplicate {
   company_id: string;
   name: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   reasoning: string;
 }
 
@@ -45,23 +45,23 @@ export function CompanyDuplicateDialog({
 
   const getConfidenceBadgeVariant = (confidence: string) => {
     switch (confidence) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'default';
+      case "high":
+        return "destructive";
+      case "medium":
+        return "default";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
-      case 'high':
-        return 'text-red-600';
-      case 'medium':
-        return 'text-yellow-600';
+      case "high":
+        return "text-red-600";
+      case "medium":
+        return "text-yellow-600";
       default:
-        return 'text-gray-600';
+        return "text-gray-600";
     }
   };
 
@@ -74,8 +74,8 @@ export function CompanyDuplicateDialog({
             <DialogTitle>Possible Duplicate Company</DialogTitle>
           </div>
           <DialogDescription>
-            We found existing companies that might be the same as "{companyName}". 
-            Please review and choose an option.
+            We found existing companies that might be the same as "{companyName}
+            ". Please review and choose an option.
           </DialogDescription>
         </DialogHeader>
 
@@ -95,8 +95,8 @@ export function CompanyDuplicateDialog({
                 key={duplicate.company_id}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   selectedCompanyId === duplicate.company_id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? "border-primary bg-primary/5"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
                 onClick={() => setSelectedCompanyId(duplicate.company_id)}
               >
@@ -107,16 +107,24 @@ export function CompanyDuplicateDialog({
                       name="company"
                       value={duplicate.company_id}
                       checked={selectedCompanyId === duplicate.company_id}
-                      onChange={() => setSelectedCompanyId(duplicate.company_id)}
+                      onChange={() =>
+                        setSelectedCompanyId(duplicate.company_id)
+                      }
                       className="mt-0.5"
                     />
                     <span className="font-medium">{duplicate.name}</span>
                   </div>
-                  <Badge variant={getConfidenceBadgeVariant(duplicate.confidence)}>
+                  <Badge
+                    variant={getConfidenceBadgeVariant(duplicate.confidence)}
+                  >
                     {duplicate.confidence} confidence
                   </Badge>
                 </div>
-                <p className={`text-sm ml-5 ${getConfidenceColor(duplicate.confidence)}`}>
+                <p
+                  className={`text-sm ml-5 ${getConfidenceColor(
+                    duplicate.confidence
+                  )}`}
+                >
                   {duplicate.reasoning}
                 </p>
               </div>
@@ -128,10 +136,7 @@ export function CompanyDuplicateDialog({
           <Button variant="outline" onClick={onCreateNew}>
             Create New Company
           </Button>
-          <Button 
-            onClick={handleUseExisting}
-            disabled={!selectedCompanyId}
-          >
+          <Button onClick={handleUseExisting} disabled={!selectedCompanyId}>
             Use Selected Company
           </Button>
         </DialogFooter>

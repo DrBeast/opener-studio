@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils"; // Assuming cn utility for Tailwind class merging
 import { Zap } from "lucide-react"; // Assuming Zap icon from lucide-react
-import { Badge } from "@/components/ui/badge"; // Assuming your Badge component
+import { Badge } from "@/components/ui/airtable-ds/badge"; // Assuming your Badge component
 
 // Re-importing your existing Card components from your design system
 // Adjust paths if your design system components are in a different location

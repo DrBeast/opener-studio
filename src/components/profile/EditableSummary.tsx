@@ -1,5 +1,5 @@
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Input } from "@/components/ui/airtable-ds/input";
 import { Button } from "@/components/ui/design-system/buttons";
 
 import {
@@ -7,7 +7,7 @@ import {
   AirtableCardContent,
   AirtableCardHeader,
   AirtableCardTitle,
-} from "@/components/ui/airtable-card";
+} from "@/components/ui/airtable-ds/airtable-card";
 import { Background } from "@/types/profile";
 
 interface EditableSummaryProps {

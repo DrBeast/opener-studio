@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import {
   ArrowRight,
   Loader2,
@@ -16,7 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/airtable-ds/alert";
 import {
   Card,
   CardContent,
@@ -64,9 +63,8 @@ const HeroSection = () => {
   const [profileLinked, setProfileLinked] = useState(false);
   const [profileLinkingAttempted, setProfileLinkingAttempted] = useState(false);
   const [linkingInProgress, setLinkingInProgress] = useState(false);
-  const [generatedProfileOutput, setGeneratedProfileOutput] = useState<
-    GeneratedGuestSummary | null
-  >(null);
+  const [generatedProfileOutput, setGeneratedProfileOutput] =
+    useState<GeneratedGuestSummary | null>(null);
 
   // Generate or retrieve session ID on component mount
   useEffect(() => {
@@ -100,10 +98,10 @@ const HeroSection = () => {
           if (linked) {
             setProfileLinked(true);
             toast.success(
-              "Profile linked successfully! Redirecting to your dashboard..."
+              "Profile linked successfully! Redirecting to your pipeline..."
             );
             setTimeout(() => {
-              navigate("/dashboard");
+              navigate("/pipeline");
             }, 2000);
           } else {
             console.log(
@@ -177,7 +175,7 @@ const HeroSection = () => {
           `Edge function error: ${error.message || "Unknown error"}`
         );
       }
-      
+
       // Handle the response structure from generate_guest_profile
       if (!data || !data.success) {
         throw new Error("Profile generation failed or returned invalid data");
@@ -194,7 +192,7 @@ const HeroSection = () => {
       toast.success("Your AI-powered profile preview is ready!");
 
       if (user) {
-        setTimeout(() => navigate("/dashboard"), 1500);
+        setTimeout(() => navigate("/pipeline"), 1500);
       }
     } catch (error: any) {
       console.error("HeroSection: Profile generation error:", error);
@@ -224,7 +222,7 @@ const HeroSection = () => {
 
   const handleSaveProfileAndContinue = () => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/pipeline");
     } else {
       navigate("/auth/signup");
     }

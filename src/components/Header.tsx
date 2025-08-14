@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/design-system/buttons";
 import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, BookOpen, Settings } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 import SettingsModal from "@/components/SettingsModal";
 import { useState } from "react";
@@ -38,7 +38,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
           {/* LEFT SIDE: Logo, DEV Badge, and Onboarding Button */}
           <div className="flex items-center space-x-2">
             <Link
-              to={user ? "/dashboard" : "/"}
+              to={user ? "/pipeline" : "/"}
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
             >
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">

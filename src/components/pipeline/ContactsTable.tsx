@@ -1,6 +1,6 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Checkbox } from "@/components/ui/airtable-ds/checkbox";
 import {
   Table,
   TableBody,
@@ -8,13 +8,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/airtable-ds/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/airtable-ds/dropdown-menu";
 import {
   ArrowUpDown,
   ChevronDown,
@@ -46,7 +46,7 @@ interface Contact {
   recent_activity_summary: string;
   added_at: string;
   updated_at: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   // Extended with company info from join
   company_name?: string;
   company_industry?: string;
@@ -62,10 +62,17 @@ interface ContactsTableProps {
   sortField: string;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
-  onToggleStatus?: (contactId: string, newStatus: 'active' | 'inactive') => void;
+  onToggleStatus?: (
+    contactId: string,
+    newStatus: "active" | "inactive"
+  ) => void;
 }
 
-const ContactInteractionOverviewCell = ({ contactId }: { contactId: string }) => {
+const ContactInteractionOverviewCell = ({
+  contactId,
+}: {
+  contactId: string;
+}) => {
   const { overview, isLoading, error, regenerateOverview } =
     useContactInteractionOverview(contactId);
 
@@ -209,21 +216,13 @@ export const ContactsTable = ({
               <TableHead className="min-w-[180px]">
                 <SortButton field="company">Company</SortButton>
               </TableHead>
-              <TableHead className="w-[100px]">
-                Status
-              </TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
               <TableHead className="hidden md:table-cell min-w-[120px]">
                 Location
               </TableHead>
-              <TableHead className="min-w-[250px]">
-                Bio Summary
-              </TableHead>
-              <TableHead className="min-w-[100px]">
-                Actions
-              </TableHead>
-              <TableHead className="min-w-[250px]">
-                Interactions
-              </TableHead>
+              <TableHead className="min-w-[250px]">Bio Summary</TableHead>
+              <TableHead className="min-w-[100px]">Actions</TableHead>
+              <TableHead className="min-w-[250px]">Interactions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -244,7 +243,9 @@ export const ContactsTable = ({
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => onSelectContact(contact.contact_id)}
+                      onCheckedChange={() =>
+                        onSelectContact(contact.contact_id)
+                      }
                     />
                   </TableCell>
                   <TableCell>
@@ -263,27 +264,25 @@ export const ContactsTable = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
-                      {contact.role || "-"}
-                    </div>
+                    <div className="text-sm">{contact.role || "-"}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="text-sm">
-                        {companyInfo || "-"}
-                      </div>
+                      <div className="text-sm">{companyInfo || "-"}</div>
                     </div>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
-                        contact.status === 'active' 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-gray-100 text-gray-600"
-                      )}>
-                        {contact.status === 'active' ? (
+                      <div
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+                          contact.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-600"
+                        )}
+                      >
+                        {contact.status === "active" ? (
                           <UserCheck className="h-3 w-3" />
                         ) : (
                           <UserX className="h-3 w-3" />
@@ -298,13 +297,17 @@ export const ContactsTable = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             onToggleStatus(
-                              contact.contact_id, 
-                              contact.status === 'active' ? 'inactive' : 'active'
+                              contact.contact_id,
+                              contact.status === "active"
+                                ? "inactive"
+                                : "active"
                             );
                           }}
-                          title={`Mark as ${contact.status === 'active' ? 'inactive' : 'active'}`}
+                          title={`Mark as ${
+                            contact.status === "active" ? "inactive" : "active"
+                          }`}
                         >
-                          {contact.status === 'active' ? (
+                          {contact.status === "active" ? (
                             <UserX className="h-3 w-3" />
                           ) : (
                             <UserCheck className="h-3 w-3" />
@@ -316,9 +319,7 @@ export const ContactsTable = ({
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="text-xs">
-                        {contact.location || "-"}
-                      </div>
+                      <div className="text-xs">{contact.location || "-"}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -338,9 +339,7 @@ export const ContactsTable = ({
                         }}
                         title="Generate message for this contact"
                       >
-                        <MessageCircle
-                          className="h-4 w-4 text-[hsl(var(--primary))]"
-                        />
+                        <MessageCircle className="h-4 w-4 text-[hsl(var(--primary))]" />
                       </Button>
                       {contact.linkedin_url && (
                         <Button
@@ -349,7 +348,7 @@ export const ContactsTable = ({
                           className="p-2 shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(contact.linkedin_url, '_blank');
+                            window.open(contact.linkedin_url, "_blank");
                           }}
                           title="View LinkedIn profile"
                         >
@@ -359,7 +358,9 @@ export const ContactsTable = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <ContactInteractionOverviewCell contactId={contact.contact_id} />
+                    <ContactInteractionOverviewCell
+                      contactId={contact.contact_id}
+                    />
                   </TableCell>
                 </TableRow>
               );

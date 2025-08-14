@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { InfoBox } from "@/components/ui/design-system";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -233,7 +233,7 @@ const ProfileInput = () => {
             if (linked) {
               setProfileLinked(true);
             }
-            navigate("/dashboard");
+            navigate("/pipeline");
           })
           .catch((err) => {
             console.error("ProfileInput: Error linking on save:", err);

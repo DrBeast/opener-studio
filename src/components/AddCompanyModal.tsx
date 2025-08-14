@@ -1,7 +1,6 @@
-
-import { useState } from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Label } from "@/components/ui/airtable-ds/label";
 import { AlertCircle, Building, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/design-system/modals";
 import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
@@ -19,24 +18,24 @@ export const AddCompanyModal = ({
   onAddCompany,
   isLoading = false,
 }: AddCompanyModalProps) => {
-  const [companyName, setCompanyName] = useState('');
-  const [inputError, setInputError] = useState('');
+  const [companyName, setCompanyName] = useState("");
+  const [inputError, setInputError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!companyName.trim()) {
-      setInputError('Please enter a company name');
+      setInputError("Please enter a company name");
       return;
     }
-    
-    setInputError('');
+
+    setInputError("");
     onAddCompany(companyName.trim());
   };
 
   const handleClose = () => {
-    setCompanyName('');
-    setInputError('');
+    setCompanyName("");
+    setInputError("");
     onClose();
   };
 
@@ -51,7 +50,10 @@ export const AddCompanyModal = ({
     >
       <form onSubmit={handleSubmit} className="space-y-6 py-4">
         <div className="space-y-3">
-          <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="companyName"
+            className="text-sm font-medium text-gray-700"
+          >
             Company Name
           </Label>
           <div className="relative">
@@ -60,12 +62,12 @@ export const AddCompanyModal = ({
               value={companyName}
               onChange={(e) => {
                 setCompanyName(e.target.value);
-                if (inputError) setInputError('');
+                if (inputError) setInputError("");
               }}
               placeholder="e.g., Google, Microsoft, Apple..."
               className={`h-12 pl-4 pr-12 border-2 transition-all duration-200 ${
-                inputError 
-                  ? "border-red-300 focus:border-red-400 focus:ring-red-200" 
+                inputError
+                  ? "border-red-300 focus:border-red-400 focus:ring-red-200"
                   : "border-gray-200 focus:border-primary focus:ring-primary/20"
               }`}
               disabled={isLoading}
@@ -79,7 +81,7 @@ export const AddCompanyModal = ({
             </div>
           )}
         </div>
-        
+
         <div className="flex justify-end gap-3 pt-4">
           <OutlineAction
             type="button"

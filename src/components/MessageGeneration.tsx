@@ -14,20 +14,25 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/airtable-ds/dialog";
 
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/airtable-ds/card";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Label } from "@/components/ui/airtable-ds/label";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/ui/airtable-ds/collapsible";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/airtable-ds/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
 import {
   PrimaryAction,

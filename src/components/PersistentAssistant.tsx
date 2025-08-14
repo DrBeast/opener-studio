@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/airtable-ds/button";
 import { MessageCircle } from "lucide-react";
 
 const PersistentAssistant: React.FC = () => {
@@ -12,12 +11,18 @@ const PersistentAssistant: React.FC = () => {
     // Only show welcome message if it hasn't been shown before in this session
     if (!messageShown) {
       // Get the assistant container element
-      const assistantContainer = document.querySelector('[data-sidebar="sidebar"]');
-      
-      if (assistantContainer && !assistantContainer.classList.contains('hidden')) {
+      const assistantContainer = document.querySelector(
+        '[data-sidebar="sidebar"]'
+      );
+
+      if (
+        assistantContainer &&
+        !assistantContainer.classList.contains("hidden")
+      ) {
         // Simulate a welcome message
         const welcomeMessage = document.createElement("div");
-        welcomeMessage.className = "p-4 bg-blue-50 rounded-lg mb-4 border border-blue-200 text-blue-800";
+        welcomeMessage.className =
+          "p-4 bg-blue-50 rounded-lg mb-4 border border-blue-200 text-blue-800";
         welcomeMessage.innerHTML = `
           <p class="font-medium mb-2">👋 Welcome to EngageAI!</p>
           <p class="text-sm">I'm your AI networking assistant. I can help you with:</p>
@@ -29,9 +34,11 @@ const PersistentAssistant: React.FC = () => {
           </ul>
           <p class="text-sm mt-2">Let me know how I can assist you today!</p>
         `;
-        
+
         // Find the chat container to prepend the message
-        const chatContainer = assistantContainer.querySelector('[data-radix-scroll-area-viewport=""]');
+        const chatContainer = assistantContainer.querySelector(
+          '[data-radix-scroll-area-viewport=""]'
+        );
         if (chatContainer && chatContainer.firstChild) {
           chatContainer.insertBefore(welcomeMessage, chatContainer.firstChild);
           setMessageShown(true);

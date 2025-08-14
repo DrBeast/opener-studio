@@ -1,7 +1,6 @@
-
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Label } from "@/components/ui/airtable-ds/label";
 import { InfoBox } from "@/components/ui/design-system";
 
 interface ProfessionalBackgroundProps {
@@ -22,7 +21,7 @@ const ProfessionalBackground = ({
   setBackgroundInput,
   isSubmitting,
   isEditing = false,
-  existingData = {}
+  existingData = {},
 }: ProfessionalBackgroundProps) => {
   // If editing and backgroundInput is empty, try to populate from existing data
   const [initialValue] = useState(() => {
@@ -32,9 +31,12 @@ const ProfessionalBackground = ({
         existingData.background,
         existingData.linkedin && `LinkedIn Profile:\n${existingData.linkedin}`,
         existingData.cv && `CV Content:\n${existingData.cv}`,
-        existingData.additional && `Additional Details:\n${existingData.additional}`
-      ].filter(Boolean).join('\n\n');
-      
+        existingData.additional &&
+          `Additional Details:\n${existingData.additional}`,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       return combinedExisting || backgroundInput;
     }
     return backgroundInput;
@@ -50,10 +52,9 @@ const ProfessionalBackground = ({
           Professional Background
         </Label>
         <p className="text-sm text-[hsl(var(--normaltext))] mt-1">
-          {isEditing 
+          {isEditing
             ? "Update your professional background information. This will be used to regenerate your AI profile summary."
-            : "Share your professional background information to generate your AI profile summary."
-          }
+            : "Share your professional background information to generate your AI profile summary."}
         </p>
       </div>
 
@@ -63,10 +64,27 @@ const ProfessionalBackground = ({
         badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
       >
         <div className="space-y-2">
-          <p><strong>LinkedIn Profile:</strong> Go to your LinkedIn profile, select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the text box below (CMD/CTRL + V). Don't worry about formatting, just copy everything - AI will figure it out.</p>
-          <p><strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and paste it (CMD/CTRL + V) into the text box below. Don't worry about formatting.</p>
-          <p><strong>Professional Information:</strong> Write about your bio, education, key skills, success stories, achievements, or any other professional information.</p>
-          <p className="font-medium">The AI analyzes your background to highlight your value proposition for specific roles and companies, helping you articulate how you can add value in your networking outreach.</p>
+          <p>
+            <strong>LinkedIn Profile:</strong> Go to your LinkedIn profile,
+            select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the
+            text box below (CMD/CTRL + V). Don't worry about formatting, just
+            copy everything - AI will figure it out.
+          </p>
+          <p>
+            <strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and
+            paste it (CMD/CTRL + V) into the text box below. Don't worry about
+            formatting.
+          </p>
+          <p>
+            <strong>Professional Information:</strong> Write about your bio,
+            education, key skills, success stories, achievements, or any other
+            professional information.
+          </p>
+          <p className="font-medium">
+            The AI analyzes your background to highlight your value proposition
+            for specific roles and companies, helping you articulate how you can
+            add value in your networking outreach.
+          </p>
         </div>
       </InfoBox>
 

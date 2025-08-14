@@ -4,9 +4,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/ui/airtable-ds/dialog";
+import { Button } from "@/components/ui/airtable-ds/button";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/airtable-ds/tabs";
 import { User, Target, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,13 +42,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             Settings
           </DialogTitle>
         </DialogHeader>
-        
+
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="targets">Job Targets</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="profile" className="space-y-4 mt-6">
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <User className="h-8 w-8 text-primary" />
@@ -58,7 +63,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               Edit Profile
             </Button>
           </TabsContent>
-          
+
           <TabsContent value="targets" className="space-y-4 mt-6">
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <Target className="h-8 w-8 text-primary" />

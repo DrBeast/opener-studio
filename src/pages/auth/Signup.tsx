@@ -1,20 +1,35 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/airtable-ds/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/airtable-ds/form";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/airtable-ds/alert";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -26,14 +41,14 @@ const Signup = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Check for redirect param - default to dashboard instead of profile
+
+  // Check for redirect param - default to pipeline instead of profile
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  const redirectTo = searchParams.get("redirectTo") || "/pipeline";
 
   // Get session ID when component mounts
   useEffect(() => {
-    const storedSessionId = localStorage.getItem('profile-session-id');
+    const storedSessionId = localStorage.getItem("profile-session-id");
     if (storedSessionId) {
       console.log("Signup: Found existing session ID:", storedSessionId);
       setSessionId(storedSessionId);
@@ -53,43 +68,47 @@ const Signup = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setErrorMessage(null);
-    
+
     try {
       // Clear any existing toasts
       toast.dismiss("profile-linking-progress");
       toast.dismiss("signup-error");
-      
+
       // Log session ID for debugging
-      console.log(`Signup: Starting signup process with session ID: ${sessionId || "none"}`);
-      
+      console.log(
+        `Signup: Starting signup process with session ID: ${
+          sessionId || "none"
+        }`
+      );
+
       // Perform signup (this will also trigger profile linking internally via useAuth)
       await signUp(data.email, data.password);
-      
+
       // Show a toast about profile linking if a session ID exists
       if (sessionId) {
-        toast.info("Your profile data will be linked to your new account", { 
+        toast.info("Your profile data will be linked to your new account", {
           id: "profile-linking-progress",
-          duration: 3000
+          duration: 3000,
         });
       }
-      
+
       // Redirect after a brief delay to allow for authentication to complete
       setTimeout(() => {
         navigate(redirectTo);
       }, 1500);
     } catch (error: any) {
       setIsLoading(false);
-      
+
       // Set error message for UI display with more details
       console.error("Signup error:", error);
       setErrorMessage(error.message || "An error occurred during signup");
-      
+
       // Also show error toast
       toast.error(error.message || "An error occurred during signup", {
         id: "signup-error",
-        duration: 5000
+        duration: 5000,
       });
-      
+
       // Log details for debugging
       if (error.cause) {
         console.error("Error cause:", error.cause);
@@ -116,12 +135,16 @@ const Signup = () => {
 
             {sessionId && (
               <div className="text-sm text-blue-600 mb-2">
-                A temporary profile was detected and will be linked to your new account.
+                A temporary profile was detected and will be linked to your new
+                account.
               </div>
             )}
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -129,11 +152,11 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="you@example.com" 
-                          type="email" 
-                          disabled={isLoading} 
-                          {...field} 
+                        <Input
+                          placeholder="you@example.com"
+                          type="email"
+                          disabled={isLoading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -147,11 +170,11 @@ const Signup = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="••••••••" 
-                          type="password" 
-                          disabled={isLoading} 
-                          {...field} 
+                        <Input
+                          placeholder="••••••••"
+                          type="password"
+                          disabled={isLoading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />

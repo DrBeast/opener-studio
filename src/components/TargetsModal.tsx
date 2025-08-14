@@ -8,9 +8,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Label } from "@/components/ui/airtable-ds/label";
 
 // Design System Imports
 import {
@@ -102,7 +102,11 @@ const ensureStringArray = (value: any): string[] => {
   return [];
 };
 
-export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsModalProps) {
+export function TargetsModal({
+  isOpen,
+  onClose,
+  onCompaniesGenerated,
+}: TargetsModalProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -153,21 +157,38 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
         if (cleanedCriteria) {
           setExistingData(cleanedCriteria);
           setIsEditing(true);
-          const targetLocations = ensureStringArray(cleanedCriteria.target_locations);
+          const targetLocations = ensureStringArray(
+            cleanedCriteria.target_locations
+          );
 
           // If user has no locations set but we have their profile location, use that
           const userLocation = profileData?.location;
-          const locations = targetLocations.length > 0 ? targetLocations : userLocation ? [userLocation] : [];
-          
+          const locations =
+            targetLocations.length > 0
+              ? targetLocations
+              : userLocation
+              ? [userLocation]
+              : [];
+
           form.reset({
-            target_functions: ensureStringArray(cleanedCriteria.target_functions),
+            target_functions: ensureStringArray(
+              cleanedCriteria.target_functions
+            ),
             target_locations: locations,
-            target_wfh_preference: ensureStringArray(cleanedCriteria.target_wfh_preference),
-            free_form_role_and_company_description: cleanedCriteria.free_form_role_and_company_description || "",
-            target_industries: ensureStringArray(cleanedCriteria.target_industries),
+            target_wfh_preference: ensureStringArray(
+              cleanedCriteria.target_wfh_preference
+            ),
+            free_form_role_and_company_description:
+              cleanedCriteria.free_form_role_and_company_description || "",
+            target_industries: ensureStringArray(
+              cleanedCriteria.target_industries
+            ),
             target_sizes: ensureStringArray(cleanedCriteria.target_sizes),
-            similar_companies: ensureStringArray(cleanedCriteria.similar_companies),
-            visa_sponsorship_required: cleanedCriteria.visa_sponsorship_required || false,
+            similar_companies: ensureStringArray(
+              cleanedCriteria.similar_companies
+            ),
+            visa_sponsorship_required:
+              cleanedCriteria.visa_sponsorship_required || false,
           });
         } else if (profileData?.location) {
           // No existing data but we have user location
@@ -255,7 +276,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     const handleOptionClick = (option: string) => {
       const currentValues = form.getValues(name) || [];
       if (currentValues.includes(option)) {
-        form.setValue(name, currentValues.filter((v) => v !== option));
+        form.setValue(
+          name,
+          currentValues.filter((v) => v !== option)
+        );
       } else {
         form.setValue(name, [...currentValues, option]);
       }
@@ -329,7 +353,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     if (!newFunction.trim()) return;
     const currentFunctions = form.getValues("target_functions") || [];
     if (!currentFunctions.includes(newFunction.trim())) {
-      form.setValue("target_functions", [...currentFunctions, newFunction.trim()]);
+      form.setValue("target_functions", [
+        ...currentFunctions,
+        newFunction.trim(),
+      ]);
       setNewFunction("");
     }
   };
@@ -338,7 +365,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     if (!newIndustry.trim()) return;
     const currentIndustries = form.getValues("target_industries") || [];
     if (!currentIndustries.includes(newIndustry.trim())) {
-      form.setValue("target_industries", [...currentIndustries, newIndustry.trim()]);
+      form.setValue("target_industries", [
+        ...currentIndustries,
+        newIndustry.trim(),
+      ]);
       setNewIndustry("");
     }
   };
@@ -347,7 +377,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     if (!newLocation.trim()) return;
     const currentLocations = form.getValues("target_locations") || [];
     if (!currentLocations.includes(newLocation.trim())) {
-      form.setValue("target_locations", [...currentLocations, newLocation.trim()]);
+      form.setValue("target_locations", [
+        ...currentLocations,
+        newLocation.trim(),
+      ]);
       setNewLocation("");
       setLocationSearchOpen(false);
     }
@@ -378,8 +411,12 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     const values = form.watch("target_wfh_preference") || [];
     return (
       <div className="space-y-4">
-        <Label className="text-lg font-semibold text-gray-800">Work From Home Preference</Label>
-        <p className="text-gray-600 text-sm">What is your preferred working arrangement?</p>
+        <Label className="text-lg font-semibold text-gray-800">
+          Work From Home Preference
+        </Label>
+        <p className="text-gray-600 text-sm">
+          What is your preferred working arrangement?
+        </p>
 
         <div className="flex flex-wrap gap-3">
           {wfhOptions.map((option) => (
@@ -387,11 +424,18 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
               key={option.value}
               type="button"
               onClick={() => {
-                const currentValues = form.getValues("target_wfh_preference") || [];
+                const currentValues =
+                  form.getValues("target_wfh_preference") || [];
                 if (currentValues.includes(option.value)) {
-                  form.setValue("target_wfh_preference", currentValues.filter((v) => v !== option.value));
+                  form.setValue(
+                    "target_wfh_preference",
+                    currentValues.filter((v) => v !== option.value)
+                  );
                 } else {
-                  form.setValue("target_wfh_preference", [...currentValues, option.value]);
+                  form.setValue("target_wfh_preference", [
+                    ...currentValues,
+                    option.value,
+                  ]);
                 }
               }}
               className={cn(
@@ -415,7 +459,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
                   key={value}
                   label={option.label}
                   onRemove={() => {
-                    form.setValue("target_wfh_preference", values.filter((v) => v !== value));
+                    form.setValue(
+                      "target_wfh_preference",
+                      values.filter((v) => v !== value)
+                    );
                   }}
                 />
               )
@@ -430,8 +477,12 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     const values = form.watch("target_sizes") || [];
     return (
       <div className="space-y-4">
-        <Label className="text-lg font-semibold text-gray-800">Company Size Preference</Label>
-        <p className="text-gray-600 text-sm">What size of company would you prefer?</p>
+        <Label className="text-lg font-semibold text-gray-800">
+          Company Size Preference
+        </Label>
+        <p className="text-gray-600 text-sm">
+          What size of company would you prefer?
+        </p>
 
         <div className="flex flex-wrap gap-3">
           {sizeOptions.map((option) => (
@@ -441,9 +492,15 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
               onClick={() => {
                 const currentValues = form.getValues("target_sizes") || [];
                 if (currentValues.includes(option.value)) {
-                  form.setValue("target_sizes", currentValues.filter((v) => v !== option.value));
+                  form.setValue(
+                    "target_sizes",
+                    currentValues.filter((v) => v !== option.value)
+                  );
                 } else {
-                  form.setValue("target_sizes", [...currentValues, option.value]);
+                  form.setValue("target_sizes", [
+                    ...currentValues,
+                    option.value,
+                  ]);
                 }
               }}
               className={cn(
@@ -467,7 +524,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
                   key={value}
                   label={option.label}
                   onRemove={() => {
-                    form.setValue("target_sizes", values.filter((v) => v !== value));
+                    form.setValue(
+                      "target_sizes",
+                      values.filter((v) => v !== value)
+                    );
                   }}
                 />
               )
@@ -482,9 +542,12 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
     const locations = form.watch("target_locations") || [];
     return (
       <div className="space-y-4">
-        <Label className="text-lg font-semibold text-gray-800">Preferred Locations</Label>
+        <Label className="text-lg font-semibold text-gray-800">
+          Preferred Locations
+        </Label>
         <p className="text-gray-600 text-sm">
-          Where would you like to work and live? We will prioritize these locations for companies with Hybrid and On-site policies.
+          Where would you like to work and live? We will prioritize these
+          locations for companies with Hybrid and On-site policies.
         </p>
 
         <div className="relative">
@@ -505,7 +568,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
                   key={location}
                   label={displayLabel}
                   onRemove={() => {
-                    form.setValue("target_locations", locations.filter((l) => l !== location));
+                    form.setValue(
+                      "target_locations",
+                      locations.filter((l) => l !== location)
+                    );
                   }}
                 />
               );
@@ -520,7 +586,11 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
                   setNewLocation(e.target.value);
                   setLocationSearchOpen(true);
                 }}
-                placeholder={locations.length ? "Add another location..." : "Search locations..."}
+                placeholder={
+                  locations.length
+                    ? "Add another location..."
+                    : "Search locations..."
+                }
                 className="ml-1 py-1 px-2 outline-none border-none text-sm bg-transparent flex-grow"
                 onFocus={() => setLocationSearchOpen(true)}
                 onKeyDown={(e) => {
@@ -591,7 +661,9 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
       if (saveError) throw saveError;
 
       // Call the generate companies edge function
-      const { data, error } = await supabase.functions.invoke("generate_companies");
+      const { data, error } = await supabase.functions.invoke(
+        "generate_companies"
+      );
       if (error) {
         console.error("Error generating companies:", error);
         toast({
@@ -603,7 +675,9 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
       }
       toast({
         title: "Success",
-        description: `Generated ${data?.companies?.length || 0} new companies successfully!`,
+        description: `Generated ${
+          data?.companies?.length || 0
+        } new companies successfully!`,
       });
 
       onClose();
@@ -624,10 +698,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
 
   if (isLoading) {
     return (
-      <Modal 
-        isOpen={isOpen} 
-        onClose={onClose} 
-        title="Edit Target Criteria" 
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Edit Target Criteria"
         icon={<Target />}
       >
         <div className="flex items-center justify-center py-8">
@@ -659,7 +733,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
               <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">
                 Describe Your Ideal Role and Company
               </Label>
-              <PrimaryAction onClick={handleGenerateCompanies} disabled={isSubmitting || isGenerating}>
+              <PrimaryAction
+                onClick={handleGenerateCompanies}
+                disabled={isSubmitting || isGenerating}
+              >
                 <Sparkles className="mr-2 h-4 w-4" />
                 {isGenerating ? "Generating..." : "Generate Companies!"}
               </PrimaryAction>
@@ -669,7 +746,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
               className="min-h-[120px] border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-purple-300 transition-colors shadow-sm"
               value={form.watch("free_form_role_and_company_description") || ""}
               onChange={(e) =>
-                form.setValue("free_form_role_and_company_description", e.target.value)
+                form.setValue(
+                  "free_form_role_and_company_description",
+                  e.target.value
+                )
               }
             />
           </div>
@@ -707,7 +787,9 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
 
           {/* Similar Companies */}
           <div className="space-y-4">
-            <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">Company Examples</Label>
+            <Label className="text-lg font-semibold text-[hsl(var(--foreground))]">
+              Company Examples
+            </Label>
             <p className="text-[hsl(var(--foreground))] text-sm">
               We will use your examples as inspiration to generate more options.
             </p>
@@ -730,7 +812,10 @@ export function TargetsModal({ isOpen, onClose, onCompaniesGenerated }: TargetsM
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t">
-            <GhostAction onClick={onClose} disabled={isSubmitting || isGenerating}>
+            <GhostAction
+              onClick={onClose}
+              disabled={isSubmitting || isGenerating}
+            >
               Cancel
             </GhostAction>
             <PrimaryAction

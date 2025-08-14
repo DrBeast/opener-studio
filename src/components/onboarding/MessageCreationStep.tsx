@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/airtable-ds/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/airtable-ds/card";
 import { MessageCircle, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,7 +24,9 @@ interface MessageCreationStepProps {
   onMessageCreated: () => void;
 }
 
-const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => {
+const MessageCreationStep = ({
+  onMessageCreated,
+}: MessageCreationStepProps) => {
   const { user } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -32,7 +39,8 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
       try {
         const { data, error } = await supabase
           .from("contacts")
-          .select(`
+          .select(
+            `
             contact_id,
             first_name,
             last_name,
@@ -40,19 +48,21 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
             companies:company_id (
               name
             )
-          `)
+          `
+          )
           .eq("user_id", user.id)
           .order("added_at", { ascending: false });
 
         if (error) throw error;
 
-        const formattedContacts = data?.map(contact => ({
-          contact_id: contact.contact_id,
-          first_name: contact.first_name || "",
-          last_name: contact.last_name || "",
-          role: contact.role || "",
-          company_name: (contact.companies as any)?.name || "",
-        })) || [];
+        const formattedContacts =
+          data?.map((contact) => ({
+            contact_id: contact.contact_id,
+            first_name: contact.first_name || "",
+            last_name: contact.last_name || "",
+            role: contact.role || "",
+            company_name: (contact.companies as any)?.name || "",
+          })) || [];
 
         setContacts(formattedContacts);
         if (formattedContacts.length > 0) {
@@ -109,7 +119,8 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
         </CardHeader>
         <CardContent>
           <p className="text-green-800">
-            Create a personalized outreach message for your contact using AI assistance.
+            Create a personalized outreach message for your contact using AI
+            assistance.
           </p>
         </CardContent>
       </Card>
@@ -122,7 +133,11 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
             {contacts.map((contact) => (
               <Button
                 key={contact.contact_id}
-                variant={selectedContact?.contact_id === contact.contact_id ? "default" : "outline"}
+                variant={
+                  selectedContact?.contact_id === contact.contact_id
+                    ? "default"
+                    : "outline"
+                }
                 onClick={() => setSelectedContact(contact)}
                 className="justify-start p-4 h-auto"
               >
@@ -134,7 +149,8 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
                     </div>
                     {(contact.role || contact.company_name) && (
                       <div className="text-sm opacity-70">
-                        {contact.role} {contact.company_name && `at ${contact.company_name}`}
+                        {contact.role}{" "}
+                        {contact.company_name && `at ${contact.company_name}`}
                       </div>
                     )}
                   </div>
@@ -153,7 +169,7 @@ const MessageCreationStep = ({ onMessageCreated }: MessageCreationStepProps) => 
               contact_id: selectedContact.contact_id,
               first_name: selectedContact.first_name,
               last_name: selectedContact.last_name,
-              role: selectedContact.role
+              role: selectedContact.role,
             }}
             companyName={selectedContact.company_name || ""}
             isOpen={true}

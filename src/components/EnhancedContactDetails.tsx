@@ -4,11 +4,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/ui/airtable-ds/dialog";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Label } from "@/components/ui/airtable-ds/label";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/airtable-ds/tabs";
 import {
   Save,
   MessageCircle,
@@ -29,7 +34,7 @@ import {
 } from "@/components/ui/design-system";
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";

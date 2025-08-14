@@ -1,19 +1,34 @@
-
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/airtable-ds/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/airtable-ds/form";
 import { Loader2, Mail, Lock } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -23,10 +38,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Check for redirect param
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  const redirectTo = searchParams.get("redirectTo") || "/pipeline";
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -56,34 +71,43 @@ const Login = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
             Welcome Back
           </h1>
-          <p className="text-[hsl(var(--normaltext))]">Sign in to continue your networking journey</p>
+          <p className="text-[hsl(var(--normaltext))]">
+            Sign in to continue your networking journey
+          </p>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-[hsl(var(--normaltext))]">Log In</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-[hsl(var(--normaltext))]">
+              Log In
+            </CardTitle>
             <CardDescription className="text-center text-[hsl(var(--normaltext))]">
               Enter your email and password to access your account
             </CardDescription>
           </CardHeader>
           <CardContent className="pb-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-5"
+              >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">Email Address</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">
+                        Email Address
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
-                          <Input 
-                            placeholder="you@example.com" 
-                            type="email" 
+                          <Input
+                            placeholder="you@example.com"
+                            type="email"
                             disabled={isLoading}
                             className="pl-10 h-12 border-gray-200 focus:border-primary focus:ring-primary/20"
-                            {...field} 
+                            {...field}
                           />
                         </div>
                       </FormControl>
@@ -96,16 +120,18 @@ const Login = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">Password</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">
+                        Password
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
-                          <Input 
-                            placeholder="••••••••" 
-                            type="password" 
+                          <Input
+                            placeholder="••••••••"
+                            type="password"
                             disabled={isLoading}
                             className="pl-10 h-12 border-gray-200 focus:border-primary focus:ring-primary/20"
-                            {...field} 
+                            {...field}
                           />
                         </div>
                       </FormControl>
@@ -113,9 +139,9 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                <Button 
-                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-200" 
-                  type="submit" 
+                <Button
+                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-200"
+                  type="submit"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -132,8 +158,8 @@ const Login = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-0">
             <div className="text-center">
-              <Link 
-                to="/auth/forgot-password" 
+              <Link
+                to="/auth/forgot-password"
                 className="text-sm text-primary hover:text-primary/80 hover:underline font-medium transition-colors"
               >
                 Forgot your password?
@@ -141,8 +167,8 @@ const Login = () => {
             </div>
             <div className="text-center text-sm text-[hsl(var(--normaltext))]">
               Don't have an account?{" "}
-              <Link 
-                to="/auth/signup" 
+              <Link
+                to="/auth/signup"
                 className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
               >
                 Create one now

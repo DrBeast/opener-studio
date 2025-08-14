@@ -1,9 +1,14 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Label } from "@/components/ui/airtable-ds/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/airtable-ds/card";
 import { Users, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,7 +18,9 @@ interface ContactCreationStepProps {
   onContactCreated: () => void;
 }
 
-const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => {
+const ContactCreationStep = ({
+  onContactCreated,
+}: ContactCreationStepProps) => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [contactData, setContactData] = useState({
@@ -62,17 +69,15 @@ const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => 
       }
 
       // Create the contact
-      const { error: contactError } = await supabase
-        .from("contacts")
-        .insert({
-          first_name: contactData.firstName,
-          last_name: contactData.lastName,
-          company_id: companyId || null,
-          role: contactData.role || null,
-          linkedin_url: contactData.linkedinUrl || null,
-          bio_summary: contactData.bio || null,
-          user_id: user.id,
-        });
+      const { error: contactError } = await supabase.from("contacts").insert({
+        first_name: contactData.firstName,
+        last_name: contactData.lastName,
+        company_id: companyId || null,
+        role: contactData.role || null,
+        linkedin_url: contactData.linkedinUrl || null,
+        bio_summary: contactData.bio || null,
+        user_id: user.id,
+      });
 
       if (contactError) throw contactError;
 
@@ -97,7 +102,8 @@ const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => 
         </CardHeader>
         <CardContent>
           <p className="text-blue-800">
-            Add someone from your network - a colleague, alumni, or someone you'd like to connect with on LinkedIn.
+            Add someone from your network - a colleague, alumni, or someone
+            you'd like to connect with on LinkedIn.
           </p>
         </CardContent>
       </Card>
@@ -109,27 +115,33 @@ const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => 
             <Input
               id="firstName"
               value={contactData.firstName}
-              onChange={(e) => setContactData({ ...contactData, firstName: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, firstName: e.target.value })
+              }
               placeholder="e.g., John"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="lastName">Last Name *</Label>
             <Input
               id="lastName"
               value={contactData.lastName}
-              onChange={(e) => setContactData({ ...contactData, lastName: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, lastName: e.target.value })
+              }
               placeholder="e.g., Smith"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="company">Company</Label>
             <Input
               id="company"
               value={contactData.company}
-              onChange={(e) => setContactData({ ...contactData, company: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, company: e.target.value })
+              }
               placeholder="e.g., Google"
             />
           </div>
@@ -141,27 +153,33 @@ const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => 
             <Input
               id="role"
               value={contactData.role}
-              onChange={(e) => setContactData({ ...contactData, role: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, role: e.target.value })
+              }
               placeholder="e.g., Software Engineer"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
             <Input
               id="linkedinUrl"
               value={contactData.linkedinUrl}
-              onChange={(e) => setContactData({ ...contactData, linkedinUrl: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, linkedinUrl: e.target.value })
+              }
               placeholder="https://linkedin.com/in/johnsmith"
             />
           </div>
-          
+
           <div>
             <Label htmlFor="bio">Bio/Notes</Label>
             <Textarea
               id="bio"
               value={contactData.bio}
-              onChange={(e) => setContactData({ ...contactData, bio: e.target.value })}
+              onChange={(e) =>
+                setContactData({ ...contactData, bio: e.target.value })
+              }
               placeholder="Brief background or notes about this person..."
               rows={3}
             />
@@ -169,7 +187,7 @@ const ContactCreationStep = ({ onContactCreated }: ContactCreationStepProps) => 
         </div>
       </div>
 
-      <Button 
+      <Button
         onClick={handleSubmit}
         disabled={isLoading || !contactData.firstName || !contactData.lastName}
         className="w-full"

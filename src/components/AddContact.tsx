@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { Loader2, Building, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./pipeline/CompanyDuplicateDialog";
@@ -362,7 +362,7 @@ export const AddContact = ({
         </div>
       )}
 
-{createdContact && (
+      {createdContact && (
         <div className="h-full">
           <ContactPreview contact={createdContact} className="h-full" />
         </div>

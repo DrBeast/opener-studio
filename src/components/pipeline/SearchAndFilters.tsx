@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React from "react";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
 import { Search, Trash2 } from "lucide-react";
 
 interface SearchAndFiltersProps {
@@ -15,7 +14,7 @@ export const SearchAndFilters = ({
   searchTerm,
   onSearchChange,
   selectedCount,
-  onBulkRemove
+  onBulkRemove,
 }: SearchAndFiltersProps) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
@@ -29,7 +28,7 @@ export const SearchAndFilters = ({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        
+
         {selectedCount > 0 && (
           <div className="flex items-center gap-2 relative z-10">
             <span className="text-sm text-muted-foreground">

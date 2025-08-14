@@ -1,6 +1,6 @@
 import React from "react";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/airtable-ds/avatar";
 import { Briefcase, MapPin, Building, Linkedin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,10 @@ const getInitials = (first?: string, last?: string) => {
   return (f + l).toUpperCase() || "?";
 };
 
-export const ContactPreview: React.FC<ContactPreviewProps> = ({ contact, className }) => {
+export const ContactPreview: React.FC<ContactPreviewProps> = ({
+  contact,
+  className,
+}) => {
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (

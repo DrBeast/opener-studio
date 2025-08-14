@@ -1,4 +1,4 @@
-import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { EnhancedButton } from "@/components/ui/airtable-ds/enhanced-button";
 import { Button } from "@/components/ui/design-system/buttons";
 import { OutlineAction } from "@/components/ui/design-system/buttons";
 import { CollapsibleWide } from "@/components/ui/design-system/buttons";
@@ -6,12 +6,12 @@ import { CollapsibleWide } from "@/components/ui/design-system/buttons";
 import {
   AirtableCard,
   AirtableCardContent,
-} from "@/components/ui/airtable-card";
+} from "@/components/ui/airtable-ds/airtable-card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/airtable-ds/collapsible";
 import {
   RefreshCcw,
   ChevronDown,

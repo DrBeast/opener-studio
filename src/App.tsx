@@ -1,8 +1,8 @@
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/airtable-ds/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/airtable-ds/toaster";
 
 // Layouts
 import MainLayout from "@/layouts/MainLayout";
@@ -13,13 +13,11 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
-import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/Pipeline";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
-import AirtableDesignSystem from "@/pages/admin/AirtableDesignSystem";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -51,21 +49,12 @@ const App = () => (
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/job-targets" element={<JobTargets />} />
-                {/* Redirect authenticated users to pipeline */}
-                <Route
-                  path="/dashboard"
-                  element={<Navigate to="/pipeline" replace />}
-                />
               </Route>
 
-              {/* Admin Routes (not linked anywhere) */}
+              {/* Admin Routes */}
               <Route
                 path="/admin/feedback-review"
                 element={<FeedbackReview />}
-              />
-              <Route
-                path="/admin/airtable-design-system"
-                element={<AirtableDesignSystem />}
               />
 
               {/* Redirect old routes */}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/airtable-ds/use-toast";
 
 // Icons Imports
 import {
@@ -32,7 +32,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/airtable-ds/collapsible";
 
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
@@ -50,7 +50,7 @@ import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/airtable-ds/button";
 
 const PipelineDashboard = () => {
   const { user } = useAuth();

@@ -1,17 +1,19 @@
-
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/airtable-ds/button";
 import { Copy, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/airtable-ds/use-toast";
 
 interface LinkedInQuerySuggestionsProps {
   companyName: string;
   isModalOpen: boolean;
 }
 
-export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQuerySuggestionsProps) => {
+export const LinkedInQuerySuggestions = ({
+  companyName,
+  isModalOpen,
+}: LinkedInQuerySuggestionsProps) => {
   const { user } = useAuth();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -30,9 +32,12 @@ export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQ
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate_linkedin_queries', {
-        body: { company_name: companyName }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "generate_linkedin_queries",
+        {
+          body: { company_name: companyName },
+        }
+      );
 
       if (error) throw error;
 
@@ -48,7 +53,7 @@ export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQ
         `${companyName} product manager`,
         `${companyName} recruiter`,
         `${companyName} CEO`,
-        `${companyName} director`
+        `${companyName} director`,
       ]);
       setHasGenerated(true);
     } finally {
@@ -63,14 +68,14 @@ export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQ
       setTimeout(() => setCopiedIndex(null), 2000);
       toast({
         title: "Copied!",
-        description: "LinkedIn search query copied to clipboard"
+        description: "LinkedIn search query copied to clipboard",
       });
     } catch (error) {
       console.error("Failed to copy:", error);
       toast({
         title: "Error",
         description: "Failed to copy to clipboard",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -92,7 +97,9 @@ export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQ
     return (
       <div className="space-y-2">
         <p className="text-sm font-medium">LinkedIn Search Suggestions</p>
-        <div className="text-sm text-muted-foreground">Generating suggestions...</div>
+        <div className="text-sm text-muted-foreground">
+          Generating suggestions...
+        </div>
       </div>
     );
   }
@@ -101,7 +108,8 @@ export const LinkedInQuerySuggestions = ({ companyName, isModalOpen }: LinkedInQ
     <div className="space-y-2">
       <p className="text-sm font-medium">LinkedIn Search Suggestions</p>
       <p className="text-xs text-muted-foreground mb-3">
-        Click to copy these queries and paste them into LinkedIn's search bar to find relevant contacts:
+        Click to copy these queries and paste them into LinkedIn's search bar to
+        find relevant contacts:
       </p>
       <div className="grid grid-cols-1 gap-2">
         {suggestions.map((suggestion, index) => (

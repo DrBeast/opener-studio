@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Upload, File, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { toast } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Card } from "@/components/ui/airtable-ds/card";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,16 +13,21 @@ interface CVUploadProps {
   setIsUploading: (value: boolean) => void;
 }
 
-const CVUpload = ({ onUploadSuccess, onUploadError, isUploading, setIsUploading }: CVUploadProps) => {
+const CVUpload = ({
+  onUploadSuccess,
+  onUploadError,
+  isUploading,
+  setIsUploading,
+}: CVUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const { user } = useAuth();
 
   const acceptedFileTypes = [
-    "application/pdf", 
-    "application/msword", 
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
-  
+
   const maxSize = 10 * 1024 * 1024; // 10MB
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,50 +35,50 @@ const CVUpload = ({ onUploadSuccess, onUploadError, isUploading, setIsUploading 
       setFile(null);
       return;
     }
-    
+
     const selectedFile = e.target.files[0];
-    
+
     // Validate file type
     if (!acceptedFileTypes.includes(selectedFile.type)) {
       toast.error("Invalid file type. Please upload a PDF, DOC, or DOCX file.");
       setFile(null);
       return;
     }
-    
+
     // Validate file size
     if (selectedFile.size > maxSize) {
       toast.error("File too large. Maximum size is 10MB.");
       setFile(null);
       return;
     }
-    
+
     setFile(selectedFile);
   };
 
   const uploadCV = async () => {
     if (!file || !user) return;
-    
+
     setIsUploading(true);
-    
+
     try {
       // Create a folder structure with user ID to ensure proper permissions
       const filePath = `${user.id}/${Date.now()}-${file.name}`;
-      
+
       const { error: uploadError, data } = await supabase.storage
         .from("user_cvs")
         .upload(filePath, file, {
           cacheControl: "3600",
-          upsert: true
+          upsert: true,
         });
-      
+
       if (uploadError) {
         throw uploadError;
       }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from("user_cvs")
-        .getPublicUrl(filePath);
-      
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("user_cvs").getPublicUrl(filePath);
+
       onUploadSuccess(publicUrl, file.name);
       toast.success("CV uploaded successfully");
     } catch (error: any) {
@@ -127,10 +131,10 @@ const CVUpload = ({ onUploadSuccess, onUploadError, isUploading, setIsUploading 
             </Button>
           </label>
         </div>
-        
+
         {file && (
           <div className="flex items-center gap-4">
-            <Button 
+            <Button
               onClick={uploadCV}
               disabled={isUploading}
               className="flex items-center gap-2"
@@ -147,7 +151,7 @@ const CVUpload = ({ onUploadSuccess, onUploadError, isUploading, setIsUploading 
             </Button>
           </div>
         )}
-        
+
         <div className="flex items-center gap-2 text-amber-600 text-xs mt-2">
           <AlertCircle className="h-4 w-4" />
           <span>Your CV will be processed to enrich your profile</span>

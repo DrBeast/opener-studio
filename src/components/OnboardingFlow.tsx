@@ -5,9 +5,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+} from "@/components/ui/airtable-ds/dialog";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Progress } from "@/components/ui/airtable-ds/progress";
 import {
   ArrowRight,
   ArrowLeft,
@@ -140,8 +140,10 @@ const OnboardingFlow = ({
   };
 
   const getNextButtonText = () => {
-    if (currentStep === 1) return contactCreated ? "Create Message" : "Create Message";
-    if (currentStep === 2) return messageCreated ? "Complete Setup!" : "Complete Setup!";
+    if (currentStep === 1)
+      return contactCreated ? "Create Message" : "Create Message";
+    if (currentStep === 2)
+      return messageCreated ? "Complete Setup!" : "Complete Setup!";
     return "Next";
   };
 
@@ -220,7 +222,11 @@ const OnboardingFlow = ({
             <div className="flex gap-3">
               <Button
                 onClick={handleNext}
-                disabled={isLoading || (currentStep === 1 && !contactCreated) || (currentStep === 2 && !messageCreated)}
+                disabled={
+                  isLoading ||
+                  (currentStep === 1 && !contactCreated) ||
+                  (currentStep === 2 && !messageCreated)
+                }
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8"
               >
                 {isLoading ? (
@@ -234,7 +240,9 @@ const OnboardingFlow = ({
                     {currentStep < totalSteps && (
                       <ArrowRight className="h-4 w-4" />
                     )}
-                    {currentStep === totalSteps && <Sparkles className="h-4 w-4" />}
+                    {currentStep === totalSteps && (
+                      <Sparkles className="h-4 w-4" />
+                    )}
                   </div>
                 )}
               </Button>

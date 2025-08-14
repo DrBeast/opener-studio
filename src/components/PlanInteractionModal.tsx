@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Label } from "@/components/ui/airtable-ds/label";
+import { Badge } from "@/components/ui/airtable-ds/badge";
 import { X, Plus, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { format, addDays } from "date-fns";
 import { Modal } from "@/components/ui/design-system/modals";
 import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
@@ -30,13 +30,13 @@ interface PlanInteractionModalProps {
 
 const SUGGESTION_CHIPS = [
   "Send follow-up",
-  "Send time slots to schedule", 
+  "Send time slots to schedule",
   "Apply for the role",
   "Ask for referral",
   "Send LinkedIn connection request",
   "Comment on their content",
   "Meet at the conference",
-  "Ask for intro"
+  "Ask for intro",
 ];
 
 export const PlanInteractionModal = ({
@@ -46,11 +46,13 @@ export const PlanInteractionModal = ({
   companyName,
   availableContacts,
   preSelectedContact,
-  onSuccess
+  onSuccess,
 }: PlanInteractionModalProps) => {
   const { user } = useAuth();
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(format(addDays(new Date(), 3), 'yyyy-MM-dd'));
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(
+    format(addDays(new Date(), 3), "yyyy-MM-dd")
+  );
   const [selectedContacts, setSelectedContacts] = useState<ContactData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,8 +68,8 @@ export const PlanInteractionModal = ({
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setDescription('');
-      setDate(format(addDays(new Date(), 3), 'yyyy-MM-dd'));
+      setDescription("");
+      setDate(format(addDays(new Date(), 3), "yyyy-MM-dd"));
       if (preSelectedContact) {
         setSelectedContacts([preSelectedContact]);
       } else {
@@ -78,18 +80,29 @@ export const PlanInteractionModal = ({
 
   const handleChipClick = (chipText: string) => {
     // Insert the chip text at the current cursor position or append it
-    const textarea = document.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+    const textarea = document.querySelector(
+      'textarea[name="description"]'
+    ) as HTMLTextAreaElement;
     if (textarea) {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const currentText = description;
-      
+
       // Add space if there's existing text and it doesn't end with a space
-      const prefix = currentText && !currentText.endsWith(' ') && start === currentText.length ? ' ' : '';
-      const newText = currentText.substring(0, start) + prefix + chipText + currentText.substring(end);
-      
+      const prefix =
+        currentText &&
+        !currentText.endsWith(" ") &&
+        start === currentText.length
+          ? " "
+          : "";
+      const newText =
+        currentText.substring(0, start) +
+        prefix +
+        chipText +
+        currentText.substring(end);
+
       setDescription(newText);
-      
+
       // Set cursor position after the inserted text
       setTimeout(() => {
         const newCursorPos = start + prefix.length + chipText.length;
@@ -98,23 +111,28 @@ export const PlanInteractionModal = ({
       }, 0);
     } else {
       // Fallback if textarea not found
-      const prefix = description && !description.endsWith(' ') ? ' ' : '';
-      setDescription(prev => prev + prefix + chipText);
+      const prefix = description && !description.endsWith(" ") ? " " : "";
+      setDescription((prev) => prev + prefix + chipText);
     }
   };
 
   const addContact = (contact: ContactData) => {
-    if (!selectedContacts.find(c => c.contact_id === contact.contact_id)) {
-      setSelectedContacts(prev => [...prev, contact]);
+    if (!selectedContacts.find((c) => c.contact_id === contact.contact_id)) {
+      setSelectedContacts((prev) => [...prev, contact]);
     }
   };
 
   const removeContact = (contactId: string) => {
-    setSelectedContacts(prev => prev.filter(c => c.contact_id !== contactId));
+    setSelectedContacts((prev) =>
+      prev.filter((c) => c.contact_id !== contactId)
+    );
   };
 
   const availableToAdd = availableContacts.filter(
-    contact => !selectedContacts.find(selected => selected.contact_id === contact.contact_id)
+    (contact) =>
+      !selectedContacts.find(
+        (selected) => selected.contact_id === contact.contact_id
+      )
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,28 +146,31 @@ export const PlanInteractionModal = ({
         user_id: user.id,
         company_id: companyId,
         description: description.trim(),
-        interaction_type: 'Plan',
+        interaction_type: "Plan",
         follow_up_due_date: date,
         follow_up_completed: false,
         // If we have exactly one contact selected, associate it
-        contact_id: selectedContacts.length === 1 ? selectedContacts[0].contact_id : null
+        contact_id:
+          selectedContacts.length === 1 ? selectedContacts[0].contact_id : null,
       };
 
       const { error } = await supabase
-        .from('interactions')
+        .from("interactions")
         .insert(interactionData);
 
       if (error) throw error;
 
       // If multiple contacts selected, create additional interaction records
       if (selectedContacts.length > 1) {
-        const additionalInteractions = selectedContacts.slice(1).map(contact => ({
-          ...interactionData,
-          contact_id: contact.contact_id
-        }));
+        const additionalInteractions = selectedContacts
+          .slice(1)
+          .map((contact) => ({
+            ...interactionData,
+            contact_id: contact.contact_id,
+          }));
 
         const { error: multiError } = await supabase
-          .from('interactions')
+          .from("interactions")
           .insert(additionalInteractions);
 
         if (multiError) throw multiError;
@@ -192,7 +213,7 @@ export const PlanInteractionModal = ({
                 </button>
               ))}
             </div>
-            
+
             {/* Description Textarea */}
             <Textarea
               id="description"
@@ -225,9 +246,9 @@ export const PlanInteractionModal = ({
             {selectedContacts.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {selectedContacts.map((contact) => (
-                  <Badge 
-                    key={contact.contact_id} 
-                    variant="secondary" 
+                  <Badge
+                    key={contact.contact_id}
+                    variant="secondary"
                     className="gap-1"
                   >
                     {contact.first_name} {contact.last_name}
@@ -242,7 +263,7 @@ export const PlanInteractionModal = ({
                 ))}
               </div>
             )}
-            
+
             {/* Add Contact Options */}
             {availableToAdd.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -259,7 +280,7 @@ export const PlanInteractionModal = ({
                 ))}
               </div>
             )}
-            
+
             {selectedContacts.length === 0 && availableToAdd.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 No contacts available for this company
@@ -272,8 +293,11 @@ export const PlanInteractionModal = ({
           <OutlineAction type="button" onClick={onClose}>
             Cancel
           </OutlineAction>
-          <PrimaryAction type="submit" disabled={isLoading || !description.trim()}>
-            {isLoading ? 'Planning...' : 'Plan Interaction'}
+          <PrimaryAction
+            type="submit"
+            disabled={isLoading || !description.trim()}
+          >
+            {isLoading ? "Planning..." : "Plan Interaction"}
           </PrimaryAction>
         </div>
       </form>

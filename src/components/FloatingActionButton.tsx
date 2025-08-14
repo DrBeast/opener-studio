@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { MessageCircle, Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/airtable-ds/button";
 import { useLocation } from "react-router-dom";
 import { ContactSelectionModal } from "@/components/ContactSelectionModal";
 import { CompanySelectionModal } from "@/components/CompanySelectionModal";

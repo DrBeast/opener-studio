@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { Button } from "@/components/ui/airtable-ds/button";
 import { Building2, Plus, Sparkles } from "lucide-react";
 
 interface EmptyStateProps {
@@ -16,7 +15,7 @@ export const EmptyState = ({
   hasFilters,
   onAddCompany,
   onGenerateCompanies,
-  isGeneratingCompanies
+  isGeneratingCompanies,
 }: EmptyStateProps) => {
   return (
     <div className="text-center py-12">
@@ -28,7 +27,11 @@ export const EmptyState = ({
           : "Start by adding your target companies"}
       </p>
       <div className="flex gap-2 justify-center mt-4">
-        <Button onClick={onGenerateCompanies} disabled={isGeneratingCompanies} variant="outline">
+        <Button
+          onClick={onGenerateCompanies}
+          disabled={isGeneratingCompanies}
+          variant="outline"
+        >
           <Sparkles className="mr-2 h-4 w-4" />
           {isGeneratingCompanies ? "Generating..." : "Generate Companies"}
         </Button>
