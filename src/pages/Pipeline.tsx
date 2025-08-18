@@ -5,9 +5,6 @@ import { toast } from "@/components/ui/airtable-ds/use-toast";
 
 // Icons Imports
 import {
-  Edit,
-  Plus,
-  Sparkles,
   UserPlus,
   Users,
   Building2,
@@ -34,7 +31,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/airtable-ds/collapsible";
 
-import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyDetails } from "@/components/CompanyDetails";
 import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
@@ -93,9 +89,7 @@ const PipelineDashboard = () => {
     "companies"
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
   const [contactModal, setContactModal] = useState<{
     isOpen: boolean;
     companyId: string;
@@ -219,72 +213,6 @@ const PipelineDashboard = () => {
 
     return matchesSearch;
   });
-
-  const handleAddCompany = () => {
-    setIsAddCompanyModalOpen(true);
-  };
-
-  const handleCompanyAdded = async (companyName: string) => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "add_company_by_name",
-        {
-          body: {
-            companyName,
-          },
-        }
-      );
-      if (error) throw error;
-      await fetchCompanies();
-      setIsAddCompanyModalOpen(false);
-      toast({
-        title: "Success",
-        description: "Company added successfully",
-      });
-    } catch (error: any) {
-      console.error("Error adding company:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add company",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGenerateCompanies = async () => {
-    if (!user) return;
-    setIsGeneratingCompanies(true);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "generate_companies"
-      );
-      if (error) throw error;
-      if (data?.status === "success") {
-        await fetchCompanies();
-        toast({
-          title: "Success",
-          description: `Generated ${
-            data.companies?.length || 0
-          } new companies successfully`,
-        });
-      } else if (data?.status === "warning") {
-        toast({
-          title: "Notice",
-          description: data.message,
-        });
-      }
-    } catch (error: any) {
-      console.error("Error generating companies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate companies",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingCompanies(false);
-    }
-  };
 
   const handleCompanyClick = (company: Company) => {
     setSelectedCompany(company);
@@ -650,36 +578,14 @@ const PipelineDashboard = () => {
                 onBulkRemove={handleBulkRemove}
               />
               <div className="flex items-center gap-3">
-                {currentView === "companies" && (
-                  <>
-                    <PrimaryAction
-                      onClick={handleGenerateCompanies}
-                      disabled={isGeneratingCompanies}
-                    >
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      {isGeneratingCompanies
-                        ? "Generating..."
-                        : "Generate More Companies"}
-                    </PrimaryAction>
-                    <PrimaryAction onClick={handleAddCompany}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Company
-                    </PrimaryAction>
-                  </>
-                )}
+                {currentView === "companies" && <></>}
               </div>
             </div>
           </div>
 
           {currentView === "companies" ? (
             filteredCompanies.length === 0 ? (
-              <EmptyState
-                searchTerm={searchTerm}
-                hasFilters={false}
-                onAddCompany={handleAddCompany}
-                onGenerateCompanies={handleGenerateCompanies}
-                isGeneratingCompanies={isGeneratingCompanies}
-              />
+              <EmptyState searchTerm={searchTerm} hasFilters={false} />
             ) : (
               <EnhancedCompaniesTable
                 companies={filteredCompanies}
@@ -709,12 +615,12 @@ const PipelineDashboard = () => {
             <div className="text-center py-12">
               <Users className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
-                No contacts found
+                No contacts - yet!
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {searchTerm
                   ? "Try adjusting your search term."
-                  : "Start by adding contacts to your companies."}
+                  : "Start by adding contacts and their profiles above."}
               </p>
             </div>
           ) : (
@@ -734,12 +640,6 @@ const PipelineDashboard = () => {
         </CardContent>
       </PrimaryCard>
       {/* Modals */}
-      <AddCompanyModal
-        isOpen={isAddCompanyModalOpen}
-        onClose={() => setIsAddCompanyModalOpen(false)}
-        onAddCompany={handleCompanyAdded}
-        isLoading={false}
-      />
       {selectedCompany && (
         <CompanyDetails
           company={selectedCompany}

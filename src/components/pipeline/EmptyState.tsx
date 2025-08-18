@@ -1,22 +1,12 @@
 import React from "react";
-import { Button } from "@/components/ui/airtable-ds/button";
-import { Building2, Plus, Sparkles } from "lucide-react";
+import { Building2 } from "lucide-react";
 
 interface EmptyStateProps {
   searchTerm: string;
   hasFilters: boolean;
-  onAddCompany: () => void;
-  onGenerateCompanies: () => void;
-  isGeneratingCompanies: boolean;
 }
 
-export const EmptyState = ({
-  searchTerm,
-  hasFilters,
-  onAddCompany,
-  onGenerateCompanies,
-  isGeneratingCompanies,
-}: EmptyStateProps) => {
+export const EmptyState = ({ searchTerm, hasFilters }: EmptyStateProps) => {
   return (
     <div className="text-center py-12">
       <Building2 className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
@@ -24,21 +14,8 @@ export const EmptyState = ({
       <p className="mt-1 text-muted-foreground">
         {searchTerm || hasFilters
           ? "Try adjusting your search or filters"
-          : "Start by adding your target companies"}
+          : "Start by adding contacts and their profiles above."}
       </p>
-      <div className="flex gap-2 justify-center mt-4">
-        <Button
-          onClick={onGenerateCompanies}
-          disabled={isGeneratingCompanies}
-          variant="outline"
-        >
-          <Sparkles className="mr-2 h-4 w-4" />
-          {isGeneratingCompanies ? "Generating..." : "Generate Companies"}
-        </Button>
-        <Button onClick={onAddCompany}>
-          <Plus className="mr-2 h-4 w-4" /> Add Company
-        </Button>
-      </div>
     </div>
   );
 };
