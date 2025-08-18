@@ -1,11 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
-import SettingsModal from "@/components/SettingsModal";
-import { useState } from "react";
 
 interface HeaderProps {
   // Empty interface - no props needed
@@ -15,7 +13,6 @@ const Header = ({}: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -26,15 +23,11 @@ const Header = ({}: HeaderProps) => {
     }
   };
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
   return (
     <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* LEFT SIDE: Logo and DEV Badge */}
+          {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
           <div className="flex items-center space-x-2">
             <Link
               to={user ? "/pipeline" : "/"}
@@ -50,6 +43,8 @@ const Header = ({}: HeaderProps) => {
                 DEV
               </Badge>
             </Link>
+            {/* Beta Feedback button moved here */}
+            {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
           {/* MIDDLE: Empty - Navigation removed */}
@@ -75,19 +70,18 @@ const Header = ({}: HeaderProps) => {
             </nav>
           )}
 
-          {/* RIGHT SIDE: Settings, Feedback and Logout Buttons */}
+          {/* RIGHT SIDE: Profile and Logout Buttons */}
           {user && (
             <div className="flex items-center space-x-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => setIsSettingsOpen(true)}
+                onClick={() => navigate("/profile")}
                 className="flex items-center gap-2"
               >
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile</span>
               </Button>
-              <FeedbackBox viewName={location.pathname} />
               <Button
                 variant="outlinedestructive"
                 size="sm"
@@ -96,24 +90,6 @@ const Header = ({}: HeaderProps) => {
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Log Out</span>
-              </Button>
-            </div>
-          )}
-
-          <SettingsModal
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-          />
-
-          {/* Mobile Menu (simplified for now) */}
-          {!user && (
-            <div className="md:hidden">
-              <Button
-                asChild
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary/80"
-              >
-                <Link to="/auth/login">Login</Link>
               </Button>
             </div>
           )}
