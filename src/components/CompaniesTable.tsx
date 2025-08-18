@@ -170,7 +170,7 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
   );
 };
 
-export const EnhancedCompaniesTable = ({
+export const CompaniesTable = ({
   companies,
   onCompanyClick,
   onSetPriority,

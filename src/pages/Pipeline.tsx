@@ -37,8 +37,8 @@ import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
 import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
-import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
-import { ContactsTable } from "@/components/pipeline/ContactsTable";
+import { CompaniesTable } from "@/components/CompaniesTable";
+import { ContactsTable } from "@/components/ContactsTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { AddContactModal } from "../components/AddContactModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
@@ -587,7 +587,7 @@ const PipelineDashboard = () => {
             filteredCompanies.length === 0 ? (
               <EmptyState searchTerm={searchTerm} hasFilters={false} />
             ) : (
-              <EnhancedCompaniesTable
+              <CompaniesTable
                 companies={filteredCompanies}
                 onCompanyClick={handleCompanyClick}
                 onSetPriority={handleSetPriority}
