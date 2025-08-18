@@ -1,18 +1,17 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, BookOpen, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 import SettingsModal from "@/components/SettingsModal";
 import { useState } from "react";
 
 interface HeaderProps {
-  onOpenOnboarding?: () => void;
+  // Empty interface - no props needed
 }
 
-const Header = ({ onOpenOnboarding }: HeaderProps) => {
+const Header = ({}: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,7 +34,7 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
     <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* LEFT SIDE: Logo, DEV Badge, and Onboarding Button */}
+          {/* LEFT SIDE: Logo and DEV Badge */}
           <div className="flex items-center space-x-2">
             <Link
               to={user ? "/pipeline" : "/"}
@@ -51,17 +50,6 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
                 DEV
               </Badge>
             </Link>
-            {/* Onboarding Button - Placed next to logo/badge */}
-            {user && onOpenOnboarding && (
-              <PrimaryAction
-                size="sm"
-                onClick={onOpenOnboarding}
-                className="flex items-center gap-3"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Onboarding</span>
-              </PrimaryAction>
-            )}
           </div>
 
           {/* MIDDLE: Empty - Navigation removed */}
