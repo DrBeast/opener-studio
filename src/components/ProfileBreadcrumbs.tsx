@@ -37,14 +37,6 @@ export function ProfileBreadcrumbs() {
     }
 
     // Add specific sections based on paths
-    if (path === "/job-targets") {
-      items.push({
-        name: "Targets",
-        path: "/job-targets",
-        isCurrentPage: true,
-        icon: null,
-      });
-    }
     if (path === "/tracking") {
       items.push({
         name: "Tracking",

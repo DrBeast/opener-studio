@@ -45,7 +45,6 @@ import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesT
 import { ContactsTable } from "@/components/pipeline/ContactsTable";
 import { EmptyState } from "@/components/pipeline/EmptyState";
 import { AddContactModal } from "../components/AddContactModal";
-import { TargetsModal } from "@/components/TargetsModal";
 import { GenerateContactsModal } from "@/components/GenerateContactsModal";
 import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -111,7 +110,6 @@ const PipelineDashboard = () => {
   );
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
   const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
-  const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
   const [contactForMessage, setContactForMessage] = useState<any>(null);
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(true);
 
@@ -380,10 +378,6 @@ const PipelineDashboard = () => {
     setIsContactDetailsOpen(false);
     setSelectedContactId(null);
     setContactDetailsTab("details");
-  };
-
-  const handleOpenTargetsModal = () => {
-    setIsTargetsModalOpen(true);
   };
 
   // Handler to receive contact from workflow
@@ -658,10 +652,6 @@ const PipelineDashboard = () => {
               <div className="flex items-center gap-3">
                 {currentView === "companies" && (
                   <>
-                    <OutlineAction onClick={handleOpenTargetsModal}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit Targets
-                    </OutlineAction>
                     <PrimaryAction
                       onClick={handleGenerateCompanies}
                       disabled={isGeneratingCompanies}
@@ -781,10 +771,6 @@ const PipelineDashboard = () => {
           defaultTab={contactDetailsTab}
         />
       )}
-      <TargetsModal
-        isOpen={isTargetsModalOpen}
-        onClose={() => setIsTargetsModalOpen(false)}
-      />
       {/* Unified Generate Contacts Modal */}
       <GenerateContactsModal
         isOpen={generateContactsModal.isOpen}

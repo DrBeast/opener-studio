@@ -11,17 +11,19 @@ import {
   CardTitle,
 } from "@/components/ui/airtable-ds/card";
 import { UserRound, Briefcase } from "lucide-react";
+
 interface ProgressTrackerProps {
   className?: string;
 }
+
 const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [completionStatus, setCompletionStatus] = useState({
     hasBackground: false,
-    hasJobTargets: false,
   });
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const fetchStatus = async () => {
       if (!user) return;
@@ -37,16 +39,6 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
           console.error("Error checking profile data:", profileError);
         }
 
-        // Check for job targets data
-        const { data: targetData, error: targetError } = await supabase
-          .from("target_criteria")
-          .select("*")
-          .eq("user_id", user.id)
-          .limit(1);
-        if (targetError) {
-          console.error("Error checking target criteria:", targetError);
-        }
-
         // Consider profile complete if user has at least one background data entry
         const hasBackgroundData =
           profileData &&
@@ -55,7 +47,6 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
             profileData.cv_content);
         setCompletionStatus({
           hasBackground: !!hasBackgroundData,
-          hasJobTargets: targetData && targetData.length > 0,
         });
       } catch (error: any) {
         console.error("Error checking completion status:", error.message);
@@ -65,27 +56,26 @@ const ProgressTracker = ({ className = "" }: ProgressTrackerProps) => {
     };
     fetchStatus();
   }, [user]);
-  const stepsCompleted = [
-    completionStatus.hasBackground,
-    completionStatus.hasJobTargets,
-  ].filter(Boolean).length;
-  const totalSteps = 2;
+
+  const stepsCompleted = [completionStatus.hasBackground].filter(
+    Boolean
+  ).length;
+  const totalSteps = 1;
   const progressPercentage = (stepsCompleted / totalSteps) * 100;
+
   const nextStep = !completionStatus.hasBackground
     ? {
         path: "/profile",
         label: "Complete Profile",
       }
-    : !completionStatus.hasJobTargets
-    ? {
-        path: "/job-targets",
-        label: "Define Job Targets",
-      }
     : {
-        path: "/companies",
-        label: "Find Companies",
+        path: "/pipeline",
+        label: "Start Networking",
       };
+
   if (isLoading) return null;
+
   return <Card className={`bg-primary/5 ${className}`}></Card>;
 };
+
 export default ProgressTracker;

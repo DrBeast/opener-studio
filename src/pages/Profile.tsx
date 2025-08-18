@@ -61,11 +61,6 @@ const Profile = () => {
     null
   );
 
-  // Navigate to job targets page
-  const handleNavigateToTargets = () => {
-    navigate("/job-targets");
-  };
-
   useEffect(() => {
     if (!user) {
       navigate("/auth/login");
@@ -121,8 +116,8 @@ const Profile = () => {
 
   // Check for edit mode from URL parameter
   useEffect(() => {
-    const editFromUrl = searchParams.get('edit');
-    if (editFromUrl === 'true') {
+    const editFromUrl = searchParams.get("edit");
+    if (editFromUrl === "true") {
       setEditMode(true);
     }
   }, [searchParams]);
@@ -285,10 +280,6 @@ const Profile = () => {
                     Edit Profile
                   </OutlineAction>
                 )}
-                <PrimaryAction onClick={handleNavigateToTargets}>
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
-                </PrimaryAction>
               </div>
             </div>
 
@@ -373,10 +364,6 @@ const Profile = () => {
                   <Edit className="h-4 w-4" />
                   Edit Profile
                 </OutlineAction>
-                <PrimaryAction onClick={handleNavigateToTargets}>
-                  Next: Define Targets
-                  <ArrowRight className="h-4 w-4" />
-                </PrimaryAction>
               </CardFooter>
             </Card>
           </div>

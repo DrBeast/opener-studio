@@ -14,7 +14,6 @@ import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
-import JobTargets from "@/pages/JobTargets";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/Pipeline";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
@@ -48,7 +47,6 @@ const App = () => (
               <Route element={<ProtectedRoute />}>
                 <Route path="/pipeline" element={<PipelineDashboard />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/job-targets" element={<JobTargets />} />
               </Route>
 
               {/* Admin Routes */}
@@ -69,10 +67,6 @@ const App = () => (
               <Route
                 path="/profile/enrichment"
                 element={<Navigate to="/profile" replace />}
-              />
-              <Route
-                path="/job-search"
-                element={<Navigate to="/job-targets" replace />}
               />
               <Route
                 path="/navigate-to-profile"

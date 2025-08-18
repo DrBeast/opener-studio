@@ -43,8 +43,8 @@ export const AddCompanyModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Add Target Company"
-      description="Enter a company name to add it to your networking targets"
+      title="Add Company"
+      description="Enter a company name to add it to your network"
       icon={<Building />}
       className="sm:max-w-md"
     >
