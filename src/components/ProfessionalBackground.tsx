@@ -12,7 +12,6 @@ interface ProfessionalBackgroundProps {
     background?: string;
     linkedin?: string;
     additional?: string;
-    cv?: string;
   };
 }
 
@@ -30,7 +29,6 @@ const ProfessionalBackground = ({
       const combinedExisting = [
         existingData.background,
         existingData.linkedin && `LinkedIn Profile:\n${existingData.linkedin}`,
-        existingData.cv && `CV Content:\n${existingData.cv}`,
         existingData.additional &&
           `Additional Details:\n${existingData.additional}`,
       ]
@@ -60,8 +58,8 @@ const ProfessionalBackground = ({
 
       <InfoBox
         title="💡 How to add your background information"
-        description="Copy your LinkedIn profile, CV content, or professional information to help AI create your profile summary."
-        badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
+        description="Copy your LinkedIn profile or professional information to help AI create your profile summary."
+        badges={["LinkedIn Profile", "Professional Bio"]}
       >
         <div className="space-y-2">
           <p>
@@ -69,11 +67,6 @@ const ProfessionalBackground = ({
             select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the
             text box below (CMD/CTRL + V). Don't worry about formatting, just
             copy everything - AI will figure it out.
-          </p>
-          <p>
-            <strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A) and
-            paste it (CMD/CTRL + V) into the text box below. Don't worry about
-            formatting.
           </p>
           <p>
             <strong>Professional Information:</strong> Write about your bio,
@@ -91,7 +84,7 @@ const ProfessionalBackground = ({
       <div>
         <Textarea
           id="background-input"
-          placeholder="Paste your LinkedIn profile, CV content, or describe your professional background..."
+          placeholder="Paste your LinkedIn profile or describe your professional background..."
           value={displayValue}
           onChange={(e) => setBackgroundInput(e.target.value)}
           className="min-h-[300px]"

@@ -53,7 +53,6 @@ const Profile = () => {
     background?: string;
     linkedin?: string;
     additional?: string;
-    cv?: string;
   }>({});
 
   // State for editable summary fields
@@ -75,7 +74,6 @@ const Profile = () => {
       background?: string;
       linkedin?: string;
       additional?: string;
-      cv?: string;
     } = {};
 
     if (profile.background_input) {
@@ -87,7 +85,6 @@ const Profile = () => {
       const legacyData = [
         profile.linkedin_content &&
           `LinkedIn Profile:\n${profile.linkedin_content}`,
-        profile.cv_content && `CV Content:\n${profile.cv_content}`,
         profile.additional_details &&
           `Additional Details:\n${profile.additional_details}`,
       ]
@@ -105,9 +102,6 @@ const Profile = () => {
       }
       if (profile.additional_details) {
         existingBackgrounds.additional = profile.additional_details;
-      }
-      if (profile.cv_content) {
-        existingBackgrounds.cv = profile.cv_content;
       }
     }
 

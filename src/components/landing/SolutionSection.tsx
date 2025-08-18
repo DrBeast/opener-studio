@@ -1,36 +1,48 @@
-
-import { UserCheck, Building, MessageSquare, Calendar, Sparkles, Target, Zap, CheckCircle } from "lucide-react";
+import {
+  UserCheck,
+  Building,
+  MessageSquare,
+  Calendar,
+  Sparkles,
+  Target,
+  Zap,
+  CheckCircle,
+} from "lucide-react";
 
 const SolutionSection = () => {
   const solutions = [
     {
       icon: <UserCheck className="h-8 w-8 text-white" />,
       title: "Effortless Profile Building",
-      description: "Start by simply sharing your background – paste your LinkedIn summary, CV text, or tell us your story. Our AI instantly creates a powerful profile that highlights your unique value.",
+      description:
+        "Start by simply sharing your background – paste your LinkedIn summary or tell us your story. Our AI instantly creates a powerful profile that highlights your unique value.",
       gradient: "from-emerald-600 to-teal-600",
-      accentColor: "bg-emerald-500"
+      accentColor: "bg-emerald-500",
     },
     {
       icon: <Building className="h-8 w-8 text-white" />,
       title: "Smart Lead Identification",
-      description: "We help you find the right companies and the key people within them who are most relevant to your goals.",
+      description:
+        "We help you find the right companies and the key people within them who are most relevant to your goals.",
       gradient: "from-violet-600 to-purple-600",
-      accentColor: "bg-violet-500"
+      accentColor: "bg-violet-500",
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-white" />,
       title: "Authentic Message Crafting",
-      description: "Never stare at a blank screen again. Our AI drafts personalized outreach messages that sound like you, clearly articulate your value, and increase your chances of getting a response.",
+      description:
+        "Never stare at a blank screen again. Our AI drafts personalized outreach messages that sound like you, clearly articulate your value, and increase your chances of getting a response.",
       gradient: "from-rose-600 to-pink-600",
-      accentColor: "bg-rose-500"
+      accentColor: "bg-rose-500",
     },
     {
       icon: <Calendar className="h-8 w-8 text-white" />,
       title: "Organized Tracking",
-      description: "Keep all your networking activity in one place. Easily log interactions, set reminders, and see your progress at a glance, so you never miss an opportunity.",
+      description:
+        "Keep all your networking activity in one place. Easily log interactions, set reminders, and see your progress at a glance, so you never miss an opportunity.",
       gradient: "from-blue-600 to-indigo-600",
-      accentColor: "bg-blue-500"
-    }
+      accentColor: "bg-blue-500",
+    },
   ];
 
   return (
@@ -53,15 +65,22 @@ const SolutionSection = () => {
             How ConnectorAI Helps
           </h2>
           <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
-            What if you had an AI copilot to guide you? ConnectorAI is designed to cut through the complexity and discomfort of job search networking.
+            What if you had an AI copilot to guide you? ConnectorAI is designed
+            to cut through the complexity and discomfort of job search
+            networking.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {solutions.map((solution, index) => (
-            <div key={index} className="group bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 border border-slate-100">
+            <div
+              key={index}
+              className="group bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 border border-slate-100"
+            >
               {/* Header with gradient and icon */}
-              <div className={`bg-gradient-to-r ${solution.gradient} p-8 relative overflow-hidden`}>
+              <div
+                className={`bg-gradient-to-r ${solution.gradient} p-8 relative overflow-hidden`}
+              >
                 <div className="absolute inset-0 bg-black/10"></div>
                 <div className="relative z-10 flex items-center gap-6">
                   <div className="bg-white/20 p-4 rounded-xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
@@ -75,7 +94,7 @@ const SolutionSection = () => {
                 <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
                 <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/10 rounded-full"></div>
               </div>
-              
+
               {/* Content */}
               <div className="p-8 bg-gradient-to-br from-slate-50 to-white">
                 <p className="text-slate-700 leading-relaxed text-lg mb-6">
@@ -102,7 +121,8 @@ const SolutionSection = () => {
               Ready to Transform Your Networking?
             </h3>
             <p className="text-slate-600">
-              Join professionals who are landing interviews faster with AI-powered networking
+              Join professionals who are landing interviews faster with
+              AI-powered networking
             </p>
           </div>
         </div>

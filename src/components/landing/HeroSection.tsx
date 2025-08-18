@@ -295,7 +295,7 @@ const HeroSection = () => {
 
                   <div className="relative">
                     <Textarea
-                      placeholder="Copy your professional bio from your LinkedIn profile or CV. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
+                      placeholder="Copy your professional bio from your LinkedIn profile. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
                       className="min-h-[200px] text-base p-6 border-2 border-slate-200 focus:border-violet-500 transition-all duration-300 bg-slate-50/50 rounded-xl shadow-inner resize-none"
                       value={backgroundInput}
                       onChange={(e) => setBackgroundInput(e.target.value)}

@@ -257,12 +257,12 @@ const ProfileInput = () => {
         </h2>
         <p className="text-xl text-gray-600">
           Share your professional background in one simple step. Copy your
-          LinkedIn profile, CV content, or tell us about yourself. Our AI will
-          process it and show you how it builds your profile.
+          LinkedIn profile or tell us about yourself. Our AI will process it and
+          show you how it builds your profile.
         </p>
       </div>
       <Textarea
-        placeholder="Paste your LinkedIn profile, CV content, or describe your professional background..."
+        placeholder="Paste your LinkedIn profile or describe your professional background..."
         className="min-h-[200px]"
         value={backgroundInput}
         onChange={(e) => setBackgroundInput(e.target.value)}
@@ -270,8 +270,8 @@ const ProfileInput = () => {
       <div className="space-y-4">
         <InfoBox
           title="💡 How to add your background information"
-          description="Copy your LinkedIn profile, CV content, or professional information to help AI create your profile summary."
-          badges={["LinkedIn Profile", "CV/Resume", "Professional Bio"]}
+          description="Copy your LinkedIn profile or professional information to help AI create your profile summary."
+          badges={["LinkedIn Profile", "Professional Bio"]}
         >
           <div className="space-y-2">
             <p>
@@ -279,11 +279,6 @@ const ProfileInput = () => {
               select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into
               the text box below (CMD/CTRL + V). Don't worry about formatting,
               just copy everything - AI will figure it out.
-            </p>
-            <p>
-              <strong>CV/Resume:</strong> Copy your CV contents (CMD/CTRL + A)
-              and paste it (CMD/CTRL + V) into the text box below. Don't worry
-              about formatting.
             </p>
             <p>
               <strong>Tell us about yourself:</strong> Write about your bio,
