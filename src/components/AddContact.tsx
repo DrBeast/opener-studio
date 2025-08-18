@@ -6,8 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
-import { CompanyDuplicateDialog } from "./pipeline/CompanyDuplicateDialog";
-import { ContactDuplicateDialog } from "./pipeline/ContactDuplicateDialog";
+import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
+import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
 import { LucideTarget } from "lucide-react";
 import { ContactPreview } from "./ContactPreview";
 
