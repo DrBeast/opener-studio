@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/airtable-ds/collapsible";
 
 import { CompanyDetails } from "@/components/CompanyDetails";
-import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
+import { ContactDetails } from "@/components/ContactDetails";
 import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
@@ -641,7 +641,7 @@ const PipelineDashboard = () => {
       />
       {/* Enhanced Contact Details Modal */}
       {selectedContactId && (
-        <EnhancedContactDetails
+        <ContactDetails
           contactId={selectedContactId}
           isOpen={isContactDetailsOpen}
           onClose={handleContactDetailClose}

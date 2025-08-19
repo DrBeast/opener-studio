@@ -20,7 +20,6 @@ import FeedbackReview from "@/pages/admin/FeedbackReview";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
-import FloatingActionButton from "@/components/FloatingActionButton";
 
 const queryClient = new QueryClient();
 
@@ -76,7 +75,6 @@ const App = () => (
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <FloatingActionButton />
           </MainLayout>
         </BrowserRouter>
       </AuthProvider>

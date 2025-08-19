@@ -72,7 +72,7 @@ interface InteractionData {
   contact_id?: string;
 }
 
-interface EnhancedContactDetailsProps {
+interface ContactDetailsProps {
   contactId: string;
   isOpen: boolean;
   onClose: () => void;
@@ -80,13 +80,13 @@ interface EnhancedContactDetailsProps {
   defaultTab?: string;
 }
 
-export function EnhancedContactDetails({
+export function ContactDetails({
   contactId,
   isOpen,
   onClose,
   onContactUpdated,
   defaultTab = "details",
-}: EnhancedContactDetailsProps) {
+}: ContactDetailsProps) {
   const { user } = useAuth();
   const [contact, setContact] = useState<ContactData | null>(null);
   const [formData, setFormData] = useState<ContactData | null>(null);

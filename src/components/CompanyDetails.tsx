@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/airtable-ds/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
-import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
+import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { Badge } from "@/components/ui/airtable-ds/badge";
@@ -1005,7 +1005,7 @@ export function CompanyDetails({
 
         {/* Enhanced Contact Details Dialog */}
         {selectedContactId && (
-          <EnhancedContactDetails
+          <ContactDetails
             contactId={selectedContactId}
             isOpen={isContactDetailsOpen}
             onClose={() => setIsContactDetailsOpen(false)}
