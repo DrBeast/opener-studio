@@ -22,11 +22,11 @@ interface CompanyData {
   ai_match_reasoning?: string;
   match_quality_score?: number;
   user_priority?: string;
-  generated_criteria_highlights?: Record<string, any>;
+  generated_criteria_highlights?: Record<string, unknown>;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests TEST
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
