@@ -41,7 +41,7 @@ import { CompaniesTable } from "@/components/CompaniesTable";
 import { ContactsTable } from "@/components/ContactsTable";
 import { EmptyState } from "@/components/EmptyState";
 import { AddContactModal } from "../components/AddContactModal";
-import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+
 import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
 
@@ -108,15 +108,6 @@ const PipelineDashboard = () => {
   const [isWorkflowExpanded, setIsWorkflowExpanded] = useState(true);
 
   // Generate Contacts Modal state
-  const [generateContactsModal, setGenerateContactsModal] = useState<{
-    isOpen: boolean;
-    companyId: string;
-    companyName: string;
-  }>({
-    isOpen: false,
-    companyId: "",
-    companyName: "",
-  });
 
   // Sort companies based on selected field and direction
   const sortedCompanies = [...companies].sort((a, b) => {
@@ -332,18 +323,6 @@ const PipelineDashboard = () => {
     );
     setContactForMessage(contactForGeneration);
     fetchContacts();
-  };
-
-  // Updated function to open the unified generate contacts modal
-  const handleOpenContactRecommendation = (
-    companyId: string,
-    companyName: string
-  ) => {
-    setGenerateContactsModal({
-      isOpen: true,
-      companyId,
-      companyName,
-    });
   };
 
   const isLoading = companiesLoading || contactsLoading;
@@ -608,7 +587,6 @@ const PipelineDashboard = () => {
                 }}
                 onContactClick={handleContactClick}
                 onGenerateMessage={handleGenerateMessage}
-                onOpenContactRecommendation={handleOpenContactRecommendation}
               />
             )
           ) : filteredContacts.length === 0 ? (
@@ -671,20 +649,6 @@ const PipelineDashboard = () => {
           defaultTab={contactDetailsTab}
         />
       )}
-      {/* Unified Generate Contacts Modal */}
-      <GenerateContactsModal
-        isOpen={generateContactsModal.isOpen}
-        onClose={() =>
-          setGenerateContactsModal({
-            isOpen: false,
-            companyId: "",
-            companyName: "",
-          })
-        }
-        companyId={generateContactsModal.companyId}
-        companyName={generateContactsModal.companyName}
-        onSuccess={handleCompanyUpdated}
-      />
     </div>
   );
 };

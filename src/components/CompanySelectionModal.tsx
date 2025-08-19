@@ -7,11 +7,11 @@ import {
   DialogTitle,
 } from "@/components/ui/airtable-ds/dialog";
 import { Button } from "@/components/ui/airtable-ds/button";
-import { Building, Bot, MapPin } from "lucide-react";
+import { Building, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AddContactModal } from "@/components/AddContactModal";
-import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+
 import {
   Chipcard,
   OutlineAction,
@@ -38,9 +38,7 @@ export const CompanySelectionModal = ({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [contactMethod, setContactMethod] = useState<
-    "generate" | "manual" | null
-  >(null);
+  const [contactMethod, setContactMethod] = useState<"manual" | null>(null);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -69,12 +67,9 @@ export const CompanySelectionModal = ({
     }
   };
 
-  const handleCompanySelect = (
-    company: Company,
-    method: "generate" | "manual"
-  ) => {
+  const handleCompanySelect = (company: Company) => {
     setSelectedCompany(company);
-    setContactMethod(method);
+    setContactMethod("manual");
     setIsContactModalOpen(true);
     onClose();
   };
@@ -137,18 +132,9 @@ export const CompanySelectionModal = ({
                   icon={<Building />}
                   icon2={<MapPin className="h-4 w-4" />}
                 >
-                  <OutlineAction
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCompanySelect(company, "generate")}
-                    className="flex items-center gap-1"
-                  >
-                    <Bot className="h-4 w-4" />
-                    Generate
-                  </OutlineAction>
                   <PrimaryAction
                     size="sm"
-                    onClick={() => handleCompanySelect(company, "manual")}
+                    onClick={() => handleCompanySelect(company)}
                     className="flex items-center gap-1"
                   >
                     Add Manually
@@ -161,25 +147,13 @@ export const CompanySelectionModal = ({
       </Dialog>
 
       {selectedCompany && contactMethod && (
-        <>
-          {contactMethod === "generate" ? (
-            <GenerateContactsModal
-              isOpen={isContactModalOpen}
-              onClose={handleCloseContactModal}
-              companyId={selectedCompany.company_id}
-              companyName={selectedCompany.name}
-              onSuccess={handleSuccess}
-            />
-          ) : (
-            <AddContactModal
-              isOpen={isContactModalOpen}
-              onClose={handleCloseContactModal}
-              companyId={selectedCompany.company_id}
-              companyName={selectedCompany.name}
-              onSuccess={handleSuccess}
-            />
-          )}
-        </>
+        <AddContactModal
+          isOpen={isContactModalOpen}
+          onClose={handleCloseContactModal}
+          companyId={selectedCompany.company_id}
+          companyName={selectedCompany.name}
+          onSuccess={handleSuccess}
+        />
       )}
     </>
   );

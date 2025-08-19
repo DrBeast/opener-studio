@@ -18,8 +18,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  PageTitle,
-  PageDescription,
 } from "@/components/ui/design-system";
 
 interface FeedbackEntry {
@@ -147,10 +145,10 @@ const FeedbackReview = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <PageTitle className="mb-2">Beta User Feedback Review</PageTitle>
-          <PageDescription className="text-lg">
+          <CardTitle className="mb-2">Beta User Feedback Review</CardTitle>
+          <CardDescription className="text-lg">
             Insights and suggestions from our beta testing community
-          </PageDescription>
+          </CardDescription>
         </div>
 
         {/* Stats Cards */}

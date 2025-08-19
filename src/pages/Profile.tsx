@@ -17,11 +17,8 @@ import {
   CardHeader,
   CardTitle,
   Button,
-  PageTitle,
-  PageDescription,
   OutlineAction,
   PrimaryAction,
-  SectionTitle,
   CardFooter,
 } from "@/components/ui/design-system";
 
@@ -261,11 +258,11 @@ const Profile = () => {
             {/* Page Header */}
             <div className="flex flex-row items-center justify-between">
               <div>
-                <PageTitle>Professional Profile</PageTitle>
-                <PageDescription>
+                <CardTitle>Professional Profile</CardTitle>
+                <CardDescription>
                   Manage your professional information and AI-generated
                   summaries
-                </PageDescription>
+                </CardDescription>
               </div>
               <div className="flex gap-3">
                 {!editMode && (
@@ -291,7 +288,7 @@ const Profile = () => {
                 {/* Edit Form - Moved to the top when in edit mode */}
                 {editMode && (
                   <div className="border-t border-gray-100 pt-8">
-                    <SectionTitle>Edit Profile Information</SectionTitle>
+                    <CardTitle>Edit Profile Information</CardTitle>
 
                     <ProfessionalBackground
                       backgroundInput={backgroundInput}

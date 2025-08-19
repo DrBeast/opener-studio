@@ -34,15 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
-import {
-  PrimaryAction,
-  Chip,
-  Button,
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/design-system";
+import { PrimaryAction, Chip, Button } from "@/components/ui/design-system";
 
 interface ContactData {
   contact_id: string;

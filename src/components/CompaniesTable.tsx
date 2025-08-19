@@ -21,7 +21,6 @@ import {
   UserPlus,
   MessageCircle,
   RefreshCw,
-  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
@@ -80,7 +79,6 @@ interface CompaniesTableProps {
   onCreateContact: (companyId: string, companyName: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
-  onOpenContactRecommendation: (companyId: string, companyName: string) => void;
 }
 
 const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
@@ -185,7 +183,6 @@ export const CompaniesTable = ({
   onCreateContact,
   onContactClick,
   onGenerateMessage,
-  onOpenContactRecommendation, // NEW PROP
 }: CompaniesTableProps) => {
   // Moved highlightAnimation CSS to a global CSS file or <style> tag in a higher-level component
   // You should ensure the keyframes are defined globally, e.g., in index.css or App.css
