@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Flat Design Color System */
+    /* Flat Design Color System  */
     --floor: 0 0% 10%; /* Gray background for the bottom of the site */
     --background: 0 0% 100%; /* Clean white background for cards and modals */
     --foreground: 0 0% 20%; /* High contrast dark text */
