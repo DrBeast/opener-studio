@@ -477,19 +477,21 @@ export function MessageGeneration({
                   <Button
                     key={option.id}
                     variant="option"
-                    className={`bg-inherit hover:bg-inherit flex-1 p-1 border-none transition-colors cursor-pointer ${
+                    className={`bg-inherit hover:bg-inherit flex-1 p-2 border-none transition-colors cursor-pointer min-w-0 ${
                       medium === option.id
                         ? "text-primary"
                         : "text-secondary-foreground"
                     }`}
                     onClick={() => handleMediumChange(option.id)}
                   >
-                    <div className="text-center space-y-1 font-semibold text-xs">
-                      {option.label} /{" "}
-                      {option.maxLength >= 1000
-                        ? `${option.maxLength / 1000}k`
-                        : option.maxLength}{" "}
-                      chars
+                    <div className="text-center space-y-1 font-semibold text-xs leading-tight">
+                      <div className="whitespace-nowrap">{option.label}</div>
+                      <div className="whitespace-nowrap">
+                        {option.maxLength >= 1000
+                          ? `${option.maxLength / 1000}k`
+                          : option.maxLength}{" "}
+                        chars
+                      </div>
                     </div>
                   </Button>
                 ))}

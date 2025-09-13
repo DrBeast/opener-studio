@@ -16,6 +16,7 @@ import AuthCallback from "@/pages/auth/AuthCallback";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/Pipeline";
+import MessageHistory from "@/pages/MessageHistory";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
 
 // Components
@@ -45,6 +46,7 @@ const App = () => (
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/pipeline" element={<PipelineDashboard />} />
+                <Route path="/message-history" element={<MessageHistory />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>
 

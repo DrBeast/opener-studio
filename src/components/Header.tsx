@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 
@@ -70,9 +70,18 @@ const Header = ({}: HeaderProps) => {
             </nav>
           )}
 
-          {/* RIGHT SIDE: Profile and Logout Buttons */}
+          {/* RIGHT SIDE: Message History, Profile and Logout Buttons */}
           {user && (
             <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/message-history")}
+                className="flex items-center gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Message History</span>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
