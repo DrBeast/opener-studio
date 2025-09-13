@@ -350,7 +350,7 @@ const PipelineDashboard = () => {
               expanded={isWorkflowExpanded}
               icon={<UserPlus className="h-6 w-6" />}
             >
-              Expand your network
+              Expand your network biatch!
             </CollapsibleWide>
           </CollapsibleTrigger>
 
