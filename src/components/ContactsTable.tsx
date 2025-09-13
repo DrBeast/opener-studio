@@ -10,22 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/airtable-ds/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/airtable-ds/dropdown-menu";
-import {
   ArrowUpDown,
-  ChevronDown,
   MessageCircle,
   RefreshCw,
   User,
   Building,
-  MapPin,
   Linkedin,
-  UserCheck,
-  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
@@ -186,10 +176,7 @@ export const ContactsTable = ({
   };
 
   const formatCompanyInfo = (contact: Contact) => {
-    const parts = [];
-    if (contact.company_name) parts.push(contact.company_name);
-    if (contact.company_industry) parts.push(contact.company_industry);
-    return parts.join(" • ");
+    return contact.company_name || "-";
   };
 
   return (
@@ -207,22 +194,13 @@ export const ContactsTable = ({
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
-              <TableHead className="min-w-[160px]">
+              <TableHead className="w-[140px]">
                 <SortButton field="name">Contact</SortButton>
               </TableHead>
-              <TableHead className="min-w-[140px]">
-                <SortButton field="role">Role</SortButton>
-              </TableHead>
-              <TableHead className="min-w-[180px]">
-                <SortButton field="company">Company</SortButton>
-              </TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="hidden md:table-cell min-w-[120px]">
-                Location
-              </TableHead>
               <TableHead className="min-w-[250px]">Bio Summary</TableHead>
+              <TableHead className="min-w-[200px]">How I Can Help</TableHead>
+              <TableHead className="min-w-[250px]">Message History</TableHead>
               <TableHead className="min-w-[100px]">Actions</TableHead>
-              <TableHead className="min-w-[250px]">Interactions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -249,83 +227,40 @@ export const ContactsTable = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <div className="font-medium text-sm leading-tight">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="font-medium text-sm leading-tight break-words">
                           {contactName}
                         </div>
-                        {contact.email && (
-                          <div className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                            {contact.email}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">{contact.role || "-"}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="text-sm">{companyInfo || "-"}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
-                          contact.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-600"
-                        )}
-                      >
-                        {contact.status === "active" ? (
-                          <UserCheck className="h-3 w-3" />
-                        ) : (
-                          <UserX className="h-3 w-3" />
-                        )}
-                        {contact.status}
+                      <div className="flex items-center gap-2 ml-6">
+                        <Building className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <div className="text-xs text-muted-foreground break-words">
+                          {companyInfo || "-"}
+                        </div>
                       </div>
-                      {onToggleStatus && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="p-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleStatus(
-                              contact.contact_id,
-                              contact.status === "active"
-                                ? "inactive"
-                                : "active"
-                            );
-                          }}
-                          title={`Mark as ${
-                            contact.status === "active" ? "inactive" : "active"
-                          }`}
-                        >
-                          {contact.status === "active" ? (
-                            <UserX className="h-3 w-3" />
-                          ) : (
-                            <UserCheck className="h-3 w-3" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="text-xs">{contact.location || "-"}</div>
+                      <div className="ml-6">
+                        <div className="text-xs text-muted-foreground break-words">
+                          {contact.role || "-"}
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-xs leading-relaxed max-w-64">
-                      {contact.bio_summary || contact.how_i_can_help || "-"}
+                      {contact.bio_summary || "-"}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-xs leading-relaxed max-w-64">
+                      {contact.how_i_can_help || "-"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <ContactInteractionOverviewCell
+                      contactId={contact.contact_id}
+                    />
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
@@ -356,11 +291,6 @@ export const ContactsTable = ({
                         </Button>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <ContactInteractionOverviewCell
-                      contactId={contact.contact_id}
-                    />
                   </TableCell>
                 </TableRow>
               );
