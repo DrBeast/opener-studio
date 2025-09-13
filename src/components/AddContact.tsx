@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
+import { Button } from "@/components/ui/airtable-ds/button";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
@@ -42,6 +43,7 @@ interface AddContactProps {
   companies: Array<{ company_id: string; name: string }>;
   onContactCreated: (newContact: CreatedContact) => void;
   createdContact?: CreatedContact | null;
+  onClearContact?: () => void;
 }
 
 interface PotentialDuplicate {
@@ -65,6 +67,7 @@ export const AddContact = ({
   companies,
   onContactCreated,
   createdContact,
+  onClearContact,
 }: AddContactProps) => {
   const { user } = useAuth();
   const [linkedinBio, setLinkedinBio] = useState("");
@@ -363,8 +366,21 @@ export const AddContact = ({
       )}
 
       {createdContact && (
-        <div className="h-full">
+        <div className="h-full space-y-4">
           <ContactPreview contact={createdContact} className="h-full" />
+          {onClearContact && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearContact}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                New Contact
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
