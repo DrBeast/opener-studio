@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
-import { Button } from "@/components/ui/airtable-ds/button";
+import { Button } from "@/components/ui/design-system/buttons";
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
 import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
 import { ContactDuplicateDialog } from "./ContactDuplicateDialog";

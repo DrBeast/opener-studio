@@ -26,14 +26,14 @@ export const useContactInteractionOverview = (contactId: string) => {
       const { data, error } = await supabase.functions.invoke(
         "generate_contact_interaction_overview",
         {
-          body: { contact_id: contactId },
+          body: { contactId: contactId },
         }
       );
 
       if (error) throw error;
 
       if (data?.overview) {
-        setOverview(data.overview);
+        setOverview(data);
       } else {
         setOverview({
           overview: "No interactions yet",

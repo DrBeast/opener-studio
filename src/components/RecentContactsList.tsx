@@ -1,11 +1,12 @@
 import React from "react";
-import { Button } from "@/components/ui/airtable-ds/button";
+import { Button } from "@/components/ui/design-system/buttons";
 import {
   PrimaryCard,
   CardContent,
   CardTitle,
 } from "@/components/ui/design-system";
-import { MessageCircle, User } from "lucide-react";
+import { MessageCircle, User, Users } from "lucide-react";
+import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 
 interface Contact {
   contact_id: string;
@@ -34,7 +35,46 @@ interface RecentContactsListProps {
   contacts: Contact[];
   onSelectContact: (contact: ContactForMessage) => void;
   onContactClick?: (contactId: string) => void;
+  onViewAllContacts?: () => void;
 }
+
+const ConversationHistory = ({ contactId }: { contactId: string }) => {
+  const { overview, isLoading, error } =
+    useContactInteractionOverview(contactId);
+
+  if (isLoading) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        <span className="font-medium">Conversation history:</span> Loading...
+      </p>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        <span className="font-medium">Conversation history:</span> Error loading
+        history
+      </p>
+    );
+  }
+
+  if (!overview) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        <span className="font-medium">Conversation history:</span> No
+        interactions yet
+      </p>
+    );
+  }
+
+  return (
+    <p className="text-xs text-muted-foreground line-clamp-2">
+      <span className="font-medium">Conversation history:</span>{" "}
+      {overview.overview}
+    </p>
+  );
+};
 
 const ContactRow = ({
   contact,
@@ -114,6 +154,9 @@ const ContactRow = ({
               {contact.how_i_can_help}
             </p>
           )}
+
+          {/* Conversation History */}
+          <ConversationHistory contactId={contact.contact_id} />
         </div>
       </div>
 
@@ -136,6 +179,7 @@ export const RecentContactsList = ({
   contacts,
   onSelectContact,
   onContactClick,
+  onViewAllContacts,
 }: RecentContactsListProps) => {
   // Show only the most recent 5 contacts
   const recentContacts = contacts.slice(0, 5);
@@ -150,13 +194,13 @@ export const RecentContactsList = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <User className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Recent Contacts</CardTitle>
+            <CardTitle>Recent Contacts</CardTitle>
           </div>
 
-          <p className="text-sm text-muted-foreground">
+          {/* <p>
             Select a contact below to write a follow-up message or start a new
             conversation.
-          </p>
+          </p> */}
 
           <div className="space-y-3">
             {recentContacts.map((contact) => (
@@ -168,6 +212,21 @@ export const RecentContactsList = ({
               />
             ))}
           </div>
+
+          {/* More Contacts Button */}
+          {onViewAllContacts && (
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onViewAllContacts}
+                className="flex items-center gap-2 w-full"
+              >
+                <Users className="h-4 w-4" />
+                More Contacts
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </PrimaryCard>

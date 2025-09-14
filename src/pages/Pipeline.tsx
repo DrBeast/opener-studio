@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/airtable-ds/use-toast";
 
 // Icons Imports
@@ -35,6 +36,7 @@ interface ContactForMessage {
 }
 
 const PipelineDashboard = () => {
+  const navigate = useNavigate();
   const { companies, isLoading: companiesLoading } = useCompanies();
 
   const { contacts, fetchContacts } = useContacts();
@@ -98,6 +100,11 @@ const PipelineDashboard = () => {
     setSelectedContactId(null);
   };
 
+  // Handler for viewing all contacts
+  const handleViewAllContacts = () => {
+    navigate("/message-history");
+  };
+
   const isLoading = companiesLoading;
 
   if (isLoading) {
@@ -113,7 +120,7 @@ const PipelineDashboard = () => {
       <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full p-8 space-y-6">
         {/* Message Crafting Studio */}
         <div ref={studioRef}>
-          <PrimaryCard className="w-full border-2 shadow-lg">
+          <PrimaryCard className="w-full border-2">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
                 {/* Left Panel - Contact Creation */}
@@ -122,26 +129,14 @@ const PipelineDashboard = () => {
                     !contactForMessage ? "bg-primary/5" : "bg-background"
                   } transition-colors duration-300`}
                 >
-                  <div className="flex items-center gap-2 mb-6">
-                    <UserPlus
-                      className={`h-6 w-6 ${
-                        !contactForMessage
-                          ? "text-primary" // Active styles
-                          : "text-foreground" // Inactive styles
-                      }`}
-                    />
-                    <CardTitle
-                      className={`text-xl font-semibold ${
-                        !contactForMessage
-                          ? "text-primary" // Active styles
-                          : "text-foreground" // Inactive styles
-                      }`}
-                    >
-                      {contactForMessage
-                        ? "Contact Details"
-                        : "Add profile and create contact"}
-                    </CardTitle>
-                  </div>
+                  {!contactForMessage && (
+                    <div className="flex items-center gap-2 mb-6">
+                      <UserPlus className="h-6 w-6 text-primary" />
+                      <CardTitle className="text-xl font-semibold text-primary">
+                        Add profile and create contact
+                      </CardTitle>
+                    </div>
+                  )}
 
                   <div className="space-y-6">
                     <AddContact
@@ -242,6 +237,7 @@ const PipelineDashboard = () => {
           contacts={contacts}
           onSelectContact={handleSelectExistingContact}
           onContactClick={handleContactClick}
+          onViewAllContacts={handleViewAllContacts}
         />
       </div>
 
