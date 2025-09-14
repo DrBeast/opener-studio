@@ -53,8 +53,49 @@ export const useContactInteractionOverview = (contactId: string) => {
   };
 
   useEffect(() => {
-    if (contactId) {
-      generateOverview();
+    if (contactId && user) {
+      // First try to get existing summary from contacts table
+      const fetchStoredSummary = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          console.log(`Fetching stored summary for contact ${contactId}`);
+          
+          const { data: contact, error: contactError } = await supabase
+            .from('contacts')
+            .select('interaction_summary')
+            .eq('contact_id', contactId)
+            .eq('user_id', user.id)
+            .single();
+            
+          if (contactError) {
+            console.error('Error fetching contact:', contactError);
+            throw contactError;
+          }
+          
+          console.log('Stored summary:', contact?.interaction_summary);
+          
+          if (contact?.interaction_summary && contact.interaction_summary !== "No interactions yet with this contact.") {
+            setOverview({
+              overview: contact.interaction_summary,
+              hasInteractions: true,
+            });
+          } else {
+            // No stored summary or placeholder text, generate one
+            console.log('No valid stored summary found, generating new one');
+            await generateOverview();
+          }
+        } catch (err: any) {
+          console.error('Error fetching stored summary:', err);
+          // If fetching fails, try to generate a new summary
+          await generateOverview();
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchStoredSummary();
     }
   }, [contactId, user]);
 

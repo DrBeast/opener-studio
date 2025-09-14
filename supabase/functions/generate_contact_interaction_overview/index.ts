@@ -1,4 +1,4 @@
-
+// test
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { corsHeaders } from "../_shared/cors.ts";
@@ -13,8 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
@@ -23,8 +21,15 @@ serve(async (req) => {
       });
     }
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
@@ -75,6 +80,17 @@ serve(async (req) => {
     }
 
     if (!interactions || interactions.length === 0) {
+      // Store the no interactions summary in the contacts table
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .update({ interaction_summary: "No interactions yet with this contact." })
+        .eq('contact_id', contactId)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating contact summary:', updateError);
+      }
+
       return new Response(JSON.stringify({ 
         overview: "No interactions yet with this contact.",
         hasInteractions: false
@@ -158,6 +174,17 @@ Keep it very brief and actionable.`;
     const overview = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate overview.";
 
     console.log('Generated contact overview:', overview);
+
+    // Store the summary in the contacts table
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({ interaction_summary: overview.trim() })
+      .eq('contact_id', contactId)
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error('Error updating contact summary:', updateError);
+    }
 
     return new Response(JSON.stringify({ 
       overview: overview.trim(),

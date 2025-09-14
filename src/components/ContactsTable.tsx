@@ -9,14 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/airtable-ds/table";
-import {
-  ArrowUpDown,
-  MessageCircle,
-  RefreshCw,
-  User,
-  Building,
-  Linkedin,
-} from "lucide-react";
+import { ArrowUpDown, MessageCircle, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
 
@@ -78,41 +71,12 @@ const ContactInteractionOverviewCell = ({
   }
 
   if (error) {
-    return (
-      <div className="text-xs text-red-500">
-        <div>Error: {error}</div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-4 w-4 p-0 mt-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            regenerateOverview();
-          }}
-        >
-          <RefreshCw className="h-3 w-3" />
-        </Button>
-      </div>
-    );
+    return <div className="text-xs text-red-500">Error: {error}</div>;
   }
 
   if (!overview) {
     return (
-      <div className="text-xs text-muted-foreground">
-        <div>No interactions yet</div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-4 w-4 p-0 mt-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            regenerateOverview();
-          }}
-          title="Generate overview"
-        >
-          <RefreshCw className="h-3 w-3" />
-        </Button>
-      </div>
+      <div className="text-xs text-muted-foreground">No interactions yet</div>
     );
   }
 
@@ -127,18 +91,6 @@ const ContactInteractionOverviewCell = ({
             ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
         </div>
       )}
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-3 w-3 p-0 mt-1 opacity-50 hover:opacity-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          regenerateOverview();
-        }}
-        title="Regenerate overview"
-      >
-        <RefreshCw className="h-2 w-2" />
-      </Button>
     </div>
   );
 };
@@ -194,13 +146,14 @@ export const ContactsTable = ({
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
-              <TableHead className="w-[140px]">
+              <TableHead className="w-[160px]">
                 <SortButton field="name">Contact</SortButton>
               </TableHead>
-              <TableHead className="min-w-[250px]">Bio Summary</TableHead>
-              <TableHead className="min-w-[200px]">How I Can Help</TableHead>
-              <TableHead className="min-w-[250px]">Message History</TableHead>
-              <TableHead className="min-w-[100px]">Actions</TableHead>
+              <TableHead className="min-w-[280px]">Bio Summary</TableHead>
+              <TableHead className="min-w-[400px]">How I Can Help</TableHead>
+              <TableHead className="min-w-[120px]">
+                <SortButton field="latest_interaction">History</SortButton>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -227,23 +180,37 @@ export const ContactsTable = ({
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <div className="font-medium text-sm leading-tight break-words">
-                          {contactName}
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm leading-tight break-words text-primary">
+                            {contactName}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Building className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <div className="text-xs text-muted-foreground break-words">
+                              {companyInfo || "-"}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground break-words mt-1">
+                            {contact.role || "-"}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-6">
-                        <Building className="h-3 w-3 text-muted-foreground shrink-0" />
-                        <div className="text-xs text-muted-foreground break-words">
-                          {companyInfo || "-"}
-                        </div>
-                      </div>
-                      <div className="ml-6">
-                        <div className="text-xs text-muted-foreground break-words">
-                          {contact.role || "-"}
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="p-2 shrink-0 border-blue-200 hover:bg-blue-500/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onGenerateMessage(contact.contact_id);
+                          }}
+                          title="Generate message for this contact"
+                        >
+                          <MessageCircle
+                            className="h-4 w-4 text-[hsl(var(--primary))]"
+                            style={{ transform: "scale(1.5)" }}
+                          />
+                        </Button>
                       </div>
                     </div>
                   </TableCell>
@@ -253,7 +220,7 @@ export const ContactsTable = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-xs leading-relaxed max-w-64">
+                    <div className="text-xs leading-relaxed">
                       {contact.how_i_can_help || "-"}
                     </div>
                   </TableCell>
@@ -261,36 +228,6 @@ export const ContactsTable = ({
                     <ContactInteractionOverviewCell
                       contactId={contact.contact_id}
                     />
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="p-2 shrink-0 border-blue-200 hover:bg-blue-500/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onGenerateMessage(contact.contact_id);
-                        }}
-                        title="Generate message for this contact"
-                      >
-                        <MessageCircle className="h-4 w-4 text-[hsl(var(--primary))]" />
-                      </Button>
-                      {contact.linkedin_url && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="p-2 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(contact.linkedin_url, "_blank");
-                          }}
-                          title="View LinkedIn profile"
-                        >
-                          <Linkedin className="h-4 w-4 text-blue-600" />
-                        </Button>
-                      )}
-                    </div>
                   </TableCell>
                 </TableRow>
               );

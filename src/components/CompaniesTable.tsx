@@ -9,19 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/airtable-ds/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/airtable-ds/dropdown-menu";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  UserPlus,
-  MessageCircle,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowUpDown, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import type { Company } from "@/hooks/useCompanies";
@@ -66,7 +54,6 @@ interface GeneratedCompany {
 interface CompaniesTableProps {
   companies: Company[]; // Use Company from useCompanies hook
   onCompanyClick: (company: Company) => void;
-  onSetPriority: (companyId: string, priority: string) => void;
   onBlacklist: (companyId: string) => void;
   newCompanyIds: string[];
   highlightNew: boolean;
@@ -76,7 +63,6 @@ interface CompaniesTableProps {
   sortField: string;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
-  onCreateContact: (companyId: string, companyName: string) => void;
   onContactClick: (contactId: string) => void;
   onGenerateMessage: (contactId: string) => void;
 }
@@ -103,41 +89,12 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
   }
 
   if (error) {
-    return (
-      <div className="text-xs text-red-500">
-        <div>Error: {error}</div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-4 w-4 p-0 mt-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            regenerateOverview();
-          }}
-        >
-          <RefreshCw className="h-3 w-3" />
-        </Button>
-      </div>
-    );
+    return <div className="text-xs text-red-500">Error: {error}</div>;
   }
 
   if (!overview) {
     return (
-      <div className="text-xs text-muted-foreground">
-        <div>No overview available</div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-4 w-4 p-0 mt-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            regenerateOverview();
-          }}
-          title="Generate overview"
-        >
-          <RefreshCw className="h-3 w-3" />
-        </Button>
-      </div>
+      <div className="text-xs text-muted-foreground">No overview available</div>
     );
   }
 
@@ -152,18 +109,6 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
             ` (${overview.pastCount} past, ${overview.plannedCount} planned)`}
         </div>
       )}
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-3 w-3 p-0 mt-1 opacity-50 hover:opacity-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          regenerateOverview();
-        }}
-        title="Regenerate overview"
-      >
-        <RefreshCw className="h-2 w-2" />
-      </Button>
     </div>
   );
 };
@@ -171,7 +116,6 @@ const InteractionOverviewCell = ({ companyId }: { companyId: string }) => {
 export const CompaniesTable = ({
   companies,
   onCompanyClick,
-  onSetPriority,
   newCompanyIds,
   highlightNew,
   selectedCompanies,
@@ -180,7 +124,6 @@ export const CompaniesTable = ({
   sortField,
   sortDirection,
   onSort,
-  onCreateContact,
   onContactClick,
   onGenerateMessage,
 }: CompaniesTableProps) => {
@@ -304,24 +247,6 @@ export const CompaniesTable = ({
     return parts.length > 0 ? parts.join(" / ") : "-";
   };
 
-  const getPriorityColor = (priority?: string) => {
-    switch (priority) {
-      case "Top":
-        return "bg-green-100 text-green-800 border-green-200 hover:bg-green-200";
-      case "Medium":
-        return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200";
-      case "Maybe":
-        return "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200";
-      default:
-        return "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200";
-    }
-  };
-
-  const getPriorityOptions = (currentPriority?: string) => {
-    const priorities = ["Top", "Medium", "Maybe"];
-    return priorities.filter((p) => p !== currentPriority);
-  };
-
   const SortButton = ({
     field,
     children,
@@ -337,62 +262,6 @@ export const CompaniesTable = ({
       <ArrowUpDown className="h-3 w-3" />
     </button>
   );
-
-  const PriorityDropdown = ({ company }: { company: Company }) => {
-    // Use Company from useCompanies hook
-    const otherPriorities = getPriorityOptions(company.user_priority);
-
-    if (otherPriorities.length === 0) {
-      return (
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors",
-            getPriorityColor(company.user_priority)
-          )}
-        >
-          {company.user_priority || "Maybe"}
-        </span>
-      );
-    }
-
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={cn(
-              "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors gap-1",
-              getPriorityColor(company.user_priority)
-            )}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {company.user_priority || "Maybe"}
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-20 p-1">
-          {otherPriorities.map((priority) => (
-            <DropdownMenuItem
-              key={priority}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSetPriority(company.company_id, priority);
-              }}
-              className="p-1 hover:bg-transparent focus:bg-transparent"
-            >
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium border cursor-pointer transition-colors w-full justify-center",
-                  getPriorityColor(priority)
-                )}
-              >
-                {priority}
-              </span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
 
   return (
     <>
@@ -420,35 +289,27 @@ export const CompaniesTable = ({
                     onCheckedChange={onSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[20px]">
-                  {" "}
-                  {/* Narrower for Priority */}
-                  <SortButton field="priority">Priority</SortButton>
-                </TableHead>
-                <TableHead className="min-w-[50px] max-w-[50px]">
+                <TableHead className="min-w-[180px] max-w-[200px]">
                   {" "}
                   {/* Company Name */}
                   <SortButton field="name">Company</SortButton>
                 </TableHead>
-                <TableHead className="min-w-[250px]">
+                <TableHead className="min-w-[280px]">
                   {" "}
                   {/* Description */}
                   Description
                 </TableHead>
-                <TableHead className="hidden md:table-cell min-w-[120px] max-w-[150px]">
+                <TableHead className="hidden md:table-cell min-w-[140px] max-w-[160px]">
                   {" "}
                   {/* Location / WFH */}
                   Location / WFH
                 </TableHead>
-                <TableHead className="hidden xl:table-cell min-w-[250px]">
-                  {" "}
-                  {/* Match Reasoning */}
-                  Match Reasoning
-                </TableHead>
-                <TableHead className="min-w-[180px]">Contacts</TableHead>{" "}
+                <TableHead className="min-w-[200px]">Contacts</TableHead>{" "}
                 {/* Contacts */}
-                <TableHead className="min-w-[250px]">
-                  Interactions
+                <TableHead className="min-w-[280px]">
+                  <SortButton field="latest_interaction">
+                    Interactions
+                  </SortButton>
                 </TableHead>{" "}
                 {/* Interactions */}
               </TableRow>
@@ -480,9 +341,6 @@ export const CompaniesTable = ({
                         }
                       />
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <PriorityDropdown company={company} />
-                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium text-sm leading-tight">
@@ -510,13 +368,6 @@ export const CompaniesTable = ({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden xl:table-cell">
-                      <div className="text-xs leading-relaxed break-words">
-                        {" "}
-                        {/* Removed max-w-48 */}
-                        {company.ai_match_reasoning || "-"}
-                      </div>
-                    </TableCell>
                     <TableCell className="">
                       <div className="space-y-2">
                         <div className="text-sm min-w-0">
@@ -533,7 +384,7 @@ export const CompaniesTable = ({
                                         e.stopPropagation();
                                         onContactClick(contact.id);
                                       }}
-                                      className="block text-left text-base font-medium text-primary hover:underline w-full truncate"
+                                      className="block text-left font-medium text-sm leading-tight break-words text-primary hover:underline w-full"
                                     >
                                       {contact.displayName}
                                     </button>
@@ -566,26 +417,6 @@ export const CompaniesTable = ({
                               No contacts - yet!
                             </span>
                           )}
-                        </div>
-                        <div
-                          className="flex items-center gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="p-2 shrink-0 border-blue-200 text-blue-500 hover:bg-blue-500/10 hover:text-purple-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onCreateContact(company.company_id, company.name);
-                            }}
-                            title="Add contact manually"
-                          >
-                            <UserPlus
-                              className="h-4 w-4"
-                              style={{ transform: "scale(1.5)" }}
-                            />
-                          </Button>
                         </div>
                       </div>
                     </TableCell>

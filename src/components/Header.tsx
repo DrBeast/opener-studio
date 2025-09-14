@@ -80,7 +80,7 @@ const Header = ({}: HeaderProps) => {
                 className="flex items-center gap-2"
               >
                 <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Contacts</span>
+                <span className="hidden sm:inline">History</span>
               </Button>
               <Button
                 variant="outline"

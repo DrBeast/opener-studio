@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/use-toast";
 
 // Icons Imports
-import { Users, Building2, Eye, EyeOff } from "lucide-react";
+import { Users, Search, Trash2 } from "lucide-react";
 
 // Design System Imports
 import { PrimaryCard, CardContent } from "@/components/ui/design-system";
@@ -13,13 +13,13 @@ import { CompanyDetails } from "@/components/CompanyDetails";
 import { ContactDetails } from "@/components/ContactDetails";
 import { useCompanies, type Company } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
-import { SearchAndFilters } from "@/components/SearchAndFilters";
 import { CompaniesTable } from "@/components/CompaniesTable";
 import { ContactsTable } from "@/components/ContactsTable";
 import { EmptyState } from "@/components/EmptyState";
 import { AddContactModal } from "../components/AddContactModal";
 
 import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
 
 const MessageHistory = () => {
   const { user } = useAuth();
@@ -60,7 +60,7 @@ const MessageHistory = () => {
 
   // State variables
   const [currentView, setCurrentView] = useState<"companies" | "contacts">(
-    "companies"
+    "contacts"
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -116,6 +116,15 @@ const MessageHistory = () => {
           ? new Date(b.next_followup.follow_up_due_date).getTime()
           : 0;
         break;
+      case "latest_interaction":
+        // Simple date comparison
+        aValue = a.last_interaction_date
+          ? new Date(a.last_interaction_date).getTime()
+          : 0;
+        bValue = b.last_interaction_date
+          ? new Date(b.last_interaction_date).getTime()
+          : 0;
+        break;
       default:
         return 0;
     }
@@ -141,6 +150,15 @@ const MessageHistory = () => {
       case "company":
         aValue = (a.company_name || "").toLowerCase();
         bValue = (b.company_name || "").toLowerCase();
+        break;
+      case "latest_interaction":
+        // Simple date comparison
+        aValue = a.last_interaction_date
+          ? new Date(a.last_interaction_date).getTime()
+          : 0;
+        bValue = b.last_interaction_date
+          ? new Date(b.last_interaction_date).getTime()
+          : 0;
         break;
       default:
         return 0;
@@ -281,150 +299,137 @@ const MessageHistory = () => {
 
   return (
     <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2">
-      {/* Page Header */}
-      <div className="w-[95%] mx-auto pt-4">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Message History</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your companies and contacts, view interaction history, and
-            track your outreach progress.
-          </p>
-        </div>
-      </div>
-
       {/* Full-Width Card with Table */}
-      <PrimaryCard className="mx-auto w-[95%]">
+      <PrimaryCard className="max-w-6xl mx-auto w-full mt-8">
         <CardContent className="p-8">
           <div className="space-y-6">
-            {/* View Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
-                <Button
-                  variant={currentView === "companies" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentView("companies")}
-                  className="flex items-center gap-2"
-                >
-                  <Building2 className="h-4 w-4" />
-                  Companies ({companies.length})
-                </Button>
-                <Button
-                  variant={currentView === "contacts" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentView("contacts")}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Contacts ({contacts.length})
-                </Button>
-              </div>
-
-              {/* Show/Hide Inactive Toggle */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (currentView === "companies") {
-                      setShowInactiveCompanies(!showInactiveCompanies);
-                    } else {
-                      setShowInactiveContacts(!showInactiveContacts);
-                    }
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  {(
-                    currentView === "companies"
-                      ? showInactiveCompanies
-                      : showInactiveContacts
-                  ) ? (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      Hide Inactive
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" />
-                      Show Inactive
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Search and Actions */}
-            <div className="flex items-center justify-between gap-4">
-              <SearchAndFilters
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCount={
-                  currentView === "companies"
-                    ? selectedCompanies.size
-                    : selectedContacts.size
-                }
-                onBulkRemove={handleBulkRemove}
-              />
-              <div className="flex items-center gap-3">
-                {currentView === "companies" && <></>}
-              </div>
-            </div>
-          </div>
-
-          {currentView === "companies" ? (
-            filteredCompanies.length === 0 ? (
-              <EmptyState searchTerm={searchTerm} hasFilters={false} />
-            ) : (
-              <CompaniesTable
-                companies={filteredCompanies}
-                onCompanyClick={handleCompanyClick}
-                onSetPriority={handleSetPriority}
-                onBlacklist={handleBlacklist}
-                newCompanyIds={newCompanyIds}
-                highlightNew={highlightNew}
-                selectedCompanies={selectedCompanies}
-                onSelectCompany={handleSelectCompany}
-                onSelectAll={handleSelectAll}
-                sortField={companySortField}
-                sortDirection={companySortDirection}
-                onSort={handleCompanySort}
-                onCreateContact={(companyId, companyName) => {
-                  const company = filteredCompanies.find(
-                    (c) => c.company_id === companyId
-                  );
-                  handleCreateContact(companyId, company?.name || "");
-                }}
-                onContactClick={handleContactClick}
-                onGenerateMessage={handleGenerateMessage}
-              />
-            )
-          ) : filteredContacts.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
-                No contacts - yet!
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm
-                  ? "Try adjusting your search term."
-                  : "Start by adding contacts and their profiles above."}
+            {/* Card Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Message History
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Manage your companies and contacts, view interaction history,
+                and track your outreach progress.
               </p>
             </div>
-          ) : (
-            <ContactsTable
-              contacts={filteredContacts}
-              onContactClick={handleContactClick}
-              onGenerateMessage={handleGenerateMessage}
-              selectedContacts={selectedContacts}
-              onSelectContact={handleContactSelect}
-              onSelectAll={handleContactSelectAll}
-              sortField={contactSortField}
-              sortDirection={contactSortDirection}
-              onSort={handleContactSort}
-              onToggleStatus={toggleContactStatus}
-            />
-          )}
+            {/* View Toggle - Above Table */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setCurrentView("contacts")}
+                  className={`font-semibold text-lg transition-colors cursor-pointer ${
+                    currentView === "contacts"
+                      ? "text-primary"
+                      : "text-secondary-foreground hover:text-primary"
+                  }`}
+                >
+                  Contacts
+                </button>
+                <div className="text-secondary-foreground">|</div>
+                <button
+                  onClick={() => setCurrentView("companies")}
+                  className={`font-semibold text-lg transition-colors cursor-pointer ${
+                    currentView === "companies"
+                      ? "text-primary"
+                      : "text-secondary-foreground hover:text-primary"
+                  }`}
+                >
+                  Companies
+                </button>
+              </div>
+
+              {/* Search Bar - Right Aligned */}
+              <div className="flex items-center gap-4">
+                <div className="relative w-80">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    className="pl-8 bg-secondary border-border"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Bulk Actions */}
+            {(currentView === "companies"
+              ? selectedCompanies.size
+              : selectedContacts.size) > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {currentView === "companies"
+                    ? selectedCompanies.size
+                    : selectedContacts.size}{" "}
+                  selected
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkRemove}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remove Selected
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Table with top padding */}
+          <div className="pt-6">
+            {currentView === "companies" ? (
+              filteredCompanies.length === 0 ? (
+                <EmptyState searchTerm={searchTerm} hasFilters={false} />
+              ) : (
+                <CompaniesTable
+                  companies={filteredCompanies}
+                  onCompanyClick={handleCompanyClick}
+                  onBlacklist={handleBlacklist}
+                  newCompanyIds={newCompanyIds}
+                  highlightNew={highlightNew}
+                  selectedCompanies={selectedCompanies}
+                  onSelectCompany={handleSelectCompany}
+                  onSelectAll={handleSelectAll}
+                  sortField={companySortField}
+                  sortDirection={companySortDirection}
+                  onSort={handleCompanySort}
+                  onContactClick={handleContactClick}
+                  onGenerateMessage={handleGenerateMessage}
+                />
+              )
+            ) : filteredContacts.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+                  No contacts - yet!
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {searchTerm
+                    ? "Try adjusting your search term."
+                    : "Start by adding contacts and their profiles above."}
+                </p>
+              </div>
+            ) : (
+              <ContactsTable
+                contacts={filteredContacts}
+                onContactClick={handleContactClick}
+                onGenerateMessage={handleGenerateMessage}
+                selectedContacts={selectedContacts}
+                onSelectContact={handleContactSelect}
+                onSelectAll={handleContactSelectAll}
+                sortField={contactSortField}
+                sortDirection={contactSortDirection}
+                onSort={handleContactSort}
+                onToggleStatus={toggleContactStatus}
+              />
+            )}
+          </div>
         </CardContent>
       </PrimaryCard>
+
+      {/* Bottom padding */}
+      <div className="h-8"></div>
 
       {/* Modals */}
       {selectedCompany && (

@@ -23,6 +23,7 @@ export interface Contact {
   // Extended with company info from join
   company_name?: string;
   company_industry?: string;
+  last_interaction_date?: string;
 }
 
 export const useContacts = () => {

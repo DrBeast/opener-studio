@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -27,6 +27,7 @@ export type Database = {
           industry: string | null
           interaction_summary: string | null
           is_blacklisted: boolean | null
+          last_interaction_date: string | null
           match_quality_score: number | null
           name: string
           public_private: string | null
@@ -50,6 +51,7 @@ export type Database = {
           industry?: string | null
           interaction_summary?: string | null
           is_blacklisted?: boolean | null
+          last_interaction_date?: string | null
           match_quality_score?: number | null
           name: string
           public_private?: string | null
@@ -73,6 +75,7 @@ export type Database = {
           industry?: string | null
           interaction_summary?: string | null
           is_blacklisted?: boolean | null
+          last_interaction_date?: string | null
           match_quality_score?: number | null
           name?: string
           public_private?: string | null
@@ -94,6 +97,8 @@ export type Database = {
           contact_id: string
           first_name: string | null
           how_i_can_help: string | null
+          interaction_summary: string | null
+          last_interaction_date: string | null
           last_name: string | null
           linkedin_bio: string | null
           location: string | null
@@ -111,6 +116,8 @@ export type Database = {
           contact_id?: string
           first_name?: string | null
           how_i_can_help?: string | null
+          interaction_summary?: string | null
+          last_interaction_date?: string | null
           last_name?: string | null
           linkedin_bio?: string | null
           location?: string | null
@@ -128,6 +135,8 @@ export type Database = {
           contact_id?: string
           first_name?: string | null
           how_i_can_help?: string | null
+          interaction_summary?: string | null
+          last_interaction_date?: string | null
           last_name?: string | null
           linkedin_bio?: string | null
           location?: string | null
@@ -492,19 +501,19 @@ export type Database = {
       get_companies_overview: {
         Args: { user_id_param: string }
         Returns: {
-          company_id: string
-          name: string
-          industry: string
           ai_description: string
-          hq_location: string
-          wfh_policy: string
-          match_quality_score: number
           ai_match_reasoning: string
-          user_priority: string
+          company_id: string
+          contacts: Json
+          hq_location: string
+          industry: string
           interaction_summary: string
           latest_update: Json
+          match_quality_score: number
+          name: string
           next_followup: Json
-          contacts: Json
+          user_priority: string
+          wfh_policy: string
         }[]
       }
       rollback_transaction: {

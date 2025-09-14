@@ -492,17 +492,7 @@ export function CompanyDetails({
 
     if (overviewError) {
       return (
-        <div className="flex flex-col">
-          <div className="text-red-500">Error loading interaction summary</div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={regenerateOverview}
-            className="mt-2 self-start"
-          >
-            <RefreshCw className="mr-2 h-3 w-3" /> Try again
-          </Button>
-        </div>
+        <div className="text-red-500">Error loading interaction summary</div>
       );
     }
 
@@ -527,16 +517,6 @@ export function CompanyDetails({
               </p>
             )}
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={regenerateOverview}
-            className="ml-2 h-8 w-8 p-0"
-            title="Regenerate summary"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     );

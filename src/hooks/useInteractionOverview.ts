@@ -98,10 +98,11 @@ export const useInteractionOverview = (companyId: string) => {
           console.log(`Fetching stored summary for company ${companyId}`);
           
           const { data: company, error: companyError } = await supabase
-            .from('companies')
-            .select('interaction_summary')
-            .eq('company_id', companyId)
-            .single();
+          .from('companies')
+          .select('interaction_summary')
+          .eq('company_id', companyId)
+          .eq('user_id', user.id)  // Add this line
+          .single();
             
           if (companyError) {
             console.error('Error fetching company:', companyError);

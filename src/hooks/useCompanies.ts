@@ -36,6 +36,7 @@ export interface Company {
   contacts?: Contact[];
   latest_update?: Interaction;
   next_followup?: Interaction;
+  last_interaction_date?: string;
 }
 
 export const useCompanies = () => {
@@ -88,7 +89,8 @@ export const useCompanies = () => {
           interaction_summary: company.interaction_summary,
           contacts: company.contacts || [],
           latest_update: company.latest_update?.interaction_id ? company.latest_update : undefined,
-          next_followup: company.next_followup?.interaction_id ? company.next_followup : undefined
+          next_followup: company.next_followup?.interaction_id ? company.next_followup : undefined,
+          last_interaction_date: company.last_interaction_date
         }));
         successfullyFetched = true;
       }
@@ -159,7 +161,8 @@ export const useCompanies = () => {
             interaction_summary: company.interaction_summary,
             contacts: companyContacts,
             latest_update: undefined,
-            next_followup: undefined
+            next_followup: undefined,
+            last_interaction_date: company.last_interaction_date
           };
         });
         successfullyFetched = true;
