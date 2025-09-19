@@ -27,7 +27,7 @@ const corsHeaders = {
 };
 
 // Updated to Gemini 2.5 Flash
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // System instruction for high-level, unchanging rules
 const SYSTEM_INSTRUCTION = `You are an AI assistant specialized in crafting authentic, professional networking messages for job search outreach. Your core mission is to help professionals write compelling, personalized messages that effectively achieve their stated objectives.
@@ -232,7 +232,7 @@ Generate 3 distinct message versions using different angles and approaches, ment
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: Math.min(8192, maxLength * 4), // Reasonable token limit
+          maxOutputTokens: Math.max(2048, Math.min(8192, maxLength * 4)), // At least 2048 tokens
           responseMimeType: "application/json",
           responseSchema: RESPONSE_SCHEMA
         }
@@ -257,9 +257,17 @@ Generate 3 distinct message versions using different angles and approaches, ment
     // Process the structured response
     let generatedOutput;
     try {
-      const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const candidate = data?.candidates?.[0];
+      
+      if (candidate?.finishReason === 'MAX_TOKENS') {
+        console.error('Response truncated due to MAX_TOKENS. Prompt tokens:', data?.usageMetadata?.promptTokenCount);
+        throw new Error("Response was truncated. Try reducing prompt size or increasing maxOutputTokens.");
+      }
+      
+      const responseText = candidate?.content?.parts?.[0]?.text;
       if (!responseText) {
-        throw new Error("No response text from AI");
+        console.error('No response text. Finish reason:', candidate?.finishReason);
+        throw new Error(`No response text from AI. Finish reason: ${candidate?.finishReason || 'unknown'}`);
       }
       
       generatedOutput = JSON.parse(responseText);
