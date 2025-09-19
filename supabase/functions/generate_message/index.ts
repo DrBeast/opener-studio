@@ -6,7 +6,7 @@ const MEDIUM_OPTIONS = [
   {
     id: "LinkedIn connection note",
     label: "LinkedIn connection Note",
-    maxLength: 200
+    maxLength: 175 // slightly below 200 bc Gemini likes to go over the limit
   },
   {
     id: "Premium LinkedIn connection note",
@@ -55,15 +55,15 @@ const RESPONSE_SCHEMA = {
       properties: {
         version1: {
           type: "string",
-          description: "First message version focusing on shared background/experience"
+          description: "First message version focusing on shared background/experience (MAX ${maxLength} characters)"
         },
         version2: {
           type: "string", 
-          description: "Second message version highlighting specific skills/expertise"
+          description: "Second message version highlighting specific skills/expertise (MAX ${maxLength} characters)"
         },
         version3: {
           type: "string",
-          description: "Third message version emphasizing value proposition/mutual benefit"
+          description: "Third message version emphasizing value proposition/mutual benefit (MAX ${maxLength} characters)"
         }
       },
       required: ["version1", "version2", "version3"]
@@ -121,8 +121,6 @@ serve(async (req) => {
     // Calculate max length for the selected medium
     const foundOption = MEDIUM_OPTIONS.find((opt) => opt.id === medium);
     const maxLength = foundOption?.maxLength || 2000;
-    
-    console.log(`Generating messages for medium: ${medium}, maxLength: ${maxLength}`);
 
     // Validate Gemini API key
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -214,7 +212,7 @@ ${userProfile.background_input || 'N/A'}
 CONTACT'S LINKEDIN BIO:
 ${contactData.linkedin_bio || 'N/A'}
 
-Generate 3 distinct message versions using different angles and approaches, mentioning different details of backgrounds, varying message length while staying under ${maxLength} characters each.`;
+Generate 3 distinct message versions using different angles and approaches, mentioning different details of backgrounds, while staying under ${maxLength} characters each.`;
 
     // Make API call to Gemini 2.5 Flash with structured output
     const response = await fetch(GEMINI_API_URL, {
@@ -260,13 +258,11 @@ Generate 3 distinct message versions using different angles and approaches, ment
       const candidate = data?.candidates?.[0];
       
       if (candidate?.finishReason === 'MAX_TOKENS') {
-        console.error('Response truncated due to MAX_TOKENS. Prompt tokens:', data?.usageMetadata?.promptTokenCount);
         throw new Error("Response was truncated. Try reducing prompt size or increasing maxOutputTokens.");
       }
       
       const responseText = candidate?.content?.parts?.[0]?.text;
       if (!responseText) {
-        console.error('No response text. Finish reason:', candidate?.finishReason);
         throw new Error(`No response text from AI. Finish reason: ${candidate?.finishReason || 'unknown'}`);
       }
       
@@ -280,17 +276,6 @@ Generate 3 distinct message versions using different angles and approaches, ment
         throw new Error("AI response missing required message versions");
       }
 
-      // Enforce character limits as backup (though schema should prevent this)
-      const versions = ['version1', 'version2', 'version3'];
-      versions.forEach(version => {
-        const originalMessage = generatedOutput.messages[version];
-        if (typeof originalMessage === 'string' && originalMessage.length > maxLength) {
-          console.log(`Truncating ${version} from ${originalMessage.length} to ${maxLength} characters`);
-          generatedOutput.messages[version] = originalMessage.substring(0, maxLength).trim();
-        }
-      });
-
-      console.log(`Successfully generated messages. Lengths: v1=${generatedOutput.messages.version1.length}, v2=${generatedOutput.messages.version2.length}, v3=${generatedOutput.messages.version3.length}`);
 
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
