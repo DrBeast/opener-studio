@@ -3,15 +3,22 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { InfoBox } from "@/components/ui/design-system/infobox";
 import { toast } from "@/hooks/use-toast";
-import { Edit, ArrowRight, Save, Sparkles } from "lucide-react";
-import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
+import {
+  Edit,
+  ArrowRight,
+  Save,
+  Sparkles,
+  RefreshCcw,
+  User,
+} from "lucide-react";
 import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
+import { Label } from "@/components/ui/airtable-ds/label";
 
 // Design System Imports
 import {
-  Card,
+  PrimaryCard,
   CardContent,
   CardDescription,
   CardHeader,
@@ -249,117 +256,275 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto py-8 max-w-4xl">
-        <ProfileBreadcrumbs />
-
-        <div className="grid gap-8">
-          <div className="space-y-8">
-            {/* Page Header */}
-            <div className="flex flex-row items-center justify-between">
+    <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2">
+      {/* Full-Width Card with Profile Content */}
+      <PrimaryCard className="max-w-6xl mx-auto w-full mt-8">
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            {/* Card Title and Description */}
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <CardTitle>Professional Profile</CardTitle>
-                <CardDescription>
-                  Manage your professional information and AI-generated
-                  summaries
-                </CardDescription>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Professional Profile
+                </h1>
+                <p className="text-gray-600 mt-2">
+                  {editMode
+                    ? "Update your professional background and let AI generate your summary"
+                    : "Your AI-generated professional summary for networking and outreach"}
+                </p>
               </div>
-              <div className="flex gap-3">
-                {!editMode && (
-                  <OutlineAction onClick={() => setEditMode(true)}>
-                    <Edit className="h-4 w-4" />
-                    Edit Profile
-                  </OutlineAction>
-                )}
-              </div>
+              {!editMode && (
+                <OutlineAction onClick={() => setEditMode(true)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </OutlineAction>
+              )}
             </div>
 
-            {/* Info Box */}
+            {/* Edit Form - When in edit mode */}
+            {editMode && (
+              <div className="space-y-6">
+                <ProfessionalBackground
+                  backgroundInput={backgroundInput}
+                  setBackgroundInput={setBackgroundInput}
+                  isSubmitting={isSubmitting}
+                  isEditing={Object.keys(existingData).length > 0}
+                  existingData={existingData}
+                />
 
-            <InfoBox
-              title="💡 AI-Generated Professional Summary"
-              description="We will use the AI-generated summary of your profile for company matching and message generation. You can edit the summaries directly or regenerate them based on updated details. Feel free to experiment here."
-              icon={<Sparkles className="h-6 w-6 text-blue-600" />}
-              // badges={["Profile Setup", "AI-Powered"]} // Example: If you want badges
-            />
+                {/* Editable AI Summary Section */}
+                {editableSummary && (
+                  <EditableSummary
+                    editableSummary={editableSummary}
+                    onSummaryChange={handleSummaryChange}
+                  />
+                )}
 
-            <Card>
-              <CardContent className="space-y-8">
-                {/* Edit Form - Moved to the top when in edit mode */}
-                {editMode && (
-                  <div className="border-t border-gray-100 pt-8">
-                    <CardTitle>Edit Profile Information</CardTitle>
+                <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
+                  <OutlineAction
+                    onClick={() => setEditMode(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </OutlineAction>
+                  <Button
+                    variant="success"
+                    onClick={handleSaveProfile}
+                    disabled={!hasChanges || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        Processing...
+                        <span className="ml-2 animate-spin">⟳</span>
+                      </>
+                    ) : (
+                      <>
+                        Save Changes
+                        <Save className="h-4 w-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                    <ProfessionalBackground
-                      backgroundInput={backgroundInput}
-                      setBackgroundInput={setBackgroundInput}
-                      isSubmitting={isSubmitting}
-                      isEditing={Object.keys(existingData).length > 0}
-                      existingData={existingData}
-                    />
-
-                    {/* Editable AI Summary Section */}
-                    {editableSummary && (
-                      <EditableSummary
-                        editableSummary={editableSummary}
-                        onSummaryChange={handleSummaryChange}
-                      />
+            {/* Professional Summary - When not in edit mode and has data */}
+            {!editMode && backgroundSummary && (
+              <div className="space-y-6">
+                {(backgroundSummary.overall_blurb ||
+                  backgroundSummary.value_proposition_summary) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Professional Overview */}
+                    {backgroundSummary.overall_blurb && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-foreground">
+                          Who You Are
+                        </Label>
+                        <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900 leading-relaxed">
+                          {backgroundSummary.overall_blurb}
+                        </div>
+                      </div>
                     )}
 
-                    <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
-                      <OutlineAction
-                        onClick={() => setEditMode(false)}
-                        disabled={isSubmitting}
-                      >
-                        Cancel
-                      </OutlineAction>
-                      <Button
-                        variant="success"
-                        onClick={handleSaveProfile}
-                        disabled={!hasChanges || isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            Processing...
-                            <span className="ml-2 animate-spin">⟳</span>
-                          </>
-                        ) : (
-                          <>
-                            Save Changes
-                            <Save className="h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
+                    {/* Value Proposition Section */}
+                    {backgroundSummary.value_proposition_summary && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-foreground">
+                          What You Bring to the Table
+                        </Label>
+                        <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900 leading-relaxed">
+                          {backgroundSummary.value_proposition_summary}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Achievements Section */}
+                {backgroundSummary.achievements && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">
+                      Key Achievements
+                    </Label>
+                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900 leading-relaxed">
+                      {backgroundSummary.achievements}
                     </div>
                   </div>
                 )}
 
-                {/* Professional Summary - Only visible when not in edit mode */}
-                {!editMode && (
-                  <div className="border-t border-gray-100 pt-8">
-                    <CardTitle>AI-Generated Profile Summary</CardTitle>
-                    <CardDescription>
-                      Intelligent analysis of your professional background
-                    </CardDescription>
-                    <ProfileSummary
-                      backgroundSummary={backgroundSummary}
-                      onRegenerateAISummary={handleRegenerateAISummary}
-                    />
+                {/* Experience Section */}
+                {backgroundSummary.experience && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">
+                      Experience
+                    </Label>
+                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
+                      <p className="leading-relaxed mb-3">
+                        {backgroundSummary.experience}
+                      </p>
+                      {backgroundSummary.combined_experience_highlights &&
+                        backgroundSummary.combined_experience_highlights
+                          .length > 0 && (
+                          <ul className="list-disc list-inside space-y-1 pl-2">
+                            {backgroundSummary.combined_experience_highlights.map(
+                              (item, index) => (
+                                <li key={index}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                    </div>
                   </div>
                 )}
-              </CardContent>
 
-              {/* Bottom navigation button */}
-              <CardFooter className="flex justify-end gap-4">
-                <OutlineAction onClick={() => setEditMode(true)}>
-                  <Edit className="h-4 w-4" />
-                  Edit Profile
-                </OutlineAction>
-              </CardFooter>
-            </Card>
+                {/* Education Section */}
+                {backgroundSummary.education && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">
+                      Education
+                    </Label>
+                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
+                      <p className="leading-relaxed mb-3">
+                        {backgroundSummary.education}
+                      </p>
+                      {backgroundSummary.combined_education_highlights &&
+                        backgroundSummary.combined_education_highlights.length >
+                          0 && (
+                          <ul className="list-disc list-inside space-y-1 pl-2">
+                            {backgroundSummary.combined_education_highlights.map(
+                              (item, index) => (
+                                <li key={index}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Skills & Expertise Section */}
+                {(backgroundSummary.key_skills?.length > 0 ||
+                  backgroundSummary.domain_expertise?.length > 0 ||
+                  backgroundSummary.technical_expertise?.length > 0 ||
+                  backgroundSummary.expertise) && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-foreground">
+                      Skills & Expertise
+                    </Label>
+                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
+                      {backgroundSummary.expertise && (
+                        <p className="leading-relaxed mb-3">
+                          {backgroundSummary.expertise}
+                        </p>
+                      )}
+                      {backgroundSummary.key_skills &&
+                        backgroundSummary.key_skills.length > 0 && (
+                          <div className="mb-3">
+                            <h5 className="font-medium mb-2 text-gray-700">
+                              Key Skills:
+                            </h5>
+                            <ul className="list-disc list-inside space-y-1 pl-2">
+                              {backgroundSummary.key_skills.map(
+                                (item, index) => (
+                                  <li key={index}>{item}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      {backgroundSummary.domain_expertise &&
+                        backgroundSummary.domain_expertise.length > 0 && (
+                          <div className="mb-3">
+                            <h5 className="font-medium mb-2 text-gray-700">
+                              Domain Expertise:
+                            </h5>
+                            <ul className="list-disc list-inside space-y-1 pl-2">
+                              {backgroundSummary.domain_expertise.map(
+                                (item, index) => (
+                                  <li key={index}>{item}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      {backgroundSummary.technical_expertise &&
+                        backgroundSummary.technical_expertise.length > 0 && (
+                          <div>
+                            <h5 className="font-medium mb-2 text-gray-700">
+                              Technical Expertise:
+                            </h5>
+                            <ul className="list-disc list-inside space-y-1 pl-2">
+                              {backgroundSummary.technical_expertise.map(
+                                (item, index) => (
+                                  <li key={index}>{item}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-4 border-t border-gray-100">
+                  <OutlineAction onClick={handleRegenerateAISummary}>
+                    <RefreshCcw className="h-4 w-4 mr-2" />
+                    Regenerate Summary
+                  </OutlineAction>
+                </div>
+              </div>
+            )}
+
+            {/* No Profile Data State */}
+            {!editMode && !backgroundSummary && (
+              <div className="text-center py-12">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-3 bg-amber-100 rounded-full">
+                    <User className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                      Profile Setup Needed
+                    </h3>
+                    <p className="text-amber-800 mb-4">
+                      You haven't provided any professional background
+                      information yet. Get started by adding your professional
+                      details.
+                    </p>
+                    <OutlineAction onClick={() => setEditMode(true)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </OutlineAction>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </PrimaryCard>
+
+      {/* Bottom padding */}
+      <div className="h-8"></div>
     </div>
   );
 };
