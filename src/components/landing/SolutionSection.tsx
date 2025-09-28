@@ -62,11 +62,11 @@ const SolutionSection = () => {
             </div>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-slate-800">
-            How ConnectorAI Helps
+            How Opener Studio Helps
           </h2>
           <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
-            What if you had an AI copilot to guide you? ConnectorAI is designed
-            to cut through the complexity and discomfort of job search
+            What if you had an AI copilot to guide you? Opener Studio is
+            designed to cut through the complexity and discomfort of job search
             networking.
           </p>
         </div>

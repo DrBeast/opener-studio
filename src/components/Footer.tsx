@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -9,9 +8,11 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-6 md:mb-0">
-            <Link to="/" className="text-xl font-bold">ConnectorAI</Link>
+            <Link to="/" className="text-xl font-bold">
+              Opener Studio
+            </Link>
             <p className="mt-2 text-sm text-[hsl(var(--normaltext))]">
-              Building better professional networks
+              Your AI Copilot for Job Search Networking
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
@@ -19,12 +20,18 @@ const Footer = () => {
               <h3 className="text-sm font-medium mb-2">Product</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     Pricing
                   </Link>
                 </li>
@@ -34,12 +41,18 @@ const Footer = () => {
               <h3 className="text-sm font-medium mb-2">Company</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     About
                   </Link>
                 </li>
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     Contact
                   </Link>
                 </li>
@@ -49,12 +62,18 @@ const Footer = () => {
               <h3 className="text-sm font-medium mb-2">Legal</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     Privacy
                   </Link>
                 </li>
                 <li>
-                  <Link to="/" className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900">
+                  <Link
+                    to="/"
+                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
+                  >
                     Terms
                   </Link>
                 </li>
@@ -64,7 +83,7 @@ const Footer = () => {
         </div>
         <div className="mt-8 border-t pt-6">
           <p className="text-sm text-[hsl(var(--normaltext))]">
-            &copy; {year} ConnectorAI. All rights reserved.
+            &copy; {year} Opener Studio. All rights reserved.
           </p>
         </div>
       </div>

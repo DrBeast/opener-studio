@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, MessageSquare } from "lucide-react";
+import { LogOut, User, MessageSquare, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 
@@ -33,9 +33,11 @@ const Header = ({}: HeaderProps) => {
               to={user ? "/pipeline" : "/"}
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
             >
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                ConnectorAI
-              </span>
+              <img
+                src="/opener-studio-logo.png"
+                alt="Opener Studio"
+                className="h-14 w-auto"
+              />
               <Badge
                 variant="secondary"
                 className="bg-red-100 text-red-700 border-red-200 text-xs font-medium"
@@ -47,11 +49,25 @@ const Header = ({}: HeaderProps) => {
             {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
-          {/* MIDDLE: Empty - Navigation removed */}
+          {/* MIDDLE: Breadcrumb Navigation */}
           {user ? (
-            <div className="hidden md:flex items-center">
-              {/* Navigation removed - Pipeline is now the main view */}
-            </div>
+            <nav className="hidden md:flex items-center space-x-2 text-sm">
+              <Link
+                to="/pipeline"
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                Studio
+              </Link>
+              {(location.pathname === "/profile" ||
+                location.pathname === "/message-history") && (
+                <>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-600 font-medium">
+                    {location.pathname === "/profile" ? "Profile" : "History"}
+                  </span>
+                </>
+              )}
+            </nav>
           ) : (
             <nav className="hidden md:flex items-center space-x-6">
               <Link
@@ -74,7 +90,11 @@ const Header = ({}: HeaderProps) => {
           {user && (
             <div className="flex items-center space-x-3">
               <Button
-                variant="outline"
+                variant={
+                  location.pathname === "/message-history"
+                    ? "primary"
+                    : "outline"
+                }
                 size="sm"
                 onClick={() => navigate("/message-history")}
                 className="flex items-center gap-2"
@@ -83,7 +103,9 @@ const Header = ({}: HeaderProps) => {
                 <span className="hidden sm:inline">History</span>
               </Button>
               <Button
-                variant="outline"
+                variant={
+                  location.pathname === "/profile" ? "primary" : "outline"
+                }
                 size="sm"
                 onClick={() => navigate("/profile")}
                 className="flex items-center gap-2"

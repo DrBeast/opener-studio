@@ -269,7 +269,7 @@ const HeroSection = () => {
                   </span>
                 </h1>
                 <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto leading-relaxed">
-                  ConnectorAI helps you craft messages that get responses and
+                  Opener Studio helps you craft messages that get responses and
                   build relationships — at scale and without the awkwardness.
                 </p>
               </div>
