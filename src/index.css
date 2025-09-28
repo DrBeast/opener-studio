@@ -11,10 +11,10 @@
     --secondary-foreground: 0 0% 45%; /* Medium gray for secondary text */
     --muted: 0 0% 90%; /* Light gray */
 
-    /* Primary - bright, high contrast purple */
-    --primary: 280 90% 50.9%; /* Bright purple button color */
-    --primary-hover: 280 80% 60%; /* Slightly lighter purple for primary button hover*/
-    --primary-muted: 279 68.2% 89.6%; /* Very light purple */
+    /* Primary - Opener Studio dark purple from logo */
+    --primary: 266 49% 33%; /* Dark purple from logo (#542C7C) */
+    --primary-hover: 266 55% 45%; /* Slightly lighter purple for hover */
+    --primary-muted: 266 35% 90%; /* Very light purple tint */
     --primary-foreground: 0 0% 100%; /* Clean white text for primary colored elements */
 
     /* Secondary - light gray for text areas */
@@ -23,7 +23,7 @@
     --muted-foreground: 0 0% 45%; /* Medium gray */
 
     /* Accent - subtle highlight */
-    --accent: 279 68.2% 89.6%; /* Very light purple, same as --primary-muted */
+    --accent: 266 35% 90%; /* Very light purple tint, matching primary-muted */
     --accent-foreground: 0 0% 20%; /* Dark text */
 
     /* Status colors - bright and clear */
@@ -37,7 +37,7 @@
     --border: 0 0% 90%; /* Light gray border */
     --input: 0 0% 100%; /* White input background */
     --input-border: 0 0% 85%; /* Input border */
-    --ring: 280 90% 50.9%; /* Focus ring matches primary */
+    --ring: 266 49% 33%; /* Focus ring matches primary */
 
     /* Flat design radius - more geometric */
     --radius: 0.5rem; /* 6px - cleaner, more geometric */
@@ -45,12 +45,12 @@
     /* Sidebar - consistent with main palette */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 280 90% 50.9%;
+    --sidebar-primary: 266 49% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 20%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 280 90% 50.9%;
+    --sidebar-ring: 266 49% 33%;
   }
 
   .dark {
