@@ -147,10 +147,10 @@ const ContactRow = ({
             </p>
           )}
 
-          {/* How I Can Help */}
+          {/* How You Can Help */}
           {contact.how_i_can_help && (
             <p className="text-xs text-muted-foreground line-clamp-2">
-              <span className="font-medium">How I can help:</span>{" "}
+              <span className="font-medium">How You can help:</span>{" "}
               {contact.how_i_can_help}
             </p>
           )}

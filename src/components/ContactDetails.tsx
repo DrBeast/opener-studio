@@ -385,6 +385,22 @@ export function ContactDetails({
         </div>
       );
     }
+
+    // Display the interaction summary when successfully loaded
+    if (overview?.overview) {
+      return (
+        <div className="text-sm text-gray-900 leading-relaxed">
+          {overview.overview}
+        </div>
+      );
+    }
+
+    // Fallback for when there's no overview data
+    return (
+      <div className="text-sm text-gray-500 italic">
+        No interaction summary available
+      </div>
+    );
   };
 
   if (!contact || !formData) {
@@ -529,7 +545,7 @@ export function ContactDetails({
               {formData.how_i_can_help && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-foreground">
-                    How I Can Help
+                    How You Can Help
                   </Label>
                   <div className="rounded-lg border  p-4 bg-blue-50 text-sm text-gray-900">
                     {formData.how_i_can_help}

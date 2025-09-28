@@ -150,7 +150,7 @@ export const ContactsTable = ({
                 <SortButton field="name">Contact</SortButton>
               </TableHead>
               <TableHead className="min-w-[280px]">Bio Summary</TableHead>
-              <TableHead className="min-w-[400px]">How I Can Help</TableHead>
+              <TableHead className="min-w-[400px]">How You Can Help</TableHead>
               <TableHead className="min-w-[120px]">
                 <SortButton field="latest_interaction">History</SortButton>
               </TableHead>
