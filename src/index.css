@@ -99,6 +99,29 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Ensure all non-heading elements use Inter */
+  p,
+  span,
+  div,
+  button,
+  input,
+  textarea,
+  select,
+  label,
+  a {
+    @apply font-sans;
+  }
+
+  /* Use SF Pro Display for headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
   }
 }

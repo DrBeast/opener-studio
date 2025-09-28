@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Inter', 'system-ui', 'sans-serif'], // Use Inter for all body text
+				'display': ['SF Pro Display', 'system-ui', 'sans-serif'], // Use SF Pro Display for headings
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
