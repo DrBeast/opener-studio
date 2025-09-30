@@ -183,6 +183,8 @@ MESSAGE REQUIREMENTS:
 
 3. PERSONALIZATION: Use specific details from backgrounds. DO NOT use generic praise like "I'm impressed with your work on..."
 
+4. VALUE PROPOSITION FORMAT: When referencing how the user can help the contact, use "you can" format (e.g., "you can leverage my expertise in...", "you can benefit from my experience with...", "you can tap into my network of...")
+
 USER BACKGROUND:
 - Professional Summary: ${userSummary.overall_blurb || 'N/A'}
 - Key Achievements: ${userSummary.achievements || 'N/A'}
