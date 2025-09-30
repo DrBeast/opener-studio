@@ -20,6 +20,7 @@ import MessageHistory from "@/pages/MessageHistory";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
 
 // Components
+import LandingPage from "@/components/LandingPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -32,7 +33,8 @@ const App = () => (
           <MainLayout>
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/old-landing" element={<Index />} />
 
               {/* Auth Routes */}
               <Route path="/auth/login" element={<Login />} />
