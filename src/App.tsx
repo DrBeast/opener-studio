@@ -2,6 +2,7 @@ import { TooltipProvider } from "@/components/ui/airtable-ds/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { GuestSessionProvider } from "@/contexts/GuestSessionContext";
 import { Toaster } from "@/components/ui/airtable-ds/toaster";
 
 // Layouts
@@ -29,58 +30,60 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <MainLayout>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/old-landing" element={<Index />} />
+        <GuestSessionProvider>
+          <BrowserRouter>
+            <MainLayout>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/old-landing" element={<Index />} />
 
-              {/* Auth Routes */}
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<Signup />} />
-              <Route
-                path="/auth/verification-pending"
-                element={<VerificationPending />}
-              />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+                {/* Auth Routes */}
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/signup" element={<Signup />} />
+                <Route
+                  path="/auth/verification-pending"
+                  element={<VerificationPending />}
+                />
+                <Route path="/auth/callback" element={<AuthCallback />} />
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/pipeline" element={<PipelineDashboard />} />
-                <Route path="/message-history" element={<MessageHistory />} />
-                <Route path="/profile" element={<Profile />} />
-              </Route>
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/pipeline" element={<PipelineDashboard />} />
+                  <Route path="/message-history" element={<MessageHistory />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route
-                path="/admin/feedback-review"
-                element={<FeedbackReview />}
-              />
+                {/* Admin Routes */}
+                <Route
+                  path="/admin/feedback-review"
+                  element={<FeedbackReview />}
+                />
 
-              {/* Redirect old routes */}
-              <Route
-                path="/profile/edit"
-                element={<Navigate to="/profile" replace />}
-              />
-              <Route
-                path="/companies"
-                element={<Navigate to="/pipeline" replace />}
-              />
-              <Route
-                path="/profile/enrichment"
-                element={<Navigate to="/profile" replace />}
-              />
-              <Route
-                path="/navigate-to-profile"
-                element={<Navigate to="/profile" replace />}
-              />
+                {/* Redirect old routes */}
+                <Route
+                  path="/profile/edit"
+                  element={<Navigate to="/profile" replace />}
+                />
+                <Route
+                  path="/companies"
+                  element={<Navigate to="/pipeline" replace />}
+                />
+                <Route
+                  path="/profile/enrichment"
+                  element={<Navigate to="/profile" replace />}
+                />
+                <Route
+                  path="/navigate-to-profile"
+                  element={<Navigate to="/profile" replace />}
+                />
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MainLayout>
-        </BrowserRouter>
+                {/* 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </MainLayout>
+          </BrowserRouter>
+        </GuestSessionProvider>
       </AuthProvider>
       <Toaster />
     </TooltipProvider>

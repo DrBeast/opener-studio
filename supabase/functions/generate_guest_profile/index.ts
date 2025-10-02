@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 // Define the Gemini API endpoint
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 // Create a Supabase client with the Deno runtime
 const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 serve(async (req)=>{
@@ -154,19 +154,17 @@ Rules:
 
     // Get existing profile data to preserve background_input
     const { data: existingProfile } = await supabaseClient
-      .from("user_profiles")
+      .from("guest_user_profiles")
       .select("background_input")
       .eq("session_id", sessionId)
       .single();
 
-    // Store profile data in user_profiles with session_id and extracted fields
+    // Store profile data in guest_user_profiles table
     // Preserve existing background_input if it exists
-    const { error: profileError } = await supabaseClient
-      .from("user_profiles")
+    const { data: storedProfile, error: profileError } = await supabaseClient
+      .from("guest_user_profiles")
       .upsert({
         session_id: sessionId,
-        is_temporary: true,
-        temp_created_at: new Date().toISOString(),
         background_input: existingProfile?.background_input || backgroundInput || null,
         linkedin_content: linkedinContent || null,
         cv_content: cvContent || null,
@@ -179,12 +177,30 @@ Rules:
         updated_at: new Date().toISOString()
       }, {
         onConflict: "session_id"
-      });
+      })
+      .select()
+      .single();
 
     if (profileError) {
       console.error("Error storing profile data:", profileError);
-      throw new Error(`Failed to store profile data: ${profileError.message}`);
+      console.error("Profile data being inserted:", {
+        session_id: sessionId,
+        background_input: existingProfile?.background_input || backgroundInput || null,
+        linkedin_content: linkedinContent || null,
+        cv_content: cvContent || null,
+        additional_details: additionalDetails || null,
+        first_name: extractedProfile.first_name,
+        last_name: extractedProfile.last_name,
+        job_role: extractedProfile.job_role,
+        current_company: extractedProfile.current_company,
+        location: extractedProfile.location,
+        updated_at: new Date().toISOString()
+      });
+      throw new Error(`Failed to store profile data: ${profileError.message || 'Unknown error'}`);
     }
+
+    console.log("Stored profile result:", storedProfile);
+    console.log("Stored profile with ID:", storedProfile?.id);
 
     console.log("Step 2: Calling Gemini API to generate comprehensive summary...");
 
@@ -254,8 +270,8 @@ Focus on creating content that would be valuable for job search networking. Be s
       console.error("Error parsing summary response:", parseError);
       throw new Error("Failed to parse AI summary response");
     }
-    // Store the summary in the database with session_id
-    const { error: summaryError } = await supabaseClient.from("user_summaries").upsert({
+    // Store the summary in the guest_user_summaries table
+    const { error: summaryError } = await supabaseClient.from("guest_user_summaries").upsert({
       session_id: sessionId,
       ...summary,
       updated_at: new Date().toISOString()
@@ -270,7 +286,8 @@ Focus on creating content that would be valuable for job search networking. Be s
       success: true,
       message: "Profile and summary generated successfully!",
       summary: summary,
-      extractedProfile: extractedProfile
+      extractedProfile: extractedProfile,
+      profile_id: storedProfile.id
     }), {
       status: 200,
       headers: {

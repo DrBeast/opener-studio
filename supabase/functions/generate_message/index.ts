@@ -90,32 +90,73 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      console.error('Authentication failed:', userError?.message);
-      return new Response(JSON.stringify({
-        status: 'error',
-        message: 'Authentication failed.',
-        error: userError?.message
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401
-      });
+    // Parse request body to check for guest mode
+    const { 
+      contact_id, 
+      medium, 
+      objective, 
+      additional_context,
+      is_guest = false,
+      session_id,
+      guest_contact_id,
+      user_profile_id
+    } = await req.json();
+
+    let user, userProfile, userSummary, contact;
+
+    if (is_guest) {
+      // Guest mode: No authentication required
+      console.log('Guest mode parameters:', { session_id, guest_contact_id, user_profile_id });
+      if (!session_id || !guest_contact_id || !user_profile_id) {
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'session_id, guest_contact_id, and user_profile_id required for guest mode',
+          received: { session_id, guest_contact_id, user_profile_id }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
+    } else {
+      // Authenticated mode: Existing logic
+      const { data: { user: authUser }, error: userError } = await supabaseClient.auth.getUser();
+      if (userError || !authUser) {
+        console.error('Authentication failed:', userError?.message);
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'Authentication failed.',
+          error: userError?.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        });
+      }
+      user = authUser;
     }
 
-    // Parse request body
-    const { contact_id, medium, objective, additional_context } = await req.json();
-
-    // Validate required parameters
-    if (!contact_id || !medium || !objective) {
-      return new Response(JSON.stringify({
-        status: 'error',
-        message: 'Missing required parameters.',
-        error: 'contact_id, medium, and objective are required.'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      });
+    // Validate required parameters based on mode
+    if (is_guest) {
+      if (!medium || !objective) {
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'Missing required parameters.',
+          error: 'medium and objective are required for guest mode.'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
+    } else {
+      if (!contact_id || !medium || !objective) {
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'Missing required parameters.',
+          error: 'contact_id, medium, and objective are required.'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
     }
 
     // Calculate max length for the selected medium
@@ -136,28 +177,127 @@ serve(async (req) => {
       });
     }
 
-    // Fetch all required data concurrently
-    const [userProfileResult, userSummaryResult, contactResult] = await Promise.all([
-      supabaseClient.from('user_profiles').select('background_input').eq('user_id', user.id).single(),
-      supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single(),
-      supabaseClient.from('contacts').select('*, companies(*)').eq('contact_id', contact_id).eq('user_id', user.id).single()
-    ]);
+    // Fetch all required data based on mode
+    if (is_guest) {
+      // Guest mode: Fetch from guest tables
+      console.log('Querying with parameters:', { user_profile_id, session_id, guest_contact_id });
+      
+      const [userProfileResult, userSummaryResult, contactResult] = await Promise.all([
+        supabaseClient.from('guest_user_profiles').select('*').eq('id', user_profile_id).single(),
+        supabaseClient.from('guest_user_summaries').select('*').eq('session_id', session_id).single(),
+        supabaseClient.from('guest_contacts').select('*').eq('id', guest_contact_id).single()
+      ]);
+      
+      console.log('Raw query results:', {
+        userProfile: { error: userProfileResult.error, data: userProfileResult.data },
+        userSummary: { error: userSummaryResult.error, data: userSummaryResult.data },
+        contact: { error: contactResult.error, data: contactResult.data }
+      });
 
-    // Validate fetched data
-    if (userProfileResult.error || !userProfileResult.data) {
-      throw new Error(userProfileResult.error?.message || "Failed to fetch user profile.");
-    }
-    if (userSummaryResult.error || !userSummaryResult.data) {
-      throw new Error(userSummaryResult.error?.message || "Failed to fetch user summary.");
-    }
-    if (contactResult.error || !contactResult.data) {
-      throw new Error(contactResult.error?.message || "Failed to fetch contact details.");
+      // Validate fetched data
+      console.log('Fetched data results:', {
+        userProfile: { error: userProfileResult.error, hasData: !!userProfileResult.data },
+        userSummary: { error: userSummaryResult.error, hasData: !!userSummaryResult.data },
+        contact: { error: contactResult.error, hasData: !!contactResult.data }
+      });
+      
+      // Debug: Check if there are multiple rows for the same session_id
+      if (userProfileResult.error && userProfileResult.error.message.includes('multiple')) {
+        console.log('Multiple user profiles found for session_id:', session_id);
+        const { data: allProfiles } = await supabaseClient
+          .from('guest_user_profiles')
+          .select('*')
+          .eq('session_id', session_id);
+        console.log('All profiles for session:', allProfiles);
+        
+        // Clean up duplicates - keep the most recent one
+        if (allProfiles && allProfiles.length > 1) {
+          console.log('Cleaning up duplicate user profiles...');
+          const sortedProfiles = allProfiles.sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+          const keepProfile = sortedProfiles[0];
+          const deleteProfiles = sortedProfiles.slice(1);
+          
+          for (const profile of deleteProfiles) {
+            await supabaseClient.from('guest_user_profiles').delete().eq('id', profile.id);
+          }
+          console.log('Cleaned up duplicate user profiles, keeping:', keepProfile.id);
+        } else if (allProfiles && allProfiles.length === 0) {
+          console.log('No user profiles found for session_id - this might be an RLS policy issue');
+        }
+      }
+      
+      if (userSummaryResult.error && userSummaryResult.error.message.includes('multiple')) {
+        console.log('Multiple user summaries found for session_id:', session_id);
+        const { data: allSummaries } = await supabaseClient
+          .from('guest_user_summaries')
+          .select('*')
+          .eq('session_id', session_id);
+        console.log('All summaries for session:', allSummaries);
+        
+        // Clean up duplicates - keep the most recent one
+        if (allSummaries && allSummaries.length > 1) {
+          console.log('Cleaning up duplicate user summaries...');
+          const sortedSummaries = allSummaries.sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+          const keepSummary = sortedSummaries[0];
+          const deleteSummaries = sortedSummaries.slice(1);
+          
+          for (const summary of deleteSummaries) {
+            await supabaseClient.from('guest_user_summaries').delete().eq('id', summary.id);
+          }
+          console.log('Cleaned up duplicate user summaries, keeping:', keepSummary.id);
+        } else if (allSummaries && allSummaries.length === 0) {
+          console.log('No user summaries found for session_id - this might be an RLS policy issue');
+        }
+      }
+      if (userProfileResult.error || !userProfileResult.data) {
+        const error = userProfileResult.error?.message || "Failed to fetch guest user profile.";
+        console.error('User profile error:', error);
+        throw new Error(error);
+      }
+      if (userSummaryResult.error || !userSummaryResult.data) {
+        const error = userSummaryResult.error?.message || "Failed to fetch guest user summary.";
+        console.error('User summary error:', error);
+        throw new Error(error);
+      }
+      if (contactResult.error || !contactResult.data) {
+        const error = contactResult.error?.message || "Failed to fetch guest contact.";
+        console.error('Contact error:', error);
+        throw new Error(error);
+      }
+
+      userProfile = userProfileResult.data;
+      userSummary = userSummaryResult.data;
+      contact = contactResult.data;
+    } else {
+      // Authenticated mode: Existing logic
+      const [userProfileResult, userSummaryResult, contactResult] = await Promise.all([
+        supabaseClient.from('user_profiles').select('background_input').eq('user_id', user.id).single(),
+        supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single(),
+        supabaseClient.from('contacts').select('*, companies(*)').eq('contact_id', contact_id).eq('user_id', user.id).single()
+      ]);
+
+      // Validate fetched data
+      if (userProfileResult.error || !userProfileResult.data) {
+        throw new Error(userProfileResult.error?.message || "Failed to fetch user profile.");
+      }
+      if (userSummaryResult.error || !userSummaryResult.data) {
+        throw new Error(userSummaryResult.error?.message || "Failed to fetch user summary.");
+      }
+      if (contactResult.error || !contactResult.data) {
+        throw new Error(contactResult.error?.message || "Failed to fetch contact details.");
+      }
+
+      userProfile = userProfileResult.data;
+      userSummary = userSummaryResult.data;
+      contact = contactResult.data;
     }
 
-    const userProfile = userProfileResult.data;
-    const userSummary = userSummaryResult.data;
-    const contactData = contactResult.data;
-    const companyData = contactData.companies;
+    // Get company data (only for authenticated mode)
+    const companyData = is_guest ? null : contact.companies;
 
     // Build the user prompt with specific context
     const userPrompt = `
@@ -197,10 +337,10 @@ USER BACKGROUND:
 - Value Proposition: ${userSummary.value_proposition_summary || 'N/A'}
 
 TARGET CONTACT:
-- Name: ${contactData.full_name || `${contactData.first_name} ${contactData.last_name}`}
-- Role: ${contactData.role || 'N/A'}
-- Bio Summary: ${contactData.bio_summary || 'N/A'}
-- How User Can Help: ${contactData.how_i_can_help || 'Not specified'}
+- Name: ${contact.full_name || `${contact.first_name} ${contact.last_name}`}
+- Role: ${contact.role || 'N/A'}
+- Bio Summary: ${contact.bio_summary || 'N/A'}
+- How User Can Help: ${contact.how_i_can_help || 'Not specified'}
 
 TARGET COMPANY:
 - Name: ${companyData?.name || 'N/A'}
@@ -212,7 +352,7 @@ USER'S FULL BACKGROUND:
 ${userProfile.background_input || 'N/A'}
 
 CONTACT'S LINKEDIN BIO:
-${contactData.linkedin_bio || 'N/A'}
+${contact.linkedin_bio || 'N/A'}
 
 Generate 3 distinct message versions using different angles and approaches, mentioning different details of backgrounds, while staying under ${maxLength} characters each.`;
 
@@ -292,15 +432,54 @@ Generate 3 distinct message versions using different angles and approaches, ment
       });
     }
 
-    // Return successful response
-    return new Response(JSON.stringify({
-      status: 'success',
-      message: 'Messages generated successfully.',
-      generated_messages: generatedOutput.messages
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200
-    });
+    // Conditional storage based on mode
+    if (is_guest) {
+      // Store in guest_generated_messages table
+      const { data: guestMessage, error: insertError } = await supabaseClient
+        .from('guest_generated_messages')
+        .insert({
+          session_id,
+          version1: generatedOutput.messages.version1,
+          version2: generatedOutput.messages.version2,
+          version3: generatedOutput.messages.version3,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error storing guest message:', insertError);
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'Failed to store guest message.',
+          error: insertError.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+
+      return new Response(JSON.stringify({
+        status: 'success',
+        message: 'Messages generated successfully.',
+        generated_messages: generatedOutput.messages,
+        guest_message_id: guestMessage.id
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      });
+    } else {
+      // Authenticated mode: Return messages (existing behavior)
+      // Note: The original function doesn't store messages, it just generates them
+      // The frontend handles storing messages in saved_message_versions
+      return new Response(JSON.stringify({
+        status: 'success',
+        message: 'Messages generated successfully.',
+        generated_messages: generatedOutput.messages
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      });
+    }
 
   } catch (error) {
     console.error('Unexpected error during message generation:', error);

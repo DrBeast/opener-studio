@@ -9,14 +9,17 @@ import {
   Target,
   Sparkles,
 } from "lucide-react";
+import { GuestModal } from "./GuestModal";
 
 const LandingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenStudio = () => {
     setIsModalOpen(true);
-    // Modal implementation will be added in Step 3
-    console.log("Opening Studio Modal...");
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -337,6 +340,9 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Guest Modal */}
+      <GuestModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </div>
   );
 };

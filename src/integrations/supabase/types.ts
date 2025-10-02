@@ -485,6 +485,138 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_contacts: {
+        Row: {
+          id: string
+          session_id: string
+          linkedin_bio: string
+          first_name: string | null
+          last_name: string | null
+          role: string | null
+          current_company: string | null
+          location: string | null
+          bio_summary: string | null
+          how_i_can_help: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          linkedin_bio: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          current_company?: string | null
+          location?: string | null
+          bio_summary?: string | null
+          how_i_can_help?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          linkedin_bio?: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          current_company?: string | null
+          location?: string | null
+          bio_summary?: string | null
+          how_i_can_help?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: []
+      }
+      guest_message_sessions: {
+        Row: {
+          id: string
+          session_id: string
+          user_profile_id: string | null
+          guest_contact_id: string | null
+          medium: string
+          objective: string
+          additional_context: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_profile_id?: string | null
+          guest_contact_id?: string | null
+          medium: string
+          objective: string
+          additional_context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_profile_id?: string | null
+          guest_contact_id?: string | null
+          medium?: string
+          objective?: string
+          additional_context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_message_sessions_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "guest_message_sessions_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "guest_contacts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      guest_generated_messages: {
+        Row: {
+          id: string
+          session_id: string
+          version1: string
+          version2: string
+          version3: string
+          selected_version: string | null
+          selected_message_text: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          version1: string
+          version2: string
+          version3: string
+          selected_version?: string | null
+          selected_message_text?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          version1?: string
+          version2?: string
+          version3?: string
+          selected_version?: string | null
+          selected_message_text?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

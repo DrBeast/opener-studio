@@ -67,7 +67,7 @@ const AuthCallback = () => {
 
         // Check if there's a temporary profile to link
         setRedirectStatus("Checking for guest profile to link...");
-        const sessionId = localStorage.getItem("profile-session-id");
+        const sessionId = localStorage.getItem("guest_session_id");
 
         if (sessionId && user) {
           try {

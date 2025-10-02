@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 interface ProcessedContact {
   first_name: string;
@@ -38,17 +38,53 @@ serve(async (req) => {
     }
   );
 
-  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  // Parse request body to check for guest mode
+  const { linkedin_bio, is_guest = false, session_id } = await req.json();
 
-  if (userError || !user) {
-    return new Response(JSON.stringify({
-      status: 'error',
-      message: 'Authentication failed.',
-      error: userError?.message
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 401,
-    });
+  let user, userSummary;
+
+  if (is_guest) {
+    // Guest mode: No authentication required
+    if (!session_id) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: 'session_id required for guest mode'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+    
+    // Get guest user summary by session_id
+    const userSummaryResponse = await supabaseClient
+      .from('user_summaries')
+      .select('*')
+      .eq('session_id', session_id)
+      .single();
+    userSummary = userSummaryResponse.data;
+  } else {
+    // Authenticated mode: Existing logic
+    const { data: { user: authUser }, error: userError } = await supabaseClient.auth.getUser();
+
+    if (userError || !authUser) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: 'Authentication failed.',
+        error: userError?.message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
+    user = authUser;
+    
+    // Get user summary by user_id
+    const userSummaryResponse = await supabaseClient
+      .from('user_summaries')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    userSummary = userSummaryResponse.data;
   }
 
   const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -64,8 +100,6 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedin_bio } = await req.json();
-
     if (!linkedin_bio) {
       return new Response(JSON.stringify({
         status: 'error',
@@ -76,9 +110,7 @@ serve(async (req) => {
       });
     }
 
-    // Fetch user's background summary for context
-    const userSummaryResponse = await supabaseClient.from('user_summaries').select('*').eq('user_id', user.id).single();
-    const userSummary = userSummaryResponse.data;
+    // User summary already fetched above based on mode
 
     const prompt = `
     You are an AI assistant helping a professional process contact information from a LinkedIn profile.
@@ -162,13 +194,57 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({
-      status: 'success',
-      contact: processedContact
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    // Conditional storage based on mode
+    if (is_guest) {
+      // Store in guest_contacts table
+      const { data: guestContact, error: insertError } = await supabaseClient
+        .from('guest_contacts')
+        .insert({
+          session_id,
+          linkedin_bio,
+          first_name: processedContact.first_name,
+          last_name: processedContact.last_name,
+          role: processedContact.role,
+          current_company: processedContact.current_company,
+          location: processedContact.location,
+          bio_summary: processedContact.bio_summary,
+          how_i_can_help: processedContact.how_i_can_help,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error storing guest contact:', insertError);
+        return new Response(JSON.stringify({
+          status: 'error',
+          message: 'Failed to store guest contact.',
+          error: insertError.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        });
+      }
+
+      return new Response(JSON.stringify({
+        status: 'success',
+        contact: processedContact,
+        guest_contact_id: guestContact.id
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    } else {
+      // Authenticated mode: Return processed contact (existing behavior)
+      // Note: The original function doesn't store contacts, it just processes them
+      // The frontend handles storing the contact in the contacts table
+      return new Response(JSON.stringify({
+        status: 'success',
+        contact: processedContact
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
 
   } catch (error) {
     console.error('Error processing contact bio:', error);
