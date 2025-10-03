@@ -1,11 +1,8 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/design-system";
-import { User, Award, GraduationCap, Star, Target, Zap } from "lucide-react";
+import { PrimaryCard, CardContent } from "@/components/ui/design-system";
+import { Avatar, AvatarFallback } from "@/components/ui/airtable-ds/avatar";
+import { Briefcase, MapPin, Building, Star, Award } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface GuestProfileSummaryProps {
   userProfile: {
@@ -17,30 +14,15 @@ interface GuestProfileSummaryProps {
   } | null;
   userSummary: {
     overall_blurb?: string;
-    experience?: string;
-    education?: string;
-    expertise?: string;
-    achievements?: string;
-    combined_experience_highlights?: string[];
-    combined_education_highlights?: string[];
-    key_skills?: string[];
-    domain_expertise?: string[];
-    technical_expertise?: string[];
     value_proposition_summary?: string;
   } | null;
   className?: string;
 }
 
-// Helper function to render arrays safely
-const renderArrayItems = (items?: string[]) => {
-  if (!items || !Array.isArray(items) || items.length === 0) return null;
-  return (
-    <ul className="list-disc list-inside text-sm space-y-1 pl-2 text-gray-700">
-      {items.map((item, index) => (
-        <li key={index}>{item}</li>
-      ))}
-    </ul>
-  );
+const getInitials = (first?: string, last?: string) => {
+  const f = first?.[0] ?? "";
+  const l = last?.[0] ?? "";
+  return (f + l).toUpperCase() || "?";
 };
 
 export const GuestProfileSummary: React.FC<GuestProfileSummaryProps> = ({
@@ -52,128 +34,72 @@ export const GuestProfileSummary: React.FC<GuestProfileSummaryProps> = ({
     return null;
   }
 
+  const initials = getInitials(userProfile.first_name, userProfile.last_name);
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Basic Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <User className="h-5 w-5 text-blue-600" />
-            <CardTitle className="text-lg text-blue-800">
-              {userProfile.first_name} {userProfile.last_name}
-            </CardTitle>
+    <PrimaryCard
+      className={cn("bg-blue-50 border-blue-200 min-h-[400px]", className)}
+    >
+      <CardContent className="p-4 h-full flex flex-col">
+        {/* Main Flex Container */}
+        <div className="flex items-start gap-3">
+          {/* Avatar (Left Column) */}
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* All text content (Right Column) */}
+          <div className="flex-1 space-y-3">
+            {/* Name, Role, Company, Location */}
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">
+                {userProfile.first_name} {userProfile.last_name}
+              </h4>
+              {userProfile.job_role && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Briefcase className="h-4 w-4" /> {userProfile.job_role}
+                </p>
+              )}
+              {userProfile.current_company && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Building className="h-4 w-4" /> {userProfile.current_company}
+                </p>
+              )}
+              {userProfile.location && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" /> {userProfile.location}
+                </p>
+              )}
+            </div>
+
+            {/* Professional Summary */}
+            {userSummary.overall_blurb && (
+              <div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  Professional Summary:
+                </p>
+                <p className="text-sm leading-6 text-foreground">
+                  {userSummary.overall_blurb}
+                </p>
+              </div>
+            )}
+
+            {/* Value Proposition */}
+            {userSummary.value_proposition_summary && (
+              <div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  Value Proposition:
+                </p>
+                <p className="text-sm leading-6 text-foreground">
+                  {userSummary.value_proposition_summary}
+                </p>
+              </div>
+            )}
           </div>
-          <div className="space-y-2 text-sm">
-            {userProfile.job_role && (
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-700">Role:</span>
-                <span className="text-gray-600">{userProfile.job_role}</span>
-              </div>
-            )}
-            {userProfile.current_company && (
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-700">Company:</span>
-                <span className="text-gray-600">
-                  {userProfile.current_company}
-                </span>
-              </div>
-            )}
-            {userProfile.location && (
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-700">Location:</span>
-                <span className="text-gray-600">{userProfile.location}</span>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Overall Summary */}
-      {userSummary.overall_blurb && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Star className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Professional Summary</CardTitle>
-            </div>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {userSummary.overall_blurb}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Experience Highlights */}
-      {userSummary.combined_experience_highlights &&
-        userSummary.combined_experience_highlights.length > 0 && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Experience Highlights</CardTitle>
-              </div>
-              {renderArrayItems(userSummary.combined_experience_highlights)}
-            </CardContent>
-          </Card>
-        )}
-
-      {/* Education Highlights */}
-      {userSummary.combined_education_highlights &&
-        userSummary.combined_education_highlights.length > 0 && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Education Highlights</CardTitle>
-              </div>
-              {renderArrayItems(userSummary.combined_education_highlights)}
-            </CardContent>
-          </Card>
-        )}
-
-      {/* Key Skills */}
-      {userSummary.key_skills && userSummary.key_skills.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Key Skills</CardTitle>
-            </div>
-            {renderArrayItems(userSummary.key_skills)}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Domain Expertise */}
-      {userSummary.domain_expertise &&
-        userSummary.domain_expertise.length > 0 && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Domain Expertise</CardTitle>
-              </div>
-              {renderArrayItems(userSummary.domain_expertise)}
-            </CardContent>
-          </Card>
-        )}
-
-      {/* Value Proposition */}
-      {userSummary.value_proposition_summary && (
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Star className="h-5 w-5 text-green-600" />
-              <CardTitle className="text-lg text-green-800">
-                Value Proposition
-              </CardTitle>
-            </div>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {userSummary.value_proposition_summary}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        </div>
+      </CardContent>
+    </PrimaryCard>
   );
 };

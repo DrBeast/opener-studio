@@ -9,7 +9,6 @@ import { Toaster } from "@/components/ui/airtable-ds/toaster";
 import MainLayout from "@/layouts/MainLayout";
 
 // Pages
-import Index from "@/pages/Index";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
@@ -36,7 +35,6 @@ const App = () => (
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/old-landing" element={<Index />} />
 
                 {/* Auth Routes */}
                 <Route path="/auth/login" element={<Login />} />

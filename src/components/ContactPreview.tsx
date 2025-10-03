@@ -31,8 +31,10 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (
-    <PrimaryCard className={cn("bg-green-50 border-green-200", className)}>
-      <CardContent className="p-4">
+    <PrimaryCard
+      className={cn("bg-green-50 border-green-200 min-h-[400px]", className)}
+    >
+      <CardContent className="p-4 h-full flex flex-col">
         {/* Main Flex Container */}
         <div className="flex items-start gap-3">
           {/* Avatar (Left Column) */}
@@ -54,25 +56,23 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
                   <Briefcase className="h-4 w-4" /> {contact.role}
                 </p>
               )}
-              <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                {contact.current_company && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Building className="h-4 w-4" /> {contact.current_company}
-                  </span>
-                )}
-                {contact.location && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4" /> {contact.location}
-                  </span>
-                )}
-              </div>
+              {contact.current_company && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Building className="h-4 w-4" /> {contact.current_company}
+                </p>
+              )}
+              {contact.location && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" /> {contact.location}
+                </p>
+              )}
             </div>
 
-            {/* Background Summary */}
+            {/* Professional Summary */}
             {contact.bio_summary && (
               <div>
                 <p className="text-sm font-medium text-foreground mb-1">
-                  Background:
+                  Professional Summary:
                 </p>
                 <p className="text-sm leading-6 text-foreground">
                   {contact.bio_summary}

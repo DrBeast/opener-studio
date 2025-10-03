@@ -67,6 +67,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     updateGuestContact,
     updateGeneratedMessages,
     selectMessage,
+    clearSession,
     isProfileComplete,
     isContactComplete,
     isMessageGenerationUnlocked,
@@ -237,27 +238,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                 </PrimaryAction>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-green-700">
-                    Profile Preview
-                  </h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      updateUserProfile(null, null);
-                      setUserBio("");
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </div>
-                <GuestProfileSummary
-                  userProfile={sessionData.userProfile}
-                  userSummary={sessionData.userSummary}
-                />
-              </div>
+              <GuestProfileSummary
+                userProfile={sessionData.userProfile}
+                userSummary={sessionData.userSummary}
+              />
             )}
           </div>
 
@@ -298,24 +282,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                 </PrimaryAction>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-green-700">
-                    Contact Profile Preview
-                  </h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      updateGuestContact(null);
-                      setContactBio("");
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </div>
-                <GuestContactPreview contact={sessionData.guestContact} />
-              </div>
+              <GuestContactPreview contact={sessionData.guestContact} />
             )}
           </div>
         </div>
