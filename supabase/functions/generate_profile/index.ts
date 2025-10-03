@@ -7,8 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 
-// Updated to Gemini 2.5 Flash for better reliability
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+// Updated to Gemini 2.5 Flash-Lite for optimized low latency
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // Response schema for structured output (simplified to reduce token usage)
 const RESPONSE_SCHEMA = {
