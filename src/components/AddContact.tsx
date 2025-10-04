@@ -96,7 +96,10 @@ export const AddContact = ({
       // Step 1: Process the bio to get contact data
       const { data: bioData, error: bioError } =
         await supabase.functions.invoke("add_contact_by_bio", {
-          body: { linkedin_bio: linkedinBio.trim() },
+          body: {
+            linkedin_bio: linkedinBio.trim(),
+            userId: user.id,
+          },
         });
       if (bioError) throw bioError;
       if (!bioData?.contact)

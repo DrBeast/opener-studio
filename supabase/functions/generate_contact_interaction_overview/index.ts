@@ -145,7 +145,7 @@ Keep it very brief and actionable.`;
 
     console.log('Sending prompt to Gemini API for contact overview generation');
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + geminiApiKey, {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + geminiApiKey, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -160,7 +160,6 @@ Keep it very brief and actionable.`;
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 150,
         }
       })
     });

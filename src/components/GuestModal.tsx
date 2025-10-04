@@ -131,15 +131,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         {
           body: {
             linkedin_bio: contactBio,
-            is_guest: true,
-            session_id: sessionData.sessionId,
+            sessionId: sessionData.sessionId,
           },
         }
       );
 
       if (error) throw error;
 
-      if (data.status === "success") {
+      if (data.success === true) {
         updateGuestContact({
           id: data.guest_contact_id,
           first_name: data.contact.first_name,

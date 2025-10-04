@@ -26,8 +26,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
-// Updated to Gemini 2.5 Flash
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+// Updated to Gemini 2.5 Flash-Lite for optimized low latency
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // System instruction for high-level, unchanging rules
 const SYSTEM_INSTRUCTION = `You are an AI assistant specialized in crafting authentic, professional networking messages for job search outreach. Your core mission is to help professionals write compelling, personalized messages that effectively achieve their stated objectives.
@@ -372,7 +372,8 @@ Generate 3 distinct message versions using different angles and approaches, ment
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: Math.max(2048, Math.min(8192, maxLength * 4)), // At least 2048 tokens
+          topK: 40,
+          topP: 0.95,
           responseMimeType: "application/json",
           responseSchema: RESPONSE_SCHEMA
         }
@@ -400,7 +401,8 @@ Generate 3 distinct message versions using different angles and approaches, ment
       const candidate = data?.candidates?.[0];
       
       if (candidate?.finishReason === 'MAX_TOKENS') {
-        throw new Error("Response was truncated. Try reducing prompt size or increasing maxOutputTokens.");
+        console.warn("Response was truncated due to token limit. This may indicate very large input content.");
+        // Don't throw error, try to parse what we have
       }
       
       const responseText = candidate?.content?.parts?.[0]?.text;
