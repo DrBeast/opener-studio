@@ -89,7 +89,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     setIsGeneratingUserProfile(true);
     try {
       const { data, error } = await supabase.functions.invoke(
-        "generate_guest_profile",
+        "generate_profile",
         {
           body: {
             sessionId: sessionData.sessionId,
