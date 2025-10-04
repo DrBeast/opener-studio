@@ -6,6 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import { guestSessionManager, GuestSessionData } from "@/utils/guestSession";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 
 interface GuestSessionContextType {
   sessionData: GuestSessionData;
@@ -62,19 +64,55 @@ export const GuestSessionProvider: React.FC<GuestSessionProviderProps> = ({
   };
 
   const updateGeneratedMessages = (messages: any) => {
+    // Set Version 1 as selected by default when messages are generated
+    const defaultMessage = messages.version1;
+    const defaultVersion = "Version 1";
+
+    // Save to localStorage
+    guestSessionManager.setSelectedMessage(defaultMessage, defaultVersion);
+
     setSessionData((prev) => ({
       ...prev,
       generatedMessages: messages,
+      selectedMessage: defaultMessage,
+      selectedVersion: defaultVersion,
     }));
   };
 
-  const selectMessage = (message: string, version: string) => {
+  const selectMessage = async (message: string, version: string) => {
+    // Save to localStorage first
     guestSessionManager.setSelectedMessage(message, version);
+
+    // Update local state
     setSessionData((prev) => ({
       ...prev,
       selectedMessage: message,
       selectedVersion: version,
     }));
+
+    // Save selection to backend
+    try {
+      const { error } = await supabase.functions.invoke(
+        "update_guest_message_selection",
+        {
+          body: {
+            sessionId: sessionData.sessionId,
+            selectedMessage: message,
+            selectedVersion: version,
+            guestContactId: sessionData.guestContact?.id, // Include contact ID for more precision
+          },
+        }
+      );
+
+      if (error) {
+        console.error("Error saving message selection:", error);
+        toast.error("Failed to save message selection");
+      } else {
+        console.log("Message selection saved to backend");
+      }
+    } catch (error) {
+      console.error("Error calling update_guest_message_selection:", error);
+    }
   };
 
   const clearSession = () => {

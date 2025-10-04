@@ -436,35 +436,55 @@ Generate 3 distinct message versions using different angles and approaches, ment
 
     // Conditional storage based on mode
     if (is_guest) {
-      // Store in guest_generated_messages table
-      const { data: guestMessage, error: insertError } = await supabaseClient
-        .from('guest_generated_messages')
-        .insert({
-          session_id,
-          version1: generatedOutput.messages.version1,
-          version2: generatedOutput.messages.version2,
-          version3: generatedOutput.messages.version3,
-        })
-        .select()
-        .single();
+      // Store each message version in guest_saved_messages table
+      const messageVersions = [
+        { text: generatedOutput.messages.version1, name: 'Version 1' },
+        { text: generatedOutput.messages.version2, name: 'Version 2' },
+        { text: generatedOutput.messages.version3, name: 'Version 3' }
+      ];
 
-      if (insertError) {
-        console.error('Error storing guest message:', insertError);
-        return new Response(JSON.stringify({
-          status: 'error',
-          message: 'Failed to store guest message.',
-          error: insertError.message
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500
-        });
+      const savedMessages = [];
+      
+      for (let i = 0; i < messageVersions.length; i++) {
+        const version = messageVersions[i];
+        const isSelected = i === 0; // Version 1 is selected by default
+        
+        const { data: savedMessage, error: insertError } = await supabaseClient
+          .from('guest_saved_messages')
+          .insert({
+            session_id,
+            guest_contact_id: guest_contact_id,
+            user_profile_id: null, // Don't use user_profile_id for guest users
+            message_text: version.text,
+            version_name: version.name,
+            medium: medium,
+            message_objective: objective,
+            message_additional_context: additional_context || null,
+            is_selected: isSelected, // Version 1 selected by default
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error(`Error storing guest message ${version.name}:`, insertError);
+          return new Response(JSON.stringify({
+            status: 'error',
+            message: `Failed to store guest message ${version.name}.`,
+            error: insertError.message
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500
+          });
+        }
+
+        savedMessages.push(savedMessage);
       }
 
       return new Response(JSON.stringify({
         status: 'success',
         message: 'Messages generated successfully.',
         generated_messages: generatedOutput.messages,
-        guest_message_id: guestMessage.id
+        saved_message_ids: savedMessages.map(msg => msg.id)
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200

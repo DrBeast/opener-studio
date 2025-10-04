@@ -485,6 +485,69 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_saved_messages: {
+        Row: {
+          id: string
+          session_id: string
+          guest_contact_id: string | null
+          user_profile_id: string | null
+          message_text: string
+          version_name: string
+          medium: string
+          message_objective: string
+          message_additional_context: string | null
+          is_selected: boolean | null
+          created_at: string | null
+          updated_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          guest_contact_id?: string | null
+          user_profile_id?: string | null
+          message_text: string
+          version_name: string
+          medium: string
+          message_objective: string
+          message_additional_context?: string | null
+          is_selected?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          guest_contact_id?: string | null
+          user_profile_id?: string | null
+          message_text?: string
+          version_name?: string
+          medium?: string
+          message_objective?: string
+          message_additional_context?: string | null
+          is_selected?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_saved_messages_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "guest_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_saved_messages_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["profile_id"]
+          }
+        ]
+      }
       guest_contacts: {
         Row: {
           id: string

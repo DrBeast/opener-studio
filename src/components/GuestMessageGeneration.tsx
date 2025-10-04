@@ -198,42 +198,16 @@ export const GuestMessageGeneration: React.FC<GuestMessageGenerationProps> = ({
         </PrimaryAction>
       </div>
 
-      {/* Generated Messages */}
+      {/* Success Message */}
       {generatedMessages && (
-        <div className="space-y-4">
-          <h4 className="text-lg font-semibold">Generated Messages</h4>
-          <div className="space-y-4">
-            {Object.entries(generatedMessages).map(([version, message]) => (
-              <div key={version} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h5 className="font-medium capitalize">{version}</h5>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(message as string, version)}
-                  >
-                    {copiedMessage === version ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {message as string}
-                </p>
-                <div className="text-xs text-gray-500">
-                  {`${(message as string).length} / ${maxLength} characters`}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="text-lg font-semibold text-green-800 mb-2">
+            Messages Generated Successfully!
+          </h4>
+          <p className="text-sm text-green-700">
+            Your personalized messages have been generated. You can now select
+            your preferred message below.
+          </p>
         </div>
       )}
 

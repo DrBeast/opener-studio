@@ -481,34 +481,36 @@ serve(async (req) => {
       }
     }
 
-    // Transfer guest messages to saved_message_versions
+    // Transfer guest messages to saved_message_versions (only selected message)
     const { data: guestMessages } = await supabaseClient
-      .from('guest_generated_messages')
+      .from('guest_saved_messages')
       .select('*')
-      .eq('session_id', sessionId);
+      .eq('session_id', sessionId)
+      .eq('is_selected', true);
 
     if (guestMessages && guestMessages.length > 0) {
-      console.log(`[LINK PROFILE] Found ${guestMessages.length} guest messages to transfer`);
+      console.log(`[LINK PROFILE] Found ${guestMessages.length} selected guest messages to transfer`);
       
       for (const guestMessage of guestMessages) {
-        if (guestMessage.selected_message_text) {
-          const { error: messageError } = await supabaseClient
-            .from('saved_message_versions')
-            .insert({
-              user_id: userId,
-              message_text: guestMessage.selected_message_text,
-              version_name: guestMessage.selected_version || 'Version 1',
-              medium: 'LinkedIn message, email, InMail', // Default medium
-              message_objective: 'Networking', // Default objective
-            });
+        const { error: messageError } = await supabaseClient
+          .from('saved_message_versions')
+          .insert({
+            user_id: userId,
+            message_text: guestMessage.message_text,
+            version_name: guestMessage.version_name,
+            medium: guestMessage.medium,
+            message_objective: guestMessage.message_objective,
+            message_additional_context: guestMessage.message_additional_context,
+          });
 
-          if (messageError) {
-            console.error('[LINK PROFILE] Error transferring guest message:', messageError);
-          } else {
-            console.log(`[LINK PROFILE] Successfully transferred guest message: ${guestMessage.selected_version}`);
-          }
+        if (messageError) {
+          console.error(`[LINK PROFILE] Error transferring selected guest message:`, messageError);
+        } else {
+          console.log(`[LINK PROFILE] Successfully transferred selected guest message: ${guestMessage.version_name}`);
         }
       }
+    } else {
+      console.log(`[LINK PROFILE] No selected messages found for session ${sessionId}`);
     }
 
     // Clean up guest data after successful transfer
@@ -518,12 +520,7 @@ serve(async (req) => {
       .eq('session_id', sessionId);
 
     const { error: cleanupMessagesError } = await supabaseClient
-      .from('guest_generated_messages')
-      .delete()
-      .eq('session_id', sessionId);
-
-    const { error: cleanupSessionsError } = await supabaseClient
-      .from('guest_message_sessions')
+      .from('guest_saved_messages')
       .delete()
       .eq('session_id', sessionId);
 
@@ -532,9 +529,6 @@ serve(async (req) => {
     }
     if (cleanupMessagesError) {
       console.error('[LINK PROFILE] Error cleaning up guest messages:', cleanupMessagesError);
-    }
-    if (cleanupSessionsError) {
-      console.error('[LINK PROFILE] Error cleaning up guest message sessions:', cleanupSessionsError);
     }
 
     // Verify profile linking was successful
@@ -555,6 +549,14 @@ serve(async (req) => {
       })}`);
     }
 
+    // Create a summary of what was transferred
+    const transferSummary = {
+      profileLinked: !!guestProfile,
+      summaryLinked: !!guestSummary,
+      contactsTransferred: guestContacts?.length || 0,
+      messagesTransferred: guestMessages?.filter(msg => msg.selected_message_text).length || 0
+    };
+
     // Create a record in localStorage to track that this session has been linked
     const linkResult = {
       success: true,
@@ -562,7 +564,8 @@ serve(async (req) => {
       linkedAt: new Date().toISOString(),
       sessionId,
       userId,
-      profileExists: !!finalProfileCheck
+      profileExists: !!finalProfileCheck,
+      transferSummary
     };
 
     console.log(`[LINK PROFILE] Success - Profile linking completed for user ${userId} with session ${sessionId}`);

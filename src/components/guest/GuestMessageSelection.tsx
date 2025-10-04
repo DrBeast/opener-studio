@@ -87,11 +87,11 @@ export const GuestMessageSelection: React.FC<GuestMessageSelectionProps> = ({
                   )}
                 </Button>
                 <Button
-                  variant={selectedVersion === key ? "default" : "outline"}
+                  variant={selectedVersion === label ? "default" : "outline"}
                   size="sm"
-                  onClick={() => onMessageSelect(message, key)}
+                  onClick={() => onMessageSelect(message, label)}
                 >
-                  {selectedVersion === key ? "Selected" : "Select"}
+                  {selectedVersion === label ? "Selected" : "Select"}
                 </Button>
               </div>
             </div>
