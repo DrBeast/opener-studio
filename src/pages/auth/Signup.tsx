@@ -48,7 +48,7 @@ const Signup = () => {
 
   // Get session ID when component mounts
   useEffect(() => {
-    const storedSessionId = localStorage.getItem("profile-session-id");
+    const storedSessionId = localStorage.getItem("guest_session_id");
     if (storedSessionId) {
       console.log("Signup: Found existing session ID:", storedSessionId);
       setSessionId(storedSessionId);

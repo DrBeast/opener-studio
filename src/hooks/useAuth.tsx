@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           (key.startsWith("sb-") ||
             key.startsWith("supabase.") ||
             key.startsWith("linked-profile-") ||
-            key === "profile-session-id")
+            key === "guest_session_id")
         ) {
           keysToRemove.push(key);
         }
@@ -225,7 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Clear localStorage as fallback
       try {
         localStorage.removeItem("supabase.auth.token");
-        localStorage.removeItem("profile-session-id");
+        localStorage.removeItem("guest_session_id");
       } catch (storageError) {
         console.error("Failed to clear localStorage:", storageError);
       }
@@ -244,12 +244,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           setUser(session.user);
-
-          // Check if there's a guest profile to link
-          const sessionId = localStorage.getItem("profile-session-id");
-          if (sessionId) {
-            await linkUserProfile(session.user.id, sessionId);
-          }
         } else {
           setUser(null);
         }
@@ -270,20 +264,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           setUser(session.user);
-
-          // Check if there's a guest profile to link on auth change
-          if (event === "SIGNED_IN") {
-            console.log(
-              "useAuth: Auth state changed to SIGNED_IN, will attempt to link profile"
-            );
-            const sessionId = localStorage.getItem("profile-session-id");
-            if (sessionId) {
-              // Add a small delay to ensure database is ready
-              setTimeout(async () => {
-                await linkUserProfile(session.user.id, sessionId);
-              }, 500);
-            }
-          }
         } else {
           setUser(null);
         }
@@ -319,18 +299,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      // Try to link guest profile immediately after successful sign-in
-      if (data.user) {
-        console.log(
-          "useAuth: Successfully signed in, attempting to link guest profile"
-        );
-        const sessionId = localStorage.getItem("profile-session-id");
-        if (sessionId) {
-          setTimeout(async () => {
-            await linkUserProfile(data.user.id, sessionId);
-          }, 500);
-        }
-      }
+      // Note: Profile linking only happens during signUp, not signIn
     } catch (error: any) {
       console.error("Sign in failed:", error);
       throw error;
@@ -340,7 +309,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string) => {
     try {
       console.log("Beginning signup process with email:", email);
-      const sessionId = localStorage.getItem("profile-session-id");
+      const sessionId = localStorage.getItem("guest_session_id");
       console.log("Current session ID during signup:", sessionId);
 
       const { data, error } = await supabase.auth.signUp({
@@ -367,15 +336,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // After automatic sign-in, try to link profile
+      console.log(
+        `useAuth: Checking linking conditions - data.user: ${!!data.user}, sessionId: ${sessionId}`
+      );
+
       if (data.user && sessionId) {
         console.log(
           `useAuth: After signup and auto-signin, attempting to link guest profile (session: ${sessionId})`
         );
 
-        // Add a single attempt with appropriate delay
-        setTimeout(async () => {
-          await linkUserProfile(data.user!.id, sessionId);
-        }, 1000);
+        // Call linking immediately (no setTimeout to avoid race conditions)
+        await linkUserProfile(data.user.id, sessionId);
+      } else {
+        console.log(
+          "useAuth: Skipping profile linking - no user or no sessionId"
+        );
       }
     } catch (error: any) {
       console.error("Sign up failed:", error);
