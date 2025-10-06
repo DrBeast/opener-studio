@@ -8,8 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { GuestContactPreview } from "./guest/GuestContactPreview";
 import { GuestProfileSummary } from "./guest/GuestProfileSummary";
-import { GuestMessageGeneration } from "./GuestMessageGeneration";
-import { GuestMessageSelection } from "./guest/GuestMessageSelection";
+import { MessageGeneration } from "./MessageGeneration";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 
 // Interfaces for guest data
@@ -245,10 +244,19 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Right Panel - Contact Bio */}
-          <div className="space-y-4">
+          <div
+            className={`space-y-4 transition-all duration-500 ${
+              !isProfileComplete
+                ? "opacity-50 pointer-events-none"
+                : "opacity-100"
+            }`}
+          >
             <div className="flex items-center gap-2 mb-4">
               <Users className="h-5 w-5 text-primary" />
               <h3 className="text-lg font-semibold">Contact Profile</h3>
+              {!isProfileComplete && (
+                <Lock className="h-4 w-4 text-muted-foreground" />
+              )}
             </div>
 
             {!sessionData.guestContact ? (
@@ -318,12 +326,22 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                 messages.
               </p>
               {sessionData.userProfile && sessionData.guestContact && (
-                <GuestMessageGeneration
+                <MessageGeneration
+                  contact={{
+                    contact_id: sessionData.guestContact.id,
+                    first_name: sessionData.guestContact.first_name,
+                    last_name: sessionData.guestContact.last_name,
+                    role: sessionData.guestContact.role,
+                  }}
+                  companyName={sessionData.guestContact.current_company || ""}
+                  isOpen={true}
+                  onClose={() => {}}
+                  embedded={true}
+                  isGuest={true}
                   sessionId={sessionData.sessionId}
                   guestContactId={sessionData.guestContact.id}
                   userProfileId={sessionData.userProfile.profile_id}
                   onMessagesGenerated={handleGenerateMessages}
-                  onClose={() => {}}
                 />
               )}
             </div>
@@ -343,18 +361,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Generated Messages Display */}
-        {sessionData.generatedMessages && (
-          <div className="border-t pt-6">
-            <GuestMessageSelection
-              generatedMessages={sessionData.generatedMessages}
-              selectedMessage={sessionData.selectedMessage}
-              selectedVersion={sessionData.selectedVersion}
-              onMessageSelect={handleMessageSelection}
-              onSignup={handleSignup}
-            />
-          </div>
-        )}
+        {/* Messages are now displayed within MessageGeneration component above */}
       </div>
     </Modal>
   );

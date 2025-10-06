@@ -52,6 +52,13 @@ interface MessageGenerationProps {
   onMessageSaved?: () => void;
   embedded?: boolean;
   disabled?: boolean;
+
+  // Guest mode props (all optional)
+  isGuest?: boolean;
+  sessionId?: string;
+  guestContactId?: string;
+  userProfileId?: string;
+  onMessagesGenerated?: (messages: any) => void;
 }
 
 interface GeneratedMessageResponse {
@@ -72,6 +79,11 @@ export function MessageGeneration({
   onMessageSaved,
   embedded = false,
   disabled = false,
+  isGuest = false,
+  sessionId,
+  guestContactId,
+  userProfileId,
+  onMessagesGenerated,
 }: MessageGenerationProps) {
   // Generate a unique storage key based on contact to maintain separate states
   const storageKey = `messageGeneration_${contact?.contact_id || "default"}`;
@@ -263,18 +275,36 @@ export function MessageGeneration({
     setShowAIReasoning({});
 
     try {
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
+      let data, fnError;
 
-      if (sessionError) throw sessionError;
+      if (isGuest) {
+        // Guest mode: No auth session required
+        const response = await supabase.functions.invoke("generate_message", {
+          body: {
+            medium,
+            objective: effectiveObjective,
+            additional_context: additionalContext || undefined,
+            is_guest: true,
+            session_id: sessionId,
+            guest_contact_id: guestContactId,
+            user_profile_id: userProfileId,
+          },
+        });
 
-      if (!sessionData.session) {
-        throw new Error("No active session found");
-      }
+        data = response.data;
+        fnError = response.error;
+      } else {
+        // Registered mode: Requires auth session
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
 
-      const { data, error: fnError } = await supabase.functions.invoke(
-        "generate_message",
-        {
+        if (sessionError) throw sessionError;
+
+        if (!sessionData.session) {
+          throw new Error("No active session found");
+        }
+
+        const response = await supabase.functions.invoke("generate_message", {
           body: {
             contact_id: contact.contact_id,
             medium,
@@ -284,8 +314,11 @@ export function MessageGeneration({
           headers: {
             Authorization: `Bearer ${sessionData.session.access_token}`,
           },
-        }
-      );
+        });
+
+        data = response.data;
+        fnError = response.error;
+      }
 
       if (fnError) throw fnError;
 
@@ -317,6 +350,11 @@ export function MessageGeneration({
       setEditedMessages(initialEditedMessages);
 
       toast.success("Messages generated successfully!");
+
+      // Call guest callback if provided
+      if (isGuest && onMessagesGenerated) {
+        onMessagesGenerated(data.generated_messages);
+      }
     } catch (err: any) {
       console.error("Error generating messages:", err);
       toast.error(
@@ -325,7 +363,17 @@ export function MessageGeneration({
     } finally {
       setIsGenerating(false);
     }
-  }, [contact?.contact_id, medium, getEffectiveObjective, additionalContext]);
+  }, [
+    contact?.contact_id,
+    medium,
+    getEffectiveObjective,
+    additionalContext,
+    isGuest,
+    sessionId,
+    guestContactId,
+    userProfileId,
+    onMessagesGenerated,
+  ]);
 
   const handleMessageEdit = useCallback(
     (version: string, text: string) => {
@@ -537,7 +585,7 @@ export function MessageGeneration({
               {Object.entries(generatedMessages).map(([version, content]) => (
                 <TabsContent key={version} value={version} className="">
                   <Card className=" bg-inherit border-none">
-                    {/* Editable Message Text */}
+                    {/* Editable Message Text (read-only for guests) */}
                     <div className="space-y-3">
                       <Textarea
                         value={editedMessages[version] || content.text}
@@ -547,6 +595,7 @@ export function MessageGeneration({
                         className="w-full resize-none bg-background border-border transition-colors"
                         rows={6}
                         maxLength={maxLength}
+                        readOnly={isGuest}
                       />
                     </div>
 
@@ -557,25 +606,45 @@ export function MessageGeneration({
                         {maxLength}
                       </div>
 
-                      <PrimaryAction
-                        size="sm"
-                        onClick={() => {
-                          copyMessage(editedMessages[version] || content.text);
-                          saveMessage(
-                            version,
-                            editedMessages[version] || content.text
-                          );
-                        }}
-                        className="shadow-md hover:shadow-lg transition-all"
-                      >
-                        <Save className="mr-1 h-4 w-4" />
-                        Copy and Save to History
-                      </PrimaryAction>
+                      {!isGuest && (
+                        <PrimaryAction
+                          size="sm"
+                          onClick={() => {
+                            copyMessage(
+                              editedMessages[version] || content.text
+                            );
+                            saveMessage(
+                              version,
+                              editedMessages[version] || content.text
+                            );
+                          }}
+                          className="shadow-md hover:shadow-lg transition-all"
+                        >
+                          <Save className="mr-1 h-4 w-4" />
+                          Copy and Save to History
+                        </PrimaryAction>
+                      )}
                     </div>
                   </Card>
                 </TabsContent>
               ))}
             </Tabs>
+
+            {/* Guest CTA Button - Only shown for guests */}
+            {isGuest && (
+              <div className="border-t pt-6 mt-6">
+                <PrimaryAction
+                  onClick={() => {
+                    // TODO: Step 6 - Copy message and redirect to signup
+                    window.location.href = "/auth/signup";
+                  }}
+                  className="w-full"
+                  size="default"
+                >
+                  Sign up to copy and save your message!
+                </PrimaryAction>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -604,6 +673,7 @@ export function MessageGeneration({
       toggleAIReasoning,
       isContextExpanded,
       setIsContextExpanded,
+      isGuest,
     ]
   );
 
