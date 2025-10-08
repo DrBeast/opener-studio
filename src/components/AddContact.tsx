@@ -1,19 +1,14 @@
 import React, { useState } from "react";
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
-import { Loader2, Building, UserPlus } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/airtable-ds/sonner";
-import { InfoBox, PrimaryAction } from "@/components/ui/design-system";
+import { PrimaryAction } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/design-system/buttons";
-import { PrimaryCard, CardContent } from "@/components/ui/design-system";
-import { CompanyDuplicateDialog } from "./CompanyDuplicateDialog";
-import { ContactDuplicateDialog } from "./ContactDuplicateDialog";
-import { LucideTarget } from "lucide-react";
 import { ContactPreview } from "./ContactPreview";
 
 // --- Interface Definitions ---
-// Represents the final, complete Contact object stored in your database
 interface CreatedContact {
   contact_id: string;
   company_id?: string | null;
@@ -27,44 +22,13 @@ interface CreatedContact {
   recent_activity_summary: string;
 }
 
-// Represents the temporary data parsed from a bio
-interface ContactBioData {
-  first_name: string;
-  last_name: string;
-  role: string;
-  current_company: string;
-  location: string;
-  bio_summary: string;
-  how_i_can_help: string;
-  recent_activity_summary: string;
-}
-
 interface AddContactProps {
-  companies: Array<{ company_id: string; name: string }>;
   onContactCreated: (newContact: CreatedContact) => void;
   createdContact?: CreatedContact | null;
   onClearContact?: () => void;
 }
 
-interface PotentialDuplicate {
-  company_id: string;
-  name: string;
-  confidence: "high" | "medium" | "low";
-  reasoning: string;
-}
-
-interface PotentialContactDuplicate {
-  contact_id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  company_name?: string;
-  confidence: "high" | "medium" | "low";
-  reasoning: string;
-}
-
 export const AddContact = ({
-  companies,
   onContactCreated,
   createdContact,
   onClearContact,
@@ -73,268 +37,37 @@ export const AddContact = ({
   const [linkedinBio, setLinkedinBio] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // State for dialogs and pending data
-  const [showCompanyDuplicateDialog, setShowCompanyDuplicateDialog] =
-    useState(false);
-  const [potentialCompanyDuplicates, setPotentialCompanyDuplicates] = useState<
-    PotentialDuplicate[]
-  >([]);
-  const [showContactDuplicateDialog, setShowContactDuplicateDialog] =
-    useState(false);
-  const [potentialContactDuplicates, setPotentialContactDuplicates] = useState<
-    PotentialContactDuplicate[]
-  >([]);
-  const [pendingContactData, setPendingContactData] =
-    useState<ContactBioData | null>(null);
-
-  // --- Main Handler for the "Process Bio" button (INCLUDE INTO DEDICATED FUNCTION LATER) ---
   const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
 
     setIsLoading(true);
     try {
-      // Step 1: Process the bio to get contact data
-      const { data: bioData, error: bioError } =
-        await supabase.functions.invoke("add_contact_by_bio", {
+      // Single call to the backend function which now handles everything
+      const { data, error } = await supabase.functions.invoke(
+        "add_contact_by_bio",
+        {
           body: {
             linkedin_bio: linkedinBio.trim(),
             userId: user.id,
           },
-        });
-      if (bioError) throw bioError;
-      if (!bioData?.contact)
-        throw new Error("No contact data received from bio processing.");
-
-      const contactData = bioData.contact as ContactBioData;
-      setPendingContactData(contactData); // Temporarily store the parsed data
-
-      // Step 2: Check for a duplicate contact FIRST, without a company context.
-      const contactCheck = await checkForDuplicateContact(
-        contactData.first_name,
-        contactData.last_name,
-        contactData.role,
-        null
+        }
       );
-      if (contactCheck.isDuplicate) {
-        setPotentialContactDuplicates(contactCheck.potentialDuplicates);
-        setShowContactDuplicateDialog(true);
-        // The flow pauses here, waiting for the user to resolve the contact duplicate.
-        return;
+
+      if (error) throw error;
+      if (!data?.success || !data?.contact) {
+        throw new Error(data?.message || "Failed to create contact.");
       }
 
-      // Step 3: If the contact is new, proceed with the creation flow.
-      await createNewContactFlow(contactData);
+      // The backend has done all the work. We just need to notify the parent component.
+      onContactCreated(data.contact as CreatedContact);
+      setLinkedinBio("");
+      toast.success(data.message || "Contact created successfully!");
     } catch (error: any) {
-      console.error("Error processing bio:", error);
-      toast.error("Failed to process LinkedIn bio");
+      console.error("Error processing bio and creating contact:", error);
+      toast.error(error.message || "Failed to create contact.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // --- Helper function for creating a brand new contact ---
-  const createNewContactFlow = async (contactData: ContactBioData) => {
-    let finalCompanyId: string | null = null;
-
-    // Check for company duplicates or create a new one.
-    if (contactData.current_company) {
-      const companyCheck = await checkForDuplicateCompany(
-        contactData.current_company
-      );
-      if (companyCheck.isDuplicate) {
-        setPotentialCompanyDuplicates(companyCheck.potentialDuplicates);
-        setShowCompanyDuplicateDialog(true);
-        // Flow pauses, waiting for user to select a company.
-        return;
-      }
-      finalCompanyId = await createNewCompany(contactData.current_company);
-    }
-
-    // With the final company ID, insert the new contact.
-    const newContact = await performDatabaseInsert(contactData, finalCompanyId);
-    if (newContact) {
-      onContactCreated(newContact);
-      setLinkedinBio("");
-      toast.success("Contact created successfully!");
-    }
-  };
-
-  // --- Database Interaction Functions ---
-  const checkForDuplicateCompany = async (companyName: string) => {
-    const { data, error } = await supabase.functions.invoke(
-      "check_company_duplicates",
-      { body: { companyName } }
-    );
-    if (error) {
-      console.error("Error checking for duplicate companies:", error);
-      return { isDuplicate: false, potentialDuplicates: [] };
-    }
-    return data;
-  };
-
-  const checkForDuplicateContact = async (
-    first_name: string,
-    last_name: string,
-    role: string,
-    company_id: string | null
-  ) => {
-    const { data, error } = await supabase.functions.invoke(
-      "check_contact_duplicates",
-      { body: { first_name, last_name, role, company_id } }
-    );
-    if (error) {
-      console.error("Error checking for duplicate contacts:", error);
-      return { isDuplicate: false, potentialDuplicates: [] };
-    }
-    return data;
-  };
-
-  const createNewCompany = async (companyName: string) => {
-    const { data, error } = await supabase.functions.invoke(
-      "add_company_by_name",
-      { body: { companyName } }
-    );
-    if (error) throw error;
-    return data.company.company_id;
-  };
-
-  const performDatabaseInsert = async (
-    contactData: ContactBioData,
-    companyId: string | null
-  ): Promise<CreatedContact | null> => {
-    if (!user) return null;
-    const { data, error } = await supabase
-      .from("contacts")
-      .insert({
-        user_id: user.id,
-        company_id: companyId,
-        first_name: contactData.first_name,
-        last_name: contactData.last_name,
-        role: contactData.role,
-        location: contactData.location,
-        linkedin_bio: linkedinBio,
-        bio_summary: contactData.bio_summary,
-        how_i_can_help: contactData.how_i_can_help,
-        recent_activity_summary: contactData.recent_activity_summary,
-        added_at: new Date().toISOString(),
-      })
-      .select("*, companies(name)")
-      .single();
-    if (error) {
-      toast.error("Failed to save contact.");
-      return null;
-    }
-    return {
-      contact_id: data.contact_id,
-      company_id: companyId,
-      first_name: contactData.first_name,
-      last_name: contactData.last_name,
-      role: contactData.role,
-      current_company: data.companies?.name || contactData.current_company,
-      location: contactData.location,
-      bio_summary: contactData.bio_summary,
-      how_i_can_help: contactData.how_i_can_help,
-      recent_activity_summary: contactData.recent_activity_summary,
-    };
-  };
-
-  // --- Handlers for Dialogs ---
-
-  const handleUseExistingCompany = async (companyId: string) => {
-    setShowCompanyDuplicateDialog(false);
-    if (!pendingContactData) return;
-    setIsLoading(true);
-    const newContact = await performDatabaseInsert(
-      pendingContactData,
-      companyId
-    );
-    if (newContact) {
-      onContactCreated(newContact);
-      setLinkedinBio("");
-      toast.success("Contact created successfully!");
-    }
-    setIsLoading(false);
-  };
-
-  const handleCreateNewCompany = async () => {
-    setShowCompanyDuplicateDialog(false);
-    if (!pendingContactData?.current_company) return;
-    setIsLoading(true);
-    const newCompanyId = await createNewCompany(
-      pendingContactData.current_company
-    );
-    const newContact = await performDatabaseInsert(
-      pendingContactData,
-      newCompanyId
-    );
-    if (newContact) {
-      onContactCreated(newContact);
-      setLinkedinBio("");
-      toast.success("Contact created successfully!");
-    }
-    setIsLoading(false);
-  };
-
-  const handleUpdateExistingContact = async (contactId: string) => {
-    setShowContactDuplicateDialog(false);
-    if (!pendingContactData) return;
-    setIsLoading(true);
-
-    try {
-      console.log(
-        `[Update Contact] User chose to update existing contact: ${contactId}`
-      );
-      // Step 1: Update the existing contact in the database with the new parsed info.
-      // We only update fields that come from the bio, preserving user_notes and interaction history.
-      const { data: updatedContact, error: updateError } = await supabase
-        .from("contacts")
-        .update({
-          role: pendingContactData.role,
-          location: pendingContactData.location,
-          linkedin_bio: linkedinBio, // Save the new bio
-          bio_summary: pendingContactData.bio_summary,
-          how_i_can_help: pendingContactData.how_i_can_help,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("contact_id", contactId)
-        .select("*, companies(name)") // Fetch company name for the final object
-        .single();
-
-      if (updateError) throw updateError;
-
-      // Step 2: After a successful update, create the final object to pass to the parent
-      const finalContactObject: CreatedContact = {
-        ...updatedContact,
-        current_company:
-          updatedContact.companies?.name || pendingContactData.current_company,
-      };
-
-      console.log(
-        "[Update Contact] Notifying parent with:",
-        finalContactObject
-      );
-      onContactCreated(finalContactObject); // Notify the parent
-      setLinkedinBio("");
-      toast.success("Contact profile updated successfully!");
-    } catch (error) {
-      console.error("Error updating existing contact:", error);
-      toast.error("Failed to update contact.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateNewContactAnyway = async () => {
-    setShowContactDuplicateDialog(false);
-    if (!pendingContactData) return;
-    setIsLoading(true);
-    await createNewContactFlow(pendingContactData);
-    setIsLoading(false);
-  };
-
-  const resetWorkflow = () => {
-    setLinkedinBio("");
-    setPendingContactData(null);
   };
 
   return (
@@ -387,27 +120,7 @@ export const AddContact = ({
         </div>
       )}
 
-      {/* --- DIALOGS --- */}
-      <CompanyDuplicateDialog
-        isOpen={showCompanyDuplicateDialog}
-        onClose={() => setShowCompanyDuplicateDialog(false)}
-        potentialDuplicates={potentialCompanyDuplicates}
-        onUseExisting={handleUseExistingCompany}
-        onCreateNew={handleCreateNewCompany}
-        companyName={pendingContactData?.current_company || ""}
-      />
-      <ContactDuplicateDialog
-        isOpen={showContactDuplicateDialog}
-        onClose={() => setShowContactDuplicateDialog(false)}
-        potentialDuplicates={potentialContactDuplicates}
-        onUseExisting={handleUpdateExistingContact}
-        onCreateNew={handleCreateNewContactAnyway}
-        newContactName={
-          pendingContactData
-            ? `${pendingContactData.first_name} ${pendingContactData.last_name}`
-            : ""
-        }
-      />
+      {/* Note: Duplicate dialogs are removed for this simplified flow */}
     </div>
   );
 };

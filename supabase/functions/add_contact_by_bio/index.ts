@@ -347,11 +347,69 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     } else {
-      // Return processed contact (frontend handles storage for registered users)
+      // Registered user: Find/create company and contact, then trigger enrichment
+      let companyId = null;
+
+      if (processedContact.current_company) {
+        const { data: existingCompany } = await supabaseClient
+          .from("companies")
+          .select("company_id")
+          .eq("user_id", userId)
+          .eq("name", processedContact.current_company)
+          .maybeSingle();
+
+        if (existingCompany) {
+          companyId = existingCompany.company_id;
+        } else {
+          const { data: newCompany, error: companyError } = await supabaseClient
+            .from("companies")
+            .insert({
+              user_id: userId,
+              name: processedContact.current_company,
+              status: "active",
+            })
+            .select("company_id")
+            .single();
+
+          if (companyError) {
+            console.error('[ADD_CONTACT] Error creating company:', companyError);
+          } else {
+            companyId = newCompany.company_id;
+            console.log(`[ADD_CONTACT] Created new company (ID: ${companyId}). Invoking enrichment...`);
+            // Asynchronously invoke the enrichment function
+            supabaseClient.functions.invoke('enrich_company', {
+              body: { companyId: newCompany.company_id, companyName: processedContact.current_company }
+            });
+          }
+        }
+      }
+
+      // Insert the new contact
+      const { data: storedContact, error: insertError } = await supabaseClient
+        .from('contacts')
+        .insert({
+          user_id: userId,
+          company_id: companyId,
+          linkedin_bio,
+          first_name: processedContact.first_name,
+          last_name: processedContact.last_name,
+          role: processedContact.role,
+          location: processedContact.location,
+          bio_summary: processedContact.bio_summary,
+          how_i_can_help: processedContact.how_i_can_help,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('[ADD_CONTACT] Error storing contact:', insertError);
+        throw new Error(`Failed to store contact: ${insertError.message}`);
+      }
+
       return new Response(JSON.stringify({
         success: true,
-        message: "Contact processed successfully!",
-        contact: processedContact
+        message: "Contact created and enriched successfully!",
+        contact: storedContact,
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
