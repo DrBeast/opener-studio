@@ -522,34 +522,36 @@ export function MessageGeneration({
             )}
           </div>
 
-          {/* Additional Context - Flat Collapsible */}
-          <Collapsible
-            open={isContextExpanded}
-            onOpenChange={setIsContextExpanded}
-          >
-            <CollapsibleTrigger asChild>
-              <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-secondary text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
-                <Label className="text-sm font-semibold cursor-pointer">
-                  Additional context (optional)
-                </Label>
-                <ChevronDown
-                  className={`h-5 w-5 transition-transform duration-200 ${
-                    isContextExpanded ? "transform rotate-180" : ""
-                  }`}
+          {/* Additional Context - Only show for registered users */}
+          {!isGuest && (
+            <Collapsible
+              open={isContextExpanded}
+              onOpenChange={setIsContextExpanded}
+            >
+              <CollapsibleTrigger asChild>
+                <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-secondary text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
+                  <Label className="text-sm font-semibold cursor-pointer">
+                    Additional context (optional)
+                  </Label>
+                  <ChevronDown
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      isContextExpanded ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <Textarea
+                  className="bg-secondary border-border "
+                  id="additional-context"
+                  placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
+                  value={additionalContext}
+                  onChange={handleAdditionalContextChange}
+                  rows={4}
                 />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <Textarea
-                className="bg-secondary border-border "
-                id="additional-context"
-                placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
-                value={additionalContext}
-                onChange={handleAdditionalContextChange}
-                rows={4}
-              />
-            </CollapsibleContent>
-          </Collapsible>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           {/* Medium Selection - Flat Cards */}
           <div className="space-y-2 mt-2">
