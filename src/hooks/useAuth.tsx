@@ -216,6 +216,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       console.log("Sign out completed successfully");
       toast.success("Signed out successfully");
+
+      // Force a redirect to the homepage to ensure a clean state
+      window.location.href = "/";
     } catch (error: any) {
       console.error("Unexpected error during sign out:", error);
 
