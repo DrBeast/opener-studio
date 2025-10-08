@@ -210,7 +210,12 @@ serve(async (req) => {
               // Continue without company
             } else {
               companyId = newCompany.company_id;
-              console.log(`[LINK] Created company (ID: ${companyId})`);
+              console.log(`[LINK] Created new company (ID: ${companyId}). Invoking enrichment...`);
+
+              // Asynchronously invoke the enrichment function, DO NOT await it.
+              supabaseClient.functions.invoke('enrich_company', {
+                body: { companyId: newCompany.company_id, companyName: guestContact.current_company }
+              });
             }
           }
         }
