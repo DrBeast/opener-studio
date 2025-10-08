@@ -127,6 +127,7 @@ export function MessageGeneration({
   const [isContextExpanded, setIsContextExpanded] = useState<boolean>(() =>
     getInitialState("isContextExpanded", false)
   );
+  const [activeTab, setActiveTab] = useState<string>("Version 1");
 
   // Effect to save state to localStorage whenever it changes
   useEffect(() => {
@@ -256,6 +257,39 @@ export function MessageGeneration({
   const getEffectiveObjective = useCallback(() => {
     return objective === "Custom objective" ? customObjective : objective;
   }, [objective, customObjective]);
+
+  // Handle tab change for guests - persist selection to backend
+  const handleTabChange = useCallback(
+    async (newTab: string) => {
+      setActiveTab(newTab);
+
+      // For guests, persist the selection to the backend
+      if (isGuest && sessionId && generatedMessages[newTab]) {
+        try {
+          const { error } = await supabase.functions.invoke(
+            "guest_message_selection",
+            {
+              body: {
+                sessionId: sessionId,
+                selectedVersion: newTab,
+                guestContactId: guestContactId,
+              },
+            }
+          );
+
+          if (error) {
+            console.error("Error saving message selection:", error);
+            // Don't show error toast - this is background operation
+          } else {
+            console.log(`Message selection saved: ${newTab}`);
+          }
+        } catch (error) {
+          console.error("Error calling guest_message_selection:", error);
+        }
+      }
+    },
+    [isGuest, sessionId, generatedMessages, guestContactId]
+  );
 
   const generateMessages = useCallback(async () => {
     if (!contact) {
@@ -568,7 +602,12 @@ export function MessageGeneration({
         {/* Generated Messages - Tabbed Interface */}
         {Object.keys(generatedMessages).length > 0 && (
           <div className="space-y-4">
-            <Tabs defaultValue="Version 1" className="w-full">
+            <Tabs
+              defaultValue="Version 1"
+              value={activeTab}
+              onValueChange={handleTabChange}
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-3 bg-secondary">
                 {Object.keys(generatedMessages).map((version) => (
                   <TabsTrigger
@@ -634,8 +673,24 @@ export function MessageGeneration({
             {isGuest && (
               <div className="border-t pt-6 mt-6">
                 <PrimaryAction
-                  onClick={() => {
-                    // TODO: Step 6 - Copy message and redirect to signup
+                  onClick={async () => {
+                    // Get the currently selected message
+                    const selectedMessage =
+                      editedMessages[activeTab] ||
+                      generatedMessages[activeTab]?.text;
+
+                    if (selectedMessage) {
+                      // Copy to clipboard
+                      try {
+                        await navigator.clipboard.writeText(selectedMessage);
+                        toast.success("Message copied to clipboard!");
+                      } catch (err) {
+                        console.error("Failed to copy:", err);
+                        toast.error("Failed to copy message");
+                      }
+                    }
+
+                    // Redirect to signup
                     window.location.href = "/auth/signup";
                   }}
                   className="w-full"
@@ -674,6 +729,8 @@ export function MessageGeneration({
       isContextExpanded,
       setIsContextExpanded,
       isGuest,
+      activeTab,
+      handleTabChange,
     ]
   );
 
