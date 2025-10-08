@@ -251,7 +251,7 @@ serve(async (req) => {
     }
 
     // ============================================================================
-    // STEP 5: Transfer selected message to saved_message_versions
+    // STEP 5: Transfer selected message to saved_messages
     // ============================================================================
     let messageTransferred = false;
 
@@ -261,7 +261,7 @@ serve(async (req) => {
       const firstContact = transferredContacts[0];
 
       const { error: messageError } = await supabaseClient
-        .from("saved_message_versions")
+        .from("saved_messages")
         .insert({
           user_id: userId,
           contact_id: firstContact.contact_id,

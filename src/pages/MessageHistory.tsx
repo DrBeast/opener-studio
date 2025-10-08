@@ -228,9 +228,9 @@ const MessageHistory = () => {
 
       if (interactionsError) throw interactionsError;
 
-      // Delete associated saved message versions
+      // Delete associated saved messages
       const { error: messagesError } = await supabase
-        .from("saved_message_versions")
+        .from("saved_messages")
         .delete()
         .in("contact_id", contactIds);
 

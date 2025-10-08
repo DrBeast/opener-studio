@@ -430,18 +430,16 @@ export function MessageGeneration({
     async (version: string, messageText: string) => {
       try {
         const effectiveObjective = getEffectiveObjective();
-        const { data, error } = await supabase
-          .from("saved_message_versions")
-          .insert({
-            user_id: (await supabase.auth.getUser()).data.user?.id,
-            contact_id: contact?.contact_id,
-            company_id: contact?.company_id,
-            version_name: version,
-            message_text: messageText,
-            medium: medium,
-            message_objective: effectiveObjective,
-            message_additional_context: additionalContext || null,
-          });
+        const { data, error } = await supabase.from("saved_messages").insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          contact_id: contact?.contact_id,
+          company_id: contact?.company_id,
+          version_name: version,
+          message_text: messageText,
+          medium: medium,
+          message_objective: effectiveObjective,
+          message_additional_context: additionalContext || null,
+        });
 
         if (error) throw error;
 
