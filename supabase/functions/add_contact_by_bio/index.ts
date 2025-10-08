@@ -130,11 +130,11 @@ serve(async (req) => {
     console.log(`Processing contact bio for ${isGuest ? 'guest' : 'registered'} user: ${identifier}`);
 
     // Get the Gemini API Key
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
+  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+  if (!geminiApiKey) {
       console.error('Gemini API key not set in Supabase secrets.');
       return new Response(JSON.stringify({ error: 'Gemini API key not configured.' }), {
-        status: 500,
+      status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     }
@@ -188,19 +188,19 @@ serve(async (req) => {
             parts: [
               {
                 text: `
-You are an AI assistant helping a professional process contact information from a LinkedIn profile.
-Below is the user's professional background summary and the LinkedIn bio of a potential contact.
+    You are an AI assistant helping a professional process contact information from a LinkedIn profile.
+    Below is the user's professional background summary and the LinkedIn bio of a potential contact.
 
-${userSummary ? `
-User Background Summary:
-Overall Blurb: ${userSummary.overall_blurb ?? 'N/A'}
-Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
+    ${userSummary ? `
+    User Background Summary:
+    Overall Blurb: ${userSummary.overall_blurb ?? 'N/A'}
+    Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
 Expertise: ${userSummary.expertise ?? 'N/A'}
-Value Proposition: ${userSummary.value_proposition_summary ?? 'N/A'}
-` : ''}
+    Value Proposition: ${userSummary.value_proposition_summary ?? 'N/A'}
+    ` : ''}
 
-LinkedIn Bio/Profile Content:
-${linkedin_bio}
+    LinkedIn Bio/Profile Content:
+    ${linkedin_bio}
 
 Your task is to process this LinkedIn profile content and extract structured contact information.
 
@@ -347,73 +347,114 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
     } else {
-      // Registered user: Find/create company and contact, then trigger enrichment
-      let companyId = null;
+      // Registered user: Find or Create/Update logic
+      
+      // Step 1: Find a potential match
+      const { data: matchingContact } = await supabaseClient
+        .from('contacts')
+        .select('contact_id, companies!inner(name)')
+        .eq('user_id', userId)
+        .ilike('first_name', processedContact.first_name)
+        .ilike('last_name', processedContact.last_name)
+        .ilike('companies.name', processedContact.current_company)
+        .maybeSingle();
 
-      if (processedContact.current_company) {
-        const { data: existingCompany } = await supabaseClient
-          .from("companies")
-          .select("company_id")
-          .eq("user_id", userId)
-          .eq("name", processedContact.current_company)
-          .maybeSingle();
+      if (matchingContact) {
+        // --- UPDATE PATH ---
+        console.log(`[ADD_CONTACT] Found matching contact (ID: ${matchingContact.contact_id}). Updating...`);
+        
+        const { data: updatedContact, error: updateError } = await supabaseClient
+          .from('contacts')
+          .update({
+            linkedin_bio: linkedin_bio,
+            bio_summary: processedContact.bio_summary,
+            how_i_can_help: processedContact.how_i_can_help,
+            role: processedContact.role,
+            location: processedContact.location,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('contact_id', matchingContact.contact_id)
+          .select()
+          .single();
 
-        if (existingCompany) {
-          companyId = existingCompany.company_id;
-        } else {
-          const { data: newCompany, error: companyError } = await supabaseClient
+        if (updateError) {
+          throw new Error(`Failed to update contact: ${updateError.message}`);
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          message: "Contact details updated from new bio.",
+          contact: updatedContact,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+
+      } else {
+        // --- CREATE PATH ---
+        console.log(`[ADD_CONTACT] No match found. Creating new contact...`);
+        let companyId = null;
+
+        if (processedContact.current_company) {
+          // (This is the find-or-create company logic from our previous step)
+          const { data: existingCompany } = await supabaseClient
             .from("companies")
-            .insert({
-              user_id: userId,
-              name: processedContact.current_company,
-              status: "active",
-            })
             .select("company_id")
-            .single();
+            .eq("user_id", userId)
+            .eq("name", processedContact.current_company)
+            .maybeSingle();
 
-          if (companyError) {
-            console.error('[ADD_CONTACT] Error creating company:', companyError);
+          if (existingCompany) {
+            companyId = existingCompany.company_id;
           } else {
-            companyId = newCompany.company_id;
-            console.log(`[ADD_CONTACT] Created new company (ID: ${companyId}). Invoking enrichment...`);
-            // Asynchronously invoke the enrichment function
-            supabaseClient.functions.invoke('enrich_company', {
-              body: { companyId: newCompany.company_id, companyName: processedContact.current_company }
-            });
+            const { data: newCompany, error: companyError } = await supabaseClient
+              .from("companies")
+              .insert({ user_id: userId, name: processedContact.current_company, status: "active" })
+              .select("company_id")
+              .single();
+
+            if (companyError) {
+              console.error('[ADD_CONTACT] Error creating company:', companyError);
+            } else {
+              companyId = newCompany.company_id;
+              console.log(`[ADD_CONTACT] Created new company (ID: ${companyId}). Invoking enrichment...`);
+              supabaseClient.functions.invoke('enrich_company', {
+                body: { companyId: newCompany.company_id, companyName: processedContact.current_company }
+              });
+            }
           }
         }
-      }
+        
+        // (This is the insert contact logic from our previous step)
+        const { data: storedContact, error: insertError } = await supabaseClient
+          .from('contacts')
+          .insert({
+            user_id: userId,
+            company_id: companyId,
+            linkedin_bio,
+            first_name: processedContact.first_name,
+            last_name: processedContact.last_name,
+            role: processedContact.role,
+            location: processedContact.location,
+            bio_summary: processedContact.bio_summary,
+            how_i_can_help: processedContact.how_i_can_help,
+          })
+          .select()
+          .single();
 
-      // Insert the new contact
-      const { data: storedContact, error: insertError } = await supabaseClient
-        .from('contacts')
-        .insert({
-          user_id: userId,
-          company_id: companyId,
-          linkedin_bio,
-          first_name: processedContact.first_name,
-          last_name: processedContact.last_name,
-          role: processedContact.role,
-          location: processedContact.location,
-          bio_summary: processedContact.bio_summary,
-          how_i_can_help: processedContact.how_i_can_help,
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('[ADD_CONTACT] Error storing contact:', insertError);
-        throw new Error(`Failed to store contact: ${insertError.message}`);
-      }
+        if (insertError) {
+          throw new Error(`Failed to store contact: ${insertError.message}`);
+        }
 
       return new Response(JSON.stringify({
-        success: true,
-        message: "Contact created and enriched successfully!",
-        contact: storedContact,
+          success: true,
+          message: "New contact created successfully!",
+          contact: storedContact,
       }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
       });
+      }
     }
 
   } catch (error) {
