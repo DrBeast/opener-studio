@@ -14,8 +14,6 @@ interface GuestSessionContextType {
   updateUserProfile: (profile: any, summary: any) => void;
   updateGuestContact: (contact: any) => void;
   updateGeneratedMessages: (messages: any) => void;
-  selectMessage: (message: string, version: string) => void;
-  clearSession: () => void;
   isProfileComplete: boolean;
   isContactComplete: boolean;
   isMessageGenerationUnlocked: boolean;
@@ -79,49 +77,6 @@ export const GuestSessionProvider: React.FC<GuestSessionProviderProps> = ({
     }));
   };
 
-  const selectMessage = async (message: string, version: string) => {
-    // Save to localStorage first
-    guestSessionManager.setSelectedMessage(message, version);
-
-    // Update local state
-    setSessionData((prev) => ({
-      ...prev,
-      selectedMessage: message,
-      selectedVersion: version,
-    }));
-
-    // Save selection to backend
-    try {
-      const { error } = await supabase.functions.invoke(
-        "update_guest_message_selection",
-        {
-          body: {
-            sessionId: sessionData.sessionId,
-            selectedMessage: message,
-            selectedVersion: version,
-            guestContactId: sessionData.guestContact?.id, // Include contact ID for more precision
-          },
-        }
-      );
-
-      if (error) {
-        console.error("Error saving message selection:", error);
-        toast.error("Failed to save message selection");
-      } else {
-        console.log("Message selection saved to backend");
-      }
-    } catch (error) {
-      console.error("Error calling update_guest_message_selection:", error);
-    }
-  };
-
-  const clearSession = () => {
-    guestSessionManager.clearSession();
-    setSessionData({
-      sessionId: "",
-    });
-  };
-
   const isProfileComplete = !!(
     sessionData.userProfile && sessionData.userSummary
   );
@@ -133,8 +88,6 @@ export const GuestSessionProvider: React.FC<GuestSessionProviderProps> = ({
     updateUserProfile,
     updateGuestContact,
     updateGeneratedMessages,
-    selectMessage,
-    clearSession,
     isProfileComplete,
     isContactComplete,
     isMessageGenerationUnlocked,

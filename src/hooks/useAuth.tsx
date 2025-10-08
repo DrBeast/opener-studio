@@ -22,7 +22,6 @@ interface AuthContextType {
   ) => Promise<boolean>;
   getGuestSessionId: () => string | null;
   setGuestSessionId: (sessionId: string) => void;
-  clearGuestData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -392,11 +391,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("guest_session_id", sessionId);
   };
 
-  const clearGuestData = (): void => {
-    localStorage.removeItem("guest_session_id");
-    localStorage.removeItem("guest_selected_message");
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -409,7 +403,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         linkUserProfile,
         getGuestSessionId,
         setGuestSessionId,
-        clearGuestData,
       }}
     >
       {children}

@@ -65,8 +65,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     updateUserProfile,
     updateGuestContact,
     updateGeneratedMessages,
-    selectMessage,
-    clearSession,
     isProfileComplete,
     isContactComplete,
     isMessageGenerationUnlocked,
@@ -176,14 +174,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     onClose();
     // You can add navigation to signup page here
     window.location.href = "/auth/signup";
-  };
-
-  // Handle clearing session for testing
-  const handleClearSession = () => {
-    clearSession();
-    setUserBio("");
-    setContactBio("");
-    toast.success("Session cleared. You can start fresh!");
   };
 
   return (
@@ -309,14 +299,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   : "Message Generation (Locked)"}
               </h3>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearSession}
-              className="text-xs"
-            >
-              Clear Session
-            </Button>
           </div>
 
           {isMessageGenerationUnlocked ? (
