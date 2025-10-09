@@ -280,6 +280,39 @@ serve(async (req) => {
       } else {
         console.log("[LINK] Message transferred successfully");
         messageTransferred = true;
+
+        // --- START OF FIX ---
+        // Create a corresponding interaction record so it appears in the history
+        const interactionDescription = `You sent a ${
+          selectedMessage.medium?.toLowerCase() || "message"
+        } to ${guestContacts[0].first_name || ""} ${
+          guestContacts[0].last_name || ""
+        }: "${selectedMessage.message_text}"`;
+
+        const { error: interactionError } = await supabaseClient
+          .from("interactions")
+          .insert({
+            user_id: userId,
+            contact_id: firstContact.contact_id,
+            company_id: firstContact.company_id,
+            interaction_type: "message_draft", // Matches the type used in the frontend
+            description: interactionDescription,
+            medium: selectedMessage.medium,
+            message_objective: selectedMessage.message_objective,
+            message_additional_context: selectedMessage.message_additional_context,
+            interaction_date: new Date().toISOString(),
+          });
+
+        if (interactionError) {
+          console.error(
+            "[LINK] Error creating corresponding interaction:",
+            interactionError
+          );
+          // Also non-critical, log and continue
+        } else {
+          console.log("[LINK] Corresponding interaction created successfully");
+        }
+        // --- END OF FIX ---
       }
     } else {
       console.log("[LINK] Step 5: No message to transfer or no contacts");
