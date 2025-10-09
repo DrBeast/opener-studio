@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "@/components/ui/design-system/modals";
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { PrimaryAction } from "@/components/ui/design-system";
@@ -75,6 +75,11 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
   const [isGeneratingUserProfile, setIsGeneratingUserProfile] = useState(false);
   const [contactBio, setContactBio] = useState<string>("");
   const [isGeneratingContact, setIsGeneratingContact] = useState(false);
+  const messageGenRef = useRef(null);
+
+  const biosAreReady =
+    userBio.trim().split(/\s+/).length >= 50 &&
+    contactBio.trim().split(/\s+/).length >= 50;
 
   // Generate user profile
   const handleGenerateUserProfile = async () => {
@@ -158,6 +163,36 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleCraftOpener = async () => {
+    try {
+      // Step 1: Generate User Profile if it doesn't exist
+      if (!sessionData.userProfile) {
+        await handleGenerateUserProfile();
+      }
+
+      // Step 2: Generate Contact Profile if it doesn't exist
+      // We need to check the context *again* because it might have been updated
+      // by the previous step. A better way is to make the generation functions
+      // return a value, but for simplicity, we'll re-check the context provider.
+      // This is a simplification; a more robust solution might involve a state machine.
+      if (!sessionData.guestContact) {
+        await handleGenerateContactProfile();
+      }
+
+      // Step 3: Generate Messages
+      // This needs a slight delay to ensure the context has updated from the
+      // previous steps before the ref is called.
+      setTimeout(() => {
+        if (messageGenRef.current) {
+          messageGenRef.current.generateMessages();
+        }
+      }, 100);
+    } catch (error) {
+      // Errors are already handled with toasts in the individual functions
+      console.error("Error in the crafting sequence:", error);
+    }
+  };
+
   // Handle message generation
   const handleGenerateMessages = (messages: GeneratedMessage) => {
     updateGeneratedMessages(messages);
@@ -180,10 +215,18 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Craft Your Perfect Message"
-      description="Generate personalized outreach messages for your networking goals"
+      title="Craft Your Perfect Opener"
+      description=""
       className="sm:max-w-6xl max-h-[90vh]"
-      icon={<MessageCircle className="h-10 w-10" />}
+      icon={
+        <img
+          src="/opener-studio-logo.png"
+          alt="Opener Studio"
+          className="h-14 w-auto"
+        />
+      }
+      headerClassName="p-8"
+      titleClassName="text-3xl font-bold"
     >
       <div className="space-y-6">
         {/* Two-Panel Layout */}
@@ -199,14 +242,13 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Now, briefly tell us about you (so the AI can write from
-                    your perspective)
+                    Tell us about your professional background.
                   </label>
                   <Textarea
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
-                    placeholder="Copy your professional bio from your LinkedIn profile. Simply select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) here (CMD/CTRL + V). Don't worry about formatting - AI will figure it out. Feel free to type in or add anything about yourself that feels relevant."
-                    className="min-h-[200px] text-base p-4 border-2 border-slate-200 focus:border-violet-500 transition-all duration-300 bg-slate-50/50 rounded-xl shadow-inner resize-none"
+                    placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)."
+                    className="min-h-[200px] text-sm resize-none bg-secondary border-border"
                   />
                 </div>
                 <PrimaryAction
@@ -234,31 +276,22 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Right Panel - Contact Bio */}
-          <div
-            className={`space-y-4 transition-all duration-500 ${
-              !isProfileComplete
-                ? "opacity-50 pointer-events-none"
-                : "opacity-100"
-            }`}
-          >
+          <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Users className="h-5 w-5 text-primary" />
               <h3 className="text-lg font-semibold">Contact Profile</h3>
-              {!isProfileComplete && (
-                <Lock className="h-4 w-4 text-muted-foreground" />
-              )}
             </div>
 
             {!sessionData.guestContact ? (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Paste your contact's bio
+                    Tell us about them.
                   </label>
                   <Textarea
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
-                    placeholder="Copy all content on their LinkedIn profile page (CTRL/CMD + A, CTRL/CMD + C) and paste it here (CTRL/CMD + V)."
+                    placeholder="Copy / paste their LinkedIn profile."
                     className="min-h-[200px] text-sm resize-none bg-secondary border-border"
                   />
                 </div>
@@ -288,59 +321,35 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         <div className="border-t pt-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              {isMessageGenerationUnlocked ? (
-                <MessageCircle className="h-5 w-5 text-green-600" />
-              ) : (
-                <Lock className="h-5 w-5 text-gray-400" />
-              )}
-              <h3 className="text-lg font-semibold">
-                {isMessageGenerationUnlocked
-                  ? "Message Generation"
-                  : "Message Generation (Locked)"}
-              </h3>
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Message Generation</h3>
             </div>
           </div>
 
-          {isMessageGenerationUnlocked ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Both profiles are ready! You can now generate personalized
-                messages.
-              </p>
-              {sessionData.userProfile && sessionData.guestContact && (
-                <MessageGeneration
-                  contact={{
+          <MessageGeneration
+            contact={
+              sessionData.guestContact
+                ? {
                     contact_id: sessionData.guestContact.id,
                     first_name: sessionData.guestContact.first_name,
                     last_name: sessionData.guestContact.last_name,
                     role: sessionData.guestContact.role,
-                  }}
-                  companyName={sessionData.guestContact.current_company || ""}
-                  isOpen={true}
-                  onClose={() => {}}
-                  embedded={true}
-                  isGuest={true}
-                  sessionId={sessionData.sessionId}
-                  guestContactId={sessionData.guestContact.id}
-                  userProfileId={sessionData.userProfile.profile_id}
-                  onMessagesGenerated={handleGenerateMessages}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Complete both profile sections above to unlock message
-                generation.
-              </p>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Lock className="h-4 w-4" />
-                <span>
-                  Message generation is locked until both profiles are created
-                </span>
-              </div>
-            </div>
-          )}
+                  }
+                : null
+            }
+            companyName={sessionData.guestContact?.current_company || ""}
+            isOpen={true}
+            onClose={() => {}}
+            embedded={true}
+            isGuest={true}
+            sessionId={sessionData.sessionId}
+            guestContactId={sessionData.guestContact?.id}
+            userProfileId={sessionData.userProfile?.profile_id}
+            onMessagesGenerated={handleGenerateMessages}
+            biosAreReady={biosAreReady}
+            onGenerateClick={handleCraftOpener}
+            ref={messageGenRef}
+          />
         </div>
 
         {/* Messages are now displayed within MessageGeneration component above */}

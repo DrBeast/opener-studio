@@ -15,6 +15,8 @@ interface ModalProps {
   children: React.ReactNode;
   className?: string;
   icon?: React.ReactNode;
+  headerClassName?: string;
+  titleClassName?: string;
 }
 
 const Modal = ({
@@ -25,6 +27,8 @@ const Modal = ({
   icon,
   children,
   className,
+  headerClassName,
+  titleClassName,
 }: ModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -34,21 +38,20 @@ const Modal = ({
           className
         )}
       >
-        <DialogHeader>
+        <DialogHeader className={cn("p-6", headerClassName)}>
           {/* 1. Main container using Flexbox */}
           <div className="flex items-center gap-4">
             {/* 2. Icon Container (Left) */}
-            {icon && (
-              <div className="text-primary">
-                {React.cloneElement(icon as React.ReactElement, {
-                  className: "h-10 w-10",
-                })}
-              </div>
-            )}
+            {icon && <div className="text-primary">{icon}</div>}
 
             {/* 3. Text Container for Title and Description (Right) */}
             <div className="flex flex-col">
-              <DialogTitle className="text-xl font-semibold text-foreground">
+              <DialogTitle
+                className={cn(
+                  "text-xl font-semibold text-foreground",
+                  titleClassName
+                )}
+              >
                 {title}
               </DialogTitle>
               {description && (
