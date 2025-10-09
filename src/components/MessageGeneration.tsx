@@ -43,6 +43,22 @@ import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
 import { PrimaryAction, Chip, Button } from "@/components/ui/design-system";
 
+const MessageSkeleton = () => (
+  <div className="space-y-4 animate-pulse pt-4">
+    {/* Tabs Skeleton */}
+    <div className="grid w-full grid-cols-3 gap-2">
+      <div className="h-10 bg-gray-200 rounded-lg" />
+      <div className="h-10 bg-gray-200 rounded-lg" />
+      <div className="h-10 bg-gray-200 rounded-lg" />
+    </div>
+    {/* Text Area Skeleton */}
+    <div className="space-y-2">
+      <div className="h-24 w-full bg-gray-200 rounded-lg" />
+      <div className="h-4 w-1/4 bg-gray-200 rounded-md" />
+    </div>
+  </div>
+);
+
 interface ContactData {
   contact_id: string;
   first_name?: string;
@@ -522,9 +538,6 @@ export const MessageGeneration = forwardRef(
         <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
           <div className="space-y-4">
             <div className="space-y-4">
-              <Label className="text-md font-semibold text-foreground">
-                What are you trying to achieve?
-              </Label>
               <div className="flex flex-wrap gap-3">
                 {objectiveOptions.map((option) => (
                   <Chip
@@ -589,11 +602,17 @@ export const MessageGeneration = forwardRef(
                       className={`bg-inherit hover:bg-inherit flex-1 p-2 border-none transition-colors cursor-pointer min-w-0 ${
                         medium === option.id
                           ? "text-primary"
-                          : "text-secondary-foreground"
+                          : "text-muted-foreground"
                       }`}
                       onClick={() => handleMediumChange(option.id)}
                     >
-                      <div className="text-center space-y-1 font-semibold text-xs leading-tight">
+                      <div
+                        className={`text-center space-y-1 leading-tight ${
+                          medium === option.id
+                            ? "font-semibold text-sm"
+                            : "font-medium text-xs"
+                        }`}
+                      >
                         <div className="whitespace-nowrap">{option.label}</div>
                         <div className="whitespace-nowrap">
                           {option.maxLength >= 1000
@@ -626,107 +645,115 @@ export const MessageGeneration = forwardRef(
           </div>
 
           {/* Generated Messages - Tabbed Interface */}
-          {Object.keys(generatedMessages).length > 0 && (
-            <div className="space-y-4">
-              <Tabs
-                defaultValue="Version 1"
-                value={activeTab}
-                onValueChange={handleTabChange}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-3 bg-secondary">
-                  {Object.keys(generatedMessages).map((version) => (
-                    <TabsTrigger
-                      key={version}
-                      value={version}
-                      className="w-[98%] rounded-lg mx-auto text-sm font-medium bg-background data-[state=active]:bg-primary-muted data-[state=active]:border-primary-muted border-2 border-border"
-                    >
-                      {version}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+          {isGenerating ? (
+            <MessageSkeleton />
+          ) : (
+            Object.keys(generatedMessages).length > 0 && (
+              <div className="space-y-4">
+                <Tabs
+                  defaultValue="Version 1"
+                  value={activeTab}
+                  onValueChange={handleTabChange}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-3 bg-secondary">
+                    {Object.keys(generatedMessages).map((version) => (
+                      <TabsTrigger
+                        key={version}
+                        value={version}
+                        className="w-[98%] rounded-lg mx-auto text-sm font-medium bg-background data-[state=active]:bg-primary-muted data-[state=active]:border-primary-muted border-2 border-border"
+                      >
+                        {version}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
 
-                {/* Generated Messages - Preview */}
-                {Object.entries(generatedMessages).map(([version, content]) => (
-                  <TabsContent key={version} value={version} className="">
-                    <Card className=" bg-inherit border-none">
-                      {/* Editable Message Text (read-only for guests) */}
-                      <div className="space-y-3">
-                        <Textarea
-                          value={editedMessages[version] || content.text}
-                          onChange={(e) =>
-                            handleMessageEdit(version, e.target.value)
+                  {/* Generated Messages - Preview */}
+                  {Object.entries(generatedMessages).map(
+                    ([version, content]) => (
+                      <TabsContent key={version} value={version} className="">
+                        <Card className=" bg-inherit border-none">
+                          {/* Editable Message Text (read-only for guests) */}
+                          <div className="space-y-3">
+                            <Textarea
+                              value={editedMessages[version] || content.text}
+                              onChange={(e) =>
+                                handleMessageEdit(version, e.target.value)
+                              }
+                              className="w-full resize-none bg-background border-border transition-colors"
+                              rows={6}
+                              maxLength={maxLength}
+                              readOnly={isGuest}
+                            />
+                          </div>
+
+                          {/* Char Count and Action Buttons */}
+                          <div className="flex justify-between items-center mt-4">
+                            <div className="text-xs text-muted-foreground  px-2 ">
+                              {(editedMessages[version] || content.text).length}
+                              /{maxLength}
+                            </div>
+
+                            {!isGuest && (
+                              <PrimaryAction
+                                size="sm"
+                                onClick={() => {
+                                  copyMessage(
+                                    editedMessages[version] || content.text
+                                  );
+                                  saveMessage(
+                                    version,
+                                    editedMessages[version] || content.text
+                                  );
+                                }}
+                                className="shadow-md hover:shadow-lg transition-all"
+                              >
+                                <Save className="mr-1 h-4 w-4" />
+                                Copy and Save to History
+                              </PrimaryAction>
+                            )}
+                          </div>
+                        </Card>
+                      </TabsContent>
+                    )
+                  )}
+                </Tabs>
+
+                {/* Guest CTA Button - Only shown for guests */}
+                {isGuest && (
+                  <div className="border-t pt-6 mt-6">
+                    <PrimaryAction
+                      onClick={async () => {
+                        // Get the currently selected message
+                        const selectedMessage =
+                          editedMessages[activeTab] ||
+                          generatedMessages[activeTab]?.text;
+
+                        if (selectedMessage) {
+                          // Copy to clipboard
+                          try {
+                            await navigator.clipboard.writeText(
+                              selectedMessage
+                            );
+                            toast.success("Message copied to clipboard!");
+                          } catch (err) {
+                            console.error("Failed to copy:", err);
+                            toast.error("Failed to copy message");
                           }
-                          className="w-full resize-none bg-background border-border transition-colors"
-                          rows={6}
-                          maxLength={maxLength}
-                          readOnly={isGuest}
-                        />
-                      </div>
-
-                      {/* Char Count and Action Buttons */}
-                      <div className="flex justify-between items-center mt-4">
-                        <div className="text-xs text-muted-foreground  px-2 ">
-                          {(editedMessages[version] || content.text).length}/
-                          {maxLength}
-                        </div>
-
-                        {!isGuest && (
-                          <PrimaryAction
-                            size="sm"
-                            onClick={() => {
-                              copyMessage(
-                                editedMessages[version] || content.text
-                              );
-                              saveMessage(
-                                version,
-                                editedMessages[version] || content.text
-                              );
-                            }}
-                            className="shadow-md hover:shadow-lg transition-all"
-                          >
-                            <Save className="mr-1 h-4 w-4" />
-                            Copy and Save to History
-                          </PrimaryAction>
-                        )}
-                      </div>
-                    </Card>
-                  </TabsContent>
-                ))}
-              </Tabs>
-
-              {/* Guest CTA Button - Only shown for guests */}
-              {isGuest && (
-                <div className="border-t pt-6 mt-6">
-                  <PrimaryAction
-                    onClick={async () => {
-                      // Get the currently selected message
-                      const selectedMessage =
-                        editedMessages[activeTab] ||
-                        generatedMessages[activeTab]?.text;
-
-                      if (selectedMessage) {
-                        // Copy to clipboard
-                        try {
-                          await navigator.clipboard.writeText(selectedMessage);
-                          toast.success("Message copied to clipboard!");
-                        } catch (err) {
-                          console.error("Failed to copy:", err);
-                          toast.error("Failed to copy message");
                         }
-                      }
 
-                      // Redirect to signup
-                      window.location.href = "/auth/signup";
-                    }}
-                    className="w-full"
-                    size="default"
-                  >
-                    Sign up to copy and save your message!
-                  </PrimaryAction>
-                </div>
-              )}
-            </div>
+                        // Redirect to signup
+                        window.location.href = "/auth/signup";
+                      }}
+                      className="w-full"
+                      size="default"
+                    >
+                      Sign up to copy and save your message!
+                    </PrimaryAction>
+                  </div>
+                )}
+              </div>
+            )
           )}
         </div>
       ),

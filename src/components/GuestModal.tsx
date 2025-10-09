@@ -11,6 +11,20 @@ import { GuestProfileSummary } from "./guest/GuestProfileSummary";
 import { MessageGeneration } from "./MessageGeneration";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 
+const ProfileSkeleton = () => (
+  <div className="space-y-4 animate-pulse">
+    <div className="h-6 w-3/4 bg-gray-200 rounded-md" />
+    <div className="space-y-2">
+      <div className="h-4 w-full bg-gray-200 rounded-md" />
+      <div className="h-4 w-5/6 bg-gray-200 rounded-md" />
+    </div>
+    <div className="space-y-2 pt-2">
+      <div className="h-4 w-1/3 bg-gray-200 rounded-md" />
+      <div className="h-4 w-full bg-gray-200 rounded-md" />
+    </div>
+  </div>
+);
+
 // Interfaces for guest data
 interface GeneratedMessage {
   version1: string;
@@ -238,7 +252,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold">Your Profile</h3>
             </div>
 
-            {!sessionData.userProfile ? (
+            {isGeneratingUserProfile ? (
+              <ProfileSkeleton />
+            ) : !sessionData.userProfile ? (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -247,25 +263,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <Textarea
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
-                    placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)."
+                    placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)"
                     className="min-h-[200px] text-sm resize-none bg-secondary border-border"
                   />
                 </div>
-                <PrimaryAction
-                  onClick={handleGenerateUserProfile}
-                  disabled={!userBio.trim() || isGeneratingUserProfile}
-                  className="w-full"
-                  size="default"
-                >
-                  {isGeneratingUserProfile ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Your Profile...
-                    </>
-                  ) : (
-                    "Generate Your Profile"
-                  )}
-                </PrimaryAction>
               </div>
             ) : (
               <GuestProfileSummary
@@ -282,7 +283,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold">Contact Profile</h3>
             </div>
 
-            {!sessionData.guestContact ? (
+            {isGeneratingContact ? (
+              <ProfileSkeleton /> // Reusing the same skeleton for simplicity
+            ) : !sessionData.guestContact ? (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -291,25 +294,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <Textarea
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
-                    placeholder="Copy / paste their LinkedIn profile."
+                    placeholder="Copy / paste their LinkedIn profile (50 words min)"
                     className="min-h-[200px] text-sm resize-none bg-secondary border-border"
                   />
                 </div>
-                <PrimaryAction
-                  onClick={handleGenerateContactProfile}
-                  disabled={!contactBio.trim() || isGeneratingContact}
-                  className="w-full"
-                  size="default"
-                >
-                  {isGeneratingContact ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing Bio...
-                    </>
-                  ) : (
-                    "Generate Contact Profile"
-                  )}
-                </PrimaryAction>
               </div>
             ) : (
               <GuestContactPreview contact={sessionData.guestContact} />
@@ -318,11 +306,13 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Message Generation Section */}
-        <div className="border-t pt-6">
+        <div className="pt-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-primary" />
-              <h3 className="text-lg font-semibold">Message Generation</h3>
+              <h3 className="text-lg font-semibold">
+                What Are You Trying to Achieve?
+              </h3>
             </div>
           </div>
 
