@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Modal } from "@/components/ui/design-system/modals";
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
-import { PrimaryAction } from "@/components/ui/design-system";
-import { Button } from "@/components/ui/design-system/buttons";
-import { Loader2, User, Users, MessageCircle, Lock } from "lucide-react";
+import { User, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { GuestContactPreview } from "./guest/GuestContactPreview";
@@ -83,9 +81,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     updateUserProfile,
     updateGuestContact,
     updateGeneratedMessages,
-    isProfileComplete,
-    isContactComplete,
-    isMessageGenerationUnlocked,
   } = useGuestSession();
 
   // Local state for form inputs and loading states
@@ -184,19 +179,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     } finally {
       setIsCrafting(false); // Re-enable the button
     }
-  };
-
-  // Handle message generation
-  const handleGenerateMessages = (messages: GeneratedMessage) => {
-    updateGeneratedMessages(messages);
-  };
-
-  // Handle signup flow
-  const handleSignup = () => {
-    // Close modal and redirect to signup
-    onClose();
-    // You can add navigation to signup page here
-    window.location.href = "/auth/signup";
   };
 
   return (
@@ -309,7 +291,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
             sessionId={sessionData.sessionId}
             guestContactId={sessionData.guestContact?.id}
             userProfileId={sessionData.userProfile?.profile_id}
-            onMessagesGenerated={handleGenerateMessages}
+            onMessagesGenerated={updateGeneratedMessages}
             biosAreReady={biosAreReady}
             onGenerateClick={handleCraftOpener}
             isCrafting={isCrafting}
