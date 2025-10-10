@@ -65,123 +65,34 @@ export const useCompanies = () => {
 
   const fetchCompanies = async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
-    let companiesData: Company[] = [];
-    let successfullyFetched = false;
-    
     try {
-      // Try calling the get_companies_overview function first
-      const { data: response, error: functionError } = await supabase.functions.invoke('get_companies_overview');
-      
-      if (!functionError && response && response.companies && Array.isArray(response.companies)) {
-        companiesData = response.companies.map((company: any) => ({
-          company_id: company.company_id,
-          name: company.name,
-          industry: company.industry,
-          hq_location: company.hq_location,
-          wfh_policy: company.wfh_policy,
-          ai_description: company.ai_description,
-          ai_match_reasoning: company.ai_match_reasoning,
-          user_priority: company.user_priority || calculatePriority(company.match_quality_score),
-          is_blacklisted: company.is_blacklisted,
-          match_quality_score: company.match_quality_score,
-          interaction_summary: company.interaction_summary,
-          contacts: company.contacts || [],
-          latest_update: company.latest_update?.interaction_id ? company.latest_update : undefined,
-          next_followup: company.next_followup?.interaction_id ? company.next_followup : undefined,
-          last_interaction_date: company.last_interaction_date
-        }));
-        successfullyFetched = true;
-      }
-    } catch (error) {
-      console.log("Function call failed, trying fallback query:", error);
-    }
-    
-    // If the function fails, fallback to direct query with contacts
-    if (!successfullyFetched) {
-      try {
-        // First get companies
-        const { data: companiesOnly, error: companiesError } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_blacklisted', false)
-          .order('user_priority', { ascending: true })
-          .order('name');
-          
-        if (companiesError) throw companiesError;
-        
-        // Then get contacts for each company
-        const companyIds = (companiesOnly || []).map(c => c.company_id);
-        let contactsData: any[] = [];
-        
-        if (companyIds.length > 0) {
-          const { data: contacts, error: contactsError } = await supabase
-            .from('contacts')
-            .select(`
-              contact_id,
-              company_id,
-              first_name,
-              last_name,
-              role,
-              added_at
-            `)
-            .eq('user_id', user.id)
-            .in('company_id', companyIds);
-            
-          if (!contactsError) {
-            contactsData = contacts || [];
-          }
-        }
-        
-        // Combine companies with their contacts
-        companiesData = (companiesOnly || []).map((company: any) => {
-          const companyContacts = contactsData
-            .filter(contact => contact.company_id === company.company_id)
-            .map(contact => ({
-              contact_id: contact.contact_id,
-              first_name: contact.first_name,
-              last_name: contact.last_name,
-              role: contact.role,
-              latest_interaction_date: contact.added_at // Use added_at as fallback
-            }));
-            
-          return {
-            company_id: company.company_id,
-            name: company.name,
-            industry: company.industry,
-            hq_location: company.hq_location,
-            wfh_policy: company.wfh_policy,
-            ai_description: company.ai_description,
-            ai_match_reasoning: company.ai_match_reasoning,
-            user_priority: company.user_priority || calculatePriority(company.match_quality_score),
-            is_blacklisted: company.is_blacklisted,
-            match_quality_score: company.match_quality_score,
-            interaction_summary: company.interaction_summary,
-            contacts: companyContacts,
-            latest_update: undefined,
-            next_followup: undefined,
-            last_interaction_date: company.last_interaction_date
-          };
-        });
-        successfullyFetched = true;
-      } catch (fallbackError: any) {
-        console.error("Both function and fallback query failed:", fallbackError);
-        toast({
-          title: "Error",
-          description: "Failed to load companies. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }
-    
-    if (successfullyFetched) {
+      const { data, error } = await supabase.rpc("get_companies_overview", {
+        user_id_param: user.id,
+      });
+
+      if (error) throw error;
+
+      const companiesData = data.map((company: any) => ({
+        ...company,
+        user_priority:
+          company.user_priority || calculatePriority(company.match_quality_score),
+        contacts: company.contacts || [],
+      }));
+
       setCompanies(companiesData);
+    } catch (error: any) {
+      console.error("Error fetching companies overview:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load companies. Please try again.",
+        variant: "destructive",
+      });
     }
-    
+
     setIsLoading(false);
-    
+
     // Clear location state after loading to prevent highlighting on subsequent renders
     if (location.state?.highlightNew) {
       navigate(location.pathname, { replace: true });
