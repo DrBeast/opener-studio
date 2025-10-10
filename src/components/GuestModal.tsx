@@ -11,6 +11,10 @@ import { GuestProfileSummary } from "./guest/GuestProfileSummary";
 import { MessageGeneration } from "./MessageGeneration";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 
+interface MessageGenerationHandle {
+  generateMessages: () => void;
+}
+
 const ProfileSkeleton = () => (
   <div className="space-y-4 animate-pulse">
     <div className="h-6 w-3/4 bg-gray-200 rounded-md" />
@@ -86,11 +90,9 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
 
   // Local state for form inputs and loading states
   const [userBio, setUserBio] = useState<string>("");
-  const [isGeneratingUserProfile, setIsGeneratingUserProfile] = useState(false);
   const [contactBio, setContactBio] = useState<string>("");
-  const [isGeneratingContact, setIsGeneratingContact] = useState(false);
   const [isCrafting, setIsCrafting] = useState(false);
-  const messageGenRef = useRef(null);
+  const messageGenRef = useRef<MessageGenerationHandle>(null);
 
   const biosAreReady =
     userBio.trim().split(/\s+/).length >= 50 &&
@@ -102,35 +104,26 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
       toast.error("Please enter your bio information");
       return;
     }
-
-    setIsGeneratingUserProfile(true);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "generate_profile",
-        {
-          body: {
-            sessionId: sessionData.sessionId,
-            backgroundInput: userBio,
-          },
-        }
-      );
-
-      if (error) throw error;
-
-      if (data.success === true) {
-        updateUserProfile(
-          { ...data.extractedProfile, profile_id: data.profile_id },
-          data.summary
-        );
-        toast.success("Your profile has been generated successfully!");
-      } else {
-        throw new Error(data.message || "Failed to generate profile");
+    const { data, error } = await supabase.functions.invoke(
+      "generate_profile",
+      {
+        body: {
+          sessionId: sessionData.sessionId,
+          backgroundInput: userBio,
+        },
       }
-    } catch (error) {
-      console.error("Error generating user profile:", error);
-      toast.error("Failed to generate your profile. Please try again.");
-    } finally {
-      setIsGeneratingUserProfile(false);
+    );
+
+    if (error) throw error;
+
+    if (data.success === true) {
+      updateUserProfile(
+        { ...data.extractedProfile, profile_id: data.profile_id },
+        data.summary
+      );
+      toast.success("Your profile has been generated successfully!");
+    } else {
+      throw new Error(data.message || "Failed to generate profile");
     }
   };
 
@@ -140,41 +133,32 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
       toast.error("Please enter the contact's bio information");
       return;
     }
-
-    setIsGeneratingContact(true);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "add_contact_by_bio",
-        {
-          body: {
-            linkedin_bio: contactBio,
-            sessionId: sessionData.sessionId,
-          },
-        }
-      );
-
-      if (error) throw error;
-
-      if (data.success === true) {
-        updateGuestContact({
-          id: data.guest_contact_id,
-          first_name: data.contact.first_name,
-          last_name: data.contact.last_name,
-          role: data.contact.role,
-          current_company: data.contact.current_company,
-          location: data.contact.location,
-          bio_summary: data.contact.bio_summary,
-          how_i_can_help: data.contact.how_i_can_help,
-        });
-        toast.success("Contact profile generated successfully!");
-      } else {
-        throw new Error(data.message || "Failed to generate contact profile");
+    const { data, error } = await supabase.functions.invoke(
+      "add_contact_by_bio",
+      {
+        body: {
+          linkedin_bio: contactBio,
+          sessionId: sessionData.sessionId,
+        },
       }
-    } catch (error) {
-      console.error("Error generating contact profile:", error);
-      toast.error("Failed to generate contact profile. Please try again.");
-    } finally {
-      setIsGeneratingContact(false);
+    );
+
+    if (error) throw error;
+
+    if (data.success === true) {
+      updateGuestContact({
+        id: data.guest_contact_id,
+        first_name: data.contact.first_name,
+        last_name: data.contact.last_name,
+        role: data.contact.role,
+        current_company: data.contact.current_company,
+        location: data.contact.location,
+        bio_summary: data.contact.bio_summary,
+        how_i_can_help: data.contact.how_i_can_help,
+      });
+      toast.success("Contact profile generated successfully!");
+    } else {
+      throw new Error(data.message || "Failed to generate contact profile");
     }
   };
 
@@ -182,31 +166,23 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     if (isCrafting) return; // Prevent double-clicks
     setIsCrafting(true);
     try {
-      // Step 1: Generate User Profile if it doesn't exist
-      if (!sessionData.userProfile) {
-        await handleGenerateUserProfile();
-      }
+      // Step 1: Generate User Profile
+      await handleGenerateUserProfile();
 
-      // Step 2: Generate Contact Profile if it doesn't exist
-      // We need to check the context *again* because it might have been updated
-      // by the previous step. A better way is to make the generation functions
-      // return a value, but for simplicity, we'll re-check the context provider.
-      // This is a simplification; a more robust solution might involve a state machine.
-      if (!sessionData.guestContact) {
-        await handleGenerateContactProfile();
-      }
+      // Step 2: Generate Contact Profile
+      await handleGenerateContactProfile();
 
       // Step 3: Generate Messages
-      // This needs a slight delay to ensure the context has updated from the
-      // previous steps before the ref is called.
       setTimeout(() => {
         if (messageGenRef.current) {
           messageGenRef.current.generateMessages();
         }
       }, 100);
     } catch (error) {
-      // Errors are already handled with toasts in the individual functions
       console.error("Error in the crafting sequence:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      toast.error(`An error occurred: ${errorMessage}`);
     } finally {
       setIsCrafting(false); // Re-enable the button
     }
@@ -252,7 +228,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold">Your Profile</h3>
             </div>
 
-            {isGeneratingUserProfile ? (
+            {isCrafting && !sessionData.userProfile ? (
               <ProfileSkeleton />
             ) : !sessionData.userProfile ? (
               <div className="space-y-4">
@@ -283,7 +259,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold">Contact Profile</h3>
             </div>
 
-            {isGeneratingContact ? (
+            {isCrafting && !sessionData.guestContact ? (
               <ProfileSkeleton /> // Reusing the same skeleton for simplicity
             ) : !sessionData.guestContact ? (
               <div className="space-y-4">
