@@ -114,16 +114,10 @@ serve(async (req) => {
       i.interaction_type !== 'message_draft'
     );
 
-    console.log(`Processing ${interactions.length} total interactions for contact ${contact.first_name} ${contact.last_name}`);
-    console.log(`Past interactions: ${pastInteractions.length}, Planned: ${plannedInteractions.length}`);
+    // Generate AI overview with concise, note-like style
+    const prompt = `Summarize interaction history with ${contact.first_name} ${contact.last_name} in brief, note-like style. Use incomplete sentences and be very concise (1-2 short phrases max):
 
-    // Generate AI overview
-    const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim();
-    const companyName = contact.companies?.name || 'Unknown Company';
-    
-    const prompt = `Summarize interaction history with ${contactName} at ${companyName} in brief, note-like style. Use incomplete sentences and be very concise (1-2 short phrases max):
-
-Contact: ${contactName} (${contact.role || 'Unknown role'}) at ${companyName} (${contact.companies?.industry || 'Unknown industry'})
+Contact: ${contact.first_name || ''} ${contact.last_name || ''} (${contact.role || 'Unknown role'}) at ${contact.companies?.name || 'Unknown Company'} (${contact.companies?.industry || 'Unknown industry'})
 
 Past Interactions (${pastInteractions.length}):
 ${pastInteractions.map(i => 
@@ -142,8 +136,6 @@ Write in note-like style with incomplete sentences. Examples:
 - "Active conversation, positive response"
 
 Keep it very brief and actionable.`;
-
-    console.log('Sending prompt to Gemini API for contact overview generation');
 
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + geminiApiKey, {
       method: 'POST',
@@ -171,8 +163,6 @@ Keep it very brief and actionable.`;
 
     const data = await response.json();
     const overview = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate overview.";
-
-    console.log('Generated contact overview:', overview);
 
     // Store the summary in the contacts table
     const { error: updateError } = await supabase

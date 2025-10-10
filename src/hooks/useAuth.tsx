@@ -36,54 +36,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionId: string | null
   ): Promise<boolean> => {
     if (!sessionId) {
-      console.log("No session ID found, skipping profile linking");
       return false;
     }
-
-    console.log(
-      `useAuth: Attempting to link guest profile (session: ${sessionId}) to user: ${userId}`
-    );
-
-    // Create a unique key for this specific user and session
-    const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
-    const alreadyLinkedData = localStorage.getItem(linkStatusKey);
-
-    // Check if already linked
-    if (alreadyLinkedData) {
-      try {
-        const linked = JSON.parse(alreadyLinkedData);
-        if (linked.linked && linked.success) {
-          console.log(
-            "This profile was previously linked to the current user according to localStorage"
-          );
-
-          // Double-check in database that the profile was actually linked
-          const { data: profileCheck } = await supabase
-            .from("user_profiles")
-            .select("*")
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          if (profileCheck) {
-            console.log("Confirmed: User profile exists in database");
-            return true;
-          } else {
-            console.log(
-              "Profile marked as linked in localStorage but not found in database - will attempt linking again"
-            );
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing linked status data:", e);
-      }
-    }
-
     try {
-      console.log(
-        `useAuth: Calling link_guest_profile function with userId: ${userId}, sessionId: ${sessionId}`
-      );
-
-      // Call the edge function with a single attempt and appropriate timeout
       const { data, error } = await supabase.functions.invoke(
         "link_guest_profile",
         {
@@ -92,32 +47,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
       if (error) {
-        console.error(`useAuth: Error linking guest profile:`, error);
+        console.error("Error linking guest profile:", error);
         return false;
       }
 
-      if (data?.success) {
-        // Mark this session as linked for this specific user
-        localStorage.setItem(
-          linkStatusKey,
-          JSON.stringify({
-            linked: true,
-            timestamp: new Date().toISOString(),
-            success: true,
-          })
-        );
-
-        console.log("Guest profile successfully linked to user account:", data);
-        toast.success("Profile successfully linked to your account", {
-          id: "profile-linking-success",
-        });
-
-        return true;
-      }
-
-      return false;
-    } catch (err) {
-      console.error("Failed to link guest profile:", err);
+      return data.success;
+    } catch (error) {
+      console.error("Unexpected error in linkUserProfile:", error);
       return false;
     }
   };
@@ -262,13 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state change:", event, session?.user?.id);
-
-        if (session?.user) {
-          setUser(session.user);
-        } else {
-          setUser(null);
-        }
+        setUser(session?.user ?? null);
         setIsLoading(false);
       }
     );
@@ -310,10 +240,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      console.log("Beginning signup process with email:", email);
+      // Safeguard: Clean up all guest-related storage EXCEPT the session ID
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("guest_") && key !== "guest_session_id") {
+          localStorage.removeItem(key);
+        }
+      });
       const sessionId = localStorage.getItem("guest_session_id");
-      console.log("Current session ID during signup:", sessionId);
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -323,39 +256,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error("Sign up error:", error);
         throw error;
       }
 
-      console.log("useAuth: Successfully signed up, user data:", data.user);
-
-      // Sign in automatically after sign up
-      try {
-        await signIn(email, password);
-      } catch (signInError) {
-        console.error("Auto sign-in after signup failed:", signInError);
-        throw signInError;
+      if (data.user) {
+        // After signup, user is automatically signed in.
+        // Now, link the guest profile
+        if (sessionId) {
+          await linkUserProfile(data.user.id, sessionId);
+        }
       }
-
-      // After automatic sign-in, try to link profile
-      console.log(
-        `useAuth: Checking linking conditions - data.user: ${!!data.user}, sessionId: ${sessionId}`
-      );
-
-      if (data.user && sessionId) {
-        console.log(
-          `useAuth: After signup and auto-signin, attempting to link guest profile (session: ${sessionId})`
-        );
-
-        // Call linking immediately (no setTimeout to avoid race conditions)
-        await linkUserProfile(data.user.id, sessionId);
-      } else {
-        console.log(
-          "useAuth: Skipping profile linking - no user or no sessionId"
-        );
-      }
-    } catch (error: any) {
-      console.error("Sign up failed:", error);
+    } catch (error) {
+      console.error("Error during signup:", error);
       throw error;
     }
   };

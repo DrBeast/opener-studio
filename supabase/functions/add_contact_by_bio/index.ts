@@ -127,8 +127,6 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing contact bio for ${isGuest ? 'guest' : 'registered'} user: ${identifier}`);
-
     // Get the Gemini API Key
   const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
   if (!geminiApiKey) {
@@ -172,8 +170,6 @@ serve(async (req) => {
         userSummary = userSummaryData;
       }
     }
-
-    console.log("Calling Gemini API to process contact bio...");
 
     // 2. Single API call with unified schema (SAME for both user types)
     const response = await fetch(GEMINI_API_URL, {
@@ -228,7 +224,6 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
       throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
     }
 
-    console.log("Received response from Gemini API");
     const data = await response.json();
     
     // 3. Process response (SAME for both user types)
@@ -248,7 +243,6 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
         throw new Error(`No response text from AI. Finish reason: ${candidate?.finishReason || 'unknown'}`);
       }
       
-      console.log("Raw AI response:", responseText);
       processedContact = JSON.parse(responseText);
       
       // Validate required fields
@@ -361,11 +355,10 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
 
       if (matchingContact) {
         // --- UPDATE PATH ---
-        console.log(`[ADD_CONTACT] Found matching contact (ID: ${matchingContact.contact_id}). Updating...`);
-        
-        const { data: updatedContact, error: updateError } = await supabaseClient
-          .from('contacts')
-          .update({
+        const { data: updatedContact, error: updateError } =
+          await supabaseClient
+            .from("contacts")
+            .update({
             linkedin_bio: linkedin_bio,
             bio_summary: processedContact.bio_summary,
             how_i_can_help: processedContact.how_i_can_help,
@@ -380,21 +373,17 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
         if (updateError) {
           throw new Error(`Failed to update contact: ${updateError.message}`);
         }
-
-        return new Response(JSON.stringify({
-          success: true,
-          message: "Contact details updated from new bio.",
-          contact: updatedContact,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Contact details updated from new bio.",
+            contact: updatedContact,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       } else {
         // --- CREATE PATH ---
-        console.log(`[ADD_CONTACT] No match found. Creating new contact...`);
         let companyId = null;
-
         if (processedContact.current_company) {
           // (This is the find-or-create company logic from our previous step)
           const { data: existingCompany } = await supabaseClient
@@ -403,24 +392,33 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
             .eq("user_id", userId)
             .eq("name", processedContact.current_company)
             .maybeSingle();
-
-          if (existingCompany) {
-            companyId = existingCompany.company_id;
-          } else {
-            const { data: newCompany, error: companyError } = await supabaseClient
-              .from("companies")
-              .insert({ user_id: userId, name: processedContact.current_company, status: "active" })
-              .select("company_id")
-              .single();
-
-            if (companyError) {
-              console.error('[ADD_CONTACT] Error creating company:', companyError);
+            if (existingCompany) {
+              companyId = existingCompany.company_id;
             } else {
-              companyId = newCompany.company_id;
-              console.log(`[ADD_CONTACT] Created new company (ID: ${companyId}). Invoking enrichment...`);
-              supabaseClient.functions.invoke('enrich_company', {
-                body: { companyId: newCompany.company_id, companyName: processedContact.current_company }
-              });
+              const { data: newCompany, error: companyError } =
+                await supabaseClient
+                  .from("companies")
+                  .insert({
+                    user_id: userId,
+                    name: processedContact.current_company,
+                    status: "active",
+                  })
+                  .select("company_id")
+                  .single();
+              if (companyError) {
+                console.error(
+                  "[ADD_CONTACT] Error creating company:",
+                  companyError
+                );
+              } else {
+                companyId = newCompany.company_id;
+                supabaseClient.functions.invoke("enrich_company", {
+                  body: {
+                    companyId: newCompany.company_id,
+                    companyName: processedContact.current_company,
+                  },
+                });
+              }
             }
           }
         }

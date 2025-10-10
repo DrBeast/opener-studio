@@ -247,8 +247,6 @@ export const MessageGeneration = forwardRef(
       }
     }, [isContextExpanded, storageKey, contact?.contact_id]);
 
-    console.log("Debug - MessageGeneration received contact:", contact);
-
     const objectiveOptions = [
       "Explore roles, find hiring managers",
       "Request a referral for a role you applied for",
@@ -260,7 +258,6 @@ export const MessageGeneration = forwardRef(
 
     // Optimized event handlers with useCallback to prevent re-renders
     const handleMediumChange = useCallback((value: string) => {
-      console.log("Medium changed to:", value);
       setMedium(value);
       const selectedOption = MEDIUM_OPTIONS.find(
         (option) => option.id === value
@@ -271,7 +268,6 @@ export const MessageGeneration = forwardRef(
     }, []);
 
     const handleObjectiveChange = useCallback((value: string) => {
-      console.log("Objective changed to:", value);
       setObjective(value);
       if (value !== "Custom objective") {
         setCustomObjective("");
@@ -280,9 +276,7 @@ export const MessageGeneration = forwardRef(
 
     const handleAdditionalContextChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        console.log("Additional context change event triggered");
         const value = e.target.value;
-        console.log("New additional context value:", value);
         setAdditionalContext(value);
       },
       []
@@ -534,11 +528,6 @@ export const MessageGeneration = forwardRef(
         [version]: !prev[version],
       }));
     }, []);
-
-    console.log(
-      "MessageGeneration component rendering, additionalContext:",
-      additionalContext
-    );
 
     // Memorize the MessageContent to prevent unnecessary re-renders
     const MessageContent = useMemo(() => {
