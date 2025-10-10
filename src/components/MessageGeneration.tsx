@@ -333,10 +333,6 @@ export const MessageGeneration = forwardRef(
       }
 
       const effectiveObjective = getEffectiveObjective();
-      if (!effectiveObjective) {
-        toast.error("Please select or provide a message objective");
-        return;
-      }
 
       setIsGenerating(true);
       setGeneratedMessages({});

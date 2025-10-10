@@ -121,7 +121,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         { ...data.extractedProfile, profile_id: data.profile_id },
         data.summary
       );
-      toast.success("Your profile has been generated successfully!");
     } else {
       throw new Error(data.message || "Failed to generate profile");
     }
@@ -156,7 +155,6 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         bio_summary: data.contact.bio_summary,
         how_i_can_help: data.contact.how_i_can_help,
       });
-      toast.success("Contact profile generated successfully!");
     } else {
       throw new Error(data.message || "Failed to generate contact profile");
     }
