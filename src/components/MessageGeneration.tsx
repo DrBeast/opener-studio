@@ -644,7 +644,7 @@ export const MessageGeneration = forwardRef(
 
               {/* Generate Button - Flat */}
               <PrimaryAction
-                onClick={onGenerateClick}
+                onClick={onGenerateClick || generateMessages}
                 disabled={
                   isGenerating ||
                   isCrafting ||
@@ -801,6 +801,7 @@ export const MessageGeneration = forwardRef(
       onGenerateClick,
       isCrafting,
       embedded,
+      generateMessages,
     ]);
 
     if (embedded) {
