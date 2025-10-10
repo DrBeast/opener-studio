@@ -89,6 +89,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
   const [isGeneratingUserProfile, setIsGeneratingUserProfile] = useState(false);
   const [contactBio, setContactBio] = useState<string>("");
   const [isGeneratingContact, setIsGeneratingContact] = useState(false);
+  const [isCrafting, setIsCrafting] = useState(false);
   const messageGenRef = useRef(null);
 
   const biosAreReady =
@@ -178,6 +179,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleCraftOpener = async () => {
+    if (isCrafting) return; // Prevent double-clicks
+    setIsCrafting(true);
     try {
       // Step 1: Generate User Profile if it doesn't exist
       if (!sessionData.userProfile) {
@@ -204,17 +207,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       // Errors are already handled with toasts in the individual functions
       console.error("Error in the crafting sequence:", error);
+    } finally {
+      setIsCrafting(false); // Re-enable the button
     }
   };
 
   // Handle message generation
   const handleGenerateMessages = (messages: GeneratedMessage) => {
     updateGeneratedMessages(messages);
-  };
-
-  // Handle message selection
-  const handleMessageSelection = (message: string, version: string) => {
-    selectMessage(message, version);
   };
 
   // Handle signup flow
@@ -338,6 +338,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
             onMessagesGenerated={handleGenerateMessages}
             biosAreReady={biosAreReady}
             onGenerateClick={handleCraftOpener}
+            isCrafting={isCrafting}
             ref={messageGenRef}
           />
         </div>

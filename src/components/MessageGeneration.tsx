@@ -67,6 +67,12 @@ interface ContactData {
   company_id?: string;
 }
 
+interface GeneratedMessageData {
+  version1: string;
+  version2: string;
+  version3: string;
+}
+
 interface MessageGenerationProps {
   contact: ContactData | null;
   companyName: string;
@@ -81,9 +87,10 @@ interface MessageGenerationProps {
   sessionId?: string;
   guestContactId?: string;
   userProfileId?: string;
-  onMessagesGenerated?: (messages: any) => void;
+  onMessagesGenerated?: (messages: GeneratedMessageData) => void;
   biosAreReady?: boolean;
   onGenerateClick?: () => void;
+  isCrafting?: boolean;
 }
 
 interface GeneratedMessageResponse {
@@ -113,6 +120,7 @@ export const MessageGeneration = forwardRef(
       onMessagesGenerated,
       biosAreReady = false,
       onGenerateClick,
+      isCrafting = false,
     }: MessageGenerationProps,
     ref
   ) => {
@@ -120,7 +128,7 @@ export const MessageGeneration = forwardRef(
     const storageKey = `messageGeneration_${contact?.contact_id || "default"}`;
 
     // Helper function to get initial state from localStorage
-    const getInitialState = (key: string, defaultValue: any) => {
+    const getInitialState = <T,>(key: string, defaultValue: T): T => {
       try {
         const stored = localStorage.getItem(`${storageKey}_${key}`);
         return stored ? JSON.parse(stored) : defaultValue;
@@ -422,16 +430,16 @@ export const MessageGeneration = forwardRef(
         if (isGuest && onMessagesGenerated) {
           onMessagesGenerated(data.generated_messages);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error generating messages:", err);
-        toast.error(
-          "Failed to generate messages: " + (err.message || "Unknown error")
-        );
+        const errorMessage =
+          err instanceof Error ? err.message : "An unknown error occurred";
+        toast.error(`Failed to generate messages: ${errorMessage}`);
       } finally {
         setIsGenerating(false);
       }
     }, [
-      contact?.contact_id,
+      contact,
       medium,
       getEffectiveObjective,
       additionalContext,
@@ -504,11 +512,11 @@ export const MessageGeneration = forwardRef(
           if (onMessageSaved) {
             onMessageSaved();
           }
-        } catch (err: any) {
+        } catch (err) {
           console.error("Error saving message:", err);
-          toast.error(
-            "Failed to save message: " + (err.message || "Unknown error")
-          );
+          const errorMessage =
+            err instanceof Error ? err.message : "An unknown error occurred";
+          toast.error(`Failed to save message: ${errorMessage}`);
         }
       },
       [
@@ -533,8 +541,16 @@ export const MessageGeneration = forwardRef(
     );
 
     // Memorize the MessageContent to prevent unnecessary re-renders
-    const MessageContent = useMemo(
-      () => (
+    const MessageContent = useMemo(() => {
+      const objectiveOptions = [
+        "Explore roles, find hiring managers",
+        "Request a referral for a role you applied for",
+        "Get informational interview",
+        "Build relationship, open-ended",
+        "Follow up",
+        "Custom objective",
+      ];
+      return (
         <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
           <div className="space-y-4">
             <div className="space-y-4">
@@ -631,6 +647,7 @@ export const MessageGeneration = forwardRef(
                 onClick={onGenerateClick}
                 disabled={
                   isGenerating ||
+                  isCrafting ||
                   (isGuest
                     ? !biosAreReady
                     : !getEffectiveObjective() || !contact?.contact_id)
@@ -756,38 +773,35 @@ export const MessageGeneration = forwardRef(
             )
           )}
         </div>
-      ),
-      [
-        disabled,
-        contact,
-        medium,
-        objective,
-        customObjective,
-        additionalContext,
-        isGenerating,
-        generatedMessages,
-        editedMessages,
-        maxLength,
-        showAIReasoning,
-        handleMediumChange,
-        handleObjectiveChange,
-        handleAdditionalContextChange,
-        handleCustomObjectiveChange,
-        getEffectiveObjective,
-        generateMessages,
-        handleMessageEdit,
-        copyMessage,
-        saveMessage,
-        toggleAIReasoning,
-        isContextExpanded,
-        setIsContextExpanded,
-        isGuest,
-        activeTab,
-        handleTabChange,
-        biosAreReady,
-        onGenerateClick,
-      ]
-    );
+      );
+    }, [
+      contact,
+      medium,
+      objective,
+      customObjective,
+      additionalContext,
+      isGenerating,
+      generatedMessages,
+      editedMessages,
+      maxLength,
+      handleMediumChange,
+      handleObjectiveChange,
+      handleAdditionalContextChange,
+      handleCustomObjectiveChange,
+      getEffectiveObjective,
+      handleMessageEdit,
+      copyMessage,
+      saveMessage,
+      isContextExpanded,
+      setIsContextExpanded,
+      isGuest,
+      activeTab,
+      handleTabChange,
+      biosAreReady,
+      onGenerateClick,
+      isCrafting,
+      embedded,
+    ]);
 
     if (embedded) {
       return MessageContent;
