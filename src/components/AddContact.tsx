@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/airtable-ds/sonner";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/design-system/buttons";
 import { ContactPreview } from "./ContactPreview";
+import { Label } from "@/components/ui/airtable-ds/label";
 
 // --- Interface Definitions ---
 interface CreatedContact {
@@ -34,8 +35,20 @@ export const AddContact = ({
   onClearContact,
 }: AddContactProps) => {
   const { user } = useAuth();
-  const [linkedinBio, setLinkedinBio] = useState("");
+  const [linkedinBio, setLinkedinBio] = useState(
+    () => sessionStorage.getItem("linkedinBioDraft") || ""
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const [isBioValid, setIsBioValid] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    const words = linkedinBio.trim().split(/\s+/).filter(Boolean);
+    const count = words.length;
+    setWordCount(count);
+    setIsBioValid(count >= 50);
+    sessionStorage.setItem("linkedinBioDraft", linkedinBio);
+  }, [linkedinBio]);
 
   const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
@@ -61,6 +74,7 @@ export const AddContact = ({
       // The backend has done all the work. We just need to notify the parent component.
       onContactCreated(data.contact as CreatedContact);
       setLinkedinBio("");
+      sessionStorage.removeItem("linkedinBioDraft");
       toast.success(data.message || "Contact created successfully!");
     } catch (error: any) {
       console.error("Error processing bio and creating contact:", error);
@@ -75,16 +89,24 @@ export const AddContact = ({
       {!createdContact && (
         <div className="space-y-6 ">
           <div className="space-y-4 ">
-            <Textarea
-              value={linkedinBio}
-              onChange={(e) => setLinkedinBio(e.target.value)}
-              placeholder="Copy all content on their LinkedIn profile page (CTRL/CMD + A, CTRL/CMD + C) and paste it here (CTRL/CMD + V)."
-              className="min-h-[120px] text-sm resize-none bg-secondary border-border"
-            />
-
+            <div className="grid w-full gap-1.5">
+              <Textarea
+                value={linkedinBio}
+                onChange={(e) => setLinkedinBio(e.target.value)}
+                placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)"
+                className="min-h-[120px] text-sm resize-none bg-secondary border-border"
+              />
+              <Label
+                className={`text-xs text-right ${
+                  isBioValid ? "text-green-600" : "text-muted-foreground"
+                }`}
+              >
+                Word count: {wordCount} / 50
+              </Label>
+            </div>
             <PrimaryAction
               onClick={handleProcessBio}
-              disabled={!linkedinBio.trim() || isLoading}
+              disabled={!isBioValid || isLoading}
               className="w-full"
               size="default"
             >
