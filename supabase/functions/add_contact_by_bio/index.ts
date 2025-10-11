@@ -309,10 +309,10 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
 
     // 4. Store in appropriate destinations (ONLY difference in output handling)
     if (isGuest) {
-      // Store in guest_contacts table
-      const { data: storedContact, error: insertError } = await supabaseClient
+      // Upsert in guest_contacts table to prevent duplicates for the same session
+      const { data: storedContact, error: upsertError } = await supabaseClient
         .from('guest_contacts')
-        .insert({
+        .upsert({
           session_id: sessionId,
           linkedin_bio,
           first_name: processedContact.first_name,
@@ -322,13 +322,15 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
           location: processedContact.location,
           bio_summary: processedContact.bio_summary,
           how_i_can_help: processedContact.how_i_can_help,
+        }, {
+          onConflict: 'session_id'
         })
         .select()
         .single();
 
-      if (insertError) {
-        console.error('Error storing guest contact:', insertError);
-        throw new Error(`Failed to store guest contact: ${insertError.message}`);
+      if (upsertError) {
+        console.error('Error upserting guest contact:', upsertError);
+        throw new Error(`Failed to upsert guest contact: ${upsertError.message}`);
       }
 
       return new Response(JSON.stringify({
@@ -421,7 +423,7 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
               }
             }
           }
-        }
+        
         
         // (This is the insert contact logic from our previous step)
         const { data: storedContact, error: insertError } = await supabaseClient
@@ -454,8 +456,8 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
       });
       }
     }
-
-  } catch (error) {
+  }
+ catch (error) {
     console.error("Error in add_contact_by_bio function:", error);
     return new Response(JSON.stringify({
       error: "Failed to process contact bio",

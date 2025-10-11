@@ -60,7 +60,7 @@ serve(async (req) => {
 
     if (!guestProfile) {
       return new Response(
-        JSON.stringify({
+        JSON.stringify({ 
           status: "ok",
           message: "No guest profile found to link",
           transferred: { profile: false, summary: false, contacts: 0, messages: 0 }
@@ -81,7 +81,7 @@ serve(async (req) => {
     const { data: guestContacts } = await supabaseClient
       .from("guest_contacts")
       .select("*")
-      .eq("session_id", sessionId);
+          .eq("session_id", sessionId);
 
     const { data: selectedMessage } = await supabaseClient
       .from("guest_saved_messages")
@@ -96,17 +96,17 @@ serve(async (req) => {
     const { data: newUserProfile, error: profileError } = await supabaseClient
       .from("user_profiles")
       .insert({
-        user_id: userId,
-        first_name: guestProfile.first_name,
-        last_name: guestProfile.last_name,
-        job_role: guestProfile.job_role,
-        current_company: guestProfile.current_company,
-        location: guestProfile.location,
+            user_id: userId,
+            first_name: guestProfile.first_name,
+            last_name: guestProfile.last_name,
+            job_role: guestProfile.job_role,
+            current_company: guestProfile.current_company,
+            location: guestProfile.location,
         background_input: guestProfile.background_input,
-        linkedin_content: guestProfile.linkedin_content,
+              linkedin_content: guestProfile.linkedin_content,
         cv_content: guestProfile.cv_content,
-        additional_details: guestProfile.additional_details,
-        created_at: new Date().toISOString(),
+              additional_details: guestProfile.additional_details,
+              created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .select("profile_id")
@@ -114,36 +114,36 @@ serve(async (req) => {
 
     if (profileError) {
       console.error("[LINK] Error transferring profile:", profileError);
-    } else {
+          } else {
       response.transferred.profile = true;
     }
 
     // ============================================================================
     // STEP 3: Transfer guest user summary to user_summaries if it exists
     // ============================================================================
-    if (guestSummary) {
+      if (guestSummary) {
       const { error: summaryError } = await supabaseClient
-        .from("user_summaries")
+          .from("user_summaries")
         .insert({
-          user_id: userId,
-          experience: guestSummary.experience,
-          education: guestSummary.education,
-          expertise: guestSummary.expertise,
-          achievements: guestSummary.achievements,
-          overall_blurb: guestSummary.overall_blurb,
-          combined_experience_highlights: guestSummary.combined_experience_highlights,
-          combined_education_highlights: guestSummary.combined_education_highlights,
-          key_skills: guestSummary.key_skills,
-          domain_expertise: guestSummary.domain_expertise,
-          technical_expertise: guestSummary.technical_expertise,
-          value_proposition_summary: guestSummary.value_proposition_summary,
+                user_id: userId,
+                experience: guestSummary.experience,
+                education: guestSummary.education,
+                expertise: guestSummary.expertise,
+                achievements: guestSummary.achievements,
+                overall_blurb: guestSummary.overall_blurb,
+                combined_experience_highlights: guestSummary.combined_experience_highlights,
+                combined_education_highlights: guestSummary.combined_education_highlights,
+                key_skills: guestSummary.key_skills,
+                domain_expertise: guestSummary.domain_expertise,
+                technical_expertise: guestSummary.technical_expertise,
+                value_proposition_summary: guestSummary.value_proposition_summary,
           generated_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
         });
 
       if (summaryError) {
         console.error("[LINK] Error transferring summary:", summaryError);
-      } else {
+            } else {
         response.transferred.summary = true;
       }
     }
@@ -163,10 +163,10 @@ serve(async (req) => {
           const { data: existingCompany } = await supabaseClient
             .from("companies")
             .select("company_id")
-            .eq("user_id", userId)
+          .eq("user_id", userId)
             .eq("name", guestContact.current_company)
-            .maybeSingle();
-
+          .maybeSingle();
+          
           if (existingCompany) {
             companyId = existingCompany.company_id;
           } else {
@@ -236,10 +236,10 @@ serve(async (req) => {
       // Find the permanent contact_id that corresponds to the guest_contact_id
       const firstContact = transferredContacts[0];
 
-      const { error: messageError } = await supabaseClient
+          const { error: messageError } = await supabaseClient
         .from("saved_messages")
-        .insert({
-          user_id: userId,
+            .insert({
+              user_id: userId,
           contact_id: firstContact.contact_id,
           company_id: firstContact.company_id,
           message_text: selectedMessage.message_text,
@@ -248,11 +248,11 @@ serve(async (req) => {
           message_objective: selectedMessage.message_objective,
           message_additional_context: selectedMessage.message_additional_context,
           created_at: new Date().toISOString(),
-        });
+            });
 
-      if (messageError) {
+          if (messageError) {
         console.error("[LINK] Error transferring message:", messageError);
-      } else {
+          } else {
         response.transferred.messages = 1;
         // Also create a corresponding interaction record
         const interactionDescription = `You sent a ${
@@ -297,7 +297,7 @@ serve(async (req) => {
     for (const table of tablesToClean) {
       const { error } = await supabaseClient
         .from(table)
-        .delete()
+      .delete()
         .eq("session_id", sessionId);
       if (error) {
         console.error(`[LINK] Error cleaning up ${table}:`, error);
@@ -312,13 +312,13 @@ serve(async (req) => {
     // STEP 7: Return success response
     // ============================================================================
     return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error(`[LINK] Fatal error:`, error);
-
+    
     return new Response(
       JSON.stringify({
         error: "Failed to link guest profile",

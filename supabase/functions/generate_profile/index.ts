@@ -475,17 +475,17 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
     if (isGuest) {
       // Store in guest tables
       const storedProfile = await storeGuestData(sessionId, profile, summary, backgroundInput);
-      
-      return new Response(JSON.stringify({
-        success: true,
+
+    return new Response(JSON.stringify({
+      success: true,
         message: "Profile and summary generated successfully!",
         summary: summary,
         extractedProfile: profile,
         profile_id: storedProfile.id
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
     } else {
       // Store in user tables - ALWAYS update profile data
       await updateUserProfile(userId, profile, summary);
