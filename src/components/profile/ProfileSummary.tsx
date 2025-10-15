@@ -140,12 +140,9 @@ const ProfileSummary = ({
                 <div className="flex items-center gap-3 mb-5">
                   <User className="h-6 w-6 text-blue-600" />
                   <h4 className="font-semibold text-lg text-blue-800">
-                    Experience
+                    Experience Highlights
                   </h4>
                 </div>
-                <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                  {backgroundSummary.experience}
-                </p>
                 {renderArrayItems(
                   backgroundSummary.combined_experience_highlights
                 )}
@@ -157,12 +154,9 @@ const ProfileSummary = ({
                 <div className="flex items-center gap-3 mb-5">
                   <GraduationCap className="h-6 w-6 text-purple-600" />
                   <h4 className="font-semibold text-lg text-purple-800">
-                    Education
+                    Education Highlights
                   </h4>
                 </div>
-                <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                  {backgroundSummary.education}
-                </p>
                 {renderArrayItems(
                   backgroundSummary.combined_education_highlights
                 )}

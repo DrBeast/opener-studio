@@ -393,12 +393,12 @@ export type Database = {
       }
       user_summaries: {
         Row: {
-          achievements: string | null
+          achievements: string | null | undefined
           combined_education_highlights: Json | null
           combined_experience_highlights: Json | null
           domain_expertise: Json | null
-          education: string | null
-          experience: string | null
+          education: string | null | undefined
+          experience: string | null | undefined
           expertise: string | null
           generated_at: string
           key_skills: Json | null

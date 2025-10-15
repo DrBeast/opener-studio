@@ -327,10 +327,8 @@ MESSAGE REQUIREMENTS:
 
 USER BACKGROUND:
 - Professional Summary: ${userSummary.overall_blurb || 'N/A'}
-- Key Achievements: ${userSummary.achievements || 'N/A'}
-- Experience: ${userSummary.experience || 'N/A'}
 - Experience Highlights: ${userSummary.combined_experience_highlights ? JSON.stringify(userSummary.combined_experience_highlights) : 'N/A'}
-- Education: ${userSummary.education || 'N/A'}
+- Education Highlights: ${userSummary.combined_education_highlights ? JSON.stringify(userSummary.combined_education_highlights) : 'N/A'}
 - Skills: ${userSummary.key_skills ? JSON.stringify(userSummary.key_skills) : 'N/A'}
 - Domain Expertise: ${userSummary.domain_expertise ? JSON.stringify(userSummary.domain_expertise) : 'N/A'}
 - Technical Expertise: ${userSummary.technical_expertise ? JSON.stringify(userSummary.technical_expertise) : 'N/A'}

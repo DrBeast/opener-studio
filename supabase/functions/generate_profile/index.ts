@@ -42,21 +42,9 @@ const UNIFIED_RESPONSE_SCHEMA = {
     summary: {
       type: "object",
       properties: {
-        experience: {
-          type: "string",
-          description: "A detailed summary of professional experience, highlighting key roles, responsibilities, and career progression"
-        },
-        education: {
-          type: "string", 
-          description: "Summary of educational background, including degrees, certifications, and relevant coursework"
-        },
         expertise: {
           type: "string",
           description: "Key areas of expertise, technical skills, and domain knowledge"
-        },
-        achievements: {
-          type: "string",
-          description: "Notable accomplishments, awards, and quantifiable results"
         },
         overall_blurb: {
           type: "string",
@@ -226,10 +214,7 @@ serve(async (req) => {
         console.log("No profile data found for user. Creating default summary.");
         // Create a default summary
         const defaultSummary = {
-          experience: "No experience data available yet.",
-          education: "No education data available yet.",
           expertise: "No expertise data available yet.",
-          achievements: "No achievements data available yet.",
           overall_blurb: "Please add more information to your profile to generate a complete summary."
         };
         
@@ -253,10 +238,7 @@ serve(async (req) => {
         console.log("Profile data found but background_input is empty");
       // Create a basic summary with what we have
       const basicSummary = {
-        experience: "Your professional experience will appear here once you provide more information.",
-        education: "Your education details will appear here once you provide more information.",
         expertise: "Your expertise areas will appear here once you provide more information.",
-        achievements: "Your key achievements will appear here once you provide more information.",
         overall_blurb: "Add your background information to generate a complete professional summary."
       };
       
@@ -318,10 +300,7 @@ Rules for profile extraction:
 - For location, extract the most relevant current location (city and state/country if available)
 
 For summary generation:
-- Experience: Detailed professional background
-- Education: Academic credentials and certifications  
 - Expertise: Key areas of knowledge and skills
-- Achievements: Notable accomplishments and results
 - Overall blurb: 2-3 sentence professional summary
 - Experience highlights: 5-7 key career achievements as bullet points
 - Education highlights: 3-5 academic credentials as bullet points
@@ -390,10 +369,7 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
             };
           } else if (field === 'summary') {
             result[field] = {
-              experience: "Information not available",
-              education: "Information not available",
               expertise: "Information not available",
-              achievements: "Information not available",
               overall_blurb: "Information not available",
               combined_experience_highlights: ["Information not available"],
               combined_education_highlights: ["Information not available"],
@@ -432,10 +408,7 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
               };
             } else if (field === 'summary') {
               result[field] = {
-                experience: "Information not available",
-                education: "Information not available",
                 expertise: "Information not available",
-                achievements: "Information not available",
                 overall_blurb: "Information not available",
                 combined_experience_highlights: ["Information not available"],
                 combined_education_highlights: ["Information not available"],
@@ -456,10 +429,7 @@ CRITICAL: Return ONLY the JSON object matching the required schema, no additiona
             location: null
           },
           summary: {
-            experience: "Professional experience details not available",
-            education: "Educational background not available", 
             expertise: "Areas of expertise not available",
-            achievements: "Notable achievements not available",
             overall_blurb: "Professional summary not available",
             combined_experience_highlights: ["Experience details not available"],
             combined_education_highlights: ["Education details not available"],
@@ -523,10 +493,7 @@ interface ExtractedProfile {
 }
 
 interface ProfileSummary {
-  experience: string;
-  education: string;
   expertise: string;
-  achievements: string;
   overall_blurb: string;
   combined_experience_highlights: string[];
   combined_education_highlights: string[];

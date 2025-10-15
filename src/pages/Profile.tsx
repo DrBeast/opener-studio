@@ -136,10 +136,7 @@ const Profile = () => {
     let hasSummaryChanges = false;
     if (editableSummary && backgroundSummary) {
       hasSummaryChanges =
-        editableSummary.experience !== backgroundSummary.experience ||
-        editableSummary.education !== backgroundSummary.education ||
         editableSummary.expertise !== backgroundSummary.expertise ||
-        editableSummary.achievements !== backgroundSummary.achievements ||
         editableSummary.overall_blurb !== backgroundSummary.overall_blurb ||
         editableSummary.value_proposition_summary !==
           backgroundSummary.value_proposition_summary ||
@@ -361,66 +358,10 @@ const Profile = () => {
                 )}
 
                 {/* Achievements Section */}
-                {backgroundSummary.achievements && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Key Achievements
-                    </Label>
-                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900 leading-relaxed">
-                      {backgroundSummary.achievements}
-                    </div>
-                  </div>
-                )}
 
                 {/* Experience Section */}
-                {backgroundSummary.experience && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Experience
-                    </Label>
-                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
-                      <p className="leading-relaxed mb-3">
-                        {backgroundSummary.experience}
-                      </p>
-                      {backgroundSummary.combined_experience_highlights &&
-                        backgroundSummary.combined_experience_highlights
-                          .length > 0 && (
-                          <ul className="list-disc list-inside space-y-1 pl-2">
-                            {backgroundSummary.combined_experience_highlights.map(
-                              (item, index) => (
-                                <li key={index}>{item}</li>
-                              )
-                            )}
-                          </ul>
-                        )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Education Section */}
-                {backgroundSummary.education && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Education
-                    </Label>
-                    <div className="rounded-lg border p-4 bg-blue-50 text-sm text-gray-900">
-                      <p className="leading-relaxed mb-3">
-                        {backgroundSummary.education}
-                      </p>
-                      {backgroundSummary.combined_education_highlights &&
-                        backgroundSummary.combined_education_highlights.length >
-                          0 && (
-                          <ul className="list-disc list-inside space-y-1 pl-2">
-                            {backgroundSummary.combined_education_highlights.map(
-                              (item, index) => (
-                                <li key={index}>{item}</li>
-                              )
-                            )}
-                          </ul>
-                        )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Skills & Expertise Section */}
                 {(backgroundSummary.key_skills?.length > 0 ||
