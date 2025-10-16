@@ -1,27 +1,26 @@
-
 import { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  DialogFooter,
+} from "@/components/ui/airtable-ds/dialog";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Label } from "@/components/ui/airtable-ds/label";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/airtable-ds/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/airtable-ds/popover";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/airtable-ds/sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ContactData {
@@ -49,42 +48,54 @@ interface InteractionFormProps {
   isPlanningMode?: boolean;
 }
 
-export function InteractionForm({ 
+export function InteractionForm({
   companyId,
   companyName,
   contacts,
-  isOpen, 
+  isOpen,
   onClose,
   onInteractionCreated,
   existingInteraction,
-  isPlanningMode = false
+  isPlanningMode = false,
 }: InteractionFormProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    interaction_type: existingInteraction?.interaction_type || (isPlanningMode ? 'Planned Action' : 'Email'),
-    description: existingInteraction?.description || '',
-    interaction_date: existingInteraction?.interaction_date || (isPlanningMode ? null : new Date().toISOString()),
-    contact_id: existingInteraction?.contact_id || '',
-    medium: existingInteraction?.medium || '',
+    interaction_type:
+      existingInteraction?.interaction_type ||
+      (isPlanningMode ? "Planned Action" : "Email"),
+    description: existingInteraction?.description || "",
+    interaction_date:
+      existingInteraction?.interaction_date ||
+      (isPlanningMode ? null : new Date().toISOString()),
+    contact_id: existingInteraction?.contact_id || "",
+    medium: existingInteraction?.medium || "",
     follow_up_due_date: existingInteraction?.follow_up_due_date || null,
-    follow_up_completed: false
+    follow_up_completed: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    existingInteraction?.interaction_date ? 
-    new Date(existingInteraction.interaction_date) : 
-    isPlanningMode ? undefined : new Date()
+    existingInteraction?.interaction_date
+      ? new Date(existingInteraction.interaction_date)
+      : isPlanningMode
+      ? undefined
+      : new Date()
   );
   const [followUpDate, setFollowUpDate] = useState<Date | undefined>(
-    existingInteraction?.follow_up_due_date ? new Date(existingInteraction.follow_up_due_date) : undefined
+    existingInteraction?.follow_up_due_date
+      ? new Date(existingInteraction.follow_up_due_date)
+      : undefined
   );
 
   // Handle form changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -92,14 +103,14 @@ export function InteractionForm({
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        interaction_date: date.toISOString()
+        interaction_date: date.toISOString(),
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        interaction_date: null
+        interaction_date: null,
       }));
     }
   };
@@ -108,14 +119,14 @@ export function InteractionForm({
   const handleFollowUpDateSelect = (date: Date | undefined) => {
     setFollowUpDate(date);
     if (date) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        follow_up_due_date: date.toISOString()
+        follow_up_due_date: date.toISOString(),
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        follow_up_due_date: null
+        follow_up_due_date: null,
       }));
     }
   };
@@ -124,7 +135,7 @@ export function InteractionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       if (!user) {
         throw new Error("You must be logged in to perform this action");
@@ -132,47 +143,51 @@ export function InteractionForm({
 
       const interactionData = {
         company_id: companyId,
-        user_id: user.id,  // Add user ID from auth context
+        user_id: user.id, // Add user ID from auth context
         interaction_type: formData.interaction_type,
         description: formData.description,
         interaction_date: formData.interaction_date || null,
         contact_id: formData.contact_id || null,
         medium: formData.medium || null,
         follow_up_due_date: formData.follow_up_due_date,
-        follow_up_completed: false
+        follow_up_completed: false,
       };
-      
+
       console.log("Saving interaction:", interactionData);
-      
+
       if (existingInteraction) {
         // Update existing interaction
         const { error } = await supabase
-          .from('interactions')
+          .from("interactions")
           .update(interactionData)
-          .eq('interaction_id', existingInteraction.interaction_id);
-          
+          .eq("interaction_id", existingInteraction.interaction_id);
+
         if (error) {
           console.error("Error updating interaction:", error);
           throw error;
         }
-        
+
         toast.success("Interaction updated successfully");
       } else {
         // Create new interaction
         const { data, error } = await supabase
-          .from('interactions')
+          .from("interactions")
           .insert([interactionData])
           .select();
-          
+
         if (error) {
           console.error("Error creating interaction:", error);
           throw error;
         }
-        
+
         console.log("Created interaction:", data);
-        toast.success(isPlanningMode ? "Action scheduled successfully" : "Interaction logged successfully");
+        toast.success(
+          isPlanningMode
+            ? "Action scheduled successfully"
+            : "Interaction logged successfully"
+        );
       }
-      
+
       onInteractionCreated();
       onClose();
     } catch (error: any) {
@@ -194,7 +209,7 @@ export function InteractionForm({
         { value: "Interview", label: "Interview" },
         { value: "Call", label: "Call" },
         { value: "Meeting", label: "Meeting" },
-        { value: "Other", label: "Other" }
+        { value: "Other", label: "Other" },
       ];
     } else {
       return [
@@ -204,7 +219,7 @@ export function InteractionForm({
         { value: "Meeting", label: "Meeting" },
         { value: "Coffee Chat", label: "Coffee Chat" },
         { value: "Interview", label: "Interview" },
-        { value: "Other", label: "Other" }
+        { value: "Other", label: "Other" },
       ];
     }
   };
@@ -214,20 +229,20 @@ export function InteractionForm({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {existingInteraction ? "Edit Interaction" : isPlanningMode ? "Plan New Action" : "Log New Interaction"}
+            {existingInteraction
+              ? "Edit Interaction"
+              : isPlanningMode
+              ? "Plan New Action"
+              : "Log New Interaction"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
-            <Input
-              id="company"
-              value={companyName}
-              disabled
-            />
+            <Input id="company" value={companyName} disabled />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="interaction_type">
               {isPlanningMode ? "Action Type" : "Interaction Type"}
@@ -239,14 +254,14 @@ export function InteractionForm({
               onChange={handleChange}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {getInteractionTypeOptions().map(option => (
+              {getInteractionTypeOptions().map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="contact_id">Contact (Optional)</Label>
             <select
@@ -257,14 +272,14 @@ export function InteractionForm({
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Select a contact</option>
-              {contacts.map(contact => (
+              {contacts.map((contact) => (
                 <option key={contact.contact_id} value={contact.contact_id}>
-                  {contact.first_name || ''} {contact.last_name || ''}
+                  {contact.first_name || ""} {contact.last_name || ""}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="interaction_date">
               {isPlanningMode ? "Scheduled Date" : "Interaction Date"}
@@ -279,7 +294,9 @@ export function InteractionForm({
                   {selectedDate ? (
                     format(selectedDate, "PPP")
                   ) : (
-                    <span>{isPlanningMode ? "Select a date" : "Pick a date"}</span>
+                    <span>
+                      {isPlanningMode ? "Select a date" : "Pick a date"}
+                    </span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -294,7 +311,7 @@ export function InteractionForm({
               </PopoverContent>
             </Popover>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="medium">Medium (Optional)</Label>
             <Input
@@ -302,10 +319,14 @@ export function InteractionForm({
               name="medium"
               value={formData.medium}
               onChange={handleChange}
-              placeholder={isPlanningMode ? "e.g., Email, LinkedIn, Phone" : "e.g., Zoom, Phone, In-person"}
+              placeholder={
+                isPlanningMode
+                  ? "e.g., Email, LinkedIn, Phone"
+                  : "e.g., Zoom, Phone, In-person"
+              }
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">
               {isPlanningMode ? "Action Details" : "Description"}
@@ -316,11 +337,15 @@ export function InteractionForm({
               rows={3}
               value={formData.description}
               onChange={handleChange}
-              placeholder={isPlanningMode ? "Describe what you plan to do..." : "Describe the interaction..."}
+              placeholder={
+                isPlanningMode
+                  ? "Describe what you plan to do..."
+                  : "Describe the interaction..."
+              }
               required
             />
           </div>
-          
+
           {!isPlanningMode && (
             <div className="space-y-2">
               <Label htmlFor="follow_up_date">Follow-up Date (Optional)</Label>
@@ -352,11 +377,11 @@ export function InteractionForm({
                     />
                   </PopoverContent>
                 </Popover>
-                
+
                 {followUpDate && (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     onClick={() => handleFollowUpDateSelect(undefined)}
                   >
@@ -366,10 +391,16 @@ export function InteractionForm({
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : isPlanningMode ? "Schedule" : existingInteraction ? "Update" : "Save"}
+              {isLoading
+                ? "Saving..."
+                : isPlanningMode
+                ? "Schedule"
+                : existingInteraction
+                ? "Update"
+                : "Save"}
             </Button>
           </DialogFooter>
         </form>

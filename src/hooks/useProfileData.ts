@@ -124,7 +124,6 @@ export const useProfileData = (userId: string | undefined) => {
     background_input?: string;
     linkedin_content?: string;
     additional_details?: string;
-    cv_content?: string;
   }) => {
     if (!userId) return;
     
@@ -149,7 +148,6 @@ export const useProfileData = (userId: string | undefined) => {
             background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
             additional_details: profileData.additional_details || null,
-            cv_content: profileData.cv_content || null,
             updated_at: new Date().toISOString()
           })
           .eq("user_id", userId);
@@ -163,8 +161,7 @@ export const useProfileData = (userId: string | undefined) => {
             user_id: userId,
             background_input: profileData.background_input || null,
             linkedin_content: profileData.linkedin_content || null,
-            additional_details: profileData.additional_details || null,
-            cv_content: profileData.cv_content || null
+            additional_details: profileData.additional_details || null
           });
           
         upsertError = error;

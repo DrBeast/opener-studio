@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/design-system/buttons";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/airtable-ds/collapsible";
 import { MessageSquare, Send, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";

@@ -1,4 +1,4 @@
-import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { EnhancedButton } from "@/components/ui/airtable-ds/enhanced-button";
 import { Button } from "@/components/ui/design-system/buttons";
 import { OutlineAction } from "@/components/ui/design-system/buttons";
 import { CollapsibleWide } from "@/components/ui/design-system/buttons";
@@ -6,12 +6,12 @@ import { CollapsibleWide } from "@/components/ui/design-system/buttons";
 import {
   AirtableCard,
   AirtableCardContent,
-} from "@/components/ui/airtable-card";
+} from "@/components/ui/airtable-ds/airtable-card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/airtable-ds/collapsible";
 import {
   RefreshCcw,
   ChevronDown,
@@ -88,7 +88,7 @@ const ProfileSummary = ({
                 <div className="flex items-center gap-3 mb-4">
                   <User className="h-6 w-6 text-purple-600" />
                   <CardTitle className="font-semibold text-lg text-purple-800">
-                    Professional Overview
+                    Who you are
                   </CardTitle>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-base">
@@ -126,7 +126,7 @@ const ProfileSummary = ({
       <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
         <CollapsibleTrigger asChild>
           <CollapsibleWide expanded={isDetailsExpanded} variant="outline">
-            View Detailed Breakdown
+            View Details
           </CollapsibleWide>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
@@ -140,12 +140,9 @@ const ProfileSummary = ({
                 <div className="flex items-center gap-3 mb-5">
                   <User className="h-6 w-6 text-blue-600" />
                   <h4 className="font-semibold text-lg text-blue-800">
-                    Experience
+                    Experience Highlights
                   </h4>
                 </div>
-                <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                  {backgroundSummary.experience}
-                </p>
                 {renderArrayItems(
                   backgroundSummary.combined_experience_highlights
                 )}
@@ -157,12 +154,9 @@ const ProfileSummary = ({
                 <div className="flex items-center gap-3 mb-5">
                   <GraduationCap className="h-6 w-6 text-purple-600" />
                   <h4 className="font-semibold text-lg text-purple-800">
-                    Education
+                    Education Highlights
                   </h4>
                 </div>
-                <p className="text-gray-700 mb-4 leading-relaxed text-base">
-                  {backgroundSummary.education}
-                </p>
                 {renderArrayItems(
                   backgroundSummary.combined_education_highlights
                 )}

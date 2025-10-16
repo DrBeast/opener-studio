@@ -1,7 +1,13 @@
-
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/airtable-ds/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/airtable-ds/card";
 
 const VerificationPending = () => {
   return (
@@ -10,7 +16,8 @@ const VerificationPending = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
           <CardDescription>
-            We've sent you a verification email. Please check your inbox and click on the verification link.
+            We've sent you a verification email. Please check your inbox and
+            click on the verification link.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -35,7 +42,8 @@ const VerificationPending = () => {
           </div>
           <div className="text-center">
             <p className="text-sm text-[hsl(var(--normaltext))]">
-              Once you verify your email, you'll be able to log in to your account.
+              Once you verify your email, you'll be able to log in to your
+              account.
             </p>
           </div>
         </CardContent>

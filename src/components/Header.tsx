@@ -1,16 +1,15 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
-import { PrimaryAction } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import FeedbackBox from "@/components/FeedbackBox"; // Corrected import: use default import if it's `export default FeedbackBox;`
+import { LogOut, User, MessageSquare, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/airtable-ds/badge";
+import FeedbackBox from "@/components/FeedbackBox";
 
 interface HeaderProps {
-  onOpenOnboarding?: () => void;
+  // Empty interface - no props needed
 }
 
-const Header = ({ onOpenOnboarding }: HeaderProps) => {
+const Header = ({}: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,23 +23,21 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
     }
   };
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
   return (
-    <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* LEFT SIDE: Logo, DEV Badge, and Onboarding Button */}
+          {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
           <div className="flex items-center space-x-2">
             <Link
-              to={user ? "/dashboard" : "/"}
+              to={user ? "/pipeline" : "/"}
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
             >
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                ConnectorAI
-              </span>
+              <img
+                src="/opener-studio-logo.png"
+                alt="Opener Studio"
+                className="h-14 w-auto"
+              />
               <Badge
                 variant="secondary"
                 className="bg-green-100 text-green-700 border-green-200 text-xs font-medium"
@@ -48,62 +45,28 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
                 BETA0.3
               </Badge>
             </Link>
-            {/* Onboarding Button - Placed next to logo/badge */}
-            {user && onOpenOnboarding && (
-              <PrimaryAction
-                size="sm"
-                onClick={onOpenOnboarding}
-                className="flex items-center gap-3"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Onboarding</span>
-              </PrimaryAction>
-            )}
+            {/* Beta Feedback button moved here */}
+            {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
-          {/* MIDDLE: Navigation */}
+          {/* MIDDLE: Breadcrumb Navigation */}
           {user ? (
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                to="/dashboard"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/dashboard")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/profile"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/profile")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Profile
-              </Link>
-              <Link
-                to="/job-targets"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/job-targets")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
-              >
-                Job Targets
-              </Link>
+            <nav className="hidden md:flex items-center space-x-2 text-sm">
               <Link
                 to="/pipeline"
-                className={`text-lg font-medium transition-all duration-200 hover:text-primary relative ${
-                  isActive("/pipeline")
-                    ? "text-primary after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-normaltext hover:primary"
-                }`}
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
               >
-                Pipeline
+                Studio
               </Link>
+              {(location.pathname === "/profile" ||
+                location.pathname === "/message-history") && (
+                <>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-600 font-medium">
+                    {location.pathname === "/profile" ? "Profile" : "History"}
+                  </span>
+                </>
+              )}
             </nav>
           ) : (
             <nav className="hidden md:flex items-center space-x-6">
@@ -123,11 +86,33 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
             </nav>
           )}
 
-          {/* RIGHT SIDE: Feedback and Logout Buttons */}
+          {/* RIGHT SIDE: Message History, Profile and Logout Buttons */}
           {user && (
             <div className="flex items-center space-x-3">
-              {/* Feedback Button - Now on the far right */}
-              <FeedbackBox viewName={location.pathname} />
+              <Button
+                variant={
+                  location.pathname === "/message-history"
+                    ? "primary"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => navigate("/message-history")}
+                className="flex items-center gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">History</span>
+              </Button>
+              <Button
+                variant={
+                  location.pathname === "/profile" ? "primary" : "outline"
+                }
+                size="sm"
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </Button>
               <Button
                 variant="outlinedestructive"
                 size="sm"
@@ -136,19 +121,6 @@ const Header = ({ onOpenOnboarding }: HeaderProps) => {
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Log Out</span>
-              </Button>
-            </div>
-          )}
-
-          {/* Mobile Menu (simplified for now) */}
-          {!user && (
-            <div className="md:hidden">
-              <Button
-                asChild
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary/80"
-              >
-                <Link to="/auth/login">Login</Link>
               </Button>
             </div>
           )}
