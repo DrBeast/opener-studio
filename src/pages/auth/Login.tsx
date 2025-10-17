@@ -22,7 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/airtable-ds/form";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Linkedin } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -34,7 +35,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
-  const { signIn } = useAuth();
+  const { signIn, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -155,6 +156,39 @@ const Login = () => {
                 </Button>
               </form>
             </Form>
+
+            {/* Separator */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">OR</span>
+              </div>
+            </div>
+
+            {/* LinkedIn Sign In Button */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 border-[#0A66C2] text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white font-medium transition-all duration-200"
+              disabled={isLoading}
+              onClick={async () => {
+                setIsLoading(true);
+                try {
+                  await signInWithLinkedIn();
+                } catch (error: any) {
+                  console.error("LinkedIn sign-in error:", error);
+                  toast.error(
+                    error.message || "Failed to sign in with LinkedIn"
+                  );
+                  setIsLoading(false);
+                }
+              }}
+            >
+              <Linkedin className="mr-2 h-5 w-5" />
+              Sign in with LinkedIn
+            </Button>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-0">
             <div className="text-center">
