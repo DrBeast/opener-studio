@@ -225,7 +225,7 @@ const Signup = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4] hover:text-white font-medium transition-all duration-200"
+              className="w-full h-12 border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4] hover:text-white font-medium transition-all duration-200 mt-3"
               disabled={isLoading}
               onClick={async () => {
                 setIsLoading(true);
