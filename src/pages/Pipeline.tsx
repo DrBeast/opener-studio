@@ -1,264 +1,111 @@
+import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/airtable-ds/use-toast";
 
-import React, { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { Edit, Plus, Sparkles, UserPlus } from "lucide-react";
-import { AddCompanyModal } from "@/components/AddCompanyModal";
-import { CompanyDetails } from "@/components/CompanyDetails";
-import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
-import { ProfileBreadcrumbs } from "@/components/ProfileBreadcrumbs";
-import { useCompanies, type Company } from "@/hooks/useCompanies";
-import { SearchAndFilters } from "@/components/pipeline/SearchAndFilters";
-import { EnhancedCompaniesTable } from "@/components/pipeline/EnhancedCompaniesTable";
-import { EmptyState } from "@/components/pipeline/EmptyState";
-import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
-import { TargetsModal } from "@/components/TargetsModal";
-import { GenerateContactsModal } from "@/components/GenerateContactsModal";
+// Icons Imports
+import { UserPlus, MessageCircle, LucideTarget } from "lucide-react";
 
 // Design System Imports
 import {
-  Card,
   CardContent,
-  PrimaryAction,
-  OutlineAction,
-  PageTitle,
-  PageDescription,
+  PrimaryCard,
   InfoBox,
+  CardTitle,
 } from "@/components/ui/design-system";
 
+import { useCompanies } from "@/hooks/useCompanies";
+import { useContacts } from "@/hooks/useContacts";
+
+import { AddContact } from "@/components/AddContact";
+import { MessageGeneration } from "@/components/MessageGeneration";
+import { RecentContactsList } from "@/components/RecentContactsList";
+import { ContactDetails } from "@/components/ContactDetails";
+
+// Interface for contact data used in message generation
+interface ContactForMessage {
+  contact_id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  company_id?: string;
+  current_company: string;
+  location: string;
+  bio_summary: string;
+  how_i_can_help: string;
+  recent_activity_summary: string;
+}
+
 const PipelineDashboard = () => {
-  const { user } = useAuth();
-  const {
-    companies,
-    isLoading,
-    fetchCompanies,
-    handleSetPriority,
-    handleBlacklist,
-    handleBulkBlacklist,
-    newCompanyIds,
-    highlightNew,
-    selectedCompanies,
-    handleSelectCompany,
-    handleSelectAll,
-    sortField,
-    sortDirection,
-    handleSort,
-  } = useCompanies();
+  const navigate = useNavigate();
+  const { companies, isLoading: companiesLoading } = useCompanies();
+
+  const { contacts, fetchContacts } = useContacts();
 
   // State variables
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isGeneratingCompanies, setIsGeneratingCompanies] = useState(false);
-  const [contactModal, setContactModal] = useState<{
-    isOpen: boolean;
-    companyId: string;
-    companyName: string;
-  }>({
-    isOpen: false,
-    companyId: "",
-    companyName: "",
-  });
+  const [contactForMessage, setContactForMessage] =
+    useState<ContactForMessage | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(
     null
   );
   const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
-  const [contactDetailsTab, setContactDetailsTab] = useState<string>("details");
-  const [isTargetsModalOpen, setIsTargetsModalOpen] = useState(false);
 
-  // Generate Contacts Modal state
-  const [generateContactsModal, setGenerateContactsModal] = useState<{
-    isOpen: boolean;
-    companyId: string;
-    companyName: string;
-  }>({
-    isOpen: false,
-    companyId: "",
-    companyName: "",
-  });
+  // Ref for scrolling to studio
+  const studioRef = useRef<HTMLDivElement>(null);
 
-  // Sort companies based on selected field and direction
-  const sortedCompanies = [...companies].sort((a, b) => {
-    if (!sortField) return 0;
-    let aValue: any = "";
-    let bValue: any = "";
-    switch (sortField) {
-      case "name":
-        aValue = a.name.toLowerCase();
-        bValue = b.name.toLowerCase();
-        break;
-      case "priority":
-        const priorityOrder = {
-          Top: 1,
-          Medium: 2,
-          Maybe: 3,
-        };
-        aValue =
-          priorityOrder[a.user_priority as keyof typeof priorityOrder] || 4;
-        bValue =
-          priorityOrder[b.user_priority as keyof typeof priorityOrder] || 4;
-        break;
-      case "latest_update":
-        aValue = a.latest_update?.interaction_date
-          ? new Date(a.latest_update.interaction_date).getTime()
-          : 0;
-        bValue = b.latest_update?.interaction_date
-          ? new Date(b.latest_update.interaction_date).getTime()
-          : 0;
-        break;
-      case "next_followup":
-        aValue = a.next_followup?.follow_up_due_date
-          ? new Date(a.next_followup.follow_up_due_date).getTime()
-          : 0;
-        bValue = b.next_followup?.follow_up_due_date
-          ? new Date(b.next_followup.follow_up_due_date).getTime()
-          : 0;
-        break;
-      default:
-        return 0;
-    }
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+  // Handler to receive contact from workflow
+  const handleContactCreated = (newContact: ContactForMessage) => {
+    console.log("Parent received new contact:", newContact);
 
-  // Filter companies based on search term only
-  const filteredCompanies = sortedCompanies.filter((company) => {
-    // Search filter
-    const matchesSearch =
-      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.hq_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.ai_description?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Ensure the contact object has the correct structure for MessageGeneration
+    const contactForGeneration = {
+      contact_id: newContact.contact_id,
+      first_name: newContact.first_name,
+      last_name: newContact.last_name,
+      role: newContact.role,
+      company_id: newContact.company_id,
+      current_company: newContact.current_company,
+      location: newContact.location,
+      bio_summary: newContact.bio_summary,
+      how_i_can_help: newContact.how_i_can_help,
+      recent_activity_summary: newContact.recent_activity_summary,
+    };
 
-    return matchesSearch;
-  });
-
-  const handleAddCompany = () => {
-    setIsAddCompanyModalOpen(true);
+    console.log(
+      "Contact prepared for message generation:",
+      contactForGeneration
+    );
+    setContactForMessage(contactForGeneration);
+    fetchContacts();
   };
 
-  const handleCompanyAdded = async (companyName: string) => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "add_company_by_name",
-        {
-          body: {
-            companyName,
-          },
-        }
-      );
-      if (error) throw error;
-      await fetchCompanies();
-      setIsAddCompanyModalOpen(false);
-      toast({
-        title: "Success",
-        description: "Company added successfully",
-      });
-    } catch (error: any) {
-      console.error("Error adding company:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add company",
-        variant: "destructive",
-      });
+  // Handler for selecting existing contact from RecentContactsList
+  const handleSelectExistingContact = (selectedContact: ContactForMessage) => {
+    setContactForMessage(selectedContact);
+
+    // Scroll to studio smoothly
+    if (studioRef.current) {
+      studioRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const handleGenerateCompanies = async () => {
-    if (!user) return;
-    setIsGeneratingCompanies(true);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "generate_companies"
-      );
-      if (error) throw error;
-      if (data?.status === "success") {
-        await fetchCompanies();
-        toast({
-          title: "Success",
-          description: `Generated ${
-            data.companies?.length || 0
-          } new companies successfully`,
-        });
-      } else if (data?.status === "warning") {
-        toast({
-          title: "Notice",
-          description: data.message,
-        });
-      }
-    } catch (error: any) {
-      console.error("Error generating companies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate companies",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingCompanies(false);
-    }
-  };
-
-  const handleCompanyClick = (company: Company) => {
-    setSelectedCompany(company);
-  };
-
-  const handleCompanyDetailClose = () => {
-    setSelectedCompany(null);
-  };
-
-  const handleCompanyUpdated = async () => {
-    await fetchCompanies();
-  };
-
-  const handleBulkRemove = async () => {
-    if (selectedCompanies.size === 0) return;
-    await handleBulkBlacklist(Array.from(selectedCompanies));
-  };
-
-  const handleCreateContact = (companyId: string, companyName: string) => {
-    setContactModal({
-      isOpen: true,
-      companyId,
-      companyName,
-    });
-  };
-
+  // Handler for opening ContactDetails modal
   const handleContactClick = (contactId: string) => {
     setSelectedContactId(contactId);
-    setContactDetailsTab("details");
     setIsContactDetailsOpen(true);
   };
 
-  const handleGenerateMessage = (contactId: string) => {
-    setSelectedContactId(contactId);
-    setContactDetailsTab("messages");
-    setIsContactDetailsOpen(true);
-  };
-
+  // Handler for closing ContactDetails modal
   const handleContactDetailClose = () => {
     setIsContactDetailsOpen(false);
     setSelectedContactId(null);
-    setContactDetailsTab("details");
   };
 
-  const handleOpenTargetsModal = () => {
-    setIsTargetsModalOpen(true);
+  // Handler for viewing all contacts
+  const handleViewAllContacts = () => {
+    navigate("/message-history");
   };
 
-  // Updated function to open the unified generate contacts modal
-  const handleOpenContactRecommendation = (
-    companyId: string,
-    companyName: string
-  ) => {
-    setGenerateContactsModal({
-      isOpen: true,
-      companyId,
-      companyName,
-    });
-  };
+  const isLoading = companiesLoading;
 
   if (isLoading) {
     return (
@@ -269,179 +116,140 @@ const PipelineDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="mx-auto py-8 ">
-        <ProfileBreadcrumbs />
+    <div className="flex flex-1 flex-col bg-gray-100 min-h-screen">
+      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full p-8 space-y-6">
+        {/* Message Crafting Studio */}
+        <div ref={studioRef}>
+          <PrimaryCard className="w-full border-2">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+                {/* Left Panel - Contact Creation */}
+                <div
+                  className={`p-8 border-r border-border/50 ${
+                    !contactForMessage ? "bg-primary/5" : "bg-background"
+                  } transition-colors duration-300`}
+                >
+                  {!contactForMessage && (
+                    <div className="flex items-center gap-2 mb-6">
+                      <UserPlus className="h-6 w-6 text-primary" />
+                      <CardTitle className="text-xl font-semibold text-primary">
+                        Add profile and create contact
+                      </CardTitle>
+                    </div>
+                  )}
 
-        {/* Top Section (Like Profile Page) */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="grid gap-8">
-            <div className="space-y-8">
-              <div className="flex flex-row items-center justify-between">
-                <div>
-                  <PageTitle>Company Targets and Contacts</PageTitle>
-                  <PageDescription>
-                    Manage your target companies and track your networking
-                    progress
-                  </PageDescription>
+                  <div className="space-y-6">
+                    <AddContact
+                      companies={companies}
+                      onContactCreated={handleContactCreated}
+                      createdContact={contactForMessage}
+                      onClearContact={() => setContactForMessage(null)}
+                    />
+                    {!contactForMessage && (
+                      <InfoBox
+                        className="text-sm"
+                        title="Who should I contact?"
+                        description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
+                        icon={<LucideTarget className="h-4 w-4" />}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Panel - Message Generation */}
+                <div
+                  className={`p-8 relative ${
+                    !contactForMessage ? "bg-muted/30" : "bg-primary/5"
+                  } transition-colors duration-300`}
+                >
+                  {/* Conditional overlay */}
+                  {!contactForMessage && (
+                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                      <div className="text-center">
+                        <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-muted-foreground font-medium">
+                          Create a contact first to generate messages
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-6">
+                    <MessageCircle
+                      className={`h-6 w-6 ${
+                        !contactForMessage
+                          ? "text-muted-foreground" // Inactive styles
+                          : "text-primary" // Active styles
+                      }`}
+                    />
+                    <CardTitle
+                      className={`text-xl font-semibold ${
+                        !contactForMessage
+                          ? "text-muted-foreground" // Inactive styles
+                          : "text-primary" // Active styles
+                      }`}
+                    >
+                      {contactForMessage
+                        ? `Generate message for ${contactForMessage.first_name} ${contactForMessage.last_name}`
+                        : "Generate message"}
+                    </CardTitle>
+                  </div>
+
+                  {/* The MessageGeneration component is always rendered */}
+                  <div
+                    className={`${
+                      !contactForMessage
+                        ? "pointer-events-none opacity-50"
+                        : "opacity-100"
+                    } transition-opacity duration-300`}
+                  >
+                    <MessageGeneration
+                      contact={contactForMessage}
+                      companyName={
+                        contactForMessage?.company_id
+                          ? companies.find(
+                              (c) =>
+                                c.company_id === contactForMessage.company_id
+                            )?.name || ""
+                          : contactForMessage?.current_company || ""
+                      }
+                      isOpen={true}
+                      onClose={() => {}}
+                      onMessageSaved={() => {
+                        toast({
+                          title: "Success",
+                          description: "Message copied and saved to history!",
+                        });
+                        setContactForMessage(null);
+                      }}
+                      embedded={true}
+                      disabled={!contactForMessage}
+                    />
+                  </div>
                 </div>
               </div>
-
-              <InfoBox
-                title="💡 Pipeline Overview"
-                description="Click the icons under Contacts to Generate Contacts and Add them manually. AI-powered contact identification can only leverage publicly available information such as company websites - it cannot access LinkedIn profiles yet. For best results, we strongly recommend manually adding contacts from your existing network or new contacts you discover through LinkedIn research. This ensures you connect with the most relevant people at your target companies. Once you have contacts, use the Message icon to craft the messages. When you Save Messages, the will be summarized in the Interactions column. Full history can be viewed by clicking a company row under Company details."
-                icon={<UserPlus className="h-6 w-6 text-blue-600" />}
-              />
-            </div>
-          </div>
+            </CardContent>
+          </PrimaryCard>
         </div>
 
-        {/* Placeholder Targets Modal */}
-        {isTargetsModalOpen && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <h3 className="text-lg font-medium text-gray-800">
-                Edit Targets (Placeholder)
-              </h3>
-              <p>This is a placeholder for the Targets modal.</p>
-              <button
-                onClick={() => setIsTargetsModalOpen(false)}
-                className="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Full-Width Card with Table */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm mx-auto w-[95%]">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between gap-4 ">
-              <SearchAndFilters
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCount={selectedCompanies.size}
-                onBulkRemove={handleBulkRemove}
-              />
-              <div className="flex items-center gap-3 mb-6">
-                <OutlineAction onClick={handleOpenTargetsModal}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Targets
-                </OutlineAction>
-                <PrimaryAction
-                  onClick={handleGenerateCompanies}
-                  disabled={isGeneratingCompanies}
-                >
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {isGeneratingCompanies
-                    ? "Generating..."
-                    : "Generate More Companies"}
-                </PrimaryAction>
-
-                <PrimaryAction onClick={handleAddCompany}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Company
-                </PrimaryAction>
-              </div>
-            </div>
-
-            {filteredCompanies.length === 0 ? (
-              <EmptyState
-                searchTerm={searchTerm}
-                hasFilters={false}
-                onAddCompany={handleAddCompany}
-                onGenerateCompanies={handleGenerateCompanies}
-                isGeneratingCompanies={isGeneratingCompanies}
-              />
-            ) : (
-              <EnhancedCompaniesTable
-                companies={filteredCompanies}
-                onCompanyClick={handleCompanyClick}
-                onSetPriority={handleSetPriority}
-                onBlacklist={handleBlacklist}
-                newCompanyIds={newCompanyIds}
-                highlightNew={highlightNew}
-                selectedCompanies={selectedCompanies}
-                onSelectCompany={handleSelectCompany}
-                onSelectAll={handleSelectAll}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                onCreateContact={(companyId, companyName) => {
-                  const company = filteredCompanies.find(
-                    (c) => c.company_id === companyId
-                  );
-                  handleCreateContact(companyId, company?.name || "");
-                }}
-                onContactClick={handleContactClick}
-                onGenerateMessage={handleGenerateMessage}
-                onOpenContactRecommendation={handleOpenContactRecommendation}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Modals */}
-        <AddCompanyModal
-          isOpen={isAddCompanyModalOpen}
-          onClose={() => setIsAddCompanyModalOpen(false)}
-          onAddCompany={handleCompanyAdded}
-          isLoading={false}
-        />
-
-        {selectedCompany && (
-          <CompanyDetails
-            company={selectedCompany}
-            isOpen={!!selectedCompany}
-            onClose={handleCompanyDetailClose}
-            onCompanyUpdated={handleCompanyUpdated}
-          />
-        )}
-
-        <EnhancedContactModal
-          isOpen={contactModal.isOpen}
-          onClose={() =>
-            setContactModal({
-              isOpen: false,
-              companyId: "",
-              companyName: "",
-            })
-          }
-          companyId={contactModal.companyId}
-          companyName={contactModal.companyName}
-          onSuccess={handleCompanyUpdated}
-        />
-
-        {/* Enhanced Contact Details Modal */}
-        {selectedContactId && (
-          <EnhancedContactDetails
-            contactId={selectedContactId}
-            isOpen={isContactDetailsOpen}
-            onClose={handleContactDetailClose}
-            onContactUpdated={handleCompanyUpdated}
-            defaultTab={contactDetailsTab}
-          />
-        )}
-
-        <TargetsModal
-          isOpen={isTargetsModalOpen}
-          onClose={() => setIsTargetsModalOpen(false)}
-        />
-
-        {/* Unified Generate Contacts Modal */}
-        <GenerateContactsModal
-          isOpen={generateContactsModal.isOpen}
-          onClose={() => setGenerateContactsModal({
-            isOpen: false,
-            companyId: "",
-            companyName: "",
-          })}
-          companyId={generateContactsModal.companyId}
-          companyName={generateContactsModal.companyName}
-          onSuccess={handleCompanyUpdated}
+        {/* Recent Contacts List */}
+        <RecentContactsList
+          contacts={contacts}
+          onSelectContact={handleSelectExistingContact}
+          onContactClick={handleContactClick}
+          onViewAllContacts={handleViewAllContacts}
         />
       </div>
+
+      {/* Contact Details Modal */}
+      {selectedContactId && (
+        <ContactDetails
+          contactId={selectedContactId}
+          isOpen={isContactDetailsOpen}
+          onClose={handleContactDetailClose}
+          onContactUpdated={fetchContacts}
+        />
+      )}
     </div>
   );
 };

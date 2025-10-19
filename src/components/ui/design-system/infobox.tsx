@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils"; // Assuming cn utility for Tailwind class merging
 import { Zap } from "lucide-react"; // Assuming Zap icon from lucide-react
-import { Badge } from "@/components/ui/badge"; // Assuming your Badge component
+import { Badge } from "@/components/ui/airtable-ds/badge"; // Assuming your Badge component
 
 // Re-importing your existing Card components from your design system
 // Adjust paths if your design system components are in a different location
@@ -35,12 +35,12 @@ const InfoBox = React.forwardRef<HTMLDivElement, InfoBoxProps>(
     <Card
       ref={ref}
       // Apply the specific styling for the info box
-      className={cn("bg-blue-50 border-blue-200 mb-8", className)}
+      className={cn("bg-blue-50 border-blue-200 mb-8 shadow-none", className)}
       {...props}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
             {icon} {/* Render the icon prop */}
           </div>
           <div>

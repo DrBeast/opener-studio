@@ -4,12 +4,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/ui/airtable-ds/dialog";
+import { Button } from "@/components/ui/airtable-ds/button";
+import { Input } from "@/components/ui/airtable-ds/input";
+import { Label } from "@/components/ui/airtable-ds/label";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/airtable-ds/tabs";
 import {
   Save,
   UserRound,
@@ -30,18 +35,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/airtable-ds/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
-import { EnhancedContactDetails } from "@/components/EnhancedContactDetails";
+import { toast } from "@/components/ui/airtable-ds/sonner";
+import { ContactDetails } from "@/components/ContactDetails";
 import { InteractionForm } from "@/components/InteractionForm";
 import { LogInteractionModal } from "@/components/LogInteractionModal";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/airtable-ds/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
-import { EnhancedContactModal } from "@/components/pipeline/EnhancedContactModal";
+import { AddContactModal } from "@/components/AddContactModal";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { OutlineAction, PrimaryAction, Chipcard } from "./ui/design-system";
 
@@ -51,6 +56,7 @@ interface ContactData {
   last_name?: string;
   role?: string;
   location?: string;
+  company_id?: string;
 }
 interface InteractionData {
   interaction_id: string;
@@ -486,17 +492,7 @@ export function CompanyDetails({
 
     if (overviewError) {
       return (
-        <div className="flex flex-col">
-          <div className="text-red-500">Error loading interaction summary</div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={regenerateOverview}
-            className="mt-2 self-start"
-          >
-            <RefreshCw className="mr-2 h-3 w-3" /> Try again
-          </Button>
-        </div>
+        <div className="text-red-500">Error loading interaction summary</div>
       );
     }
 
@@ -521,16 +517,6 @@ export function CompanyDetails({
               </p>
             )}
           </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={regenerateOverview}
-            className="ml-2 h-8 w-8 p-0"
-            title="Regenerate summary"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     );
@@ -828,7 +814,9 @@ export function CompanyDetails({
                   {contacts.map((contact) => (
                     <Chipcard
                       key={contact.contact_id}
-                      title={`${contact.first_name} ${contact.last_name}`}
+                      title={`${contact.first_name || ""} ${
+                        contact.last_name || ""
+                      }`}
                       subtitle={contact.role}
                       description={contact.location}
                       icon={<Contact />}
@@ -997,7 +985,7 @@ export function CompanyDetails({
 
         {/* Enhanced Contact Details Dialog */}
         {selectedContactId && (
-          <EnhancedContactDetails
+          <ContactDetails
             contactId={selectedContactId}
             isOpen={isContactDetailsOpen}
             onClose={() => setIsContactDetailsOpen(false)}
@@ -1006,7 +994,7 @@ export function CompanyDetails({
         )}
 
         {/* Add Contact Modal */}
-        <EnhancedContactModal
+        <AddContactModal
           isOpen={isAddContactOpen}
           onClose={() => setIsAddContactOpen(false)}
           companyId={company.company_id}
@@ -1073,7 +1061,14 @@ export function CompanyDetails({
         {/* Message Generation Modal */}
         {selectedContactForMessage && (
           <MessageGeneration
-            contact={selectedContactForMessage}
+            contact={{
+              contact_id: selectedContactForMessage.contact_id,
+              first_name: selectedContactForMessage.first_name || "",
+              last_name: selectedContactForMessage.last_name || "",
+              role: selectedContactForMessage.role,
+              company_id:
+                selectedContactForMessage.company_id || company.company_id,
+            }}
             companyName={company.name}
             isOpen={isMessageGenerationOpen}
             onClose={() => {

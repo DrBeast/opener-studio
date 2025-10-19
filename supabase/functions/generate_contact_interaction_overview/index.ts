@@ -1,4 +1,4 @@
-
+// test
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { corsHeaders } from "../_shared/cors.ts";
@@ -13,8 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
@@ -23,8 +21,15 @@ serve(async (req) => {
       });
     }
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
@@ -75,6 +80,17 @@ serve(async (req) => {
     }
 
     if (!interactions || interactions.length === 0) {
+      // Store the no interactions summary in the contacts table
+      const { error: updateError } = await supabase
+        .from('contacts')
+        .update({ interaction_summary: "No interactions yet with this contact." })
+        .eq('contact_id', contactId)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating contact summary:', updateError);
+      }
+
       return new Response(JSON.stringify({ 
         overview: "No interactions yet with this contact.",
         hasInteractions: false
@@ -98,16 +114,10 @@ serve(async (req) => {
       i.interaction_type !== 'message_draft'
     );
 
-    console.log(`Processing ${interactions.length} total interactions for contact ${contact.first_name} ${contact.last_name}`);
-    console.log(`Past interactions: ${pastInteractions.length}, Planned: ${plannedInteractions.length}`);
+    // Generate AI overview with concise, note-like style
+    const prompt = `Summarize interaction history with ${contact.first_name} ${contact.last_name} in brief, note-like style. Use incomplete sentences and be very concise (1-2 short phrases max):
 
-    // Generate AI overview
-    const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim();
-    const companyName = contact.companies?.name || 'Unknown Company';
-    
-    const prompt = `Summarize interaction history with ${contactName} at ${companyName} in brief, note-like style. Use incomplete sentences and be very concise (1-2 short phrases max):
-
-Contact: ${contactName} (${contact.role || 'Unknown role'}) at ${companyName} (${contact.companies?.industry || 'Unknown industry'})
+Contact: ${contact.first_name || ''} ${contact.last_name || ''} (${contact.role || 'Unknown role'}) at ${contact.companies?.name || 'Unknown Company'} (${contact.companies?.industry || 'Unknown industry'})
 
 Past Interactions (${pastInteractions.length}):
 ${pastInteractions.map(i => 
@@ -127,9 +137,7 @@ Write in note-like style with incomplete sentences. Examples:
 
 Keep it very brief and actionable.`;
 
-    console.log('Sending prompt to Gemini API for contact overview generation');
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + geminiApiKey, {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + geminiApiKey, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -144,7 +152,6 @@ Keep it very brief and actionable.`;
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 150,
         }
       })
     });
@@ -157,7 +164,16 @@ Keep it very brief and actionable.`;
     const data = await response.json();
     const overview = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate overview.";
 
-    console.log('Generated contact overview:', overview);
+    // Store the summary in the contacts table
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({ interaction_summary: overview.trim() })
+      .eq('contact_id', contactId)
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error('Error updating contact summary:', updateError);
+    }
 
     return new Response(JSON.stringify({ 
       overview: overview.trim(),

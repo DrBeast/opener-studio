@@ -11,23 +11,23 @@ const buttonVariants = cva(
       variant: {
         primary:
           // Tailwind: bg-purple-600 (#9333ea, hsl(262, 83%, 58%)), text-white (#fff), hover:bg-purple-700 (#7e22ce, hsl(262, 84%, 48%))
-          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))] hover:brightness-80 shadow-lg hover:shadow-xl transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary-hover))] shadow-none transition-all duration-200 shrink-0",
 
         destructive:
           // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
-          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80 shadow-lg hover:shadow-xl transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
 
         success:
           // Tailwind: bg-green-600 (#16a34a, hsl(142, 71%, 36%)), text-white (#fff), hover:bg-green-700 (#15803d, hsl(142, 76%, 26%))
-          "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))] hover:brightness-80 shadow-sm hover:shadow-sm transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
 
         option:
           // Tailwind: bg-blue-600 (#2563eb, hsl(221, 83%, 53%)), text-white (#fff), hover:bg-blue-700 (#1d4ed8, hsl(221, 77%, 44%))
-          "bg-[hsl(var(--option))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--option))] hover:brightness-80 shadow-sm hover:shadow-sm transition-all duration-200 shrink-0",
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--primary-muted))] hover:text-[hsl(var(--primary-hover))] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary-muted))] shadow-none transition-all duration-200 shrink-0",
 
         outline:
           // Tailwind: border-gray-300 (#d1d5db, hsl(220, 13%, 91%)), bg-white (#fff, hsl(0, 0%, 100%)), text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-50 (#f9fafb, hsl(220, 20%, 98%))
-          "border border-[hsl(var(--primary))] bg-[hsl(var(--background))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--muted))] shadow-lg hover:shadow-lg transition-all duration-200 shrink-0",
+          "border border-[hsl(var(--primary))] bg-[hsl(var(--background))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--muted))] shadow-none transition-all duration-200 shrink-0",
 
         ghost:
           // Tailwind: text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%))
@@ -35,7 +35,7 @@ const buttonVariants = cva(
 
         outlinedestructive:
           // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
-          "border border-[hsl(var(--destructive))] bg-[hsl(var(--background))] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--muted))] shadow-lg hover:shadow-lg transition-all duration-200 shrink-0",
+          "border border-[hsl(var(--destructive))] bg-[hsl(var(--background))] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--muted))] shadow-none transition-all duration-200 shrink-0",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -110,6 +110,7 @@ interface CollapsibleTriggerButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   expanded: boolean;
   children: React.ReactNode;
+  icon?: React.ReactNode;
   className?: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
@@ -123,6 +124,7 @@ export const CollapsibleWide = React.forwardRef<
     {
       expanded,
       children,
+      icon,
       className = "",
       variant = "outline",
       size = "default",
@@ -135,12 +137,16 @@ export const CollapsibleWide = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "w-full flex items-center justify-between h-14 text-base font-medium border-2",
+        "w-full flex items-center justify-between h-14 text-base font-medium border-none shadow-none hover:shadow-none",
         className
       )}
       {...props}
     >
-      <span>{children}</span>
+      <div className="flex items-center gap-3">
+        {icon && <div className="text-primary">{icon}</div>}
+        <span>{children}</span>
+      </div>
+      {/* Render the chevron icon based on the expanded state */}
       {expanded ? (
         <ChevronUp className="h-5 w-5" />
       ) : (
@@ -150,3 +156,34 @@ export const CollapsibleWide = React.forwardRef<
   )
 );
 CollapsibleWide.displayName = "CollapsibleWide";
+
+// Chip Component for selectable options, inspired by Airtable
+interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isSelected: boolean;
+  children: React.ReactNode;
+  className?: string;
+  icon?: React.ReactNode;
+}
+
+export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
+  ({ isSelected, children, className, ...props }, ref) => {
+    return (
+      <Button
+        ref={ref}
+        variant={
+          isSelected
+            ? "primary" // Active style
+            : "option" // Inactive style
+        }
+        size="sm"
+        className={
+          "h-auto px-3 py-1.5 text-sm font-normal rounded-full  transition-colors shadow-none hover:shadow-none"
+        }
+        {...props}
+      >
+        {children}
+      </Button>
+    );
+  }
+);
+Chip.displayName = "Chip";

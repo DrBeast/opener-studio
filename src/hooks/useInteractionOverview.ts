@@ -24,9 +24,12 @@ export const useInteractionOverview = (companyId: string) => {
     try {
       console.log(`Generating overview for company ${companyId}`);
       
-      const { data, error: functionError } = await supabase.functions.invoke('generate_interaction_overview', {
-        body: { companyId }
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "generate_company_interaction_overview",
+        {
+          body: { companyId },
+        }
+      );
       
       if (functionError) {
         console.error('Function error:', functionError);
@@ -60,27 +63,30 @@ export const useInteractionOverview = (companyId: string) => {
     try {
       console.log(`Regenerating overview for company ${companyId}`);
       
-      const { data, error: functionError } = await supabase.functions.invoke('regenerate_interaction_summary', {
-        body: { companyId }
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "generate_company_interaction_overview",
+        {
+          body: { companyId },
+        }
+      );
       
       if (functionError) {
-        console.error('Function error:', functionError);
+        console.error("Function error:", functionError);
         throw functionError;
       }
       
-      console.log('Regenerated summary data:', data);
+      console.log("Regenerated summary data:", data);
       
       setOverview({
-        overview: data.summary,
+        overview: data.overview, // Changed from data.summary
         hasInteractions: data.hasInteractions,
         interactionCount: data.interactionCount,
         pastCount: data.pastCount,
-        plannedCount: data.plannedCount
+        plannedCount: data.plannedCount,
       });
     } catch (err: any) {
-      console.error('Error regenerating interaction overview:', err);
-      setError(err.message || 'Failed to regenerate overview');
+      console.error("Error regenerating interaction overview:", err);
+      setError(err.message || "Failed to regenerate overview");
       setOverview(null);
     } finally {
       setIsLoading(false);
@@ -89,46 +95,46 @@ export const useInteractionOverview = (companyId: string) => {
 
   useEffect(() => {
     if (companyId) {
-      // First try to get existing summary from companies table
       const fetchStoredSummary = async () => {
         setIsLoading(true);
         setError(null);
-        
         try {
-          console.log(`Fetching stored summary for company ${companyId}`);
-          
           const { data: company, error: companyError } = await supabase
-            .from('companies')
-            .select('interaction_summary')
-            .eq('company_id', companyId)
+            .from("companies")
+            .select("interaction_summary")
+            .eq("company_id", companyId)
             .single();
-            
+
           if (companyError) {
-            console.error('Error fetching company:', companyError);
             throw companyError;
           }
-          
-          console.log('Stored summary:', company?.interaction_summary);
-          
-          if (company?.interaction_summary && company.interaction_summary !== "No interactions yet with this company.") {
+
+          if (
+            company?.interaction_summary &&
+            company.interaction_summary !==
+              "No interactions yet with this company."
+          ) {
             setOverview({
               overview: company.interaction_summary,
               hasInteractions: true,
             });
           } else {
-            // No stored summary or placeholder text, generate one
-            console.log('No valid stored summary found, generating new one');
-            await generateOverview();
+            // If no summary exists, set a default state but do not generate.
+            setOverview({
+              overview:
+                "No summary generated yet. Add an interaction to create one.",
+              hasInteractions: false,
+            });
           }
         } catch (err: any) {
-          console.error('Error fetching stored summary:', err);
-          // If fetching fails, try to generate a new summary
-          await generateOverview();
+          console.error("Error fetching stored summary:", err);
+          setError(err.message || "Failed to fetch summary");
+          setOverview(null);
         } finally {
           setIsLoading(false);
         }
       };
-      
+
       fetchStoredSummary();
     }
   }, [companyId]);

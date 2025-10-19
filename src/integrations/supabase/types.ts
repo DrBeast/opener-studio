@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       companies: {
@@ -22,9 +27,11 @@ export type Database = {
           industry: string | null
           interaction_summary: string | null
           is_blacklisted: boolean | null
+          last_interaction_date: string | null
           match_quality_score: number | null
           name: string
           public_private: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
           user_notes: string | null
@@ -44,9 +51,11 @@ export type Database = {
           industry?: string | null
           interaction_summary?: string | null
           is_blacklisted?: boolean | null
+          last_interaction_date?: string | null
           match_quality_score?: number | null
           name: string
           public_private?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -66,9 +75,11 @@ export type Database = {
           industry?: string | null
           interaction_summary?: string | null
           is_blacklisted?: boolean | null
+          last_interaction_date?: string | null
           match_quality_score?: number | null
           name?: string
           public_private?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -84,14 +95,16 @@ export type Database = {
           bio_summary: string | null
           company_id: string | null
           contact_id: string
-          email: string | null
           first_name: string | null
           how_i_can_help: string | null
+          interaction_summary: string | null
+          last_interaction_date: string | null
           last_name: string | null
-          linkedin_url: string | null
+          linkedin_bio: string | null
           location: string | null
           recent_activity_summary: string | null
           role: string | null
+          status: string
           updated_at: string | null
           user_id: string | null
           user_notes: string | null
@@ -101,14 +114,16 @@ export type Database = {
           bio_summary?: string | null
           company_id?: string | null
           contact_id?: string
-          email?: string | null
           first_name?: string | null
           how_i_can_help?: string | null
+          interaction_summary?: string | null
+          last_interaction_date?: string | null
           last_name?: string | null
-          linkedin_url?: string | null
+          linkedin_bio?: string | null
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -118,14 +133,16 @@ export type Database = {
           bio_summary?: string | null
           company_id?: string | null
           contact_id?: string
-          email?: string | null
           first_name?: string | null
           how_i_can_help?: string | null
+          interaction_summary?: string | null
+          last_interaction_date?: string | null
           last_name?: string | null
-          linkedin_url?: string | null
+          linkedin_bio?: string | null
           location?: string | null
           recent_activity_summary?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
           user_id?: string | null
           user_notes?: string | null
@@ -138,6 +155,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["company_id"]
           },
+          {
+            foreignKeyName: "contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
         ]
       }
       interactions: {
@@ -211,115 +235,71 @@ export type Database = {
             foreignKeyName: "interactions_message_version_id_fkey"
             columns: ["message_version_id"]
             isOneToOne: false
-            referencedRelation: "saved_message_versions"
-            referencedColumns: ["message_version_id"]
+            referencedRelation: "saved_messages"
+            referencedColumns: ["version_id"]
           },
         ]
       }
-      saved_message_versions: {
+      saved_messages: {
         Row: {
           company_id: string | null
           contact_id: string | null
-          created_at: string | null
+          created_at: string
           medium: string | null
           message_additional_context: string | null
           message_objective: string | null
-          message_text: string
-          message_version_id: string
-          updated_at: string | null
+          message_text: string | null
           user_id: string | null
-          version_name: string
+          version_id: string
+          version_name: string | null
         }
         Insert: {
           company_id?: string | null
           contact_id?: string | null
-          created_at?: string | null
+          created_at?: string
           medium?: string | null
           message_additional_context?: string | null
           message_objective?: string | null
-          message_text: string
-          message_version_id?: string
-          updated_at?: string | null
+          message_text?: string | null
           user_id?: string | null
-          version_name: string
+          version_id?: string
+          version_name?: string | null
         }
         Update: {
           company_id?: string | null
           contact_id?: string | null
-          created_at?: string | null
+          created_at?: string
           medium?: string | null
           message_additional_context?: string | null
           message_objective?: string | null
-          message_text?: string
-          message_version_id?: string
-          updated_at?: string | null
+          message_text?: string | null
           user_id?: string | null
-          version_name?: string
+          version_id?: string
+          version_name?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "saved_message_versions_company_id_fkey"
+            foreignKeyName: "saved_messages_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["company_id"]
           },
           {
-            foreignKeyName: "saved_message_versions_contact_id_fkey"
+            foreignKeyName: "saved_messages_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["contact_id"]
           },
+          {
+            foreignKeyName: "saved_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
         ]
-      }
-      target_criteria: {
-        Row: {
-          created_at: string | null
-          criteria_id: string
-          free_form_role_and_company_description: string | null
-          similar_companies: Json | null
-          target_functions: Json | null
-          target_industries: Json | null
-          target_locations: Json | null
-          target_public_private: Json | null
-          target_sizes: Json | null
-          target_wfh_preference: Json | null
-          updated_at: string | null
-          user_id: string
-          visa_sponsorship_required: boolean | null
-        }
-        Insert: {
-          created_at?: string | null
-          criteria_id?: string
-          free_form_role_and_company_description?: string | null
-          similar_companies?: Json | null
-          target_functions?: Json | null
-          target_industries?: Json | null
-          target_locations?: Json | null
-          target_public_private?: Json | null
-          target_sizes?: Json | null
-          target_wfh_preference?: Json | null
-          updated_at?: string | null
-          user_id: string
-          visa_sponsorship_required?: boolean | null
-        }
-        Update: {
-          created_at?: string | null
-          criteria_id?: string
-          free_form_role_and_company_description?: string | null
-          similar_companies?: Json | null
-          target_functions?: Json | null
-          target_industries?: Json | null
-          target_locations?: Json | null
-          target_public_private?: Json | null
-          target_sizes?: Json | null
-          target_wfh_preference?: Json | null
-          updated_at?: string | null
-          user_id?: string
-          visa_sponsorship_required?: boolean | null
-        }
-        Relationships: []
       }
       user_feedback: {
         Row: {
@@ -413,12 +393,12 @@ export type Database = {
       }
       user_summaries: {
         Row: {
-          achievements: string | null
+          achievements: string | null | undefined
           combined_education_highlights: Json | null
           combined_experience_highlights: Json | null
           domain_expertise: Json | null
-          education: string | null
-          experience: string | null
+          education: string | null | undefined
+          experience: string | null | undefined
           expertise: string | null
           generated_at: string
           key_skills: Json | null
@@ -468,6 +448,201 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_saved_messages: {
+        Row: {
+          id: string
+          session_id: string
+          guest_contact_id: string | null
+          user_profile_id: string | null
+          message_text: string
+          version_name: string
+          medium: string
+          message_objective: string
+          message_additional_context: string | null
+          is_selected: boolean | null
+          created_at: string | null
+          updated_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          guest_contact_id?: string | null
+          user_profile_id?: string | null
+          message_text: string
+          version_name: string
+          medium: string
+          message_objective: string
+          message_additional_context?: string | null
+          is_selected?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          guest_contact_id?: string | null
+          user_profile_id?: string | null
+          message_text?: string
+          version_name?: string
+          medium?: string
+          message_objective?: string
+          message_additional_context?: string | null
+          is_selected?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_saved_messages_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "guest_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_saved_messages_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["profile_id"]
+          }
+        ]
+      }
+      guest_contacts: {
+        Row: {
+          id: string
+          session_id: string
+          linkedin_bio: string
+          first_name: string | null
+          last_name: string | null
+          role: string | null
+          current_company: string | null
+          location: string | null
+          bio_summary: string | null
+          how_i_can_help: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          linkedin_bio: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          current_company?: string | null
+          location?: string | null
+          bio_summary?: string | null
+          how_i_can_help?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          linkedin_bio?: string
+          first_name?: string | null
+          last_name?: string | null
+          role?: string | null
+          current_company?: string | null
+          location?: string | null
+          bio_summary?: string | null
+          how_i_can_help?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: []
+      }
+      guest_message_sessions: {
+        Row: {
+          id: string
+          session_id: string
+          user_profile_id: string | null
+          guest_contact_id: string | null
+          medium: string
+          objective: string
+          additional_context: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_profile_id?: string | null
+          guest_contact_id?: string | null
+          medium: string
+          objective: string
+          additional_context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_profile_id?: string | null
+          guest_contact_id?: string | null
+          medium?: string
+          objective?: string
+          additional_context?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_message_sessions_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "guest_message_sessions_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "guest_contacts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      guest_generated_messages: {
+        Row: {
+          id: string
+          session_id: string
+          version1: string
+          version2: string
+          version3: string
+          selected_version: string | null
+          selected_message_text: string | null
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          version1: string
+          version2: string
+          version3: string
+          selected_version?: string | null
+          selected_message_text?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          version1?: string
+          version2?: string
+          version3?: string
+          selected_version?: string | null
+          selected_message_text?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -484,19 +659,19 @@ export type Database = {
       get_companies_overview: {
         Args: { user_id_param: string }
         Returns: {
-          company_id: string
-          name: string
-          industry: string
           ai_description: string
-          hq_location: string
-          wfh_policy: string
-          match_quality_score: number
           ai_match_reasoning: string
-          user_priority: string
+          company_id: string
+          contacts: Json
+          hq_location: string
+          industry: string
           interaction_summary: string
           latest_update: Json
+          match_quality_score: number
+          name: string
           next_followup: Json
-          contacts: Json
+          user_priority: string
+          wfh_policy: string
         }[]
       }
       rollback_transaction: {
@@ -513,21 +688,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -545,14 +724,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -568,14 +749,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -591,14 +774,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -606,14 +791,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

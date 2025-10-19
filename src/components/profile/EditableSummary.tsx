@@ -1,5 +1,5 @@
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { Input } from "@/components/ui/airtable-ds/input";
 import { Button } from "@/components/ui/design-system/buttons";
 
 import {
@@ -7,7 +7,7 @@ import {
   AirtableCardContent,
   AirtableCardHeader,
   AirtableCardTitle,
-} from "@/components/ui/airtable-card";
+} from "@/components/ui/airtable-ds/airtable-card";
 import { Background } from "@/types/profile";
 
 interface EditableSummaryProps {
@@ -126,52 +126,6 @@ const EditableSummary = ({
           />
         </div>
 
-        {/* Experience Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Experience
-          </label>
-          <Textarea
-            value={editableSummary.experience}
-            onChange={(e) => onSummaryChange("experience", e.target.value)}
-            rows={3}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-
-          <div className="mt-6">
-            <label className="text-sm font-semibold block mb-3 text-gray-700">
-              Experience Highlights
-            </label>
-            {renderEditableArrayItems(
-              "combined_experience_highlights",
-              editableSummary.combined_experience_highlights
-            )}
-          </div>
-        </div>
-
-        {/* Education Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Education
-          </label>
-          <Textarea
-            value={editableSummary.education}
-            onChange={(e) => onSummaryChange("education", e.target.value)}
-            rows={3}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-
-          <div className="mt-6">
-            <label className="text-sm font-semibold block mb-3 text-gray-700">
-              Education Highlights
-            </label>
-            {renderEditableArrayItems(
-              "combined_education_highlights",
-              editableSummary.combined_education_highlights
-            )}
-          </div>
-        </div>
-
         {/* Expertise Section */}
         <div>
           <label className="text-base font-semibold block mb-3 text-gray-900">
@@ -213,17 +167,6 @@ const EditableSummary = ({
         </div>
 
         {/* Achievements Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Key Achievements
-          </label>
-          <Textarea
-            value={editableSummary.achievements}
-            onChange={(e) => onSummaryChange("achievements", e.target.value)}
-            rows={3}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-        </div>
       </AirtableCardContent>
     </AirtableCard>
   );
