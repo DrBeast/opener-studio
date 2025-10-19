@@ -16,6 +16,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInWithLinkedIn: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   linkUserProfile: (
     userId: string,
     sessionId: string | null
@@ -294,6 +295,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const origin = window.location.origin;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/auth/callback`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Google sign in error:", error);
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Failed to sign in with Google:", error);
+      throw error;
+    }
+  };
+
   // Guest session management functions
   const getGuestSessionId = (): string | null => {
     return localStorage.getItem("guest_session_id");
@@ -312,6 +338,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUp,
         signOut,
         signInWithLinkedIn,
+        signInWithGoogle,
         linkUserProfile,
         getGuestSessionId,
         setGuestSessionId,
