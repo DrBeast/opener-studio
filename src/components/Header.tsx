@@ -29,21 +29,12 @@ const Header = ({}: HeaderProps) => {
         <div className="flex items-center justify-between h-16">
           {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
           <div className="flex items-center space-x-2">
-            <Link
-              to={user ? "/pipeline" : "/"}
-              className="flex items-center space-x-2" // Keep flex for logo and badge alignment
-            >
+            <Link to={user ? "/pipeline" : "/"} className="flex items-center">
               <img
                 src="/opener-studio-logo.png"
                 alt="Opener Studio"
                 className="h-14 w-auto"
               />
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-700 border-green-200 text-xs font-medium"
-              >
-                BETA0.3
-              </Badge>
             </Link>
             {/* Beta Feedback button moved here */}
             {user && <FeedbackBox viewName={location.pathname} />}
