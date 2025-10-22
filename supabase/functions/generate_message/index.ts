@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 // Medium options defined directly in edge function (cannot import from src)
 const MEDIUM_OPTIONS = [
@@ -20,11 +21,7 @@ const MEDIUM_OPTIONS = [
   }
 ];
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type, x-client-info, apikey',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
+// CORS headers are now handled by shared getCorsHeaders function
 
 // Updated to Gemini 2.5 Flash-Lite for optimized low latency
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -73,6 +70,9 @@ const RESPONSE_SCHEMA = {
 };
 
 serve(async (req) => {
+  // Get dynamic CORS headers based on request origin
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
