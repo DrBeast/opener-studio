@@ -41,6 +41,7 @@ import { LogInteractionModal } from "@/components/LogInteractionModal";
 import { PlanInteractionModal } from "@/components/PlanInteractionModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useContactInteractionOverview } from "@/hooks/useContactInteractionOverview";
+import { useInteractionOverview } from "@/hooks/useInteractionOverview";
 import { format } from "date-fns";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
@@ -112,6 +113,10 @@ export function ContactDetails({
     error: overviewError,
     regenerateOverview,
   } = useContactInteractionOverview(contactId);
+
+  // Also regenerate company interaction overview when contact interactions change
+  const { regenerateOverview: regenerateCompanyOverview } =
+    useInteractionOverview(contact?.company_id || "");
 
   useEffect(() => {
     if (contactId && isOpen) {
@@ -264,6 +269,10 @@ export function ContactDetails({
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
+    // Also regenerate company interaction summary
+    if (contact?.company_id) {
+      await regenerateCompanyOverview();
+    }
   };
 
   const handleLogInteractionSuccess = async () => {
@@ -272,6 +281,10 @@ export function ContactDetails({
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
+    // Also regenerate company interaction summary
+    if (contact?.company_id) {
+      await regenerateCompanyOverview();
+    }
   };
 
   const handlePlanInteractionSuccess = async () => {
@@ -280,6 +293,10 @@ export function ContactDetails({
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
+    // Also regenerate company interaction summary
+    if (contact?.company_id) {
+      await regenerateCompanyOverview();
+    }
   };
 
   const handleMessageSaved = async () => {
@@ -287,6 +304,10 @@ export function ContactDetails({
     onContactUpdated();
     // Regenerate interaction summary
     await regenerateOverview();
+    // Also regenerate company interaction summary
+    if (contact?.company_id) {
+      await regenerateCompanyOverview();
+    }
   };
 
   const handleDeleteInteraction = async (interactionId: string) => {
@@ -303,6 +324,10 @@ export function ContactDetails({
       onContactUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
+      // Also regenerate company interaction summary
+      if (contact?.company_id) {
+        await regenerateCompanyOverview();
+      }
     } catch (error) {
       console.error("Error deleting interaction:", error);
       toast.error("Failed to delete interaction");
@@ -345,6 +370,10 @@ export function ContactDetails({
       onContactUpdated();
       // Regenerate interaction summary
       await regenerateOverview();
+      // Also regenerate company interaction summary
+      if (contact?.company_id) {
+        await regenerateCompanyOverview();
+      }
     } catch (error) {
       console.error("Error updating interaction:", error);
       toast.error("Failed to update interaction");

@@ -119,17 +119,14 @@ export const useInteractionOverview = (companyId: string) => {
               hasInteractions: true,
             });
           } else {
-            // If no summary exists, set a default state but do not generate.
-            setOverview({
-              overview:
-                "No summary generated yet. Add an interaction to create one.",
-              hasInteractions: false,
-            });
+            // No stored summary or placeholder text, generate one
+            console.log('No valid stored summary found, generating new one');
+            await generateOverview();
           }
         } catch (err: any) {
           console.error("Error fetching stored summary:", err);
-          setError(err.message || "Failed to fetch summary");
-          setOverview(null);
+          // If fetching fails, try to generate a new summary
+          await generateOverview();
         } finally {
           setIsLoading(false);
         }
