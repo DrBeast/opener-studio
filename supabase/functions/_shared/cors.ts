@@ -1,4 +1,4 @@
-// This file provides CORS headers for all edge functions
+// This file provides CORS and security headers for all edge functions
 
 // Define allowed origins
 const ALLOWED_ORIGINS = [
@@ -26,10 +26,19 @@ export function getCorsHeaders(req: Request) {
   return corsHeaders;
 }
 
-// Legacy static CORS headers (for backward compatibility)
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Max-Age': '86400'
-};
+// Security headers for all edge function responses
+export function getSecurityHeaders() {
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  };
+}
+
+// Combined function for all response headers
+export function getAllResponseHeaders(req: Request) {
+  return {
+    ...getCorsHeaders(req),
+    ...getSecurityHeaders()
+  };
+}

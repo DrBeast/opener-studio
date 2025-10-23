@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
-import { getCorsHeaders } from '../_shared/cors.ts';
+import { getAllResponseHeaders } from '../_shared/cors.ts';
 
 // Medium options defined directly in edge function (cannot import from src)
 const MEDIUM_OPTIONS = [
@@ -70,8 +70,8 @@ const RESPONSE_SCHEMA = {
 };
 
 serve(async (req) => {
-  // Get dynamic CORS headers based on request origin
-  const corsHeaders = getCorsHeaders(req);
+  // Get dynamic CORS and security headers based on request origin
+  const corsHeaders = getAllResponseHeaders(req);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
