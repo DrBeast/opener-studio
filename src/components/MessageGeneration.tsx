@@ -42,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
 import { PrimaryAction, Chip, Button } from "@/components/ui/design-system";
+import { objectiveSchema, additionalContextSchema } from "@/lib/validation";
 
 const MessageSkeleton = () => (
   <div className="space-y-4 animate-pulse pt-4">
@@ -334,6 +335,23 @@ export const MessageGeneration = forwardRef(
 
       const effectiveObjective = getEffectiveObjective();
 
+      // Validate inputs before making API call
+      if (objective === "Custom objective") {
+        const objectiveResult = objectiveSchema.safeParse(customObjective);
+        if (!objectiveResult.success) {
+          toast.error(objectiveResult.error.errors[0].message);
+          return;
+        }
+      }
+
+      if (additionalContext) {
+        const contextResult = additionalContextSchema.safeParse(additionalContext);
+        if (!contextResult.success) {
+          toast.error(contextResult.error.errors[0].message);
+          return;
+        }
+      }
+
       setIsGenerating(true);
       setGeneratedMessages({});
       setEditedMessages({});
@@ -536,8 +554,8 @@ export const MessageGeneration = forwardRef(
         "Custom objective",
       ];
       return (
-        <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
-          <div className="space-y-4">
+        <div className={`flex flex-col h-full ${embedded ? "mt-0" : "mt-4"}`}>
+          <div className="flex-1 space-y-4">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
                 {objectiveOptions.map((option) => (
@@ -591,9 +609,12 @@ export const MessageGeneration = forwardRef(
                 </CollapsibleContent>
               </Collapsible>
             )}
+          </div>
 
+          {/* Medium Selection and Generate Button - Anchored to bottom */}
+          <div className="space-y-4 mt-6 p-4">
             {/* Medium Selection - Flat Cards */}
-            <div className="space-y-2 mt-2">
+            <div className="space-y-2">
               <div className="">
                 <div className="flex gap-3">
                   {MEDIUM_OPTIONS.map((option) => (

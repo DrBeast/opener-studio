@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { OutlineAction } from "./ui/design-system";
+import { feedbackFormSchema } from "@/lib/validation";
 
 interface FeedbackBoxProps {
   viewName: string;
@@ -25,6 +26,17 @@ const FeedbackBox = ({ viewName }: FeedbackBoxProps) => {
 
   const handleSubmit = async () => {
     if (!feedback.trim() || !user) return;
+
+    // Validate input using Zod schema
+    const validationResult = feedbackFormSchema.safeParse({
+      feedback: feedback.trim(),
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      toast.error(errors.feedback?._errors[0] || "Invalid feedback");
+      return;
+    }
 
     setIsSubmitting(true);
     try {

@@ -136,6 +136,21 @@ function extractPartialSummary(jsonText: string): Record<string, unknown> | null
   }
 }
 
+// Validation function for background input
+function validateBackgroundInput(input: string): string | null {
+  if (!input || input.trim().length === 0) {
+    return "Background information is required";
+  }
+  if (input.length > 5000) {
+    return "Background information must be less than 100,000 characters";
+  }
+  const wordCount = input.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount < 50) {
+    return "Background information must contain at least 50 words";
+  }
+  return null;
+}
+
 // Create a Supabase client with the Deno runtime
 const supabaseClient = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -162,6 +177,17 @@ serve(async (req) => {
 
     // Parse the request body - supports both guest and registered users
     const { userId, sessionId, userEmail, backgroundInput } = await req.json();
+
+    // EARLY VALIDATION: Validate background input immediately if provided
+    if (backgroundInput) {
+      const validationError = validateBackgroundInput(backgroundInput);
+      if (validationError) {
+        return new Response(JSON.stringify({ error: validationError }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
 
     // Determine if this is a guest or registered user
     const isGuest = !userId && sessionId;
@@ -196,6 +222,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
+
       combinedContent = backgroundInput;
     } else {
       // Registered: fetch from database

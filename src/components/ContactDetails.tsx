@@ -771,25 +771,9 @@ export function ContactDetails({
             ) : (
               <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
                 <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600">
                   No interactions logged for this contact yet
                 </p>
-                <div className="flex gap-2 justify-center">
-                  <PrimaryAction
-                    size="sm"
-                    onClick={() => setIsLogInteractionOpen(true)}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </PrimaryAction>
-                  <OutlineAction
-                    size="sm"
-                    onClick={() => setIsPlanInteractionOpen(true)}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Plan Interaction
-                  </OutlineAction>
-                </div>
               </div>
             )}
           </TabsContent>

@@ -69,6 +69,25 @@ const RESPONSE_SCHEMA = {
   required: ["messages"]
 };
 
+// Validation function for objective input
+function validateObjective(input: string): string | null {
+  if (!input || input.trim().length === 0) {
+    return "Objective is required";
+  }
+  if (input.length > 1000) {
+    return "Objective must be less than 1,000 characters";
+  }
+  return null;
+}
+
+// Validation function for additional context input
+function validateAdditionalContext(input: string): string | null {
+  if (input && input.length > 2000) {
+    return "Additional context must be less than 2,000 characters";
+  }
+  return null;
+}
+
 serve(async (req) => {
   // Get dynamic CORS and security headers based on request origin
   const corsHeaders = getAllResponseHeaders(req);
@@ -78,6 +97,41 @@ serve(async (req) => {
   }
 
   try {
+    // Parse request body first to validate inputs
+    const { 
+      contact_id, 
+      medium, 
+      objective, 
+      additional_context,
+      is_guest = false,
+      session_id,
+      guest_contact_id,
+      user_profile_id
+    } = await req.json();
+
+    // Validate input parameters
+    const objectiveError = validateObjective(objective);
+    if (objectiveError) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: objectiveError
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
+    }
+
+    const additionalContextError = validateAdditionalContext(additional_context);
+    if (additionalContextError) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: additionalContextError
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
+    }
+
     // Authentication
     const authHeader = req.headers.get('Authorization');
     const supabaseClient = createClient(
@@ -89,18 +143,6 @@ serve(async (req) => {
         }
       }
     );
-
-    // Parse request body to check for guest mode
-    const { 
-      contact_id, 
-      medium, 
-      objective, 
-      additional_context,
-      is_guest = false,
-      session_id,
-      guest_contact_id,
-      user_profile_id
-    } = await req.json();
 
     let user, userProfile, userSummary, contact;
 

@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { Label } from "@/components/ui/airtable-ds/label";
-import { InfoBox } from "@/components/ui/design-system";
 
 interface ProfessionalBackgroundProps {
   backgroundInput: string;
@@ -22,27 +20,6 @@ const ProfessionalBackground = ({
   isEditing = false,
   existingData = {},
 }: ProfessionalBackgroundProps) => {
-  // If editing and backgroundInput is empty, try to populate from existing data
-  const [initialValue] = useState(() => {
-    if (isEditing && !backgroundInput) {
-      // Combine existing data if available for backward compatibility
-      const combinedExisting = [
-        existingData.background,
-        existingData.linkedin && `LinkedIn Profile:\n${existingData.linkedin}`,
-        existingData.additional &&
-          `Additional Details:\n${existingData.additional}`,
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-
-      return combinedExisting || backgroundInput;
-    }
-    return backgroundInput;
-  });
-
-  // Use the initial value if backgroundInput is empty
-  const displayValue = backgroundInput || initialValue;
-
   return (
     <div className="space-y-4">
       <div>
@@ -56,38 +33,13 @@ const ProfessionalBackground = ({
         </p>
       </div>
 
-      <InfoBox
-        title="💡 How to add your background information"
-        description="Copy your LinkedIn profile or professional information to help AI create your profile summary."
-        badges={["LinkedIn Profile", "Professional Bio"]}
-      >
-        <div className="space-y-2">
-          <p>
-            <strong>LinkedIn Profile:</strong> Go to your LinkedIn profile,
-            select everything (CMD/CTRL + A) and copy it (CMD/CTRL + C) into the
-            text box below (CMD/CTRL + V). Don't worry about formatting, just
-            copy everything - AI will figure it out.
-          </p>
-          <p>
-            <strong>Professional Information:</strong> Write about your bio,
-            education, key skills, success stories, achievements, or any other
-            professional information.
-          </p>
-          <p className="font-medium">
-            The AI analyzes your background to highlight your value proposition
-            for specific roles and companies, helping you articulate how you can
-            add value in your networking outreach.
-          </p>
-        </div>
-      </InfoBox>
-
       <div>
         <Textarea
           id="background-input"
           placeholder="Paste your LinkedIn profile or describe your professional background..."
-          value={displayValue}
+          value={backgroundInput}
           onChange={(e) => setBackgroundInput(e.target.value)}
-          className="min-h-[300px]"
+          className="min-h-[300px] text-sm resize-none bg-secondary border-border"
           disabled={isSubmitting}
         />
       </div>

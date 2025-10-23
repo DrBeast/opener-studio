@@ -15,6 +15,7 @@ import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
 import { Label } from "@/components/ui/airtable-ds/label";
+import { profileFormSchema, countWords } from "@/lib/validation";
 
 // Design System Imports
 import {
@@ -129,8 +130,10 @@ const Profile = () => {
 
   useEffect(() => {
     // Check if any changes were made compared to existing data
+    const existingBackground = existingData.background || "";
+    const currentBackground = backgroundInput.trim();
     const hasBackgroundChanges =
-      backgroundInput !== (existingData.background || "");
+      currentBackground !== existingBackground && currentBackground.length > 0;
 
     // Check if any summary fields have changed
     let hasSummaryChanges = false;
@@ -157,6 +160,26 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
+
+    // Don't validate if there are no changes
+    if (!hasChanges) {
+      return;
+    }
+
+    // Validate input using Zod schema
+    const validationResult = profileFormSchema.safeParse({
+      backgroundInput: backgroundInput.trim(),
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      toast({
+        title: "Validation Error",
+        description: errors.backgroundInput?._errors[0] || "Invalid input",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {

@@ -127,6 +127,29 @@ serve(async (req) => {
       });
     }
 
+    // Validate LinkedIn bio input
+    if (typeof linkedin_bio !== 'string' || linkedin_bio.trim().length === 0) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    if (linkedin_bio.length > 100000) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio must be less than 100,000 characters" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const wordCount = linkedin_bio.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 50) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio must contain at least 50 words" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     // Get the Gemini API Key
   const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
   if (!geminiApiKey) {
