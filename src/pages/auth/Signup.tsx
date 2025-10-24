@@ -93,10 +93,9 @@ const Signup = () => {
         });
       }
 
-      // Redirect after a brief delay to allow for authentication to complete
-      setTimeout(() => {
-        navigate(redirectTo);
-      }, 1500);
+      // For email/password signup, user needs to verify email
+      // Redirect to verification pending page
+      navigate("/auth/verification-pending", { state: { email: data.email } });
     } catch (error: any) {
       setIsLoading(false);
 
@@ -123,7 +122,7 @@ const Signup = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
           <CardDescription>
-            Create an account to get started with EngageAI
+            Create an account to continue to your Studio
           </CardDescription>
         </CardHeader>
         <CardContent>
