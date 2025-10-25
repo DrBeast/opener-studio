@@ -6,7 +6,7 @@ import "./index.css";
 
 const root = createRoot(document.getElementById("root")!);
 
-const shouldTrack = import.meta.env.VITE_POSTHOG_ENABLED === "true";
+const shouldTrack = import.meta.env.VITE_PUBLIC_POSTHOG_ENABLED === "true";
 
 root.render(
   <React.StrictMode>
