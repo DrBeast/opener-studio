@@ -118,14 +118,7 @@ const ForgotPassword = () => {
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-[hsl(var(--normaltext))]">
-              Forgot Password?
-            </CardTitle>
-            <CardDescription className="text-center text-[hsl(var(--normaltext))]">
-              No worries, we'll send you reset instructions
-            </CardDescription>
-          </CardHeader>
+          <CardHeader className="space-y-1 pb-0"></CardHeader>
           <CardContent className="pb-6">
             <Form {...form}>
               <form
