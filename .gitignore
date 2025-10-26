@@ -25,3 +25,6 @@ dist-ssr
 .pnpm-store/
 
 .env.local
+
+# Test files
+ratelimit_test_function
