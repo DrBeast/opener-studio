@@ -13,6 +13,8 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import VerificationPending from "@/pages/auth/VerificationPending";
 import AuthCallback from "@/pages/auth/AuthCallback";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import UpdatePassword from "@/pages/auth/UpdatePassword";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import PipelineDashboard from "@/pages/Pipeline";
@@ -53,6 +55,14 @@ const App = () => {
                       element={<VerificationPending />}
                     />
                     <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route
+                      path="/auth/forgot-password"
+                      element={<ForgotPassword />}
+                    />
+                    <Route
+                      path="/auth/update-password"
+                      element={<UpdatePassword />}
+                    />
 
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>
