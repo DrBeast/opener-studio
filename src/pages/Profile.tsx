@@ -290,7 +290,7 @@ const Profile = () => {
                 <p className="text-gray-600 mt-2">
                   {editMode
                     ? "Update your professional background and let AI generate your summary"
-                    : "Your AI-generated professional summary for networking and outreach"}
+                    : "Your professional summary for networking and outreach"}
                 </p>
               </div>
               {!editMode && (
@@ -339,7 +339,7 @@ const Profile = () => {
                       </>
                     ) : (
                       <>
-                        Save Changes
+                        Save & Regenerate
                         <Save className="h-4 w-4 ml-2" />
                       </>
                     )}
@@ -449,13 +449,6 @@ const Profile = () => {
                     </div>
                   </div>
                 )}
-
-                <div className="flex justify-end pt-4 border-t border-gray-100">
-                  <OutlineAction onClick={handleRegenerateAISummary}>
-                    <RefreshCcw className="h-4 w-4 mr-2" />
-                    Regenerate Summary
-                  </OutlineAction>
-                </div>
               </div>
             )}
 
