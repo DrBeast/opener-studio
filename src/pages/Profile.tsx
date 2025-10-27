@@ -54,6 +54,7 @@ const Profile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
   const [existingData, setExistingData] = useState<{
     background?: string;
     linkedin?: string;
@@ -64,6 +65,20 @@ const Profile = () => {
   const [editableSummary, setEditableSummary] = useState<Background | null>(
     null
   );
+
+  // Helper function to count words
+  const countWords = (text: string): number => {
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+  };
+
+  // Update word count when background input changes
+  useEffect(() => {
+    const words = countWords(backgroundInput);
+    setWordCount(words);
+  }, [backgroundInput]);
 
   useEffect(() => {
     if (!user) {
@@ -166,6 +181,16 @@ const Profile = () => {
       return;
     }
 
+    // Check minimum word count
+    if (wordCount < 50) {
+      toast({
+        title: "More Information Needed",
+        description: `Please provide at least 50 words about your professional background (currently ${wordCount} words).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate input using Zod schema
     const validationResult = profileFormSchema.safeParse({
       backgroundInput: backgroundInput.trim(),
@@ -188,18 +213,10 @@ const Profile = () => {
         background_input: backgroundInput,
       });
 
-      // Save the updated summary data if in edit mode
-      if (editMode && editableSummary) {
-        await saveSummaryData(user.id, editableSummary);
-
-        // Update the backgroundSummary state with the edited values
-        setBackgroundSummary(editableSummary);
-      } else {
-        // If not in edit mode, call the edge function to regenerate the summary
-        const summary = await regenerateAISummary(user.id, user.email || "");
-        if (summary) {
-          setBackgroundSummary(summary);
-        }
+      // ALWAYS call the edge function to regenerate the summary
+      const summary = await regenerateAISummary(user.id, user.email || "");
+      if (summary) {
+        setBackgroundSummary(summary);
       }
 
       toast({
@@ -209,11 +226,13 @@ const Profile = () => {
 
       setEditMode(false);
       setHasChanges(false);
-    } catch (error: any) {
-      console.error("Error submitting profile data:", error.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      console.error("Error submitting profile data:", errorMessage);
       toast({
         title: "Error",
-        description: `Failed to process profile information: ${error.message}`,
+        description: `Failed to process profile information: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -310,15 +329,8 @@ const Profile = () => {
                   isSubmitting={isSubmitting}
                   isEditing={Object.keys(existingData).length > 0}
                   existingData={existingData}
+                  wordCount={wordCount}
                 />
-
-                {/* Editable AI Summary Section */}
-                {editableSummary && (
-                  <EditableSummary
-                    editableSummary={editableSummary}
-                    onSummaryChange={handleSummaryChange}
-                  />
-                )}
 
                 <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
                   <OutlineAction
@@ -330,7 +342,7 @@ const Profile = () => {
                   <Button
                     variant="success"
                     onClick={handleSaveProfile}
-                    disabled={!hasChanges || isSubmitting}
+                    disabled={!hasChanges || isSubmitting || wordCount < 50}
                   >
                     {isSubmitting ? (
                       <>

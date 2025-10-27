@@ -83,6 +83,79 @@ const EditableSummary = ({
       </div>
     );
   };
+
+  return (
+    <div className="space-y-6">
+      {/* Overall Blurb Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Overall Summary
+        </Label>
+        <Textarea
+          value={editableSummary.overall_blurb || ""}
+          onChange={(e) => onSummaryChange("overall_blurb", e.target.value)}
+          rows={4}
+          className="bg-secondary border-border"
+        />
+      </div>
+
+      {/* Value Proposition Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Value Proposition
+        </Label>
+        <Textarea
+          value={editableSummary.value_proposition_summary || ""}
+          onChange={(e) =>
+            onSummaryChange("value_proposition_summary", e.target.value)
+          }
+          rows={4}
+          className="bg-secondary border-border"
+        />
+      </div>
+
+      {/* Expertise Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">Expertise</Label>
+        <Textarea
+          value={editableSummary.expertise}
+          onChange={(e) => onSummaryChange("expertise", e.target.value)}
+          rows={3}
+          className="bg-secondary border-border"
+        />
+      </div>
+
+      {/* Key Skills */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Key Skills
+        </Label>
+        {renderEditableArrayItems("key_skills", editableSummary.key_skills)}
+      </div>
+
+      {/* Domain Expertise */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Domain Expertise
+        </Label>
+        {renderEditableArrayItems(
+          "domain_expertise",
+          editableSummary.domain_expertise
+        )}
+      </div>
+
+      {/* Technical Expertise */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Technical Expertise
+        </Label>
+        {renderEditableArrayItems(
+          "technical_expertise",
+          editableSummary.technical_expertise
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default EditableSummary;

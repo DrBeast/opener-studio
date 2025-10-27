@@ -141,7 +141,7 @@ function validateBackgroundInput(input: string): string | null {
   if (!input || input.trim().length === 0) {
     return "Background information is required";
   }
-  if (input.length > 5000) {
+  if (input.length > 100000) {
     return "Background information must be less than 100,000 characters";
   }
   const wordCount = input.trim().split(/\s+/).filter(Boolean).length;

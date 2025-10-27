@@ -11,6 +11,7 @@ interface ProfessionalBackgroundProps {
     linkedin?: string;
     additional?: string;
   };
+  wordCount?: number;
 }
 
 const ProfessionalBackground = ({
@@ -19,12 +20,13 @@ const ProfessionalBackground = ({
   isSubmitting,
   isEditing = false,
   existingData = {},
+  wordCount = 0,
 }: ProfessionalBackgroundProps) => {
   return (
     <div className="space-y-4">
       <Textarea
         id="background-input"
-        placeholder="Paste your LinkedIn profile or CV or type in your professional background (50 words min)..."
+        placeholder="Paste your LinkedIn profile or CV or type in your professional background (50 words min)"
         value={backgroundInput}
         onChange={(e) => setBackgroundInput(e.target.value)}
         className="min-h-[300px] text-sm resize-none bg-secondary border-border"
