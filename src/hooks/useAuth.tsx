@@ -130,6 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           (key.startsWith("sb-") ||
             key.startsWith("supabase.") ||
             key.startsWith("linked-profile-") ||
+            key.startsWith("messageGeneration_") ||
             key === "guest_session_id")
         ) {
           keysToRemove.push(key);
