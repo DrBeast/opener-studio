@@ -25,12 +25,13 @@ import {
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/airtable-ds/alert";
 import { Loader2, Mail, Lock, Linkedin } from "lucide-react";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(VALIDATION_LIMITS.MIN_CHARS_PASSWORD, {
+    message: `Password must be at least ${VALIDATION_LIMITS.MIN_CHARS_PASSWORD} characters`,
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;

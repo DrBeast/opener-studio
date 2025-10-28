@@ -24,12 +24,13 @@ import {
 } from "@/components/ui/airtable-ds/form";
 import { Loader2, Lock, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 const formSchema = z
   .object({
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters" }),
+    password: z.string().min(VALIDATION_LIMITS.MIN_CHARS_PASSWORD, {
+      message: `Password must be at least ${VALIDATION_LIMITS.MIN_CHARS_PASSWORD} characters`,
+    }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

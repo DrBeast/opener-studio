@@ -16,6 +16,7 @@ import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
 import { Label } from "@/components/ui/airtable-ds/label";
 import { profileFormSchema, countWords } from "@/lib/validation";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 // Design System Imports
 import {
@@ -182,10 +183,10 @@ const Profile = () => {
     }
 
     // Check minimum word count
-    if (wordCount < 50) {
+    if (wordCount < VALIDATION_LIMITS.MIN_WORDS_BG) {
       toast({
         title: "More Information Needed",
-        description: `Please provide at least 50 words about your professional background (currently ${wordCount} words).`,
+        description: `Please provide at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words about your professional background (currently ${wordCount} words).`,
         variant: "destructive",
       });
       return;
@@ -342,7 +343,11 @@ const Profile = () => {
                   <Button
                     variant="success"
                     onClick={handleSaveProfile}
-                    disabled={!hasChanges || isSubmitting || wordCount < 50}
+                    disabled={
+                      !hasChanges ||
+                      isSubmitting ||
+                      wordCount < VALIDATION_LIMITS.MIN_WORDS_BG
+                    }
                   >
                     {isSubmitting ? (
                       <>

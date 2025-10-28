@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 import { getAllResponseHeaders } from "../_shared/cors.ts";
+import { VALIDATION_LIMITS } from "../_shared/validation-constants.ts";
 
 // Updated to Gemini 2.5 Flash-Lite for optimized low latency
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -141,12 +142,12 @@ function validateBackgroundInput(input: string): string | null {
   if (!input || input.trim().length === 0) {
     return "Background information is required";
   }
-  if (input.length > 100000) {
-    return "Background information must be less than 100,000 characters";
+  if (input.length > VALIDATION_LIMITS.MAX_CHARS_BG) {
+    return `Background information must be less than ${VALIDATION_LIMITS.MAX_CHARS_BG} characters`;
   }
   const wordCount = input.trim().split(/\s+/).filter(Boolean).length;
-  if (wordCount < 50) {
-    return "Background information must contain at least 50 words";
+  if (wordCount < VALIDATION_LIMITS.MIN_WORDS_BG) {
+    return `Background information must contain at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words`;
   }
   return null;
 }
@@ -281,6 +282,15 @@ serve(async (req) => {
 
       console.log("Profile data found with background_input content");
       combinedContent = profileData.background_input;
+
+      // FIX: Validate the content fetched from the database
+      const validationError = validateBackgroundInput(combinedContent);
+      if (validationError) {
+        return new Response(JSON.stringify({ error: validationError }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     console.log(`Combined content length: ${combinedContent.length} characters`);

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/design-system/buttons";
 import { ContactPreview } from "./ContactPreview";
 import { Label } from "@/components/ui/airtable-ds/label";
 import { addContactFormSchema } from "@/lib/validation";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 // --- Interface Definitions ---
 interface CreatedContact {
@@ -47,7 +48,7 @@ export const AddContact = ({
     const words = linkedinBio.trim().split(/\s+/).filter(Boolean);
     const count = words.length;
     setWordCount(count);
-    setIsBioValid(count >= 50);
+    setIsBioValid(count >= VALIDATION_LIMITS.MIN_WORDS_BG);
     sessionStorage.setItem("linkedinBioDraft", linkedinBio);
   }, [linkedinBio]);
 
@@ -105,7 +106,7 @@ export const AddContact = ({
               <Textarea
                 value={linkedinBio}
                 onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)"
+                placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
                 className="h-full text-sm resize-none bg-secondary border-border"
               />
             </div>

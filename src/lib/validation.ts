@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VALIDATION_LIMITS } from "./validation-constants";
 
 // Helper to count words
 export const countWords = (text: string): number => {
@@ -10,32 +11,47 @@ export const linkedinBioSchema = z
   .string()
   .trim()
   .min(1, "LinkedIn bio is required")
-  .max(100000, "LinkedIn bio must be less than 100,000 characters")
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_BG,
+    `LinkedIn bio must be less than ${VALIDATION_LIMITS.MAX_CHARS_BG} characters`
+  )
   .refine(
-    (val) => countWords(val) >= 50,
-    "LinkedIn bio must contain at least 50 words"
+    (val) => countWords(val) >= VALIDATION_LIMITS.MIN_WORDS_BG,
+    `LinkedIn bio must contain at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words`
   );
 
 export const interactionDescriptionSchema = z
   .string()
   .trim()
-  .max(5000, "Description must be less than 5,000 characters")
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_INTERACTION,
+    `Description must be less than ${VALIDATION_LIMITS.MAX_CHARS_INTERACTION} characters`
+  )
   .optional();
 
 export const feedbackTextSchema = z
   .string()
   .trim()
-  .min(10, "Feedback must be at least 10 characters")
-  .max(2000, "Feedback must be less than 2,000 characters");
+  .min(
+    VALIDATION_LIMITS.MIN_CHARS_FEEDBACK,
+    `Feedback must be at least ${VALIDATION_LIMITS.MIN_CHARS_FEEDBACK} characters`
+  )
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_FEEDBACK,
+    `Feedback must be less than ${VALIDATION_LIMITS.MAX_CHARS_FEEDBACK} characters`
+  );
 
 export const profileBackgroundSchema = z
   .string()
   .trim()
   .min(1, "Background information is required")
-  .max(100000, "Background must be less than 100,000 characters")
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_BG,
+    `Background must be less than ${VALIDATION_LIMITS.MAX_CHARS_BG} characters`
+  )
   .refine(
-    (val) => countWords(val) >= 50,
-    "Background must contain at least 50 words"
+    (val) => countWords(val) >= VALIDATION_LIMITS.MIN_WORDS_BG,
+    `Background must contain at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words`
   );
 
 // Form schemas
@@ -65,10 +81,16 @@ export const objectiveSchema = z
   .string()
   .trim()
   .min(1, "Objective is required")
-  .max(1000, "Objective must be less than 1,000 characters");
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_OBJECTIVE,
+    `Objective must be less than ${VALIDATION_LIMITS.MAX_CHARS_OBJECTIVE} characters`
+  );
 
 export const additionalContextSchema = z
   .string()
   .trim()
-  .max(2000, "Additional context must be less than 2,000 characters")
+  .max(
+    VALIDATION_LIMITS.MAX_CHARS_FEEDBACK,
+    `Additional context must be less than ${VALIDATION_LIMITS.MAX_CHARS_FEEDBACK} characters`
+  )
   .optional();

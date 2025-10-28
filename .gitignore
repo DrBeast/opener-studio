@@ -28,3 +28,4 @@ dist-ssr
 
 # Test files
 ratelimit_test_function
+validation_test_function
