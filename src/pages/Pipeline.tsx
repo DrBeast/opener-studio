@@ -15,6 +15,9 @@ import {
 
 import { useCompanies } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
+import { useRequireProfile } from "@/hooks/useRequireProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -36,7 +39,9 @@ interface ContactForMessage {
 }
 
 const PipelineDashboard = () => {
-  const navigate = useNavigate();
+  useRequireProfile();
+
+  const { user, loading: authLoading } = useAuth();
   const { companies, isLoading: companiesLoading } = useCompanies();
 
   const { contacts, fetchContacts } = useContacts();
@@ -106,6 +111,14 @@ const PipelineDashboard = () => {
   };
 
   const isLoading = companiesLoading;
+
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

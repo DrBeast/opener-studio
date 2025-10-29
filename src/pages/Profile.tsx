@@ -295,6 +295,8 @@ const Profile = () => {
     }
   };
 
+  const isSetupFlow = searchParams.get("setup") === "true";
+
   return (
     <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2">
       {/* Full-Width Card with Profile Content */}
@@ -320,6 +322,14 @@ const Profile = () => {
                 </OutlineAction>
               )}
             </div>
+
+            {isSetupFlow && (
+              <InfoBox
+                title="Welcome to your Studio!"
+                description={` Let's set up your profile - just this once.`}
+                className="mb-6"
+              />
+            )}
 
             {/* Edit Form - When in edit mode */}
             {editMode && (
