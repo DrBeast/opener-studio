@@ -174,9 +174,11 @@ export const MessageGeneration = forwardRef(
       getInitialState("isContextExpanded", false)
     );
     const [activeTab, setActiveTab] = useState<string>("Version 1");
-    // Guest-only: whether messages are present and generation has completed
-    const hasMessages =
-      isGuest && !isGenerating && Object.keys(generatedMessages).length > 0;
+    // Whether messages are present and generation has completed
+    const hasMessagesAny =
+      !isGenerating && Object.keys(generatedMessages).length > 0;
+    // Guest-only alias preserved for clarity in guest-specific UI below
+    const hasMessages = isGuest && hasMessagesAny;
     // Sentinel for auto-scrolling the view to the latest content
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -668,7 +670,7 @@ export const MessageGeneration = forwardRef(
               </div>
 
               {/* Generate Button - Flat */}
-              {hasMessages ? (
+              {hasMessagesAny ? (
                 <OutlineAction
                   onClick={onGenerateClick || generateMessages}
                   disabled={
@@ -756,7 +758,7 @@ export const MessageGeneration = forwardRef(
 
                             {!isGuest && (
                               <PrimaryAction
-                                size="sm"
+                                size={hasMessagesAny ? "default" : "sm"}
                                 onClick={() => {
                                   copyMessage(
                                     editedMessages[version] || content.text
@@ -766,7 +768,11 @@ export const MessageGeneration = forwardRef(
                                     editedMessages[version] || content.text
                                   );
                                 }}
-                                className="shadow-md hover:shadow-lg transition-all"
+                                className={`transition-all ${
+                                  hasMessagesAny
+                                    ? "ring-2 ring-primary shadow-lg scale-[1.02]"
+                                    : "shadow-md hover:shadow-lg"
+                                }`}
                               >
                                 <Save className="mr-1 h-4 w-4" />
                                 Copy and Save to History
