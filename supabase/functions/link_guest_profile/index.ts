@@ -91,24 +91,27 @@ serve(async (req) => {
       .maybeSingle();
 
     // ============================================================================
-    // STEP 2: Transfer guest user profile to user_profiles
+    // STEP 2: Transfer guest user profile to user_profiles (IDEMPOTENT)
+    // Use upsert on user_id to avoid duplicate profiles if linking runs twice
     // ============================================================================
     const { data: newUserProfile, error: profileError } = await supabaseClient
       .from("user_profiles")
-      .insert({
-            user_id: userId,
-            first_name: guestProfile.first_name,
-            last_name: guestProfile.last_name,
-            job_role: guestProfile.job_role,
-            current_company: guestProfile.current_company,
-            location: guestProfile.location,
-        background_input: guestProfile.background_input,
-              linkedin_content: guestProfile.linkedin_content,
-        cv_content: guestProfile.cv_content,
-              additional_details: guestProfile.additional_details,
-              created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .upsert(
+        {
+          user_id: userId,
+          first_name: guestProfile.first_name,
+          last_name: guestProfile.last_name,
+          job_role: guestProfile.job_role,
+          current_company: guestProfile.current_company,
+          location: guestProfile.location,
+          background_input: guestProfile.background_input,
+          linkedin_content: guestProfile.linkedin_content,
+          cv_content: guestProfile.cv_content,
+          additional_details: guestProfile.additional_details,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      )
       .select("profile_id")
       .single();
 
@@ -119,27 +122,30 @@ serve(async (req) => {
     }
 
     // ============================================================================
-    // STEP 3: Transfer guest user summary to user_summaries if it exists
+    // STEP 3: Transfer guest user summary to user_summaries if it exists (IDEMPOTENT)
+    // Use upsert on user_id to avoid duplicate summaries and 23505 errors
     // ============================================================================
       if (guestSummary) {
       const { error: summaryError } = await supabaseClient
           .from("user_summaries")
-        .insert({
-                user_id: userId,
-                experience: guestSummary.experience,
-                education: guestSummary.education,
-                expertise: guestSummary.expertise,
-                achievements: guestSummary.achievements,
-                overall_blurb: guestSummary.overall_blurb,
-                combined_experience_highlights: guestSummary.combined_experience_highlights,
-                combined_education_highlights: guestSummary.combined_education_highlights,
-                key_skills: guestSummary.key_skills,
-                domain_expertise: guestSummary.domain_expertise,
-                technical_expertise: guestSummary.technical_expertise,
-                value_proposition_summary: guestSummary.value_proposition_summary,
-          generated_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-        });
+        .upsert(
+          {
+            user_id: userId,
+            experience: guestSummary.experience,
+            education: guestSummary.education,
+            expertise: guestSummary.expertise,
+            achievements: guestSummary.achievements,
+            overall_blurb: guestSummary.overall_blurb,
+            combined_experience_highlights: guestSummary.combined_experience_highlights,
+            combined_education_highlights: guestSummary.combined_education_highlights,
+            key_skills: guestSummary.key_skills,
+            domain_expertise: guestSummary.domain_expertise,
+            technical_expertise: guestSummary.technical_expertise,
+            value_proposition_summary: guestSummary.value_proposition_summary,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
 
       if (summaryError) {
         console.error("[LINK] Error transferring summary:", summaryError);
