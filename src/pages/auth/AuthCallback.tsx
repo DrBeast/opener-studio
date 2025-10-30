@@ -17,7 +17,7 @@ const AuthCallback = () => {
   const [redirectStatus, setRedirectStatus] = useState<string>(
     "Checking authentication..."
   );
-  const [linkAttempts, setLinkAttempts] = useState(0);
+  const [isLinkingComplete, setIsLinkingComplete] = useState(false);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -65,65 +65,30 @@ const AuthCallback = () => {
         const user = data.session.user;
         console.log("Authentication successful, user data:", user);
 
-        // Check if there's a temporary profile to link
-        setRedirectStatus("Checking for guest profile to link...");
+        // Check if there's a guest session to link (will be handled in separate useEffect)
         const sessionId = localStorage.getItem("guest_session_id");
-
-        if (sessionId && user) {
-          try {
-            console.log(
-              `AuthCallback: Found session ID ${sessionId}, attempting to link guest profile to user ${user.id}`
-            );
-            setRedirectStatus("Linking your guest profile...");
-
-            // Important: Create a linkStatusKey unique to this user and session
-            const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
-            const alreadyLinked = localStorage.getItem(linkStatusKey);
-
-            if (!alreadyLinked) {
-              // First link attempt
-              await linkGuestProfile(user.id, sessionId);
-
-              // If first attempt appears to fail (we'll check again below), try a few more times
-              setTimeout(async () => {
-                // Check if the profile was linked
-                const { data: profileCheck } = await supabase
-                  .from("user_profiles")
-                  .select("*")
-                  .eq("user_id", user.id)
-                  .maybeSingle();
-
-                if (!profileCheck && linkAttempts < 3) {
-                  console.log(
-                    `AuthCallback: Profile may not be linked after first attempt. Retry #${
-                      linkAttempts + 1
-                    }`
-                  );
-                  setLinkAttempts((prev) => prev + 1);
-                  await linkGuestProfile(user.id, sessionId);
-                }
-              }, 1500);
-            } else {
-              console.log(
-                "AuthCallback: Guest profile was already linked for this session and user"
-              );
-            }
-          } catch (linkErr) {
-            console.error("Failed to link guest profile:", linkErr);
-            toast.error("Failed to link your profile data");
-          }
+        if (sessionId) {
+          console.log(
+            `AuthCallback: Found guest session ${sessionId}, will be linked separately`
+          );
         }
 
         // LinkedIn auth is no longer supported - removed to prevent duplicate profile creation
         toast.success("Successfully logged in");
 
-        // Always navigate to pipeline after successful authentication
-        setRedirectStatus("Redirecting to pipeline...");
-        navigate("/pipeline");
-      } catch (err: any) {
-        console.error("Unexpected error during authentication:", err.message);
+        // Only navigate to pipeline after linking is complete
+        if (isLinkingComplete) {
+          setRedirectStatus("Redirecting to pipeline...");
+          navigate("/pipeline");
+        } else {
+          setRedirectStatus("Preparing your account...");
+        }
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        console.error("Unexpected error during authentication:", errorMessage);
         console.error("Full error details:", err);
-        setError(`Unexpected error: ${err.message}`);
+        setError(`Unexpected error: ${errorMessage}`);
         setDebugInfo("Please check browser console for more details");
         toast.error("An unexpected error occurred. Please try again.");
         setTimeout(() => navigate("/auth/login"), 5000);
@@ -131,7 +96,67 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate, linkAttempts]);
+  }, [navigate]);
+
+  // Handle guest profile linking in separate useEffect to prevent double execution
+  useEffect(() => {
+    const handleGuestLinking = async () => {
+      const sessionId = localStorage.getItem("guest_session_id");
+      if (!sessionId) {
+        // No guest session, linking is complete
+        setIsLinkingComplete(true);
+        return;
+      }
+
+      // Get current user
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) {
+        // No user, linking is complete
+        setIsLinkingComplete(true);
+        return;
+      }
+
+      const user = session.user;
+      console.log(
+        `AuthCallback: Found session ID ${sessionId}, attempting to link guest profile to user ${user.id}`
+      );
+      setRedirectStatus("Linking your guest profile...");
+
+      try {
+        // Check if already linked
+        const linkStatusKey = `linked-profile-${sessionId}-${user.id}`;
+        const alreadyLinked = localStorage.getItem(linkStatusKey);
+
+        if (!alreadyLinked) {
+          await linkGuestProfile(user.id, sessionId);
+        } else {
+          console.log(
+            "AuthCallback: Guest profile was already linked for this session and user"
+          );
+        }
+      } catch (linkErr) {
+        console.error("Failed to link guest profile:", linkErr);
+        toast.error("Failed to link your profile data");
+      } finally {
+        // Always mark linking as complete, regardless of success/failure
+        setIsLinkingComplete(true);
+      }
+    };
+
+    // Run linking after a short delay to ensure auth is complete
+    const timeoutId = setTimeout(handleGuestLinking, 100);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Navigate to pipeline when linking is complete
+  useEffect(() => {
+    if (isLinkingComplete) {
+      setRedirectStatus("Redirecting to pipeline...");
+      navigate("/pipeline");
+    }
+  }, [isLinkingComplete, navigate]);
 
   // Define the guest profile linking function within the component
   const linkGuestProfile = async (userId: string, sessionId: string) => {
@@ -139,9 +164,7 @@ const AuthCallback = () => {
       console.log(
         `AuthCallback: Attempting to link guest profile for session ${sessionId} to user ${userId}`
       );
-      setRedirectStatus(
-        `Linking guest profile... (Attempt ${linkAttempts + 1})`
-      );
+      setRedirectStatus("Linking guest profile...");
 
       const { data, error } = await supabase.functions.invoke(
         "link_guest_profile",
@@ -156,7 +179,16 @@ const AuthCallback = () => {
         return false;
       }
 
-      if (data?.success) {
+      // Check if anything was actually transferred
+      const transferred = data?.transferred;
+      const success =
+        transferred &&
+        (transferred.profile ||
+          transferred.summary ||
+          transferred.contacts > 0 ||
+          transferred.messages > 0);
+
+      if (success) {
         // Mark this session as linked for this specific user
         const linkStatusKey = `linked-profile-${sessionId}-${userId}`;
         localStorage.setItem(
@@ -172,8 +204,10 @@ const AuthCallback = () => {
         );
         toast.success("Your profile data has been saved to your account");
         return true;
+      } else {
+        console.log("AuthCallback: No guest data found to link");
+        return false;
       }
-      return false;
     } catch (err) {
       console.error("Failed to link guest profile:", err);
       toast.error("Failed to link your profile data");
@@ -219,8 +253,7 @@ const AuthCallback = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               <h2 className="text-xl font-medium">Logging you in...</h2>
               <p className="text-center text-muted-foreground">
-                {redirectStatus}{" "}
-                {linkAttempts > 0 && `(Attempt ${linkAttempts})`}
+                {redirectStatus}
               </p>
             </>
           )}

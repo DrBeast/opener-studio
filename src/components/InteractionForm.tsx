@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { interactionFormSchema } from "@/lib/validation";
+import { TextCounter } from "@/components/ui/TextCounter";
 
 interface ContactData {
   contact_id: string;
@@ -59,20 +63,23 @@ export function InteractionForm({
   isPlanningMode = false,
 }: InteractionFormProps) {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
-    interaction_type:
-      existingInteraction?.interaction_type ||
-      (isPlanningMode ? "Planned Action" : "Email"),
-    description: existingInteraction?.description || "",
-    interaction_date:
-      existingInteraction?.interaction_date ||
-      (isPlanningMode ? null : new Date().toISOString()),
-    contact_id: existingInteraction?.contact_id || "",
-    medium: existingInteraction?.medium || "",
-    follow_up_due_date: existingInteraction?.follow_up_due_date || null,
-    follow_up_completed: false,
-  });
   const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(interactionFormSchema),
+    defaultValues: {
+      interaction_type:
+        existingInteraction?.interaction_type ||
+        (isPlanningMode ? "Planned Action" : "Email"),
+      description: existingInteraction?.description || "",
+      interaction_date:
+        existingInteraction?.interaction_date ||
+        (isPlanningMode ? null : new Date().toISOString()),
+      contact_id: existingInteraction?.contact_id || "",
+      medium: existingInteraction?.medium || "",
+      follow_up_due_date: existingInteraction?.follow_up_due_date || null,
+    },
+  });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     existingInteraction?.interaction_date
       ? new Date(existingInteraction.interaction_date)
@@ -86,32 +93,13 @@ export function InteractionForm({
       : undefined
   );
 
-  // Handle form changes
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   // Handle date selection
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
-      setFormData((prev) => ({
-        ...prev,
-        interaction_date: date.toISOString(),
-      }));
+      form.setValue("interaction_date", date.toISOString());
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        interaction_date: null,
-      }));
+      form.setValue("interaction_date", null);
     }
   };
 
@@ -119,21 +107,14 @@ export function InteractionForm({
   const handleFollowUpDateSelect = (date: Date | undefined) => {
     setFollowUpDate(date);
     if (date) {
-      setFormData((prev) => ({
-        ...prev,
-        follow_up_due_date: date.toISOString(),
-      }));
+      form.setValue("follow_up_due_date", date.toISOString());
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        follow_up_due_date: null,
-      }));
+      form.setValue("follow_up_due_date", null);
     }
   };
 
   // Submit interaction
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: any) => {
     setIsLoading(true);
 
     try {
@@ -144,12 +125,12 @@ export function InteractionForm({
       const interactionData = {
         company_id: companyId,
         user_id: user.id, // Add user ID from auth context
-        interaction_type: formData.interaction_type,
-        description: formData.description,
-        interaction_date: formData.interaction_date || null,
-        contact_id: formData.contact_id || null,
-        medium: formData.medium || null,
-        follow_up_due_date: formData.follow_up_due_date,
+        interaction_type: data.interaction_type,
+        description: data.description,
+        interaction_date: data.interaction_date || null,
+        contact_id: data.contact_id || null,
+        medium: data.medium || null,
+        follow_up_due_date: data.follow_up_due_date,
         follow_up_completed: false,
       };
 
@@ -237,7 +218,7 @@ export function InteractionForm({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="company">Company</Label>
             <Input id="company" value={companyName} disabled />
@@ -249,9 +230,7 @@ export function InteractionForm({
             </Label>
             <select
               id="interaction_type"
-              name="interaction_type"
-              value={formData.interaction_type}
-              onChange={handleChange}
+              {...form.register("interaction_type")}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {getInteractionTypeOptions().map((option) => (
@@ -266,9 +245,7 @@ export function InteractionForm({
             <Label htmlFor="contact_id">Contact (Optional)</Label>
             <select
               id="contact_id"
-              name="contact_id"
-              value={formData.contact_id}
-              onChange={handleChange}
+              {...form.register("contact_id")}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Select a contact</option>
@@ -316,9 +293,7 @@ export function InteractionForm({
             <Label htmlFor="medium">Medium (Optional)</Label>
             <Input
               id="medium"
-              name="medium"
-              value={formData.medium}
-              onChange={handleChange}
+              {...form.register("medium")}
               placeholder={
                 isPlanningMode
                   ? "e.g., Email, LinkedIn, Phone"
@@ -333,16 +308,19 @@ export function InteractionForm({
             </Label>
             <Textarea
               id="description"
-              name="description"
+              {...form.register("description")}
               rows={3}
-              value={formData.description}
-              onChange={handleChange}
               placeholder={
                 isPlanningMode
                   ? "Describe what you plan to do..."
                   : "Describe the interaction..."
               }
               required
+            />
+            <TextCounter
+              text={form.watch("description") || ""}
+              maxChars={5000}
+              showChars={true}
             />
           </div>
 

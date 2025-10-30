@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.42.2';
+import { getAllResponseHeaders } from '../_shared/cors.ts';
 
 // Medium options defined directly in edge function (cannot import from src)
 const MEDIUM_OPTIONS = [
@@ -20,11 +21,7 @@ const MEDIUM_OPTIONS = [
   }
 ];
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type, x-client-info, apikey',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
+// CORS headers are now handled by shared getCorsHeaders function
 
 // Updated to Gemini 2.5 Flash-Lite for optimized low latency
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -72,12 +69,69 @@ const RESPONSE_SCHEMA = {
   required: ["messages"]
 };
 
+// Validation function for objective input
+function validateObjective(input: string): string | null {
+  if (!input || input.trim().length === 0) {
+    return "Objective is required";
+  }
+  if (input.length > 1000) {
+    return "Objective must be less than 1,000 characters";
+  }
+  return null;
+}
+
+// Validation function for additional context input
+function validateAdditionalContext(input: string): string | null {
+  if (input && input.length > 2000) {
+    return "Additional context must be less than 2,000 characters";
+  }
+  return null;
+}
+
 serve(async (req) => {
+  // Get dynamic CORS and security headers based on request origin
+  const corsHeaders = getAllResponseHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Parse request body first to validate inputs
+    const { 
+      contact_id, 
+      medium, 
+      objective, 
+      additional_context,
+      is_guest = false,
+      session_id,
+      guest_contact_id,
+      user_profile_id
+    } = await req.json();
+
+    // Validate input parameters
+    const objectiveError = validateObjective(objective);
+    if (objectiveError) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: objectiveError
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
+    }
+
+    const additionalContextError = validateAdditionalContext(additional_context);
+    if (additionalContextError) {
+      return new Response(JSON.stringify({
+        status: 'error',
+        message: additionalContextError
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
+    }
+
     // Authentication
     const authHeader = req.headers.get('Authorization');
     const supabaseClient = createClient(
@@ -89,18 +143,6 @@ serve(async (req) => {
         }
       }
     );
-
-    // Parse request body to check for guest mode
-    const { 
-      contact_id, 
-      medium, 
-      objective, 
-      additional_context,
-      is_guest = false,
-      session_id,
-      guest_contact_id,
-      user_profile_id
-    } = await req.json();
 
     let user, userProfile, userSummary, contact;
 

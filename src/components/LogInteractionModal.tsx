@@ -10,6 +10,8 @@ import { toast } from "@/components/ui/airtable-ds/sonner";
 import { format } from "date-fns";
 import { Modal } from "@/components/ui/design-system/modals";
 import { PrimaryAction, OutlineAction } from "@/components/ui/design-system";
+import { interactionDescriptionSchema } from "@/lib/validation";
+import { TextCounter } from "@/components/ui/TextCounter";
 
 interface ContactData {
   contact_id: string;
@@ -136,6 +138,19 @@ export const LogInteractionModal = ({
     e.preventDefault();
     if (!user || !description.trim()) return;
 
+    // Validate description using Zod schema
+    const validationResult = interactionDescriptionSchema.safeParse(
+      description.trim()
+    );
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      toast.error(
+        errors._errors[0] || "Description must be less than 5,000 characters"
+      );
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Create the base interaction data
@@ -221,6 +236,7 @@ export const LogInteractionModal = ({
               rows={3}
               required
             />
+            <TextCounter text={description} maxChars={5000} showChars={true} />
           </div>
         </div>
 

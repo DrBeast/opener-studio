@@ -70,7 +70,7 @@ const LandingPage = () => {
               <PrimaryAction
                 onClick={handleOpenStudio}
                 size="lg"
-                className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105"
+                className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 h-24"
               >
                 <Sparkles className="mr-3 h-6 w-6" />
                 Open the Studio

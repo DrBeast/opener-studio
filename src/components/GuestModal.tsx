@@ -8,6 +8,7 @@ import { GuestContactPreview } from "./guest/GuestContactPreview";
 import { GuestProfileSummary } from "./guest/GuestProfileSummary";
 import { MessageGeneration } from "./MessageGeneration";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 interface MessageGenerationHandle {
   generateMessages: () => void;
@@ -90,8 +91,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
   const messageGenRef = useRef<MessageGenerationHandle>(null);
 
   const biosAreReady =
-    userBio.trim().split(/\s+/).length >= 50 &&
-    contactBio.trim().split(/\s+/).length >= 50;
+    userBio.trim().split(/\s+/).length >= VALIDATION_LIMITS.MIN_WORDS_BG &&
+    contactBio.trim().split(/\s+/).length >= VALIDATION_LIMITS.MIN_WORDS_BG;
 
   // Generate user profile
   const handleGenerateUserProfile = async () => {
@@ -185,14 +186,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Craft Your Perfect Opener"
+      title=""
       description=""
       className="sm:max-w-6xl max-h-[90vh]"
       icon={
         <img
           src="/opener-studio-logo.png"
           alt="Opener Studio"
-          className="h-14 w-auto"
+          className="h-24 w-auto"
         />
       }
       headerClassName="p-8"
@@ -219,8 +220,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <Textarea
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
-                    placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)"
-                    className="min-h-[200px] text-sm resize-none bg-secondary border-border"
+                    placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
+                    className="min-h-[200px] text-sm resize-none bg-background border-border"
                   />
                 </div>
               </div>
@@ -250,8 +251,8 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <Textarea
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
-                    placeholder="Copy / paste their LinkedIn profile (50 words min)"
-                    className="min-h-[200px] text-sm resize-none bg-secondary border-border"
+                    placeholder={`Copy / paste their LinkedIn profile (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
+                    className="min-h-[200px] text-sm resize-none bg-background border-border"
                   />
                 </div>
               </div>

@@ -1,13 +1,7 @@
 import { Textarea } from "@/components/ui/airtable-ds/textarea";
 import { Input } from "@/components/ui/airtable-ds/input";
 import { Button } from "@/components/ui/design-system/buttons";
-
-import {
-  AirtableCard,
-  AirtableCardContent,
-  AirtableCardHeader,
-  AirtableCardTitle,
-} from "@/components/ui/airtable-ds/airtable-card";
+import { Label } from "@/components/ui/airtable-ds/label";
 import { Background } from "@/types/profile";
 
 interface EditableSummaryProps {
@@ -66,7 +60,7 @@ const EditableSummary = ({
               onChange={(e) =>
                 handleArrayFieldChange(field, index, e.target.value)
               }
-              className="flex-grow border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+              className="flex-grow bg-secondary border-border"
             />
             <Button
               variant="destructive"
@@ -91,84 +85,76 @@ const EditableSummary = ({
   };
 
   return (
-    <AirtableCard className="mt-8">
-      <AirtableCardHeader>
-        <AirtableCardTitle className="text-xl">
-          Edit AI Summary
-        </AirtableCardTitle>
-      </AirtableCardHeader>
-      <AirtableCardContent className="space-y-8">
-        {/* Overall Blurb Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Overall Summary
-          </label>
-          <Textarea
-            value={editableSummary.overall_blurb || ""}
-            onChange={(e) => onSummaryChange("overall_blurb", e.target.value)}
-            rows={4}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-        </div>
+    <div className="space-y-6">
+      {/* Overall Blurb Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Overall Summary
+        </Label>
+        <Textarea
+          value={editableSummary.overall_blurb || ""}
+          onChange={(e) => onSummaryChange("overall_blurb", e.target.value)}
+          rows={4}
+          className="bg-secondary border-border"
+        />
+      </div>
 
-        {/* Value Proposition Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Value Proposition
-          </label>
-          <Textarea
-            value={editableSummary.value_proposition_summary || ""}
-            onChange={(e) =>
-              onSummaryChange("value_proposition_summary", e.target.value)
-            }
-            rows={4}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
-        </div>
+      {/* Value Proposition Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Value Proposition
+        </Label>
+        <Textarea
+          value={editableSummary.value_proposition_summary || ""}
+          onChange={(e) =>
+            onSummaryChange("value_proposition_summary", e.target.value)
+          }
+          rows={4}
+          className="bg-secondary border-border"
+        />
+      </div>
 
-        {/* Expertise Section */}
-        <div>
-          <label className="text-base font-semibold block mb-3 text-gray-900">
-            Expertise
-          </label>
-          <Textarea
-            value={editableSummary.expertise}
-            onChange={(e) => onSummaryChange("expertise", e.target.value)}
-            rows={3}
-            className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-          />
+      {/* Expertise Section */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">Expertise</Label>
+        <Textarea
+          value={editableSummary.expertise}
+          onChange={(e) => onSummaryChange("expertise", e.target.value)}
+          rows={3}
+          className="bg-secondary border-border"
+        />
+      </div>
 
-          <div className="mt-6">
-            <label className="text-sm font-semibold block mb-3 text-gray-700">
-              Key Skills
-            </label>
-            {renderEditableArrayItems("key_skills", editableSummary.key_skills)}
-          </div>
+      {/* Key Skills */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Key Skills
+        </Label>
+        {renderEditableArrayItems("key_skills", editableSummary.key_skills)}
+      </div>
 
-          <div className="mt-6">
-            <label className="text-sm font-semibold block mb-3 text-gray-700">
-              Domain Expertise
-            </label>
-            {renderEditableArrayItems(
-              "domain_expertise",
-              editableSummary.domain_expertise
-            )}
-          </div>
+      {/* Domain Expertise */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Domain Expertise
+        </Label>
+        {renderEditableArrayItems(
+          "domain_expertise",
+          editableSummary.domain_expertise
+        )}
+      </div>
 
-          <div className="mt-6">
-            <label className="text-sm font-semibold block mb-3 text-gray-700">
-              Technical Expertise
-            </label>
-            {renderEditableArrayItems(
-              "technical_expertise",
-              editableSummary.technical_expertise
-            )}
-          </div>
-        </div>
-
-        {/* Achievements Section */}
-      </AirtableCardContent>
-    </AirtableCard>
+      {/* Technical Expertise */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">
+          Technical Expertise
+        </Label>
+        {renderEditableArrayItems(
+          "technical_expertise",
+          editableSummary.technical_expertise
+        )}
+      </div>
+    </div>
   );
 };
 
