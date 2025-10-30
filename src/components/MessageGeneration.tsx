@@ -5,6 +5,7 @@ import {
   useEffect,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from "react";
 import {
   Copy,
@@ -41,7 +42,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
-import { PrimaryAction, Chip, Button } from "@/components/ui/design-system";
+import {
+  PrimaryAction,
+  OutlineAction,
+  Chip,
+  Button,
+} from "@/components/ui/design-system";
 import { objectiveSchema, additionalContextSchema } from "@/lib/validation";
 
 const MessageSkeleton = () => (
@@ -168,6 +174,11 @@ export const MessageGeneration = forwardRef(
       getInitialState("isContextExpanded", false)
     );
     const [activeTab, setActiveTab] = useState<string>("Version 1");
+    // Guest-only: whether messages are present and generation has completed
+    const hasMessages =
+      isGuest && !isGenerating && Object.keys(generatedMessages).length > 0;
+    // Sentinel for auto-scrolling the view to the latest content
+    const bottomRef = useRef<HTMLDivElement | null>(null);
 
     // Effect to save state to localStorage whenever it changes
     useEffect(() => {
@@ -345,7 +356,8 @@ export const MessageGeneration = forwardRef(
       }
 
       if (additionalContext) {
-        const contextResult = additionalContextSchema.safeParse(additionalContext);
+        const contextResult =
+          additionalContextSchema.safeParse(additionalContext);
         if (!contextResult.success) {
           toast.error(contextResult.error.errors[0].message);
           return;
@@ -461,6 +473,13 @@ export const MessageGeneration = forwardRef(
     useImperativeHandle(ref, () => ({
       generateMessages,
     }));
+
+    // Smoothly scroll to the bottom once messages are available/updated
+    useEffect(() => {
+      if (!isGenerating && Object.keys(generatedMessages).length > 0) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }, [generatedMessages, isGenerating]);
 
     const handleMessageEdit = useCallback(
       (version: string, text: string) => {
@@ -649,21 +668,39 @@ export const MessageGeneration = forwardRef(
               </div>
 
               {/* Generate Button - Flat */}
-              <PrimaryAction
-                onClick={onGenerateClick || generateMessages}
-                disabled={
-                  isGenerating ||
-                  isCrafting ||
-                  (isGuest
-                    ? !biosAreReady
-                    : !getEffectiveObjective() || !contact?.contact_id)
-                }
-                className="w-full h-12"
-                size="lg"
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                {isGenerating ? "Crafting..." : "Craft Your Opener"}
-              </PrimaryAction>
+              {hasMessages ? (
+                <OutlineAction
+                  onClick={onGenerateClick || generateMessages}
+                  disabled={
+                    isGenerating ||
+                    isCrafting ||
+                    (isGuest
+                      ? !biosAreReady
+                      : !getEffectiveObjective() || !contact?.contact_id)
+                  }
+                  className="w-full h-10"
+                  size="default"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  {isGenerating ? "Crafting..." : "Regenerate"}
+                </OutlineAction>
+              ) : (
+                <PrimaryAction
+                  onClick={onGenerateClick || generateMessages}
+                  disabled={
+                    isGenerating ||
+                    isCrafting ||
+                    (isGuest
+                      ? !biosAreReady
+                      : !getEffectiveObjective() || !contact?.contact_id)
+                  }
+                  className="w-full h-12"
+                  size="lg"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  {isGenerating ? "Crafting..." : "Craft Your Opener"}
+                </PrimaryAction>
+              )}
             </div>
           </div>
 
@@ -744,7 +781,7 @@ export const MessageGeneration = forwardRef(
 
                 {/* Guest CTA Button - Only shown for guests */}
                 {isGuest && (
-                  <div className="border-t pt-6 mt-6">
+                  <div className="border-t pt-6 mt-6 pb-12">
                     <PrimaryAction
                       onClick={async () => {
                         // Get the currently selected message
@@ -768,7 +805,11 @@ export const MessageGeneration = forwardRef(
                         // Redirect to signup
                         window.location.href = "/auth/signup";
                       }}
-                      className="w-full"
+                      className={`w-full h-16 ${
+                        hasMessages
+                          ? "ring-2 ring-primary shadow-lg scale-[1.02] transition-transform text-lg"
+                          : ""
+                      }`}
                       size="default"
                     >
                       Sign up to copy and save your message!
@@ -778,6 +819,8 @@ export const MessageGeneration = forwardRef(
               </div>
             )
           )}
+          {/* Auto-scroll sentinel */}
+          <div ref={bottomRef} />
         </div>
       );
     }, [
@@ -808,6 +851,7 @@ export const MessageGeneration = forwardRef(
       isCrafting,
       embedded,
       generateMessages,
+      hasMessages,
     ]);
 
     if (embedded) {
