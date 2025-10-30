@@ -42,7 +42,7 @@ const Header = ({}: HeaderProps) => {
                 variant="secondary"
                 className="bg-green-100 text-green-700 border-green-200 text-xs font-medium"
               >
-                BETA0.3
+                BETA 0.4
               </Badge>
             </Link>
             {/* Beta Feedback button moved here */}
