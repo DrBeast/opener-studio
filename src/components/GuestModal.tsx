@@ -186,14 +186,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Craft Your Perfect Opener"
+      title=""
       description=""
       className="sm:max-w-6xl max-h-[90vh]"
       icon={
         <img
           src="/opener-studio-logo.png"
           alt="Opener Studio"
-          className="h-14 w-auto"
+          className="h-24 w-auto"
         />
       }
       headerClassName="p-8"
