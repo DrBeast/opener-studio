@@ -1,0 +1,149 @@
+async function runValidationTests() {
+  // --- ⬇️ PASTE YOUR DETAILS HERE ⬇️ ---
+  const supabaseUrl = "https://exbzektbhynykyschqso.supabase.co"; // Your project URL
+  const supabaseAnonKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4Ynpla3RiaHlueWt5c2NocXNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1Mzk2NDksImV4cCI6MjA2NDExNTY0OX0.yN9C7USIeelvdfTs_sBq9zwxWOb8JOzdPLwxrPU9s3c"; // PASTE YOUR ANON KEY HERE
+  const accessToken =
+    "eyJhbGciOiJIUzI1NiIsImtpZCI6Imk3aTdWWDhWOFoxbDlpbGMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2V4Ynpla3RiaHlueWt5c2NocXNvLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI1ZTQ1NzZhNy1mMjVjLTQ2NjQtODQxNS02YjAyYjQwOWYyMzYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzYxNjk0NjQ2LCJpYXQiOjE3NjE2OTEwNDYsImVtYWlsIjoiYWxla3NhbmRyLnJha2l0aW5AZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCIsImdvb2dsZSJdfSwidXNlcl9tZXRhZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0IzeTQ0cnVGZ2dkSXJ0RENhSk9ZajdUWWFnVHVXOV9uMElLenRqQUlfR0pMY3VIUTR5UT1zOTYtYyIsImVtYWlsIjoiYWxla3NhbmRyLnJha2l0aW5AZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkFsZWtzYW5kciBSYWtpdGluIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibmFtZSI6IkFsZWtzYW5kciBSYWtpdGluIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0IzeTQ0cnVGZ2dkSXJ0RENhSk9ZajdUWWFnVHVXOV9uMElLenRqQUlfR0pMY3VIUTR5UT1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTAzOTkzNDgwNTIzOTc3MjQ3NDc3Iiwic3ViIjoiMTAzOTkzNDgwNTIzOTc3MjQ3NDc3In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3NjE2ODc1MDJ9XSwic2Vzc2lvbl9pZCI6ImM1NjgzMWI2LWQ0NTQtNGUzYy04OGY3LTNmMWU1OTljNTU1OSIsImlzX2Fub255bW91cyI6ZmFsc2V9.GR6rCUkCoX0AGG1dkeM8HLSK4J-Pdo5mFA-gGiWpuhE"; // PASTE A FRESH TOKEN HERE
+  const validContactId = "93877c7f-c42b-4772-8f79-d7a198523c95"; // PASTE A VALID CONTACT ID HERE
+  // --- ⬆️ END OF DETAILS ⬆️ ---
+
+  let userId;
+  try {
+    userId = JSON.parse(atob(accessToken.split(".")[1])).sub;
+    if (!userId) throw new Error();
+    console.log("Successfully decoded userId:", userId);
+  } catch (e) {
+    console.error(
+      "❌ CRITICAL FAIL: Could not decode the accessToken. Please ensure it is a valid, fresh JWT."
+    );
+    return; // Stop the test if token is invalid
+  }
+
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    apikey: supabaseAnonKey,
+    "Content-Type": "application/json",
+  };
+
+  // Helper to generate long strings
+  const generateString = (length) => "a".repeat(length);
+  const generateWords = (count) => "word ".repeat(count).trim();
+
+  // Test Runner
+  const runTest = async (testName, functionName, body, expectSuccess) => {
+    console.log(`\n--- Running test: "${testName}" ---`);
+    try {
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/${functionName}`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }
+      );
+
+      const responseData = await response.json();
+      console.log(`Status: ${response.status}`);
+      console.log("Response:", responseData);
+
+      if (expectSuccess && response.ok) {
+        console.log("✅ PASS: Expected success and got success.");
+      } else if (!expectSuccess && !response.ok) {
+        console.log("✅ PASS: Expected failure and got failure.");
+      } else {
+        console.error(
+          `❌ FAIL: Test expectation mismatch. Expected success: ${expectSuccess}, but got status: ${response.status}`
+        );
+      }
+    } catch (error) {
+      console.error(`❌ FAIL: An unexpected error occurred:`, error);
+    }
+  };
+
+  // --- Test Suite ---
+  // 1. generate_profile (MODIFIED to use guest user path for a direct validation test)
+  await runTest(
+    "generate_profile: Background too short (less than 50 words)",
+    "generate_profile",
+    {
+      backgroundInput: generateWords(49),
+      sessionId: "test-session-for-validation", // Use sessionId to trigger guest path
+    },
+    false // Expect failure
+  );
+
+  await runTest(
+    "generate_profile: Background too long (over 100000 chars)",
+    "generate_profile",
+    {
+      backgroundInput: generateString(100001),
+      sessionId: "test-session-for-validation",
+    },
+    false // Expect failure
+  );
+
+  await runTest(
+    "generate_profile: Background long enough (50 words)",
+    "generate_profile",
+    {
+      backgroundInput: generateWords(50),
+      sessionId: "test-session-for-validation",
+    },
+    true // Expect success
+  );
+
+  // 2. add_contact_by_bio
+  await runTest(
+    "add_contact_by_bio: Bio too short (less than 50 words)",
+    "add_contact_by_bio",
+    // CORRECTED: Added userId
+    { linkedin_bio: generateWords(49), userId: userId },
+    false // Expect failure
+  );
+  await runTest(
+    "add_contact_by_bio: Bio long enough (50 words)",
+    "add_contact_by_bio",
+    // CORRECTED: Added userId
+    { linkedin_bio: generateWords(50), userId: userId },
+    true // Expect success
+  );
+
+  // 3. generate_message (This one was correct as it uses contact_id)
+  await runTest(
+    "generate_message: Objective too long (over 1000 chars)",
+    "generate_message",
+    {
+      contact_id: validContactId,
+      medium: "Email",
+      objective: generateString(1001),
+    },
+    false // Expect failure
+  );
+  await runTest(
+    "generate_message: Additional context too long (over 2000 chars)",
+    "generate_message",
+    {
+      contact_id: validContactId,
+      medium: "Email",
+      objective: "Valid objective",
+      additional_context: generateString(2001),
+    },
+    false // Expect failure
+  );
+  await runTest(
+    "generate_message: Valid inputs",
+    "generate_message",
+    {
+      contact_id: validContactId,
+      medium: "Email",
+      objective: "This is a valid objective.",
+    },
+    true // Expect success
+  );
+
+  console.log("\n--- All validation tests complete. ---");
+}
+
+// To run the tests, call the function:
+runValidationTests();
