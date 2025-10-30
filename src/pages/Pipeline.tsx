@@ -15,6 +15,9 @@ import {
 
 import { useCompanies } from "@/hooks/useCompanies";
 import { useContacts } from "@/hooks/useContacts";
+import { useRequireProfile } from "@/hooks/useRequireProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 import { AddContact } from "@/components/AddContact";
 import { MessageGeneration } from "@/components/MessageGeneration";
@@ -36,7 +39,9 @@ interface ContactForMessage {
 }
 
 const PipelineDashboard = () => {
-  const navigate = useNavigate();
+  useRequireProfile();
+
+  const { user, loading: authLoading } = useAuth();
   const { companies, isLoading: companiesLoading } = useCompanies();
 
   const { contacts, fetchContacts } = useContacts();
@@ -107,6 +112,14 @@ const PipelineDashboard = () => {
 
   const isLoading = companiesLoading;
 
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center bg-gradient-to-br from-purple-50 via-white to-green-50">
@@ -122,15 +135,15 @@ const PipelineDashboard = () => {
         <div ref={studioRef}>
           <PrimaryCard className="w-full border-2">
             <CardContent className="p-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px]">
                 {/* Left Panel - Contact Creation */}
                 <div
-                  className={`p-8 border-r border-border/50 ${
+                  className={`p-6 border-r border-border/50 flex flex-col ${
                     !contactForMessage ? "bg-primary/5" : "bg-background"
                   } transition-colors duration-300`}
                 >
                   {!contactForMessage && (
-                    <div className="flex items-center gap-2 mb-6">
+                    <div className="flex items-center gap-2 mb-4">
                       <UserPlus className="h-6 w-6 text-primary" />
                       <CardTitle className="text-xl font-semibold text-primary">
                         Add profile and create contact
@@ -138,27 +151,28 @@ const PipelineDashboard = () => {
                     </div>
                   )}
 
-                  <div className="space-y-6">
+                  <div className="flex-1 flex flex-col">
                     <AddContact
                       companies={companies}
                       onContactCreated={handleContactCreated}
                       createdContact={contactForMessage}
                       onClearContact={() => setContactForMessage(null)}
                     />
-                    {!contactForMessage && (
+                    {/* Commented out InfoBox for cleaner layout */}
+                    {/* {!contactForMessage && (
                       <InfoBox
                         className="text-sm"
                         title="Who should I contact?"
                         description="Start with people you already know. For new contacts, think of companies you are interested in, then try searching LinkedIn for [company name] [function]."
                         icon={<LucideTarget className="h-4 w-4" />}
                       />
-                    )}
+                    )} */}
                   </div>
                 </div>
 
                 {/* Right Panel - Message Generation */}
                 <div
-                  className={`p-8 relative ${
+                  className={`p-6 relative flex flex-col ${
                     !contactForMessage ? "bg-muted/30" : "bg-primary/5"
                   } transition-colors duration-300`}
                 >
@@ -174,7 +188,7 @@ const PipelineDashboard = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 mb-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <MessageCircle
                       className={`h-6 w-6 ${
                         !contactForMessage
@@ -197,7 +211,7 @@ const PipelineDashboard = () => {
 
                   {/* The MessageGeneration component is always rendered */}
                   <div
-                    className={`${
+                    className={`flex-1 flex flex-col ${
                       !contactForMessage
                         ? "pointer-events-none opacity-50"
                         : "opacity-100"

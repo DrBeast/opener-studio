@@ -8,6 +8,8 @@ import { PrimaryAction } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/design-system/buttons";
 import { ContactPreview } from "./ContactPreview";
 import { Label } from "@/components/ui/airtable-ds/label";
+import { addContactFormSchema } from "@/lib/validation";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 // --- Interface Definitions ---
 interface CreatedContact {
@@ -46,12 +48,23 @@ export const AddContact = ({
     const words = linkedinBio.trim().split(/\s+/).filter(Boolean);
     const count = words.length;
     setWordCount(count);
-    setIsBioValid(count >= 50);
+    setIsBioValid(count >= VALIDATION_LIMITS.MIN_WORDS_BG);
     sessionStorage.setItem("linkedinBioDraft", linkedinBio);
   }, [linkedinBio]);
 
   const handleProcessBio = async () => {
     if (!user || !linkedinBio.trim()) return;
+
+    // Validate input using Zod schema
+    const validationResult = addContactFormSchema.safeParse({
+      linkedinBio: linkedinBio.trim(),
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      toast.error(errors.linkedinBio?._errors[0] || "Invalid input");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -85,30 +98,25 @@ export const AddContact = ({
   };
 
   return (
-    <div className="space-y-4 h-full">
+    <div className="flex flex-col h-full">
       {!createdContact && (
-        <div className="space-y-6 ">
-          <div className="space-y-4 ">
-            <div className="grid w-full gap-1.5">
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 p-4">
+            <div className="grid w-full gap-1.5 h-full">
               <Textarea
                 value={linkedinBio}
                 onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder="Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (50 words min)"
-                className="min-h-[120px] text-sm resize-none bg-secondary border-border"
+                placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
+                className="h-full text-sm resize-none bg-secondary border-border"
               />
-              <Label
-                className={`text-xs text-right ${
-                  isBioValid ? "text-green-600" : "text-muted-foreground"
-                }`}
-              >
-                Word count: {wordCount} / 50
-              </Label>
             </div>
+          </div>
+          <div className="mt-4">
             <PrimaryAction
               onClick={handleProcessBio}
               disabled={!isBioValid || isLoading}
-              className="w-full"
-              size="default"
+              className="w-full h-12"
+              size="lg"
             >
               {isLoading ? (
                 <>
@@ -124,21 +132,8 @@ export const AddContact = ({
       )}
 
       {createdContact && (
-        <div className="h-full space-y-4">
+        <div className="h-full">
           <ContactPreview contact={createdContact} className="h-full" />
-          {onClearContact && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClearContact}
-                className="flex items-center gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                New Contact
-              </Button>
-            </div>
-          )}
         </div>
       )}
 

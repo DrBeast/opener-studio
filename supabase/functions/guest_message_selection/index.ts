@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getAllResponseHeaders } from "../_shared/cors.ts";
 
 console.log("🚀 guest_message_selection function initialized");
 
 serve(async (req) => {
+  // Get dynamic CORS and security headers based on request origin
+  const corsHeaders = getAllResponseHeaders(req);
+  
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

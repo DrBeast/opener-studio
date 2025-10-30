@@ -24,3 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 .pnpm-store/
+
+.env.local
+
+# Test files
+ratelimit_test_function
+validation_test_function

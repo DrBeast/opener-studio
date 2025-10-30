@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
+import { getAllResponseHeaders } from "../_shared/cors.ts";
 
-// Define CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
-};
+// CORS headers are now handled by shared getCorsHeaders function
 
 // Updated to Gemini 2.5 Flash-Lite for optimized low latency
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -92,6 +89,9 @@ const supabaseClient = createClient(
 );
 
 serve(async (req) => {
+  // Get dynamic CORS and security headers based on request origin
+  const corsHeaders = getAllResponseHeaders(req);
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -122,6 +122,29 @@ serve(async (req) => {
 
     if (!linkedin_bio) {
       return new Response(JSON.stringify({ error: "Missing required field: linkedin_bio" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    // Validate LinkedIn bio input
+    if (typeof linkedin_bio !== 'string' || linkedin_bio.trim().length === 0) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    if (linkedin_bio.length > 100000) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio must be less than 100,000 characters" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const wordCount = linkedin_bio.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 50) {
+      return new Response(JSON.stringify({ error: "LinkedIn bio must contain at least 50 words" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       });

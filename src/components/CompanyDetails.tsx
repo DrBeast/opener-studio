@@ -867,6 +867,13 @@ export function CompanyDetails({
                   Interactions
                 </h3>
                 <div className="flex gap-2">
+                  <PrimaryAction
+                    size="sm"
+                    onClick={() => setIsLogInteractionOpen(true)}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Log Interaction
+                  </PrimaryAction>
                   <OutlineAction
                     size="sm"
                     variant="outline"
@@ -875,13 +882,6 @@ export function CompanyDetails({
                     <Calendar className="h-4 w-4 mr-2" />
                     Plan Interaction
                   </OutlineAction>
-                  <PrimaryAction
-                    size="sm"
-                    onClick={() => setIsLogInteractionOpen(true)}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </PrimaryAction>
                 </div>
               </div>
 
@@ -966,17 +966,9 @@ export function CompanyDetails({
               ) : (
                 <div className="bg-gray-50 rounded-lg p-8 text-center border border-primary">
                   <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600">
                     No interactions logged for this company yet
                   </p>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsLogInteractionOpen(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Log Interaction
-                  </Button>
                 </div>
               )}
             </TabsContent>

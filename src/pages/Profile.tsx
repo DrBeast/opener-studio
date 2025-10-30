@@ -15,6 +15,8 @@ import ProfessionalBackground from "@/components/ProfessionalBackground";
 import { Background } from "@/types/profile";
 import { useProfileData } from "@/hooks/useProfileData";
 import { Label } from "@/components/ui/airtable-ds/label";
+import { profileFormSchema, countWords } from "@/lib/validation";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 // Design System Imports
 import {
@@ -53,6 +55,7 @@ const Profile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
   const [existingData, setExistingData] = useState<{
     background?: string;
     linkedin?: string;
@@ -63,6 +66,20 @@ const Profile = () => {
   const [editableSummary, setEditableSummary] = useState<Background | null>(
     null
   );
+
+  // Helper function to count words
+  const countWords = (text: string): number => {
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+  };
+
+  // Update word count when background input changes
+  useEffect(() => {
+    const words = countWords(backgroundInput);
+    setWordCount(words);
+  }, [backgroundInput]);
 
   useEffect(() => {
     if (!user) {
@@ -129,8 +146,10 @@ const Profile = () => {
 
   useEffect(() => {
     // Check if any changes were made compared to existing data
+    const existingBackground = existingData.background || "";
+    const currentBackground = backgroundInput.trim();
     const hasBackgroundChanges =
-      backgroundInput !== (existingData.background || "");
+      currentBackground !== existingBackground && currentBackground.length > 0;
 
     // Check if any summary fields have changed
     let hasSummaryChanges = false;
@@ -158,6 +177,36 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     if (!user) return;
 
+    // Don't validate if there are no changes
+    if (!hasChanges) {
+      return;
+    }
+
+    // Check minimum word count
+    if (wordCount < VALIDATION_LIMITS.MIN_WORDS_BG) {
+      toast({
+        title: "More Information Needed",
+        description: `Please provide at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words about your professional background (currently ${wordCount} words).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input using Zod schema
+    const validationResult = profileFormSchema.safeParse({
+      backgroundInput: backgroundInput.trim(),
+    });
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      toast({
+        title: "Validation Error",
+        description: errors.backgroundInput?._errors[0] || "Invalid input",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Save profile data to user_profiles table using the unified background_input field
@@ -165,18 +214,10 @@ const Profile = () => {
         background_input: backgroundInput,
       });
 
-      // Save the updated summary data if in edit mode
-      if (editMode && editableSummary) {
-        await saveSummaryData(user.id, editableSummary);
-
-        // Update the backgroundSummary state with the edited values
-        setBackgroundSummary(editableSummary);
-      } else {
-        // If not in edit mode, call the edge function to regenerate the summary
-        const summary = await regenerateAISummary(user.id, user.email || "");
-        if (summary) {
-          setBackgroundSummary(summary);
-        }
+      // ALWAYS call the edge function to regenerate the summary
+      const summary = await regenerateAISummary(user.id, user.email || "");
+      if (summary) {
+        setBackgroundSummary(summary);
       }
 
       toast({
@@ -186,11 +227,13 @@ const Profile = () => {
 
       setEditMode(false);
       setHasChanges(false);
-    } catch (error: any) {
-      console.error("Error submitting profile data:", error.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      console.error("Error submitting profile data:", errorMessage);
       toast({
         title: "Error",
-        description: `Failed to process profile information: ${error.message}`,
+        description: `Failed to process profile information: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -252,6 +295,8 @@ const Profile = () => {
     }
   };
 
+  const isSetupFlow = searchParams.get("setup") === "true";
+
   return (
     <div className="flex flex-1 flex-col bg-gray-100 min-h-screen space-y-2">
       {/* Full-Width Card with Profile Content */}
@@ -267,7 +312,7 @@ const Profile = () => {
                 <p className="text-gray-600 mt-2">
                   {editMode
                     ? "Update your professional background and let AI generate your summary"
-                    : "Your AI-generated professional summary for networking and outreach"}
+                    : "Your professional summary for networking and outreach"}
                 </p>
               </div>
               {!editMode && (
@@ -278,6 +323,14 @@ const Profile = () => {
               )}
             </div>
 
+            {isSetupFlow && (
+              <InfoBox
+                title="Welcome to your Studio!"
+                description={` Let's set up your profile - just this once.`}
+                className="mb-6"
+              />
+            )}
+
             {/* Edit Form - When in edit mode */}
             {editMode && (
               <div className="space-y-6">
@@ -287,15 +340,8 @@ const Profile = () => {
                   isSubmitting={isSubmitting}
                   isEditing={Object.keys(existingData).length > 0}
                   existingData={existingData}
+                  wordCount={wordCount}
                 />
-
-                {/* Editable AI Summary Section */}
-                {editableSummary && (
-                  <EditableSummary
-                    editableSummary={editableSummary}
-                    onSummaryChange={handleSummaryChange}
-                  />
-                )}
 
                 <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
                   <OutlineAction
@@ -307,7 +353,11 @@ const Profile = () => {
                   <Button
                     variant="success"
                     onClick={handleSaveProfile}
-                    disabled={!hasChanges || isSubmitting}
+                    disabled={
+                      !hasChanges ||
+                      isSubmitting ||
+                      wordCount < VALIDATION_LIMITS.MIN_WORDS_BG
+                    }
                   >
                     {isSubmitting ? (
                       <>
@@ -316,7 +366,7 @@ const Profile = () => {
                       </>
                     ) : (
                       <>
-                        Save Changes
+                        Save & Regenerate
                         <Save className="h-4 w-4 ml-2" />
                       </>
                     )}
@@ -426,13 +476,6 @@ const Profile = () => {
                     </div>
                   </div>
                 )}
-
-                <div className="flex justify-end pt-4 border-t border-gray-100">
-                  <OutlineAction onClick={handleRegenerateAISummary}>
-                    <RefreshCcw className="h-4 w-4 mr-2" />
-                    Regenerate Summary
-                  </OutlineAction>
-                </div>
               </div>
             )}
 

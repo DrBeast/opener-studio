@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
-
-// Define CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
-};
+import { getAllResponseHeaders } from "../_shared/cors.ts";
+import { VALIDATION_LIMITS } from "../_shared/validation-constants.ts";
 
 // Updated to Gemini 2.5 Flash-Lite for optimized low latency
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
@@ -141,6 +137,21 @@ function extractPartialSummary(jsonText: string): Record<string, unknown> | null
   }
 }
 
+// Validation function for background input
+function validateBackgroundInput(input: string): string | null {
+  if (!input || input.trim().length === 0) {
+    return "Background information is required";
+  }
+  if (input.length > VALIDATION_LIMITS.MAX_CHARS_BG) {
+    return `Background information must be less than ${VALIDATION_LIMITS.MAX_CHARS_BG} characters`;
+  }
+  const wordCount = input.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount < VALIDATION_LIMITS.MIN_WORDS_BG) {
+    return `Background information must contain at least ${VALIDATION_LIMITS.MIN_WORDS_BG} words`;
+  }
+  return null;
+}
+
 // Create a Supabase client with the Deno runtime
 const supabaseClient = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -148,6 +159,9 @@ const supabaseClient = createClient(
 );
 
 serve(async (req) => {
+  // Get dynamic CORS and security headers based on request origin
+  const corsHeaders = getAllResponseHeaders(req);
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -164,6 +178,17 @@ serve(async (req) => {
 
     // Parse the request body - supports both guest and registered users
     const { userId, sessionId, userEmail, backgroundInput } = await req.json();
+
+    // EARLY VALIDATION: Validate background input immediately if provided
+    if (backgroundInput) {
+      const validationError = validateBackgroundInput(backgroundInput);
+      if (validationError) {
+        return new Response(JSON.stringify({ error: validationError }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
 
     // Determine if this is a guest or registered user
     const isGuest = !userId && sessionId;
@@ -198,6 +223,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
+
       combinedContent = backgroundInput;
     } else {
       // Registered: fetch from database
@@ -256,6 +282,15 @@ serve(async (req) => {
 
       console.log("Profile data found with background_input content");
       combinedContent = profileData.background_input;
+
+      // FIX: Validate the content fetched from the database
+      const validationError = validateBackgroundInput(combinedContent);
+      if (validationError) {
+        return new Response(JSON.stringify({ error: validationError }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     console.log(`Combined content length: ${combinedContent.length} characters`);

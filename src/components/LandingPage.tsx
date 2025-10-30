@@ -63,47 +63,14 @@ const LandingPage = () => {
             </div>
 
             {/* Visual Element - Enhanced Video Container */}
-            <div className="py-8">
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-[hsl(var(--background))] rounded-2xl shadow-2xl border border-[hsl(var(--border))] p-4 relative">
-                  <div className="absolute inset-0 bg-[hsl(var(--primary-muted))] opacity-30 rounded-2xl"></div>
-                  <div className="relative">
-                    <video
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      poster="path/to/first-frame.jpg"
-                      className="w-full rounded-xl shadow-lg"
-                    >
-                      <source src="path/to/animation.webm" type="video/webm" />
-                      <source src="path/to/animation.mp4" type="video/mp4" />
-                      {/* Fallback content */}
-                      <div className="bg-gradient-to-br from-[hsl(var(--muted))] to-[hsl(var(--secondary))] rounded-xl p-16 text-center">
-                        <div className="space-y-4">
-                          <div className="w-16 h-16 bg-[hsl(var(--primary))] rounded-full mx-auto flex items-center justify-center">
-                            <Sparkles className="h-8 w-8 text-[hsl(var(--primary-foreground))]" />
-                          </div>
-                          <p className="text-[hsl(var(--foreground))] text-lg font-medium">
-                            Interactive Demo Coming Soon
-                          </p>
-                          <p className="text-[hsl(var(--muted-foreground))] text-sm">
-                            Experience the magic of AI-powered message crafting
-                          </p>
-                        </div>
-                      </div>
-                    </video>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* TODO: Add GIF/video here when ready */}
 
             {/* Call to Action */}
             <div className="pt-8 flex justify-center">
               <PrimaryAction
                 onClick={handleOpenStudio}
                 size="lg"
-                className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105"
+                className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 h-24"
               >
                 <Sparkles className="mr-3 h-6 w-6" />
                 Open the Studio

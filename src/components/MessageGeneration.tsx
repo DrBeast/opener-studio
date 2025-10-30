@@ -5,6 +5,7 @@ import {
   useEffect,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from "react";
 import {
   Copy,
@@ -41,7 +42,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
-import { PrimaryAction, Chip, Button } from "@/components/ui/design-system";
+import {
+  PrimaryAction,
+  OutlineAction,
+  Chip,
+  Button,
+} from "@/components/ui/design-system";
+import { objectiveSchema, additionalContextSchema } from "@/lib/validation";
 
 const MessageSkeleton = () => (
   <div className="space-y-4 animate-pulse pt-4">
@@ -167,6 +174,13 @@ export const MessageGeneration = forwardRef(
       getInitialState("isContextExpanded", false)
     );
     const [activeTab, setActiveTab] = useState<string>("Version 1");
+    // Whether messages are present and generation has completed
+    const hasMessagesAny =
+      !isGenerating && Object.keys(generatedMessages).length > 0;
+    // Guest-only alias preserved for clarity in guest-specific UI below
+    const hasMessages = isGuest && hasMessagesAny;
+    // Sentinel for auto-scrolling the view to the latest content
+    const bottomRef = useRef<HTMLDivElement | null>(null);
 
     // Effect to save state to localStorage whenever it changes
     useEffect(() => {
@@ -334,6 +348,24 @@ export const MessageGeneration = forwardRef(
 
       const effectiveObjective = getEffectiveObjective();
 
+      // Validate inputs before making API call
+      if (objective === "Custom objective") {
+        const objectiveResult = objectiveSchema.safeParse(customObjective);
+        if (!objectiveResult.success) {
+          toast.error(objectiveResult.error.errors[0].message);
+          return;
+        }
+      }
+
+      if (additionalContext) {
+        const contextResult =
+          additionalContextSchema.safeParse(additionalContext);
+        if (!contextResult.success) {
+          toast.error(contextResult.error.errors[0].message);
+          return;
+        }
+      }
+
       setIsGenerating(true);
       setGeneratedMessages({});
       setEditedMessages({});
@@ -444,6 +476,13 @@ export const MessageGeneration = forwardRef(
       generateMessages,
     }));
 
+    // Smoothly scroll to the bottom once messages are available/updated
+    useEffect(() => {
+      if (!isGenerating && Object.keys(generatedMessages).length > 0) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }, [generatedMessages, isGenerating]);
+
     const handleMessageEdit = useCallback(
       (version: string, text: string) => {
         setEditedMessages((prev) => ({
@@ -536,8 +575,8 @@ export const MessageGeneration = forwardRef(
         "Custom objective",
       ];
       return (
-        <div className={`space-y-6 ${embedded ? "mt-0" : "mt-4"}`}>
-          <div className="space-y-4">
+        <div className={`flex flex-col h-full ${embedded ? "mt-0" : "mt-4"}`}>
+          <div className="flex-1 space-y-4">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
                 {objectiveOptions.map((option) => (
@@ -591,9 +630,12 @@ export const MessageGeneration = forwardRef(
                 </CollapsibleContent>
               </Collapsible>
             )}
+          </div>
 
+          {/* Medium Selection and Generate Button - Anchored to bottom */}
+          <div className="space-y-4 mt-6 p-4">
             {/* Medium Selection - Flat Cards */}
-            <div className="space-y-2 mt-2">
+            <div className="space-y-2">
               <div className="">
                 <div className="flex gap-3">
                   {MEDIUM_OPTIONS.map((option) => (
@@ -628,21 +670,39 @@ export const MessageGeneration = forwardRef(
               </div>
 
               {/* Generate Button - Flat */}
-              <PrimaryAction
-                onClick={onGenerateClick || generateMessages}
-                disabled={
-                  isGenerating ||
-                  isCrafting ||
-                  (isGuest
-                    ? !biosAreReady
-                    : !getEffectiveObjective() || !contact?.contact_id)
-                }
-                className="w-full h-12"
-                size="lg"
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                {isGenerating ? "Crafting..." : "Craft Your Opener"}
-              </PrimaryAction>
+              {hasMessagesAny ? (
+                <OutlineAction
+                  onClick={onGenerateClick || generateMessages}
+                  disabled={
+                    isGenerating ||
+                    isCrafting ||
+                    (isGuest
+                      ? !biosAreReady
+                      : !getEffectiveObjective() || !contact?.contact_id)
+                  }
+                  className="w-full h-10"
+                  size="default"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  {isGenerating ? "Crafting..." : "Regenerate"}
+                </OutlineAction>
+              ) : (
+                <PrimaryAction
+                  onClick={onGenerateClick || generateMessages}
+                  disabled={
+                    isGenerating ||
+                    isCrafting ||
+                    (isGuest
+                      ? !biosAreReady
+                      : !getEffectiveObjective() || !contact?.contact_id)
+                  }
+                  className="w-full h-12"
+                  size="lg"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  {isGenerating ? "Crafting..." : "Craft Your Opener"}
+                </PrimaryAction>
+              )}
             </div>
           </div>
 
@@ -698,7 +758,7 @@ export const MessageGeneration = forwardRef(
 
                             {!isGuest && (
                               <PrimaryAction
-                                size="sm"
+                                size={hasMessagesAny ? "default" : "sm"}
                                 onClick={() => {
                                   copyMessage(
                                     editedMessages[version] || content.text
@@ -708,7 +768,11 @@ export const MessageGeneration = forwardRef(
                                     editedMessages[version] || content.text
                                   );
                                 }}
-                                className="shadow-md hover:shadow-lg transition-all"
+                                className={`transition-all ${
+                                  hasMessagesAny
+                                    ? "ring-2 ring-primary shadow-lg scale-[1.02]"
+                                    : "shadow-md hover:shadow-lg"
+                                }`}
                               >
                                 <Save className="mr-1 h-4 w-4" />
                                 Copy and Save to History
@@ -723,7 +787,7 @@ export const MessageGeneration = forwardRef(
 
                 {/* Guest CTA Button - Only shown for guests */}
                 {isGuest && (
-                  <div className="border-t pt-6 mt-6">
+                  <div className="border-t pt-6 mt-6 pb-12">
                     <PrimaryAction
                       onClick={async () => {
                         // Get the currently selected message
@@ -747,7 +811,11 @@ export const MessageGeneration = forwardRef(
                         // Redirect to signup
                         window.location.href = "/auth/signup";
                       }}
-                      className="w-full"
+                      className={`w-full h-16 ${
+                        hasMessages
+                          ? "ring-2 ring-primary shadow-lg scale-[1.02] transition-transform text-lg"
+                          : ""
+                      }`}
                       size="default"
                     >
                       Sign up to copy and save your message!
@@ -757,6 +825,8 @@ export const MessageGeneration = forwardRef(
               </div>
             )
           )}
+          {/* Auto-scroll sentinel */}
+          <div ref={bottomRef} />
         </div>
       );
     }, [
@@ -787,6 +857,7 @@ export const MessageGeneration = forwardRef(
       isCrafting,
       embedded,
       generateMessages,
+      hasMessages,
     ]);
 
     if (embedded) {

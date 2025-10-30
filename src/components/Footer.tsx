@@ -12,7 +12,8 @@ const Footer = () => {
               Opener Studio
             </Link>
             <p className="mt-2 text-sm text-[hsl(var(--normaltext))]">
-              Your AI Copilot for Job Search Networking
+              Your AI-powered workspace for the art and craft of professional
+              outreach
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">

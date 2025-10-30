@@ -24,13 +24,14 @@ import {
 } from "@/components/ui/airtable-ds/form";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/airtable-ds/alert";
-import { Linkedin } from "lucide-react";
+import { Loader2, Mail, Lock, Linkedin } from "lucide-react";
+import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(VALIDATION_LIMITS.MIN_CHARS_PASSWORD, {
+    message: `Password must be at least ${VALIDATION_LIMITS.MIN_CHARS_PASSWORD} characters`,
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -93,10 +94,9 @@ const Signup = () => {
         });
       }
 
-      // Redirect after a brief delay to allow for authentication to complete
-      setTimeout(() => {
-        navigate(redirectTo);
-      }, 1500);
+      // For email/password signup, user needs to verify email
+      // Redirect to verification pending page
+      navigate("/auth/verification-pending", { state: { email: data.email } });
     } catch (error: any) {
       setIsLoading(false);
 
@@ -118,49 +118,53 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
-          <CardDescription>
-            Create an account to get started with EngageAI
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
+        {/* Welcome Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2">
+            Welcome
+          </h1>
+          <p className="text-[hsl(var(--normaltext))]">
+            Create your account and start reaching out
+          </p>
+        </div>
+
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-0"></CardHeader>
+          <CardContent className="pb-6">
             {errorMessage && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}
 
-            {sessionId && (
-              <div className="text-sm text-blue-600 mb-2">
-                A temporary profile was detected and will be linked to your new
-                account.
-              </div>
-            )}
-
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
+                className="space-y-5"
               >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">
+                        Email Address
+                      </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="you@example.com"
-                          type="email"
-                          disabled={isLoading}
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
+                          <Input
+                            placeholder="you@example.com"
+                            type="email"
+                            disabled={isLoading}
+                            className="pl-10 h-12 border-gray-200 focus:border-primary focus:ring-primary/20"
+                            {...field}
+                          />
+                        </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -169,21 +173,38 @@ const Signup = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-[hsl(var(--normaltext))] font-medium">
+                        Password
+                      </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="••••••••"
-                          type="password"
-                          disabled={isLoading}
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-[hsl(var(--normaltext))]" />
+                          <Input
+                            placeholder="••••••••"
+                            type="password"
+                            disabled={isLoading}
+                            className="pl-10 h-12 border-gray-200 focus:border-primary focus:ring-primary/20"
+                            {...field}
+                          />
+                        </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
-                <Button className="w-full" type="submit" disabled={isLoading}>
-                  {isLoading ? "Creating account..." : "Sign Up"}
+                <Button
+                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-medium text-base shadow-lg hover:shadow-xl transition-all duration-200"
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Sign Up"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -258,17 +279,27 @@ const Signup = () => {
               </svg>
               Sign up with Google
             </Button>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <div className="text-center text-sm w-full text-[hsl(var(--normaltext))]">
-            Already have an account?{" "}
-            <Link to="/auth/login" className="text-primary hover:underline">
-              Log in
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4 pt-0">
+            <div className="text-center text-sm text-[hsl(var(--normaltext))]">
+              Already have an account?{" "}
+              <Link
+                to="/auth/login"
+                className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+              >
+                Sign in instead
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+
+        {/* Footer note */}
+        <div className="text-center mt-8">
+          <p className="text-sm text-[hsl(var(--normaltext))]">
+            Secure signup powered by industry-standard encryption
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
