@@ -14,9 +14,9 @@ Built for ambitious professionals, job seekers, and anyone tired of facing the b
 
 ## Tech Stack 🛠️
 
-Frontend: React (Vite), TypeScript, Tailwind CSS, Radix UI
-Backend: Supabase (PostgreSQL, Auth, Edge Functions using Deno)
-AI: Google Gemini API (via Edge Function)
+Frontend: React (Vite), TypeScript, Tailwind CSS, Radix UI  
+Backend: Supabase (PostgreSQL, Auth, Edge Functions using Deno)  
+AI: Google Gemini API (via Edge Function)  
 Hosting and Deployment: Vercel
 
 ## Project Status & Links 🔗
