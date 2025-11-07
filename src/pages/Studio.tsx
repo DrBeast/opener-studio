@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "@/components/ui/airtable-ds/use-toast";
-import { UserPlus, Search, MessageCircle } from "lucide-react";
+import { UserPlus, Search, MessageCircle, User } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 // Design System Imports
@@ -10,7 +10,11 @@ import {
   ResizableHandle,
 } from "@/components/ui/design-system/resizable";
 import { ContactCard } from "@/components/ui/design-system/contactcard";
-import { PrimaryCard, CardContent, CardTitle } from "@/components/ui/design-system";
+import {
+  PrimaryCard,
+  CardContent,
+  CardTitle,
+} from "@/components/ui/design-system";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { Input } from "@/components/ui/airtable-ds/input";
 
@@ -42,7 +46,7 @@ const STORAGE_KEY = "studio_selectedContactId";
 const Studio = () => {
   useRequireProfile();
 
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { companies } = useCompanies();
   const { contacts, isLoading: contactsLoading, fetchContacts } = useContacts();
 
@@ -152,17 +156,21 @@ const Studio = () => {
 
   return (
     <div className="flex flex-1 flex-col h-full max-h-full bg-background overflow-hidden">
-      <ResizablePanelGroup direction="horizontal" className="h-full max-h-full">
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-full max-h-full "
+      >
         {/* Left Panel - Contacts */}
         <ResizablePanel defaultSize={25} minSize={20} className="border-r">
           <div className="flex flex-col h-full">
             <div className="p-4 border-b space-y-3">
               <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">Contacts</CardTitle>
+                <UserPlus className="h-5 w-5 text-foreground" />
+                <CardTitle className="text-lg font-semibold text-foreground">
+                  Contacts
+                </CardTitle>
               </div>
 
-              {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -232,10 +240,10 @@ const Studio = () => {
 
         {/* Center Panel - Workspace */}
         <ResizablePanel defaultSize={50} minSize={30} className="border-r">
-          <div className="flex flex-col h-full p-6">
+          <div className="flex flex-col h-full p-6 pb-2">
             <div className="flex items-center gap-2 mb-6">
-              <MessageCircle className="h-6 w-6 text-primary" />
-              <CardTitle className="text-xl font-semibold">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg font-semibold text-foreground">
                 Message Workspace
               </CardTitle>
             </div>
@@ -247,7 +255,9 @@ const Studio = () => {
                   contactForMessage?.company_id
                     ? companies.find(
                         (c) => c.company_id === contactForMessage.company_id
-                      )?.name || contactForMessage?.current_company || ""
+                      )?.name ||
+                      contactForMessage?.current_company ||
+                      ""
                     : contactForMessage?.current_company || ""
                 }
                 isOpen={true}
@@ -271,7 +281,9 @@ const Studio = () => {
         <ResizablePanel defaultSize={25} minSize={20}>
           <div className="flex flex-col h-full p-6">
             <div className="flex items-center gap-2 mb-6">
-              <CardTitle className="text-lg font-semibold">Context</CardTitle>
+              <CardTitle className="text-lg font-semibold text-foreground">
+                Selected Contact
+              </CardTitle>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2">
@@ -292,8 +304,8 @@ const Studio = () => {
                 <div className="flex flex-col items-center justify-center h-full text-center p-6">
                   <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-sm text-muted-foreground">
-                    Select a contact to preview their profile and craft an opener
-                    for them
+                    Select a contact to preview their profile and craft an
+                    opener for them
                   </p>
                 </div>
               )}
@@ -314,4 +326,3 @@ const Studio = () => {
 };
 
 export default Studio;
-
