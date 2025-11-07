@@ -9,7 +9,7 @@ const textareaVariants = cva(
     variants: {
       tone: {
         white:
-          "bg-background text-foreground border-border focus-visible:border-primary",
+          "bg-card text-card-foreground border-border focus-visible:border-primary",
         muted:
           "bg-[hsl(var(--secondary))] text-foreground border-border focus-visible:border-primary",
       },

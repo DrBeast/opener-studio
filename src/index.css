@@ -49,7 +49,7 @@
     */
     --primary: 266 49% 33%;
     /* A slightly lighter/brighter purple for hover */
-    --primary-hover: 266 45% 50%;
+    --primary-hover: 266 49% 50%;
 
     /* --primary-foreground: Text on Primary
     /* USE: Text inside your main purple buttons.
@@ -65,7 +65,8 @@
     /* e.g., The "Canvas" Textarea, the "Prompt Builder" blocks.
     /* This (gray-100) on the white Center Panel (card) looks clean.
     */
-    --secondary: 0 0% 96.1%;
+    /*    --secondary: 0 0% 96.1%;*/
+    --secondary: 220 14.3% 95.9%;
 
     /* A slightly lighter grey for hover */
     --secondary-hover: 0 0% 92%;
@@ -112,7 +113,7 @@
     /* USE: The outline ring on focused buttons and inputs.
     /* Set to your primary purple for brand consistency.
     */
-    --ring: 266 49% 50%;
+    --ring: 266 49% 60%;
 
     /* --radius:
     /* This is a personal choice. 0.5rem is a great default.

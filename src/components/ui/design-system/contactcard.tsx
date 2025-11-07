@@ -33,10 +33,10 @@ const ContactCard = React.forwardRef<HTMLDivElement, ContactCardProps>(
         ref={ref}
         onClick={onClick}
         className={cn(
-          "flex items-start gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer",
+          "flex items-start gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer bg-card text-card-foreground",
           isSelected
             ? "border-primary bg-primary/5 shadow-sm"
-            : "border-border bg-background hover:border-primary/50 hover:bg-muted/50",
+            : "border-border hover:border-primary/50 hover:bg-muted/50",
           className
         )}
         {...props}

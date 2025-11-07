@@ -28,7 +28,7 @@ const Chipcard = React.forwardRef<HTMLDivElement, ChipcardProps>(
     <div
       ref={ref}
       className={cn(
-        "flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300",
+        "flex items-center justify-between p-4 bg-card text-card-foreground border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/40 hover:bg-muted/40",
         className
       )}
       {...props}
@@ -46,7 +46,7 @@ const Chipcard = React.forwardRef<HTMLDivElement, ChipcardProps>(
           )}
           <div className="flex items-left gap-1">
             {icon2 && (
-              <div className="p-0  bg-white rounded-lg flex-shrink-0 text-muted-foreground ">
+              <div className="p-0 bg-card rounded-lg flex-shrink-0 text-muted-foreground ">
                 {icon2}
               </div>
             )}

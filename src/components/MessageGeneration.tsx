@@ -773,7 +773,7 @@ export const MessageGeneration = forwardRef(
                           onChange={(e) =>
                             handleMessageEdit(version, e.target.value)
                           }
-                          className="w-full resize-y min-h-[220px]"
+                          className="w-full resize-y min-h-[220px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border"
                           maxLength={maxLength}
                           readOnly={isGuest}
                         />

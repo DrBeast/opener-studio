@@ -241,7 +241,11 @@ const Studio = () => {
         <ResizableHandle withHandle />
 
         {/* Center Panel - Workspace */}
-        <ResizablePanel defaultSize={50} minSize={30} className="border-r">
+        <ResizablePanel
+          defaultSize={50}
+          minSize={30}
+          className="border-r bg-card"
+        >
           <div className="flex flex-col h-full p-6 pb-2">
             <div className="flex items-center gap-2 mb-6">
               <MessageCircle className="h-5 w-5 text-primary" />
