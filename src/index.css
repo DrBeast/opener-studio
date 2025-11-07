@@ -48,6 +48,8 @@
     /* This is your logo's dark purple: 266 49% 33% (#542C7C)
     */
     --primary: 266 49% 33%;
+    /* A slightly lighter/brighter purple for hover */
+    --primary-hover: 266 45% 50%;
 
     /* --primary-foreground: Text on Primary
     /* USE: Text inside your main purple buttons.
@@ -64,6 +66,10 @@
     /* This (gray-100) on the white Center Panel (card) looks clean.
     */
     --secondary: 0 0% 96.1%;
+
+    /* A slightly lighter grey for hover */
+    --secondary-hover: 0 0% 92%;
+
     --secondary-foreground: 0 0% 9%; /* Text on secondary elements */
 
     /* --muted: Subtle Borders & Placeholders
@@ -80,6 +86,8 @@
     */
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 9%; /* Text on hover */
+    /* A slightly darker gray for the accent hover */
+    --accent-hover: 0 0% 92%; /* (A darker gray, like gray-200) */
 
     /* /* STATUS & BORDERS
     /* --destructive: Errors & Deletion
@@ -104,7 +112,7 @@
     /* USE: The outline ring on focused buttons and inputs.
     /* Set to your primary purple for brand consistency.
     */
-    --ring: 266 49% 33%;
+    --ring: 266 49% 50%;
 
     /* --radius:
     /* This is a personal choice. 0.5rem is a great default.
