@@ -274,7 +274,7 @@ const Studio = () => {
               <CardTitle className="text-lg font-semibold">Context</CardTitle>
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 overflow-y-auto pr-2">
               {selectedContact ? (
                 <ContactPreview
                   contact={{
@@ -287,7 +287,6 @@ const Studio = () => {
                     how_i_can_help: selectedContact.how_i_can_help,
                     linkedin_url: selectedContact.linkedin_url,
                   }}
-                  className="h-full"
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6">
