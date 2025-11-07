@@ -181,6 +181,60 @@ export const MessageGeneration = forwardRef(
     const hasMessages = isGuest && hasMessagesAny;
     // Sentinel for auto-scrolling the view to the latest content
     const bottomRef = useRef<HTMLDivElement | null>(null);
+    // Track previous contact_id to detect changes
+    const prevContactIdRef = useRef<string | undefined>(contact?.contact_id);
+
+    // Effect to reload state when contact changes
+    useEffect(() => {
+      const currentContactId = contact?.contact_id;
+      const prevContactId = prevContactIdRef.current;
+
+      // If contact_id changed, reload state from localStorage for the new contact
+      if (currentContactId !== prevContactId) {
+        if (currentContactId) {
+          const newStorageKey = `messageGeneration_${currentContactId}`;
+          
+          // Helper to get state from localStorage
+          const getState = <T,>(key: string, defaultValue: T): T => {
+            try {
+              const stored = localStorage.getItem(`${newStorageKey}_${key}`);
+              return stored ? JSON.parse(stored) : defaultValue;
+            } catch {
+              return defaultValue;
+            }
+          };
+
+          // Reload all state from the new contact's storage
+          setMedium(getState("medium", "LinkedIn connection note"));
+          setObjective(getState("objective", "Explore roles, find hiring managers"));
+          setCustomObjective(getState("customObjective", ""));
+          setAdditionalContext(getState("additionalContext", ""));
+          setGeneratedMessages(getState("generatedMessages", {}));
+          setEditedMessages(getState("editedMessages", {}));
+          setMaxLength(getState("maxLength", 300));
+          setShowAIReasoning(getState("showAIReasoning", {}));
+          setIsContextExpanded(getState("isContextExpanded", false));
+          setActiveTab("Version 1");
+          setIsGenerating(false); // Stop any in-progress generation
+        } else {
+          // Contact is null - reset to defaults
+          setMedium("LinkedIn connection note");
+          setObjective("Explore roles, find hiring managers");
+          setCustomObjective("");
+          setAdditionalContext("");
+          setGeneratedMessages({});
+          setEditedMessages({});
+          setMaxLength(300);
+          setShowAIReasoning({});
+          setIsContextExpanded(false);
+          setActiveTab("Version 1");
+          setIsGenerating(false);
+        }
+      }
+
+      // Update ref for next comparison
+      prevContactIdRef.current = currentContactId;
+    }, [contact?.contact_id]);
 
     // Effect to save state to localStorage whenever it changes
     useEffect(() => {

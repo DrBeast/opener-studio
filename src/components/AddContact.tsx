@@ -106,7 +106,7 @@ export const AddContact = ({
               <Textarea
                 value={linkedinBio}
                 onChange={(e) => setLinkedinBio(e.target.value)}
-                placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
+                placeholder={`Copy / paste their LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
                 className="h-full text-sm resize-none bg-secondary border-border"
               />
             </div>

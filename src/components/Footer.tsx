@@ -4,10 +4,10 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t py-8 bg-gray-50">
+    <footer className="border-t py-4 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
-          <div className="mb-6 md:mb-0">
+          <div className="mb-4 md:mb-0">
             <Link to="/" className="text-xl font-bold">
               Opener Studio
             </Link>
@@ -15,11 +15,14 @@ const Footer = () => {
               Your AI-powered workspace for the art and craft of professional
               outreach
             </p>
+            <p className="mt-1 text-xs text-[hsl(var(--normaltext))] opacity-70">
+              &copy; {year} Opener Studio. All rights reserved.
+            </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
             <div>
-              <h3 className="text-sm font-medium mb-2">Product</h3>
-              <ul className="space-y-2">
+              <h3 className="text-sm font-medium mb-1.5">Product</h3>
+              <ul className="space-y-1">
                 <li>
                   <Link
                     to="/"
@@ -39,8 +42,8 @@ const Footer = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-medium mb-2">Company</h3>
-              <ul className="space-y-2">
+              <h3 className="text-sm font-medium mb-1.5">Company</h3>
+              <ul className="space-y-1">
                 <li>
                   <Link
                     to="/"
@@ -60,8 +63,8 @@ const Footer = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-medium mb-2">Legal</h3>
-              <ul className="space-y-2">
+              <h3 className="text-sm font-medium mb-1.5">Legal</h3>
+              <ul className="space-y-1">
                 <li>
                   <Link
                     to="/"
@@ -81,11 +84,6 @@ const Footer = () => {
               </ul>
             </div>
           </div>
-        </div>
-        <div className="mt-8 border-t pt-6">
-          <p className="text-sm text-[hsl(var(--normaltext))]">
-            &copy; {year} Opener Studio. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>
