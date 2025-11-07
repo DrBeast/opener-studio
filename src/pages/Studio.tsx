@@ -164,21 +164,23 @@ const Studio = () => {
         <ResizablePanel defaultSize={25} minSize={20} className="border-r">
           <div className="flex flex-col h-full">
             <div className="p-4 border-b space-y-3">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-foreground" />
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  Contacts
-                </CardTitle>
-              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-foreground" />
+                  <CardTitle className="text-lg font-semibold text-foreground">
+                    Contacts
+                  </CardTitle>
+                </div>
 
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search contacts..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <div className="relative w-full max-w-[220px]">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search contacts..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
 

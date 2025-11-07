@@ -803,7 +803,7 @@ export const MessageGeneration = forwardRef(
           </div>
 
           <div className="sticky bottom-0 left-0 right-0 bg-background">
-            <div className="flex flex-col items-stretch gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 pb-0">
+            <div className="flex flex-col items-stretch gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 pb-2">
               {hasGeneratedMessages ? (
                 <>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
