@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/airtable-ds/dialog";
 
 import { Input } from "@/components/ui/airtable-ds/input";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Label } from "@/components/ui/airtable-ds/label";
 import {
   Collapsible,
@@ -347,7 +347,7 @@ export const MessageGeneration = forwardRef(
     );
 
     const handleCustomObjectiveChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setCustomObjective(e.target.value);
       },
       []
@@ -653,11 +653,12 @@ export const MessageGeneration = forwardRef(
               </div>
 
               {objective === "Custom objective" && (
-                <Input
+                <DsTextarea
+                  tone="muted"
                   placeholder="Describe your custom objective..."
                   value={customObjective}
                   onChange={handleCustomObjectiveChange}
-                  className="border-2 border-input-border focus:border-primary"
+                  rows={2}
                 />
               )}
             </div>
@@ -680,7 +681,8 @@ export const MessageGeneration = forwardRef(
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2">
-                  <Textarea
+                  <DsTextarea
+                    tone="muted"
                     className="bg-secondary border-border"
                     id="additional-context"
                     placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
@@ -764,13 +766,14 @@ export const MessageGeneration = forwardRef(
                         </button>
                       </div>
                       <div className="space-y-2 px-3 pb-3">
-                        <Textarea
+                        <DsTextarea
+                          tone="white"
                           value={value}
                           onFocus={() => setSelectedVersion(version)}
                           onChange={(e) =>
                             handleMessageEdit(version, e.target.value)
                           }
-                          className="w-full resize-y bg-background border-border min-h-[220px] focus-visible:border-border focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="w-full resize-y min-h-[220px]"
                           maxLength={maxLength}
                           readOnly={isGuest}
                         />

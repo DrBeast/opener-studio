@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -103,11 +103,12 @@ export const AddContact = ({
         <div className="flex-1 flex flex-col">
           <div className="flex-1 p-4">
             <div className="grid w-full gap-1.5 h-full">
-              <Textarea
+              <DsTextarea
+                tone="muted"
                 value={linkedinBio}
                 onChange={(e) => setLinkedinBio(e.target.value)}
                 placeholder={`Copy / paste their LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                className="h-full text-sm resize-none bg-secondary border-border"
+                className="h-full text-sm resize-none"
               />
             </div>
           </div>

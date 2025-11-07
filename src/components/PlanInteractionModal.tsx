@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/airtable-ds/input";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Label } from "@/components/ui/airtable-ds/label";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import { X, Plus, Calendar } from "lucide-react";
@@ -230,7 +230,8 @@ export const PlanInteractionModal = ({
             </div>
 
             {/* Description Textarea */}
-            <Textarea
+            <DsTextarea
+              tone="white"
               id="description"
               name="description"
               value={description}

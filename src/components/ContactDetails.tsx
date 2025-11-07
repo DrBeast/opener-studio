@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/airtable-ds/dialog";
 import { Input } from "@/components/ui/airtable-ds/input";
 import { Label } from "@/components/ui/airtable-ds/label";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import {
   Tabs,
   TabsContent,
@@ -202,6 +202,11 @@ export function ContactDetails({
   ) => {
     if (!formData) return;
     const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
+
+  const handleInputChange = (name: string, value: string) => {
+    if (!formData) return;
     setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
@@ -549,14 +554,15 @@ export function ContactDetails({
                 >
                   Your Notes
                 </Label>
-                <Textarea
-                  id="user_notes"
-                  name="user_notes"
-                  rows={2}
+                <DsTextarea
+                  tone="muted"
                   value={formData.user_notes || ""}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    handleInputChange("user_notes", e.target.value)
+                  }
                   placeholder="Add your personal notes about this contact..."
-                  className="bg-white border-border focus:border-purple-500 focus:ring-purple-500"
+                  className="min-h-[120px] text-sm"
+                  rows={4}
                 />
               </div>
 

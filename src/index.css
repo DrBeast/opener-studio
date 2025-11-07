@@ -4,92 +4,112 @@
 
 @layer base {
   :root {
-    /* Flat Design Color System  */
-    --floor: 0 0% 10%; /* Gray background for the bottom of the site */
-    --background: 0 0% 100%; /* Clean white background for cards and modals */
-    --foreground: 0 0% 20%; /* High contrast dark text */
-    --secondary-foreground: 0 0% 45%; /* Medium gray for secondary text */
-    --muted: 0 0% 90%; /* Light gray */
+    /* /* NEUTRAL FOUNDATION (The "Studio Sandwich")
+    /* This is the core of your "Studio" layout.
+    /* We define two main backgrounds:
+    /* 1. --background: A light gray for the "room" (chrome, side panels).
+    /* 2. --card: Pure white for "items" (cards, the center workspace).
+    /* ----------------------------------------------------------------- */
 
-    /* Primary - Opener Studio dark purple from logo */
-    --primary: 266 49% 33%; /* Dark purple from logo (#542C7C) */
-    --primary-hover: 266 55% 45%; /* Slightly lighter purple for hover */
-    --primary-muted: 266 35% 90%; /* Very light purple tint */
-    --primary-foreground: 0 0% 100%; /* Clean white text for primary colored elements */
+    /* --background: The "Room"
+    /* USE: Apply to <body>, Header, Footer, Left Panel, Right Panel.
+    /* This is your light gray "room" that frames the app.
+    /* (This is shadcn's "gray-50")
+    */
+    --background: 0 0% 98%;
 
-    /* Secondary - light gray for text areas */
-    --secondary: 0 0% 98%; /* Almost-white gray background */
+    /* --foreground: Default Text
+    /* USE: The default text color for everything on --background.
+    /* (This is shadcn's "gray-900")
+    */
+    --foreground: 0 0% 9%;
 
-    --muted-foreground: 0 0% 45%; /* Medium gray */
+    /* --card: "Floating" Elements & The "Workspace"
+    /* USE: 
+    /* 1. The main Center Panel's background (to make it pop white).
+    /* 2. Background for Contact Chips, Contact Preview cards, etc.
+    /* This is your clean white for all floating "paper" elements.
+    */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%; /* Text on cards */
 
-    /* Accent - subtle highlight */
-    --accent: 266 35% 90%; /* Very light purple tint, matching primary-muted */
-    --accent-foreground: 0 0% 20%; /* Dark text */
+    /* --popover:
+    /* USE: Popovers, dropdown menus, etc.
+    */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Status colors - bright and clear */
-    --destructive: 0 100% 50%; /* Bright red */
-    --destructive-foreground: 0 0% 100%; /* White */
+    /* /* PRIMARY ACTION (Your Brand)
+    /* Your Opener Studio purple. Used for all key actions.
+    /* ----------------------------------------------------------------- */
 
-    --success: 120 100% 35%; /* Bright green */
-    --success-foreground: 0 0% 100%; /* White */
+    /* --primary: Main CTA Color
+    /* USE: Key buttons ("Generate", "Add Contact"), selected states.
+    /* This is your logo's dark purple: 266 49% 33% (#542C7C)
+    */
+    --primary: 266 49% 33%;
 
-    /* Borders - minimal and clean */
-    --border: 0 0% 90%; /* Light gray border */
-    --input: 0 0% 100%; /* White input background */
-    --input-border: 0 0% 85%; /* Input border */
-    --ring: 266 49% 33%; /* Focus ring matches primary */
+    /* --primary-foreground: Text on Primary
+    /* USE: Text inside your main purple buttons.
+    */
+    --primary-foreground: 0 0% 100%;
 
-    /* Flat design radius - more geometric */
-    --radius: 0.5rem; /* 6px - cleaner, more geometric */
+    /* /* SECONDARY & MUTED (Hierarchy & Contrast)
+    /* These create the "white-on-white" fix (the "Studio Sandwich").
+    /* ----------------------------------------------------------------- */
 
-    /* Sidebar - consistent with main palette */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 266 49% 33%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 20%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 266 49% 33%;
-  }
+    /* --secondary: Workspace Elements
+    /* USE: Background for elements *inside* your Center Panel.
+    /* e.g., The "Canvas" Textarea, the "Prompt Builder" blocks.
+    /* This (gray-100) on the white Center Panel (card) looks clean.
+    */
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%; /* Text on secondary elements */
 
-  .dark {
-    --background: 222.2 84% 4.9%; /* Very dark blue (almost black) */
-    --foreground: 210 40% 98%; /* Very light blue */
+    /* --muted: Subtle Borders & Placeholders
+    /* USE: Borders, separators, disabled text.
+    /* (This is shadcn's "gray-200")
+    */
+    --muted: 0 0% 90.2%;
+    --muted-foreground: 0 0% 45.1%; /* Placeholder text (gray-500) */
 
-    --card: 222.2 84% 4.9%; /* Very dark blue (almost black) */
-    --card-foreground: 210 40% 98%; /* Very light blue */
+    /* /* ACCENT (Hover & Selected States)
+    /* --accent: Hover State
+    /* USE: Subtle hover backgrounds for list items, dropdowns.
+    /* (This is shadcn's "gray-100", same as --secondary)
+    */
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%; /* Text on hover */
 
-    --popover: 222.2 84% 4.9%; /* Very dark blue (almost black) */
-    --popover-foreground: 210 40% 98%; /* Very light blue */
+    /* /* STATUS & BORDERS
+    /* --destructive: Errors & Deletion
+    /* USE: Delete buttons, error messages.
+    */
+    --destructive: 0 84.2% 60.2%; /* shadcn's default red */
+    --destructive-foreground: 0 0% 100%;
 
-    --primary: 210 40% 98%; /* Very light blue (primary accent) */
-    --primary-foreground: 222.2 47.4% 11.2%; /* Dark blue-gray */
+    /* --border:
+    /* USE: Standard border color. Use sparingly.
+    /* (This is shadcn's "gray-200", same as --muted)
+    */
+    --border: 0 0% 90.2%;
 
-    --secondary: 217.2 32.6% 17.5%; /* Dark blue-gray */
-    --secondary-foreground: 210 40% 98%; /* Very light blue */
+    /* --input:
+    /* USE: Border for *inputs* (when you need a border).
+    /* (This is shadcn's "gray-300")
+    */
+    --input: 0 0% 86.3%;
 
-    --muted: 217.2 32.6% 17.5%; /* Dark blue-gray */
-    --muted-foreground: 215 20.2% 65.1%; /* Muted blue-gray */
+    /* --ring: Focus Ring
+    /* USE: The outline ring on focused buttons and inputs.
+    /* Set to your primary purple for brand consistency.
+    */
+    --ring: 266 49% 33%;
 
-    --accent: 217.2 32.6% 17.5%; /* Dark blue-gray (accent) */
-    --accent-foreground: 210 40% 98%; /* Very light blue */
-
-    --destructive: 0 62.8% 30.6%; /* Dark red */
-    --destructive-foreground: 210 40% 98%; /* Very light blue */
-
-    --border: 217.2 32.6% 17.5%; /* Dark blue-gray */
-    --input: 217.2 32.6% 17.5%; /* Dark blue-gray */
-    --ring: 212.7 26.8% 83.9%; /* Light blue */
-
-    --sidebar-background: 240 5.9% 10%; /* Very dark blue */
-    --sidebar-foreground: 240 4.8% 95.9%; /* Very pale blue-gray */
-    --sidebar-primary: 224.3 76.3% 48%; /* Bright blue */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 240 3.7% 15.9%; /* Very dark blue-gray */
-    --sidebar-accent-foreground: 240 4.8% 95.9%; /* Very pale blue-gray */
-    --sidebar-border: 240 3.7% 15.9%; /* Very dark blue-gray */
-    --sidebar-ring: 217.2 91.2% 59.8%; /* Bright blue */
+    /* --radius:
+    /* This is a personal choice. 0.5rem is a great default.
+    */
+    --radius: 0.5rem;
   }
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Modal } from "@/components/ui/design-system/modals";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { User, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
@@ -217,11 +217,12 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tell us about your professional background.
                   </label>
-                  <Textarea
+                  <DsTextarea
+                    tone="white"
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
                     placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                    className="min-h-[200px] text-sm resize-none bg-background border-border"
+                    className="min-h-[200px] text-sm resize-none"
                   />
                 </div>
               </div>
@@ -248,11 +249,12 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tell us about them.
                   </label>
-                  <Textarea
+                  <DsTextarea
+                    tone="white"
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
                     placeholder={`Copy / paste their LinkedIn profile (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                    className="min-h-[200px] text-sm resize-none bg-background border-border"
+                    className="min-h-[200px] text-sm resize-none"
                   />
                 </div>
               </div>

@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/airtable-ds/button";
 import { Input } from "@/components/ui/airtable-ds/input";
 import { Label } from "@/components/ui/airtable-ds/label";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import {
   Tabs,
   TabsContent,
@@ -736,14 +736,14 @@ export function CompanyDetails({
                     >
                       Notes
                     </Label>
-                    <Textarea
+                    <DsTextarea
+                      tone="white"
                       id="user_notes"
                       name="user_notes"
                       rows={4}
                       value={formData.user_notes || ""}
                       onChange={handleChange}
                       placeholder="Add your notes about this company..."
-                      className="bg-white border-gray-300 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
 
