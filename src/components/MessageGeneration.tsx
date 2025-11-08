@@ -313,10 +313,10 @@ export const MessageGeneration = forwardRef(
 
     const objectiveOptions = [
       "Explore roles, find hiring managers",
-      "Request a referral for a role you applied for",
-      "Get informational interview",
-      "Build relationship, open-ended",
-      "Follow up",
+      "Ask for a referral",
+      "Get info interview",
+      "Build relationship",
+      "Follow up or reply",
       "Custom objective",
     ];
 
@@ -612,10 +612,10 @@ export const MessageGeneration = forwardRef(
     const MessageContent = useMemo(() => {
       const objectiveOptions = [
         "Explore roles, find hiring managers",
-        "Request a referral for a role you applied for",
-        "Get informational interview",
-        "Build relationship, open-ended",
-        "Follow up",
+        "Ask for a referral",
+        "Get info interview",
+        "Build relationship",
+        "Follow up or reply",
         "Custom objective",
       ];
       const versionEntries = Object.entries(generatedMessages);

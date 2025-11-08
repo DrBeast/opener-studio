@@ -47,9 +47,9 @@
     /* USE: Key buttons ("Generate", "Add Contact"), selected states.
     /* This is your logo's dark purple: 266 49% 33% (#542C7C)
     */
-    /* --primary: 266 49% 33%; */
-    --primary: 68 39% 30%;
-    --primary: 16 88% 54%;
+    --primary: 266 49% 33%; /* Purple */
+    /* --primary: 68 39% 30%; /* Olive */
+    /* --primary: 16 88% 54%; */ /* Orange */
 
     /* A slightly lighter/brighter purple for hover */
     --primary-hover: 266 45% 50%;
@@ -70,8 +70,8 @@
     /* This (gray-100) on the white Center Panel (card) looks clean.
     */
     /*    --secondary: 0 0% 96.1%;*/
-    /* --secondary: 220 14.3% 95.9%;*/
-    --secondary: 68 39% 95%;
+    --secondary: 220 14.3% 95.9%; /* Light Gray, same as background */
+    /* --secondary: 68 39% 95%; */
     /* --secondary: 24 100% 71%; */
 
     /* A slightly lighter grey for hover */
