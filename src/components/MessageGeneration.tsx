@@ -6,8 +6,9 @@ import {
   forwardRef,
   useImperativeHandle,
   useRef,
+  type ComponentType,
 } from "react";
-import { Copy, ChevronDown } from "lucide-react";
+import { Copy, ChevronDown, PenSquare, Mail, LinkedinIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,23 +36,87 @@ import {
   Chip,
   Button,
 } from "@/components/ui/design-system";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/airtable-ds/tooltip";
 import { objectiveSchema, additionalContextSchema } from "@/lib/validation";
 
-const MessageSkeleton = () => (
-  <div className="space-y-4 animate-pulse pt-4">
-    {/* Tabs Skeleton */}
-    <div className="grid w-full grid-cols-3 gap-2">
-      <div className="h-10 bg-gray-200 rounded-lg" />
-      <div className="h-10 bg-gray-200 rounded-lg" />
-      <div className="h-10 bg-gray-200 rounded-lg" />
+const mediumIconMap: Record<
+  string,
+  { icon: ComponentType<{ className?: string }>; color?: string }
+> = {
+  "LinkedIn connection note": { icon: LinkedinIcon, color: "#0077B5" },
+  "Premium LinkedIn connection note": {
+    icon: LinkedinIcon,
+    color: "#f58200",
+  },
+  "LinkedIn message, email, InMail": { icon: Mail },
+};
+
+const MessageCardSkeleton = ({
+  animated = false,
+  variant = 0,
+}: {
+  animated?: boolean;
+  variant?: number;
+}) => {
+  const widthSets = [
+    [
+      "w-[30%]",
+      "w-[53%]",
+      "w-[82%]",
+      "w-[74%]",
+      "w-[66%]",
+      "w-[58%]",
+      "w-[44%]",
+    ],
+    [
+      "w-[64%]",
+      "w-[87%]",
+      "w-[49%]",
+      "w-[70%]",
+      "w-[60%]",
+      "w-[52%]",
+      "w-[36%]",
+    ],
+    [
+      "w-[67%]",
+      "w-[90%]",
+      "w-[84%]",
+      "w-[77%]",
+      "w-[68%]",
+      "w-[74%]",
+      "w-[41%]",
+    ],
+  ];
+  const widths = widthSets[variant % widthSets.length];
+
+  return (
+    <div className={cn("space-y-3", animated ? "animate-pulse" : "")}>
+      <div className="space-y-2 rounded-lg bg-card p-4 shadow-inner">
+        {widths.map((width, index) => (
+          <div
+            key={index}
+            className={cn(
+              "h-3 rounded-full",
+              index % 3 === 0
+                ? "bg-muted/50"
+                : index % 3 === 1
+                ? "bg-muted/40"
+                : "bg-muted/30",
+              width
+            )}
+          />
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <div className="h-2.5 w-14 rounded-full bg-muted/40" />
+      </div>
     </div>
-    {/* Text Area Skeleton */}
-    <div className="space-y-2">
-      <div className="h-24 w-full bg-gray-200 rounded-lg" />
-      <div className="h-4 w-1/4 bg-gray-200 rounded-md" />
-    </div>
-  </div>
-);
+  );
+};
 
 interface ContactData {
   contact_id: string;
@@ -620,6 +685,12 @@ export const MessageGeneration = forwardRef(
       ];
       const versionEntries = Object.entries(generatedMessages);
       const hasGeneratedMessages = versionEntries.length > 0;
+      const versionOrder = ["Version 1", "Version 2", "Version 3"];
+      const displayedVersions = versionOrder.map((version, index) => ({
+        version,
+        content: generatedMessages[version] ?? null,
+        index,
+      }));
       const selectedMessageText =
         (selectedVersion &&
           (editedMessages[selectedVersion] ||
@@ -695,105 +766,139 @@ export const MessageGeneration = forwardRef(
             )}
 
             <div>
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {MEDIUM_OPTIONS.map((option) => (
-                  <Button
-                    key={option.id}
-                    variant="option"
-                    className={cn(
-                      "bg-inherit hover:bg-inherit flex-1 p-2 border border-border rounded-lg min-w-[140px] transition-colors",
-                      medium === option.id
-                        ? "border-primary text-primary"
-                        : "text-muted-foreground"
-                    )}
-                    onClick={() => handleMediumChange(option.id)}
-                  >
-                    <div className="text-center space-y-1 leading-tight">
-                      <div className="whitespace-nowrap text-sm font-semibold">
-                        {option.label}
-                      </div>
-                      <div className="whitespace-nowrap text-xs">
-                        {option.maxLength >= 1000
-                          ? `${option.maxLength / 1000}k`
-                          : option.maxLength}{" "}
-                        chars
-                      </div>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {isGenerating ? (
-              <MessageSkeleton />
-            ) : hasGeneratedMessages ? (
-              <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0">
-                {versionEntries.map(([version, content]) => {
-                  const value =
-                    editedMessages[version] !== undefined
-                      ? editedMessages[version]
-                      : content.text;
-                  const isSelected = selectedVersion === version;
+              <div className="flex justify-end gap-6 pr-2">
+                {MEDIUM_OPTIONS.map((option) => {
+                  const mediumConfig = mediumIconMap[option.id];
+                  const Icon = mediumConfig?.icon ?? PenSquare;
+                  const isActive = medium === option.id;
 
                   return (
-                    <div
-                      key={version}
-                      className={cn(
-                        "flex-1 rounded-xl border bg-secondary shadow-sm transition-colors",
-                        isSelected
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "border-border hover:border-primary/40"
-                      )}
-                    >
-                      <div className="flex items-center justify-between px-3 py-2">
+                    <Tooltip key={option.id} delayDuration={100}>
+                      <TooltipTrigger asChild>
                         <button
                           type="button"
-                          onClick={() => setSelectedVersion(version)}
+                          onClick={() => handleMediumChange(option.id)}
+                          aria-pressed={isActive}
                           className={cn(
-                            "text-sm font-semibold transition-colors",
-                            isSelected ? "text-primary" : "text-foreground"
+                            "group relative flex h-8 w-8 flex-col items-center justify-center text-foreground transition-transform duration-200",
+                            "hover:scale-[1.1]"
                           )}
                         >
-                          {version}
+                          <Icon
+                            className={cn(
+                              "h-7 w-7 transition-transform duration-200",
+                              "group-hover:scale-[1.1]"
+                            )}
+                            style={
+                              mediumConfig?.color
+                                ? { color: mediumConfig.color }
+                                : undefined
+                            }
+                          />
+                          <span
+                            className={cn(
+                              "pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-secondary-foreground transition-all duration-200",
+                              isActive
+                                ? "opacity-100 scale-x-100"
+                                : "opacity-0 scale-x-50"
+                            )}
+                          />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => copyMessage(value)}
-                          className="rounded-md p-2 text-muted-foreground hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
-                          aria-label={`Copy ${version}`}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-2 px-3 pb-3">
-                        <DsTextarea
-                          tone="white"
-                          value={value}
-                          onFocus={() => setSelectedVersion(version)}
-                          onChange={(e) =>
-                            handleMessageEdit(version, e.target.value)
-                          }
-                          className="w-full resize-y min-h-[220px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border"
-                          maxLength={maxLength}
-                          readOnly={isGuest}
-                        />
-                        <div className="flex justify-end text-xs text-muted-foreground">
-                          {value.length}/{maxLength}
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        sideOffset={12}
+                        className="text-sm"
+                      >
+                        <div className="text-sm font-medium text-foreground">
+                          {option.label}
                         </div>
-                      </div>
-                    </div>
+                        <div className="text-xs text-muted-foreground">
+                          {option.maxLength >= 1000
+                            ? `${option.maxLength / 1000}k`
+                            : option.maxLength}{" "}
+                          chars
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 })}
               </div>
-            ) : (
-              !isGenerating && (
-                <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
-                  {contact
-                    ? "Choose an objective and craft an opener to see AI-generated drafts."
-                    : "Select or create a contact to start crafting an opener."}
-                </div>
-              )
-            )}
+            </div>
+
+            <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0">
+              {displayedVersions.map(({ version, content, index }) => {
+                const hasContent = Boolean(content?.text);
+                const value = hasContent
+                  ? editedMessages[version] !== undefined
+                    ? editedMessages[version]
+                    : content?.text || ""
+                  : "";
+                const isSelected = selectedVersion === version;
+
+                return (
+                  <div
+                    key={version}
+                    className={cn(
+                      "flex-1 rounded-xl border bg-secondary shadow-sm transition-colors",
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/20"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    <div className="flex items-center justify-between px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedVersion(version)}
+                        className={cn(
+                          "text-sm font-semibold transition-colors",
+                          isSelected ? "text-primary" : "text-foreground"
+                        )}
+                      >
+                        {version}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyMessage(value)}
+                        disabled={!hasContent || !value}
+                        className={cn(
+                          "rounded-md p-2 text-muted-foreground hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50",
+                          "disabled:cursor-not-allowed disabled:opacity-40"
+                        )}
+                        aria-label={`Copy ${version}`}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-2 px-3 pb-3">
+                      {hasContent ? (
+                        <>
+                          <DsTextarea
+                            tone="white"
+                            value={value}
+                            onFocus={() => setSelectedVersion(version)}
+                            onChange={(e) =>
+                              handleMessageEdit(version, e.target.value)
+                            }
+                            className="w-full resize-y min-h-[220px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border"
+                            maxLength={maxLength}
+                            readOnly={isGuest}
+                          />
+                          <div className="flex justify-end text-xs text-muted-foreground">
+                            {value.length}/{maxLength}
+                          </div>
+                        </>
+                      ) : (
+                        <MessageCardSkeleton
+                          animated={isGenerating}
+                          variant={index}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             {isGuest && hasGeneratedMessages && (
               <div className="rounded-lg border border-border bg-secondary/50 px-6 py-4 text-sm text-muted-foreground">
