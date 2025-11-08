@@ -49,9 +49,10 @@
     */
     --primary: 266 49% 33%;
     /* A slightly lighter/brighter purple for hover */
-    --primary-hover: 266 49% 50%;
+    --primary-hover: 266 35% 95%;
+    --primary-muted: 266 35% 90%;
 
-    /* --primary-foreground: Text on Primary
+    /* --primary-foreground: white Text on Primary
     /* USE: Text inside your main purple buttons.
     */
     --primary-foreground: 0 0% 100%;
@@ -66,7 +67,7 @@
     /* This (gray-100) on the white Center Panel (card) looks clean.
     */
     /*    --secondary: 0 0% 96.1%;*/
-    --secondary: 220 14.3% 95.9%;
+    --secondary: 220 14.3% 65.9%;
 
     /* A slightly lighter grey for hover */
     --secondary-hover: 0 0% 92%;
@@ -77,7 +78,7 @@
     /* USE: Borders, separators, disabled text.
     /* (This is shadcn's "gray-200")
     */
-    --muted: 0 0% 90.2%;
+    --muted: 0 0% 9%;
     --muted-foreground: 0 0% 45.1%; /* Placeholder text (gray-500) */
 
     /* /* ACCENT (Hover & Selected States)

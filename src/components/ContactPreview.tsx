@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/design-system";
 import { Avatar, AvatarFallback } from "@/components/ui/airtable-ds/avatar";
-import { Briefcase, MapPin, Building, Linkedin } from "lucide-react";
+import { Briefcase, MapPin, Building, Linkedin, IdCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContactPreviewProps {
@@ -22,6 +22,7 @@ interface ContactPreviewProps {
     linkedin_url?: string;
   };
   className?: string;
+  onOpenDetails?: () => void;
 }
 
 const getInitials = (first?: string, last?: string) => {
@@ -33,12 +34,16 @@ const getInitials = (first?: string, last?: string) => {
 export const ContactPreview: React.FC<ContactPreviewProps> = ({
   contact,
   className,
+  onOpenDetails,
 }) => {
   const initials = getInitials(contact.first_name, contact.last_name);
 
   return (
     <div className={cn("space-y-4", className)}>
-      <PrimaryCard className="bg-background">
+      <PrimaryCard
+        className="group cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary-hover"
+        onClick={onOpenDetails}
+      >
         <CardContent className="p-4 flex items-start gap-3">
           <Avatar className="h-12 w-12">
             <AvatarFallback className="bg-primary/10 text-primary text-sm">
@@ -70,15 +75,19 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Linkedin className="h-4 w-4" /> LinkedIn
               </a>
             )}
           </div>
+          <span className="text-muted-foreground transition-colors group-hover:text-primary">
+            <IdCard className="h-5 w-5" />
+          </span>
         </CardContent>
       </PrimaryCard>
 
-      <Card className="bg-background">
+      <Card>
         <CardHeader className="pb-1 px-4 pt-4">
           <CardTitle className="text-sm font-semibold text-foreground">
             Professional Summary
@@ -93,7 +102,7 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
         </CardContent>
       </Card>
 
-      <Card className="bg-background">
+      <Card>
         <CardHeader className="pb-1 px-4 pt-4">
           <CardTitle className="text-sm font-semibold text-foreground">
             How I Can Help

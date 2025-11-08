@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { MessageGeneration } from "@/components/MessageGeneration";
 import { ContactPreview } from "@/components/ContactPreview";
 import { AddContactModal } from "@/components/AddContactModal";
+import { ContactDetails } from "@/components/ContactDetails";
 
 // Interface for contact data used in message generation
 interface ContactForMessage {
@@ -56,6 +57,8 @@ const Studio = () => {
   );
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [contactDetailsId, setContactDetailsId] = useState<string | null>(null);
+  const [isContactDetailsOpen, setIsContactDetailsOpen] = useState(false);
 
   // Load selected contact from localStorage on mount
   useEffect(() => {
@@ -132,6 +135,11 @@ const Studio = () => {
     setSelectedContactId(contactId);
   };
 
+  const handleContactDetailsOpen = (contactId: string) => {
+    setContactDetailsId(contactId);
+    setIsContactDetailsOpen(true);
+  };
+
   // Handle add contact success
   const handleAddContactSuccess = () => {
     fetchContacts();
@@ -162,7 +170,7 @@ const Studio = () => {
       >
         {/* Left Panel - Contacts */}
         <ResizablePanel defaultSize={25} minSize={20} className="border-r">
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full ">
             <div className="p-4 border-b space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -185,10 +193,10 @@ const Studio = () => {
             </div>
 
             {/* Contacts List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 ">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground " />
                 </div>
               ) : filteredContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -305,6 +313,9 @@ const Studio = () => {
                     how_i_can_help: selectedContact.how_i_can_help,
                     linkedin_url: selectedContact.linkedin_url,
                   }}
+                  onOpenDetails={() =>
+                    handleContactDetailsOpen(selectedContact.contact_id)
+                  }
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -327,6 +338,14 @@ const Studio = () => {
         onSuccess={handleAddContactSuccess}
         onContactCreated={handleContactCreated}
       />
+      {contactDetailsId && (
+        <ContactDetails
+          contactId={contactDetailsId}
+          isOpen={isContactDetailsOpen}
+          onClose={() => setIsContactDetailsOpen(false)}
+          onContactUpdated={fetchContacts}
+        />
+      )}
     </div>
   );
 };

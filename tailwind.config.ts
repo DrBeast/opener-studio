@@ -25,7 +25,6 @@ export default {
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
-        // 'input-border': 'hsl(var(--input-border))', // REMOVED: Redundant. Use --input.
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -33,12 +32,12 @@ export default {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
           muted: 'hsl(var(--primary-muted))',
-          hover: 'hsl(var(--primary-hover))', // <-- ADDED
+          hover: 'hsl(var(--primary-hover))', 
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
-          hover: 'hsl(var(--secondary-hover))', // <-- ADDED
+          hover: 'hsl(var(--secondary-hover))', 
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',

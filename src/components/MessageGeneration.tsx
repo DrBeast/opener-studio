@@ -739,7 +739,7 @@ export const MessageGeneration = forwardRef(
                     <div
                       key={version}
                       className={cn(
-                        "flex-1 rounded-xl border bg-background shadow-sm transition-colors",
+                        "flex-1 rounded-xl border bg-secondary shadow-sm transition-colors",
                         isSelected
                           ? "border-primary ring-2 ring-primary/20"
                           : "border-border hover:border-primary/40"
@@ -846,7 +846,7 @@ export const MessageGeneration = forwardRef(
                         }
                         className="sm:w-auto h-10"
                       >
-                        Save to History
+                        Copy and Save to History
                       </PrimaryAction>
                     )}
                   </div>
