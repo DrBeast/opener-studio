@@ -16,7 +16,7 @@
     /* This is your light gray "room" that frames the app.
     /* (This is shadcn's "gray-50")
     */
-    --background: 0 0% 98%;
+    --background: 0 0% 96%;
 
     /* --foreground: Default Text
     /* USE: The default text color for everything on --background.
@@ -47,9 +47,12 @@
     /* USE: Key buttons ("Generate", "Add Contact"), selected states.
     /* This is your logo's dark purple: 266 49% 33% (#542C7C)
     */
-    --primary: 266 49% 33%;
+    /* --primary: 266 49% 33%; */
+    --primary: 68 39% 30%;
+    --primary: 16 88% 54%;
+
     /* A slightly lighter/brighter purple for hover */
-    --primary-hover: 266 35% 95%;
+    --primary-hover: 266 45% 50%;
     --primary-muted: 266 35% 90%;
 
     /* --primary-foreground: white Text on Primary
@@ -67,11 +70,12 @@
     /* This (gray-100) on the white Center Panel (card) looks clean.
     */
     /*    --secondary: 0 0% 96.1%;*/
-    --secondary: 220 14.3% 65.9%;
+    /* --secondary: 220 14.3% 95.9%;*/
+    --secondary: 68 39% 95%;
+    /* --secondary: 24 100% 71%; */
 
     /* A slightly lighter grey for hover */
     --secondary-hover: 0 0% 92%;
-
     --secondary-foreground: 0 0% 9%; /* Text on secondary elements */
 
     /* --muted: Subtle Borders & Placeholders

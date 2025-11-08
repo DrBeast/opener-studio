@@ -41,7 +41,7 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
   return (
     <div className={cn("space-y-4", className)}>
       <PrimaryCard
-        className="group cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary-hover"
+        className="group cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary-muted"
         onClick={onOpenDetails}
       >
         <CardContent className="p-4 flex items-start gap-3">

@@ -166,11 +166,11 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
         variant={
           isSelected
             ? "primary" // Active style
-            : "option" // Inactive style
+            : "outline" // Inactive style
         }
         size="sm"
         className={
-          "h-auto px-3 py-1.5 text-sm font-normal rounded-full  transition-colors shadow-none hover:shadow-none"
+          "h-auto px-3 py-1.5 text-sm font-normal rounded-full transition-colors shadow-none hover:shadow-none"
         }
         {...props}
       >
