@@ -780,7 +780,7 @@ export const MessageGeneration = forwardRef(
                           onClick={() => handleMediumChange(option.id)}
                           aria-pressed={isActive}
                           className={cn(
-                            "group relative flex h-8 w-8 flex-col items-center justify-center text-foreground transition-transform duration-200",
+                            "group relative flex h-6 w-6 flex-col items-center justify-center text-foreground transition-transform duration-200",
                             "hover:scale-[1.1]"
                           )}
                         >
@@ -807,7 +807,9 @@ export const MessageGeneration = forwardRef(
                       </TooltipTrigger>
                       <TooltipContent
                         side="top"
-                        sideOffset={12}
+                        align="end"
+                        sideOffset={14}
+                        alignOffset={0}
                         className="text-sm"
                       >
                         <div className="text-sm font-medium text-foreground">
