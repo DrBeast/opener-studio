@@ -171,7 +171,7 @@ const Studio = () => {
         {/* Left Panel - Contacts */}
         <ResizablePanel defaultSize={25} minSize={20} className="border-r">
           <div className="flex flex-col h-full ">
-            <div className="p-4 border-b space-y-3">
+            <div className="p-4 space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5 text-foreground" />

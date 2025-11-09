@@ -8,7 +8,14 @@ import {
   useRef,
   type ComponentType,
 } from "react";
-import { Copy, ChevronDown, PenSquare, Mail, LinkedinIcon } from "lucide-react";
+import {
+  Copy,
+  PenSquare,
+  Mail,
+  LinkedinIcon,
+  NotebookPen,
+  Goal,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,14 +24,8 @@ import {
   DialogTitle,
 } from "@/components/ui/airtable-ds/dialog";
 
-import { Input } from "@/components/ui/airtable-ds/input";
 import { DsTextarea } from "@/components/ui/design-system";
 import { Label } from "@/components/ui/airtable-ds/label";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/airtable-ds/collapsible";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
@@ -33,7 +34,6 @@ import { MEDIUM_OPTIONS } from "@/shared/constants";
 import {
   PrimaryAction,
   OutlineAction,
-  Chip,
   Button,
 } from "@/components/ui/design-system";
 import {
@@ -222,9 +222,6 @@ export const MessageGeneration = forwardRef(
     const [showAIReasoning, setShowAIReasoning] = useState<{
       [key: string]: boolean;
     }>(() => getInitialState("showAIReasoning", {}));
-    const [isContextExpanded, setIsContextExpanded] = useState<boolean>(() =>
-      getInitialState("isContextExpanded", false)
-    );
     const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
     // Whether messages are present and generation has completed
     // Sentinel for auto-scrolling the view to the latest content
@@ -263,7 +260,6 @@ export const MessageGeneration = forwardRef(
           setEditedMessages(getState("editedMessages", {}));
           setMaxLength(getState("maxLength", 300));
           setShowAIReasoning(getState("showAIReasoning", {}));
-          setIsContextExpanded(getState("isContextExpanded", false));
           setSelectedVersion(null);
           setIsGenerating(false); // Stop any in-progress generation
         } else {
@@ -276,7 +272,6 @@ export const MessageGeneration = forwardRef(
           setEditedMessages({});
           setMaxLength(300);
           setShowAIReasoning({});
-          setIsContextExpanded(false);
           setSelectedVersion(null);
           setIsGenerating(false);
         }
@@ -357,15 +352,6 @@ export const MessageGeneration = forwardRef(
     }, [showAIReasoning, storageKey, contact?.contact_id]);
 
     useEffect(() => {
-      if (contact?.contact_id) {
-        localStorage.setItem(
-          `${storageKey}_isContextExpanded`,
-          JSON.stringify(isContextExpanded)
-        );
-      }
-    }, [isContextExpanded, storageKey, contact?.contact_id]);
-
-    useEffect(() => {
       const versions = Object.keys(generatedMessages);
       if (versions.length === 0) {
         setSelectedVersion(null);
@@ -381,7 +367,7 @@ export const MessageGeneration = forwardRef(
       "Ask for a referral",
       "Get info interview",
       "Build relationship",
-      "Follow up or reply",
+      "Follow up",
       "Custom objective",
     ];
 
@@ -680,7 +666,7 @@ export const MessageGeneration = forwardRef(
         "Ask for a referral",
         "Get info interview",
         "Build relationship",
-        "Follow up or reply",
+        "Follow up",
         "Custom objective",
       ];
       const versionEntries = Object.entries(generatedMessages);
@@ -710,122 +696,145 @@ export const MessageGeneration = forwardRef(
           } overflow-hidden`}
         >
           <div className="flex-1 space-y-6 overflow-auto pr-1 pb-2">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {objectiveOptions.map((option) => (
-                  <Chip
-                    key={option}
-                    isSelected={objective === option}
-                    onClick={() => handleObjectiveChange(option)}
-                  >
-                    {option}
-                  </Chip>
-                ))}
-              </div>
-
-              {objective === "Custom objective" && (
-                <DsTextarea
-                  tone="muted"
-                  placeholder="Describe your custom objective..."
-                  value={customObjective}
-                  onChange={handleCustomObjectiveChange}
-                  rows={2}
-                />
-              )}
-            </div>
-
-            {!isGuest && (
-              <Collapsible
-                open={isContextExpanded}
-                onOpenChange={setIsContextExpanded}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button className="w-full flex justify-between items-center p-3 border border-border bg-secondary text-foreground hover:bg-primary-muted transition-colors shadow-none hover:shadow-none">
-                    <Label className="text-sm font-semibold cursor-pointer">
-                      Additional context (optional)
-                    </Label>
-                    <ChevronDown
-                      className={`h-5 w-5 transition-transform duration-200 ${
-                        isContextExpanded ? "rotate-180" : ""
-                      }`}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2">
-                  <DsTextarea
-                    tone="muted"
-                    className="bg-secondary border-border"
-                    id="additional-context"
-                    placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
-                    value={additionalContext}
-                    onChange={handleAdditionalContextChange}
-                    rows={4}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            <div>
-              <div className="flex justify-end gap-6 pr-2">
-                {MEDIUM_OPTIONS.map((option) => {
-                  const mediumConfig = mediumIconMap[option.id];
-                  const Icon = mediumConfig?.icon ?? PenSquare;
-                  const isActive = medium === option.id;
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {objectiveOptions.map((option) => {
+                  const isSelected = objective === option;
 
                   return (
-                    <Tooltip key={option.id} delayDuration={100}>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => handleMediumChange(option.id)}
-                          aria-pressed={isActive}
-                          className={cn(
-                            "group relative flex h-6 w-6 flex-col items-center justify-center text-foreground transition-transform duration-200",
-                            "hover:scale-[1.1]"
-                          )}
-                        >
-                          <Icon
-                            className={cn(
-                              "h-7 w-7 transition-transform duration-200",
-                              "group-hover:scale-[1.1]"
-                            )}
-                            style={
-                              mediumConfig?.color
-                                ? { color: mediumConfig.color }
-                                : undefined
-                            }
-                          />
-                          <span
-                            className={cn(
-                              "pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-secondary-foreground transition-all duration-200",
-                              isActive
-                                ? "opacity-100 scale-x-100"
-                                : "opacity-0 scale-x-50"
-                            )}
-                          />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        align="end"
-                        sideOffset={14}
-                        alignOffset={0}
-                        className="text-sm"
-                      >
-                        <div className="text-sm font-medium text-foreground">
-                          {option.label}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {option.maxLength >= 1000
-                            ? `${option.maxLength / 1000}k`
-                            : option.maxLength}{" "}
-                          chars
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => handleObjectiveChange(option)}
+                      className={cn(
+                        "flex h-10 items-center justify-center rounded-full border text-sm font-medium transition-colors px-3 text-center",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-primary/40 bg-card text-primary hover:bg-primary-muted"
+                      )}
+                    >
+                      {option}
+                    </button>
                   );
                 })}
               </div>
+            </div>
+
+            {!isGuest && (
+              <div
+                className={cn(
+                  "flex flex-col gap-4",
+                  objective === "Custom objective" ? "xl:flex-row xl:gap-6" : ""
+                )}
+              >
+                <div className="flex-1 rounded-xl border border-border bg-secondary p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <NotebookPen className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold text-foreground">
+                        Additional context
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      Optional
+                    </span>
+                  </div>
+                  <DsTextarea
+                    tone="white"
+                    className="mt-3 min-h-[72px] resize-y"
+                    id="additional-context"
+                    placeholder="Shared interests, f2f meetings, recent news, mutual connections, or other instructions you want to provide"
+                    value={additionalContext}
+                    onChange={handleAdditionalContextChange}
+                    rows={2}
+                  />
+                </div>
+
+                {objective === "Custom objective" && (
+                  <div className="flex-1 rounded-xl border border-border bg-secondary p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Goal className="h-4 w-4 text-primary" />
+                        <Label className="text-sm font-semibold text-foreground">
+                          Custom objective
+                        </Label>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Required
+                      </span>
+                    </div>
+                    <DsTextarea
+                      tone="white"
+                      placeholder="What do you want to achieve?"
+                      value={customObjective}
+                      onChange={handleCustomObjectiveChange}
+                      rows={2}
+                      className="mt-3 min-h-[72px] resize-y"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-6 pr-2">
+              {MEDIUM_OPTIONS.map((option) => {
+                const mediumConfig = mediumIconMap[option.id];
+                const Icon = mediumConfig?.icon ?? PenSquare;
+                const isActive = medium === option.id;
+
+                return (
+                  <Tooltip key={option.id} delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleMediumChange(option.id)}
+                        aria-pressed={isActive}
+                        className={cn(
+                          "group relative flex h-6 w-6 flex-col items-center justify-center text-foreground transition-transform duration-200",
+                          "hover:scale-[1.1]"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "h-7 w-7 transition-transform duration-200",
+                            "group-hover:scale-[1.1]"
+                          )}
+                          style={
+                            mediumConfig?.color
+                              ? { color: mediumConfig.color }
+                              : undefined
+                          }
+                        />
+                        <span
+                          className={cn(
+                            "pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-secondary-foreground transition-all duration-200",
+                            isActive
+                              ? "opacity-100 scale-x-100"
+                              : "opacity-0 scale-x-50"
+                          )}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      align="end"
+                      sideOffset={14}
+                      alignOffset={0}
+                      className="text-sm"
+                    >
+                      <div className="text-sm font-medium text-foreground">
+                        {option.label}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {option.maxLength >= 1000
+                          ? `${option.maxLength / 1000}k`
+                          : option.maxLength}{" "}
+                        chars
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
             </div>
 
             <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0">
@@ -991,8 +1000,6 @@ export const MessageGeneration = forwardRef(
       handleMessageEdit,
       copyMessage,
       handleSaveSelected,
-      isContextExpanded,
-      setIsContextExpanded,
       isGuest,
       biosAreReady,
       onGenerateClick,
