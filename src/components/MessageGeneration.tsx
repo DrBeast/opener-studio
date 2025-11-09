@@ -6,15 +6,15 @@ import {
   forwardRef,
   useImperativeHandle,
   useRef,
+  type ComponentType,
 } from "react";
 import {
   Copy,
-  Save,
-  RotateCcw,
-  MessageCircle,
-  ThumbsUp,
-  ThumbsDown,
-  ChevronDown,
+  PenSquare,
+  Mail,
+  LinkedinIcon,
+  NotebookPen,
+  Goal,
 } from "lucide-react";
 import {
   Dialog,
@@ -24,47 +24,99 @@ import {
   DialogTitle,
 } from "@/components/ui/airtable-ds/dialog";
 
-import { Card } from "@/components/ui/airtable-ds/card";
-import { Input } from "@/components/ui/airtable-ds/input";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Label } from "@/components/ui/airtable-ds/label";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/airtable-ds/collapsible";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/airtable-ds/tabs";
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
+import { cn } from "@/lib/utils";
 import { MEDIUM_OPTIONS } from "@/shared/constants";
 import {
   PrimaryAction,
   OutlineAction,
-  Chip,
   Button,
 } from "@/components/ui/design-system";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/airtable-ds/tooltip";
 import { objectiveSchema, additionalContextSchema } from "@/lib/validation";
 
-const MessageSkeleton = () => (
-  <div className="space-y-4 animate-pulse pt-4">
-    {/* Tabs Skeleton */}
-    <div className="grid w-full grid-cols-3 gap-2">
-      <div className="h-10 bg-gray-200 rounded-lg" />
-      <div className="h-10 bg-gray-200 rounded-lg" />
-      <div className="h-10 bg-gray-200 rounded-lg" />
+const mediumIconMap: Record<
+  string,
+  { icon: ComponentType<{ className?: string }>; color?: string }
+> = {
+  "LinkedIn connection note": { icon: LinkedinIcon, color: "#0077B5" },
+  "Premium LinkedIn connection note": {
+    icon: LinkedinIcon,
+    color: "#f58200",
+  },
+  "LinkedIn message, email, InMail": { icon: Mail },
+};
+
+const MessageCardSkeleton = ({
+  animated = false,
+  variant = 0,
+}: {
+  animated?: boolean;
+  variant?: number;
+}) => {
+  const widthSets = [
+    [
+      "w-[30%]",
+      "w-[53%]",
+      "w-[82%]",
+      "w-[74%]",
+      "w-[66%]",
+      "w-[58%]",
+      "w-[44%]",
+    ],
+    [
+      "w-[64%]",
+      "w-[87%]",
+      "w-[49%]",
+      "w-[70%]",
+      "w-[60%]",
+      "w-[52%]",
+      "w-[36%]",
+    ],
+    [
+      "w-[67%]",
+      "w-[90%]",
+      "w-[84%]",
+      "w-[77%]",
+      "w-[68%]",
+      "w-[74%]",
+      "w-[41%]",
+    ],
+  ];
+  const widths = widthSets[variant % widthSets.length];
+
+  return (
+    <div className={cn("space-y-3", animated ? "animate-pulse" : "")}>
+      <div className="space-y-2 rounded-lg bg-card p-4 shadow-inner">
+        {widths.map((width, index) => (
+          <div
+            key={index}
+            className={cn(
+              "h-3 rounded-full",
+              index % 3 === 0
+                ? "bg-muted/50"
+                : index % 3 === 1
+                ? "bg-muted/40"
+                : "bg-muted/30",
+              width
+            )}
+          />
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <div className="h-2.5 w-14 rounded-full bg-muted/40" />
+      </div>
     </div>
-    {/* Text Area Skeleton */}
-    <div className="space-y-2">
-      <div className="h-24 w-full bg-gray-200 rounded-lg" />
-      <div className="h-4 w-1/4 bg-gray-200 rounded-md" />
-    </div>
-  </div>
-);
+  );
+};
 
 interface ContactData {
   contact_id: string;
@@ -149,7 +201,7 @@ export const MessageGeneration = forwardRef(
       getInitialState("medium", "LinkedIn connection note")
     );
     const [objective, setObjective] = useState<string>(() =>
-      getInitialState("objective", "Explore roles, find hiring managers")
+      getInitialState("objective", "Explore roles, find managers")
     );
     const [customObjective, setCustomObjective] = useState<string>(() =>
       getInitialState("customObjective", "")
@@ -170,17 +222,62 @@ export const MessageGeneration = forwardRef(
     const [showAIReasoning, setShowAIReasoning] = useState<{
       [key: string]: boolean;
     }>(() => getInitialState("showAIReasoning", {}));
-    const [isContextExpanded, setIsContextExpanded] = useState<boolean>(() =>
-      getInitialState("isContextExpanded", false)
-    );
-    const [activeTab, setActiveTab] = useState<string>("Version 1");
+    const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
     // Whether messages are present and generation has completed
-    const hasMessagesAny =
-      !isGenerating && Object.keys(generatedMessages).length > 0;
-    // Guest-only alias preserved for clarity in guest-specific UI below
-    const hasMessages = isGuest && hasMessagesAny;
     // Sentinel for auto-scrolling the view to the latest content
     const bottomRef = useRef<HTMLDivElement | null>(null);
+    // Track previous contact_id to detect changes
+    const prevContactIdRef = useRef<string | undefined>(contact?.contact_id);
+
+    // Effect to reload state when contact changes
+    useEffect(() => {
+      const currentContactId = contact?.contact_id;
+      const prevContactId = prevContactIdRef.current;
+
+      // If contact_id changed, reload state from localStorage for the new contact
+      if (currentContactId !== prevContactId) {
+        if (currentContactId) {
+          const newStorageKey = `messageGeneration_${currentContactId}`;
+
+          // Helper to get state from localStorage
+          const getState = <T,>(key: string, defaultValue: T): T => {
+            try {
+              const stored = localStorage.getItem(`${newStorageKey}_${key}`);
+              return stored ? JSON.parse(stored) : defaultValue;
+            } catch {
+              return defaultValue;
+            }
+          };
+
+          // Reload all state from the new contact's storage
+          setMedium(getState("medium", "LinkedIn connection note"));
+          setObjective(getState("objective", "Explore roles, find managers"));
+          setCustomObjective(getState("customObjective", ""));
+          setAdditionalContext(getState("additionalContext", ""));
+          setGeneratedMessages(getState("generatedMessages", {}));
+          setEditedMessages(getState("editedMessages", {}));
+          setMaxLength(getState("maxLength", 300));
+          setShowAIReasoning(getState("showAIReasoning", {}));
+          setSelectedVersion(null);
+          setIsGenerating(false); // Stop any in-progress generation
+        } else {
+          // Contact is null - reset to defaults
+          setMedium("LinkedIn connection note");
+          setObjective("Explore roles, find managers");
+          setCustomObjective("");
+          setAdditionalContext("");
+          setGeneratedMessages({});
+          setEditedMessages({});
+          setMaxLength(300);
+          setShowAIReasoning({});
+          setSelectedVersion(null);
+          setIsGenerating(false);
+        }
+      }
+
+      // Update ref for next comparison
+      prevContactIdRef.current = currentContactId;
+    }, [contact?.contact_id]);
 
     // Effect to save state to localStorage whenever it changes
     useEffect(() => {
@@ -253,19 +350,21 @@ export const MessageGeneration = forwardRef(
     }, [showAIReasoning, storageKey, contact?.contact_id]);
 
     useEffect(() => {
-      if (contact?.contact_id) {
-        localStorage.setItem(
-          `${storageKey}_isContextExpanded`,
-          JSON.stringify(isContextExpanded)
-        );
+      const versions = Object.keys(generatedMessages);
+      if (versions.length === 0) {
+        setSelectedVersion(null);
+        return;
       }
-    }, [isContextExpanded, storageKey, contact?.contact_id]);
+      if (!selectedVersion || !generatedMessages[selectedVersion]) {
+        setSelectedVersion(versions[0]);
+      }
+    }, [generatedMessages, selectedVersion]);
 
     const objectiveOptions = [
-      "Explore roles, find hiring managers",
-      "Request a referral for a role you applied for",
-      "Get informational interview",
-      "Build relationship, open-ended",
+      "Explore roles, find managers",
+      "Ask for a referral",
+      "Get info interview",
+      "Build relationship",
       "Follow up",
       "Custom objective",
     ];
@@ -297,7 +396,7 @@ export const MessageGeneration = forwardRef(
     );
 
     const handleCustomObjectiveChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setCustomObjective(e.target.value);
       },
       []
@@ -306,39 +405,6 @@ export const MessageGeneration = forwardRef(
     const getEffectiveObjective = useCallback(() => {
       return objective === "Custom objective" ? customObjective : objective;
     }, [objective, customObjective]);
-
-    // Handle tab change for guests - persist selection to backend
-    const handleTabChange = useCallback(
-      async (newTab: string) => {
-        setActiveTab(newTab);
-
-        // For guests, persist the selection to the backend
-        if (isGuest && sessionId && generatedMessages[newTab]) {
-          try {
-            const { error } = await supabase.functions.invoke(
-              "guest_message_selection",
-              {
-                body: {
-                  sessionId: sessionId,
-                  selectedVersion: newTab,
-                  guestContactId: guestContactId,
-                },
-              }
-            );
-
-            if (error) {
-              console.error("Error saving message selection:", error);
-              // Don't show error toast - this is background operation
-            } else {
-              console.log(`Message selection saved: ${newTab}`);
-            }
-          } catch (error) {
-            console.error("Error calling guest_message_selection:", error);
-          }
-        }
-      },
-      [isGuest, sessionId, generatedMessages, guestContactId]
-    );
 
     const generateMessages = useCallback(async () => {
       if (!contact) {
@@ -370,6 +436,7 @@ export const MessageGeneration = forwardRef(
       setGeneratedMessages({});
       setEditedMessages({});
       setShowAIReasoning({});
+      setSelectedVersion(null);
 
       try {
         let data, fnError;
@@ -470,6 +537,8 @@ export const MessageGeneration = forwardRef(
       guestContactId,
       userProfileId,
       onMessagesGenerated,
+      objective,
+      customObjective,
     ]);
 
     useImperativeHandle(ref, () => ({
@@ -494,10 +563,15 @@ export const MessageGeneration = forwardRef(
     );
 
     const copyMessage = useCallback((text: string) => {
-      navigator.clipboard.writeText(text).catch((err) => {
-        console.error("Failed to copy message:", err);
-        toast.error("Failed to copy message to clipboard");
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          toast.success("Message copied");
+        })
+        .catch((err) => {
+          console.error("Failed to copy message:", err);
+          toast.error("Failed to copy message to clipboard");
+        });
     }, []);
 
     const saveMessage = useCallback(
@@ -557,276 +631,356 @@ export const MessageGeneration = forwardRef(
       ]
     );
 
-    const toggleAIReasoning = useCallback((version: string) => {
-      setShowAIReasoning((prev) => ({
-        ...prev,
-        [version]: !prev[version],
-      }));
-    }, []);
+    const handleSaveSelected = useCallback(() => {
+      if (!selectedVersion) {
+        toast.error("Select a version to save.");
+        return;
+      }
+
+      const messageText =
+        editedMessages[selectedVersion] ||
+        generatedMessages[selectedVersion]?.text ||
+        "";
+
+      if (!messageText) {
+        toast.error("This version is empty.");
+        return;
+      }
+
+      copyMessage(messageText);
+      saveMessage(selectedVersion, messageText);
+    }, [
+      selectedVersion,
+      editedMessages,
+      generatedMessages,
+      copyMessage,
+      saveMessage,
+    ]);
 
     // Memorize the MessageContent to prevent unnecessary re-renders
     const MessageContent = useMemo(() => {
       const objectiveOptions = [
-        "Explore roles, find hiring managers",
-        "Request a referral for a role you applied for",
-        "Get informational interview",
-        "Build relationship, open-ended",
+        "Explore roles, find managers",
+        "Ask for a referral",
+        "Get info interview",
+        "Build relationship",
         "Follow up",
         "Custom objective",
       ];
-      return (
-        <div className={`flex flex-col h-full ${embedded ? "mt-0" : "mt-4"}`}>
-          <div className="flex-1 space-y-4">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-3">
-                {objectiveOptions.map((option) => (
-                  <Chip
-                    key={option}
-                    isSelected={objective === option}
-                    onClick={() => handleObjectiveChange(option)}
-                  >
-                    {option}
-                  </Chip>
-                ))}
-              </div>
+      const versionEntries = Object.entries(generatedMessages);
+      const hasGeneratedMessages = versionEntries.length > 0;
+      const versionOrder = ["Version 1", "Version 2", "Version 3"];
+      const displayedVersions = versionOrder.map((version, index) => ({
+        version,
+        content: generatedMessages[version] ?? null,
+        index,
+      }));
+      const selectedMessageText =
+        (selectedVersion &&
+          (editedMessages[selectedVersion] ||
+            generatedMessages[selectedVersion]?.text)) ||
+        "";
+      const generationDisabled =
+        isGenerating ||
+        isCrafting ||
+        (isGuest
+          ? !biosAreReady
+          : !getEffectiveObjective() || !contact?.contact_id);
 
-              {objective === "Custom objective" && (
-                <Input
-                  placeholder="Describe your custom objective..."
-                  value={customObjective}
-                  onChange={handleCustomObjectiveChange}
-                  className="mt-4 border-2 border-input-border focus:border-primary"
-                />
-              )}
+      return (
+        <div
+          className={`flex flex-col h-full ${
+            embedded ? "mt-0" : "mt-4"
+          } overflow-hidden`}
+        >
+          <div className="flex-1 space-y-6 overflow-auto pr-1 pb-2">
+            <div className="space-y-3">
+              <div className="flex gap-2 pb-0">
+                {objectiveOptions.map((option) => {
+                  if (isGuest && option === "Custom objective") {
+                    return null;
+                  }
+                  const isSelected = objective === option;
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => handleObjectiveChange(option)}
+                      className={cn(
+                        "flex-1 min-w-0 rounded-[25px] border px-4 py-2 text-center text-sm font-medium leading-tight transition-colors whitespace-normal",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-primary/40 bg-card text-primary hover:bg-primary-muted"
+                      )}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Additional Context - Only show for registered users */}
             {!isGuest && (
-              <Collapsible
-                open={isContextExpanded}
-                onOpenChange={setIsContextExpanded}
+              <div
+                className={cn(
+                  "flex flex-col gap-4",
+                  objective === "Custom objective" ? "xl:flex-row xl:gap-6" : ""
+                )}
               >
-                <CollapsibleTrigger asChild>
-                  <Button className="w-full flex justify-between items-center p-2 border-2 border-border bg-secondary text-foreground hover:bg-primary-muted  transition-colors shadow-none hover:shadow-none">
-                    <Label className="text-sm font-semibold cursor-pointer">
-                      Additional context (optional)
-                    </Label>
-                    <ChevronDown
-                      className={`h-5 w-5 transition-transform duration-200 ${
-                        isContextExpanded ? "transform rotate-180" : ""
-                      }`}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2">
-                  <Textarea
-                    className="bg-secondary border-border "
+                <div className="flex-1 rounded-xl border border-border bg-secondary p-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <NotebookPen className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold text-foreground">
+                        Additional context
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      Optional
+                    </span>
+                  </div>
+                  <DsTextarea
+                    tone="white"
+                    className="mt-3 min-h-[72px] resize-y"
                     id="additional-context"
-                    placeholder="Any specific details you'd like the AI to consider when crafting your message: projects you want to highlight, recent interactions, personal relationships, common interests, etc."
+                    placeholder="Shared interests, f2f meetings, recent news, mutual connections, or other instructions you want to provide"
                     value={additionalContext}
                     onChange={handleAdditionalContextChange}
-                    rows={4}
+                    rows={2}
                   />
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </div>
-
-          {/* Medium Selection and Generate Button - Anchored to bottom */}
-          <div className="space-y-4 mt-6 p-4">
-            {/* Medium Selection - Flat Cards */}
-            <div className="space-y-2">
-              <div className="">
-                <div className="flex gap-3">
-                  {MEDIUM_OPTIONS.map((option) => (
-                    <Button
-                      key={option.id}
-                      variant="option"
-                      className={`bg-inherit hover:bg-inherit flex-1 p-2 border-none transition-colors cursor-pointer min-w-0 ${
-                        medium === option.id
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                      onClick={() => handleMediumChange(option.id)}
-                    >
-                      <div
-                        className={`text-center space-y-1 leading-tight ${
-                          medium === option.id
-                            ? "font-semibold text-sm"
-                            : "font-medium text-xs"
-                        }`}
-                      >
-                        <div className="whitespace-nowrap">{option.label}</div>
-                        <div className="whitespace-nowrap">
-                          {option.maxLength >= 1000
-                            ? `${option.maxLength / 1000}k`
-                            : option.maxLength}{" "}
-                          chars
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
                 </div>
-              </div>
 
-              {/* Generate Button - Flat */}
-              {hasMessagesAny ? (
-                <OutlineAction
-                  onClick={onGenerateClick || generateMessages}
-                  disabled={
-                    isGenerating ||
-                    isCrafting ||
-                    (isGuest
-                      ? !biosAreReady
-                      : !getEffectiveObjective() || !contact?.contact_id)
-                  }
-                  className="w-full h-10"
-                  size="default"
-                >
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  {isGenerating ? "Crafting..." : "Regenerate"}
-                </OutlineAction>
-              ) : (
-                <PrimaryAction
-                  onClick={onGenerateClick || generateMessages}
-                  disabled={
-                    isGenerating ||
-                    isCrafting ||
-                    (isGuest
-                      ? !biosAreReady
-                      : !getEffectiveObjective() || !contact?.contact_id)
-                  }
-                  className="w-full h-12"
-                  size="lg"
-                >
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  {isGenerating ? "Crafting..." : "Craft Your Opener"}
-                </PrimaryAction>
-              )}
-            </div>
-          </div>
-
-          {/* Generated Messages - Tabbed Interface */}
-          {isGenerating ? (
-            <MessageSkeleton />
-          ) : (
-            Object.keys(generatedMessages).length > 0 && (
-              <div className="space-y-4">
-                <Tabs
-                  defaultValue="Version 1"
-                  value={activeTab}
-                  onValueChange={handleTabChange}
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full grid-cols-3 bg-secondary">
-                    {Object.keys(generatedMessages).map((version) => (
-                      <TabsTrigger
-                        key={version}
-                        value={version}
-                        className="w-[98%] rounded-lg mx-auto text-sm font-medium bg-background data-[state=active]:bg-primary-muted data-[state=active]:border-primary-muted border-2 border-border"
-                      >
-                        {version}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  {/* Generated Messages - Preview */}
-                  {Object.entries(generatedMessages).map(
-                    ([version, content]) => (
-                      <TabsContent key={version} value={version} className="">
-                        <Card className=" bg-inherit border-none">
-                          {/* Editable Message Text (read-only for guests) */}
-                          <div className="space-y-3">
-                            <Textarea
-                              value={editedMessages[version] || content.text}
-                              onChange={(e) =>
-                                handleMessageEdit(version, e.target.value)
-                              }
-                              className="w-full resize-none bg-background border-border transition-colors"
-                              rows={6}
-                              maxLength={maxLength}
-                              readOnly={isGuest}
-                            />
-                          </div>
-
-                          {/* Char Count and Action Buttons */}
-                          <div className="flex justify-between items-center mt-4">
-                            <div className="text-xs text-muted-foreground  px-2 ">
-                              {(editedMessages[version] || content.text).length}
-                              /{maxLength}
-                            </div>
-
-                            {!isGuest && (
-                              <PrimaryAction
-                                size={hasMessagesAny ? "default" : "sm"}
-                                onClick={() => {
-                                  copyMessage(
-                                    editedMessages[version] || content.text
-                                  );
-                                  saveMessage(
-                                    version,
-                                    editedMessages[version] || content.text
-                                  );
-                                }}
-                                className={`transition-all ${
-                                  hasMessagesAny
-                                    ? "ring-2 ring-primary shadow-lg scale-[1.02]"
-                                    : "shadow-md hover:shadow-lg"
-                                }`}
-                              >
-                                <Save className="mr-1 h-4 w-4" />
-                                Copy and Save to History
-                              </PrimaryAction>
-                            )}
-                          </div>
-                        </Card>
-                      </TabsContent>
-                    )
-                  )}
-                </Tabs>
-
-                {/* Guest CTA Button - Only shown for guests */}
-                {isGuest && (
-                  <div className="border-t pt-6 mt-6 pb-12">
-                    <PrimaryAction
-                      onClick={async () => {
-                        // Get the currently selected message
-                        const selectedMessage =
-                          editedMessages[activeTab] ||
-                          generatedMessages[activeTab]?.text;
-
-                        if (selectedMessage) {
-                          // Copy to clipboard
-                          try {
-                            await navigator.clipboard.writeText(
-                              selectedMessage
-                            );
-                            toast.success("Message copied to clipboard!");
-                          } catch (err) {
-                            console.error("Failed to copy:", err);
-                            toast.error("Failed to copy message");
-                          }
-                        }
-
-                        // Redirect to signup
-                        window.location.href = "/auth/signup";
-                      }}
-                      className={`w-full h-16 ${
-                        hasMessages
-                          ? "ring-2 ring-primary shadow-lg scale-[1.02] transition-transform text-lg"
-                          : ""
-                      }`}
-                      size="default"
-                    >
-                      Sign up to copy and save your message!
-                    </PrimaryAction>
+                {objective === "Custom objective" && (
+                  <div className="flex-1 rounded-xl border border-border bg-secondary p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Goal className="h-4 w-4 text-primary" />
+                        <Label className="text-sm font-semibold text-foreground">
+                          Custom objective
+                        </Label>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Required
+                      </span>
+                    </div>
+                    <DsTextarea
+                      tone="white"
+                      placeholder="What do you want to achieve?"
+                      value={customObjective}
+                      onChange={handleCustomObjectiveChange}
+                      rows={2}
+                      className="mt-3 min-h-[72px] resize-y"
+                    />
                   </div>
                 )}
               </div>
-            )
-          )}
-          {/* Auto-scroll sentinel */}
-          <div ref={bottomRef} />
+            )}
+
+            <div className="flex justify-end gap-4 pr-2">
+              {MEDIUM_OPTIONS.map((option) => {
+                const mediumConfig = mediumIconMap[option.id];
+                const Icon = mediumConfig?.icon ?? PenSquare;
+                const isActive = medium === option.id;
+
+                return (
+                  <Tooltip key={option.id} delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleMediumChange(option.id)}
+                        aria-pressed={isActive}
+                        className={cn(
+                          "group relative flex h-6 w-6 flex-col items-center justify-center text-foreground transition-transform duration-200",
+                          "hover:scale-[1.1]"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "h-7 w-7 transition-transform duration-200",
+                            "group-hover:scale-[1.1]"
+                          )}
+                          style={
+                            mediumConfig?.color
+                              ? { color: mediumConfig.color }
+                              : undefined
+                          }
+                        />
+                        <span
+                          className={cn(
+                            "pointer-events-none absolute -bottom-2 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-secondary-foreground transition-all duration-200",
+                            isActive
+                              ? "opacity-100 scale-x-100"
+                              : "opacity-0 scale-x-50"
+                          )}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      align="end"
+                      sideOffset={14}
+                      alignOffset={0}
+                      className="text-sm"
+                    >
+                      <div className="text-sm font-medium text-foreground">
+                        {option.label}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {option.maxLength >= 1000
+                          ? `${option.maxLength / 1000}k`
+                          : option.maxLength}{" "}
+                        chars
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0 pt-0">
+              {displayedVersions.map(({ version, content, index }) => {
+                const hasContent = Boolean(content?.text);
+                const value = hasContent
+                  ? editedMessages[version] !== undefined
+                    ? editedMessages[version]
+                    : content?.text || ""
+                  : "";
+                const isSelected = selectedVersion === version;
+
+                return (
+                  <div
+                    key={version}
+                    className={cn(
+                      "flex-1 rounded-xl border bg-secondary shadow-sm transition-colors",
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/20"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    <div className="flex items-center justify-between px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedVersion(version)}
+                        className={cn(
+                          "text-sm font-semibold transition-colors",
+                          isSelected ? "text-primary" : "text-foreground"
+                        )}
+                      >
+                        {version}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyMessage(value)}
+                        disabled={!hasContent || !value}
+                        className={cn(
+                          "rounded-md p-2 text-muted-foreground hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/50",
+                          "disabled:cursor-not-allowed disabled:opacity-40"
+                        )}
+                        aria-label={`Copy ${version}`}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-2 px-3 pb-3">
+                      {hasContent ? (
+                        <>
+                          <DsTextarea
+                            tone="white"
+                            value={value}
+                            onFocus={() => setSelectedVersion(version)}
+                            onChange={(e) =>
+                              handleMessageEdit(version, e.target.value)
+                            }
+                            className="w-full resize-y min-h-[220px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border"
+                            maxLength={maxLength}
+                            readOnly={isGuest}
+                          />
+                          <div className="flex justify-end text-xs text-muted-foreground">
+                            {value.length}/{maxLength}
+                          </div>
+                        </>
+                      ) : (
+                        <MessageCardSkeleton
+                          animated={isGenerating}
+                          variant={index}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {isGuest && hasGeneratedMessages && (
+              <div className="rounded-lg border border-border bg-secondary/50 px-6 py-4 text-sm text-muted-foreground">
+                Sign up to copy and save your personalized opener, keep history,
+                and track follow-ups.
+              </div>
+            )}
+
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="sticky bottom-0 left-0 right-0 bg-transparent">
+            <div className="flex flex-col items-stretch gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 pb-2 pr-1">
+              {hasGeneratedMessages ? (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                    <Button
+                      variant="outlinedestructive"
+                      className="sm:w-auto h-10 text-sm "
+                      onClick={() => {
+                        setGeneratedMessages({});
+                        setEditedMessages({});
+                        setSelectedVersion(null);
+                      }}
+                      disabled={isGenerating}
+                    >
+                      Clear
+                    </Button>
+                    <OutlineAction
+                      onClick={onGenerateClick || generateMessages}
+                      disabled={generationDisabled}
+                      className="sm:w-auto h-10"
+                    >
+                      {isGenerating ? "Crafting..." : "Regenerate"}
+                    </OutlineAction>
+                    {isGuest ? (
+                      <PrimaryAction
+                        onClick={() => (window.location.href = "/auth/signup")}
+                        className="sm:w-auto h-10"
+                      >
+                        Sign up to copy and save
+                      </PrimaryAction>
+                    ) : (
+                      <PrimaryAction
+                        onClick={handleSaveSelected}
+                        disabled={
+                          generationDisabled ||
+                          !selectedVersion ||
+                          !selectedMessageText
+                        }
+                        className="sm:w-auto h-10"
+                      >
+                        Copy and Save to History
+                      </PrimaryAction>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                  <PrimaryAction
+                    onClick={onGenerateClick || generateMessages}
+                    disabled={generationDisabled}
+                    className="w-full sm:w-auto h-10"
+                  >
+                    {isGenerating ? "Crafting..." : "Craft Your Opener"}
+                  </PrimaryAction>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       );
     }, [
@@ -846,18 +1000,14 @@ export const MessageGeneration = forwardRef(
       getEffectiveObjective,
       handleMessageEdit,
       copyMessage,
-      saveMessage,
-      isContextExpanded,
-      setIsContextExpanded,
+      handleSaveSelected,
       isGuest,
-      activeTab,
-      handleTabChange,
       biosAreReady,
       onGenerateClick,
       isCrafting,
       embedded,
       generateMessages,
-      hasMessages,
+      selectedVersion,
     ]);
 
     if (embedded) {

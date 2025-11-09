@@ -36,9 +36,9 @@ export function ComingSoon() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-primary-muted to-background text-foreground p-4">
       <div className="text-center max-w-md w-full">
         <img
-          src="/opener-studio-logo.png"
+          src="/Logo_5_main_rs_cr.png"
           alt="Opener Studio"
-          className="h-40 w-auto mx-auto mb-8"
+          className="mx-auto mb-6 h-48 w-auto"
         />
         <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Craft the perfect outreach message, every time.

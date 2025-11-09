@@ -5,3 +5,5 @@ export * from "./modals";
 export * from "./infobox";
 export * from "./chipcard";
 export * from "./accordion";
+export * from "./contactcard";
+export * from "./textarea";

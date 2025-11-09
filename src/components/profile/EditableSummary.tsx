@@ -1,4 +1,4 @@
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Input } from "@/components/ui/airtable-ds/input";
 import { Button } from "@/components/ui/design-system/buttons";
 import { Label } from "@/components/ui/airtable-ds/label";
@@ -91,11 +91,11 @@ const EditableSummary = ({
         <Label className="text-sm font-medium text-foreground">
           Overall Summary
         </Label>
-        <Textarea
+        <DsTextarea
+          tone="muted"
           value={editableSummary.overall_blurb || ""}
           onChange={(e) => onSummaryChange("overall_blurb", e.target.value)}
           rows={4}
-          className="bg-secondary border-border"
         />
       </div>
 
@@ -104,24 +104,24 @@ const EditableSummary = ({
         <Label className="text-sm font-medium text-foreground">
           Value Proposition
         </Label>
-        <Textarea
+        <DsTextarea
+          tone="muted"
           value={editableSummary.value_proposition_summary || ""}
           onChange={(e) =>
             onSummaryChange("value_proposition_summary", e.target.value)
           }
           rows={4}
-          className="bg-secondary border-border"
         />
       </div>
 
       {/* Expertise Section */}
       <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground">Expertise</Label>
-        <Textarea
+        <DsTextarea
+          tone="muted"
           value={editableSummary.expertise}
           onChange={(e) => onSummaryChange("expertise", e.target.value)}
           rows={3}
-          className="bg-secondary border-border"
         />
       </div>
 

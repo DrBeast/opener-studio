@@ -45,10 +45,10 @@ export function ProfileBreadcrumbs() {
         icon: null,
       });
     }
-    if (path === "/pipeline") {
+    if (path === "/studio") {
       items.push({
-        name: "Pipeline",
-        path: "/pipeline",
+        name: "Studio",
+        path: "/studio",
         isCurrentPage: true,
         icon: null,
       });

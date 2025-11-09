@@ -1,4 +1,4 @@
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Label } from "@/components/ui/airtable-ds/label";
 import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 
@@ -25,12 +25,13 @@ const ProfessionalBackground = ({
 }: ProfessionalBackgroundProps) => {
   return (
     <div className="space-y-4">
-      <Textarea
+      <DsTextarea
+        tone="muted"
         id="background-input"
         placeholder={`Paste your LinkedIn profile or CV or type in your professional background (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
         value={backgroundInput}
         onChange={(e) => setBackgroundInput(e.target.value)}
-        className="min-h-[300px] text-sm resize-none bg-secondary border-border"
+        className="min-h-[300px] text-sm resize-none"
         disabled={isSubmitting}
       />
     </div>
