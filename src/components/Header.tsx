@@ -34,7 +34,7 @@ const Header = ({}: HeaderProps) => {
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
             >
               <img
-                src="/opener-studio-logo.png"
+                src="/Logo_5_main_rs_cr.png"
                 alt="Opener Studio"
                 className="h-14 w-auto"
               />

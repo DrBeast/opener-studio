@@ -697,6 +697,9 @@ export const MessageGeneration = forwardRef(
             <div className="space-y-3">
               <div className="flex gap-2 pb-0">
                 {objectiveOptions.map((option) => {
+                  if (isGuest && option === "Custom objective") {
+                    return null;
+                  }
                   const isSelected = objective === option;
 
                   return (
@@ -925,7 +928,7 @@ export const MessageGeneration = forwardRef(
                 <>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                     <Button
-                      variant="option"
+                      variant="outlinedestructive"
                       className="sm:w-auto h-10 text-sm "
                       onClick={() => {
                         setGeneratedMessages({});

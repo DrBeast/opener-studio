@@ -28,7 +28,7 @@ const buttonVariants = cva(
           "text-muted-foreground border-muted-foreground hover:text-foreground",
 
         outlinedestructive:
-          "border border-[hsl(var(--destructive))] bg-[hsl(var(--background))] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--muted))] shadow-none transition-all duration-200 shrink-0",
+          "border border-destructive bg-background text-destructive hover:bg-destructive hover:text-card shadow-none transition-all duration-200 shrink-0",
       },
       size: {
         default: "h-10 px-4 py-2",
