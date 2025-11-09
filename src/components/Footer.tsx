@@ -4,88 +4,38 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t py-8 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between">
-          <div className="mb-6 md:mb-0">
+    <footer className="border-t bg-background">
+      <div className="w-full px-6">
+        <div className="flex h-16 flex-col items-center justify-center gap-3 md:flex-row md:justify-between">
+          <div className="flex items-center gap-6">
             <Link to="/" className="text-xl font-bold">
               Opener Studio
             </Link>
-            <p className="mt-2 text-sm text-[hsl(var(--normaltext))]">
-              Your AI-powered workspace for the art and craft of professional
-              outreach
+            <p className="hidden md:block text-xs text-[hsl(var(--normaltext))] opacity-70">
+              &copy; {year} Two Steps Ahead LLC. All rights reserved.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Product</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    Pricing
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium mb-2">Company</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium mb-2">Legal</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    Privacy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-sm text-[hsl(var(--normaltext))] hover:text-gray-900"
-                  >
-                    Terms
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8 border-t pt-6">
-          <p className="text-sm text-[hsl(var(--normaltext))]">
-            &copy; {year} Opener Studio. All rights reserved.
+          <p className="text-sm text-[hsl(var(--normaltext))] text-center">
+            Your AI-powered workspace for the art and craft of professional
+            outreach
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[hsl(var(--normaltext))]">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span>Features</span>
+              <span>&amp;</span>
+              <span>Pricing</span>
+            </Link>
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span>About</span>
+              <span>&amp;</span>
+              <span>Contact</span>
+            </Link>
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span>Privacy</span>
+              <span>&amp;</span>
+              <span>Terms</span>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/design-system/buttons";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import {
   Collapsible,
   CollapsibleContent,
@@ -87,7 +87,8 @@ const FeedbackBox = ({ viewName }: FeedbackBoxProps) => {
               <li>• Any other thoughts and comments?</li>
             </ul>
           </div>
-          <Textarea
+          <DsTextarea
+            tone="white"
             placeholder="Your feedback helps us build a better product..."
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}

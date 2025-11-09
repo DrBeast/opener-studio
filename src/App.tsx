@@ -17,7 +17,7 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import UpdatePassword from "@/pages/auth/UpdatePassword";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
-import PipelineDashboard from "@/pages/Pipeline";
+import Studio from "@/pages/Studio";
 import MessageHistory from "@/pages/MessageHistory";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
 import { ComingSoon } from "@/pages/ComingSoon";
@@ -66,7 +66,7 @@ const App = () => {
 
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>
-                      <Route path="/pipeline" element={<PipelineDashboard />} />
+                      <Route path="/studio" element={<Studio />} />
                       <Route
                         path="/message-history"
                         element={<MessageHistory />}
@@ -86,8 +86,12 @@ const App = () => {
                       element={<Navigate to="/profile" replace />}
                     />
                     <Route
+                      path="/pipeline"
+                      element={<Navigate to="/studio" replace />}
+                    />
+                    <Route
                       path="/companies"
-                      element={<Navigate to="/pipeline" replace />}
+                      element={<Navigate to="/studio" replace />}
                     />
                     <Route
                       path="/profile/enrichment"

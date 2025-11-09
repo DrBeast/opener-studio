@@ -1,16 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserPlus } from "lucide-react";
 import { Modal } from "@/components/ui/design-system/modals";
 import { OutlineAction } from "@/components/ui/design-system";
 import { AddContact } from "./AddContact";
-import { useCompanies } from "@/hooks/useCompanies";
-
 interface AddContactModalProps {
   isOpen: boolean;
   onClose: () => void;
   companyId?: string;
   companyName?: string;
   onSuccess: () => void;
+  onContactCreated?: (contact: CreatedContact) => void;
 }
 
 interface CreatedContact {
@@ -32,8 +31,8 @@ export const AddContactModal = ({
   companyId,
   companyName,
   onSuccess,
+  onContactCreated,
 }: AddContactModalProps) => {
-  const { companies } = useCompanies();
   const [createdContact, setCreatedContact] = useState<CreatedContact | null>(
     null
   );
@@ -41,12 +40,22 @@ export const AddContactModal = ({
   const handleContactCreated = (newContact: CreatedContact) => {
     setCreatedContact(newContact);
     onSuccess();
+    if (onContactCreated) {
+      onContactCreated(newContact);
+    }
   };
 
   const handleClose = () => {
     setCreatedContact(null);
     onClose();
   };
+
+  // Reset createdContact whenever modal opens to ensure clean state
+  useEffect(() => {
+    if (isOpen) {
+      setCreatedContact(null);
+    }
+  }, [isOpen]);
 
   return (
     <Modal
@@ -59,7 +68,6 @@ export const AddContactModal = ({
     >
       <div className="space-y-6">
         <AddContact
-          companies={companies || []}
           onContactCreated={handleContactCreated}
           createdContact={createdContact}
         />

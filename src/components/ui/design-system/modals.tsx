@@ -34,7 +34,7 @@ const Modal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className={cn(
-          "sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-secondary border border-gray-200 shadow-md",
+          "sm:max-w-2xl max-h-[80vh] overflow-y-auto bg-card text-card-foreground border border-border shadow-md",
           className
         )}
       >

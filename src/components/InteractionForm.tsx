@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/airtable-ds/button";
 import { Input } from "@/components/ui/airtable-ds/input";
 import { Label } from "@/components/ui/airtable-ds/label";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/airtable-ds/calendar";
@@ -306,7 +306,8 @@ export function InteractionForm({
             <Label htmlFor="description">
               {isPlanningMode ? "Action Details" : "Description"}
             </Label>
-            <Textarea
+            <DsTextarea
+              tone="white"
               id="description"
               {...form.register("description")}
               rows={3}

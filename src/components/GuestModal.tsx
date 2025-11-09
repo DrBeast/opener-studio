@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Modal } from "@/components/ui/design-system/modals";
-import { Textarea } from "@/components/ui/airtable-ds/textarea";
+import { DsTextarea } from "@/components/ui/design-system";
 import { User, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/airtable-ds/sonner";
@@ -189,17 +189,10 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
       title=""
       description=""
       className="sm:max-w-6xl max-h-[90vh]"
-      icon={
-        <img
-          src="/opener-studio-logo.png"
-          alt="Opener Studio"
-          className="h-24 w-auto"
-        />
-      }
-      headerClassName="p-8"
+      headerClassName="p-0"
       titleClassName="text-3xl font-bold"
     >
-      <div className="space-y-6">
+      <div className="space-y-2">
         {/* Two-Panel Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel - User Bio */}
@@ -215,13 +208,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Tell us about your professional background.
+                    Tell us about your professional background
                   </label>
-                  <Textarea
+                  <DsTextarea
+                    tone="white"
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
-                    placeholder={`Copy / paste your LinkedIn profile (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                    className="min-h-[200px] text-sm resize-none bg-background border-border"
+                    placeholder={`Copy your LinkedIn profile here (recommended), resume content, or professional bio here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min, Select All works best)`}
+                    className="min-h-[120px] text-sm resize-none"
                   />
                 </div>
               </div>
@@ -246,13 +240,14 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Tell us about them.
+                    Tell us about them
                   </label>
-                  <Textarea
+                  <DsTextarea
+                    tone="white"
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
-                    placeholder={`Copy / paste their LinkedIn profile (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                    className="min-h-[200px] text-sm resize-none bg-background border-border"
+                    placeholder={`Copy their LinkedIn profile here (${VALIDATION_LIMITS.MIN_WORDS_BG} words min, Select All works best)`}
+                    className="min-h-[120px] text-sm resize-none"
                   />
                 </div>
               </div>
@@ -263,7 +258,7 @@ export const GuestModal: React.FC<GuestModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Message Generation Section */}
-        <div className="pt-6">
+        <div className="pt-2">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-primary" />

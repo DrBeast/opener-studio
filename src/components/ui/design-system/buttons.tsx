@@ -10,32 +10,25 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          // Tailwind: bg-purple-600 (#9333ea, hsl(262, 83%, 58%)), text-white (#fff), hover:bg-purple-700 (#7e22ce, hsl(262, 84%, 48%))
-          "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary-hover))] shadow-none transition-all duration-200 shrink-0",
+          "bg-primary text-primary-foreground hover:bg-primary-hover shadow-none transition-all duration-200 shrink-0",
 
         destructive:
-          // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
           "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
 
         success:
-          // Tailwind: bg-green-600 (#16a34a, hsl(142, 71%, 36%)), text-white (#fff), hover:bg-green-700 (#15803d, hsl(142, 76%, 26%))
           "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))] hover:brightness-80 shadow-none transition-all duration-200 shrink-0",
 
         option:
-          // Tailwind: bg-blue-600 (#2563eb, hsl(221, 83%, 53%)), text-white (#fff), hover:bg-blue-700 (#1d4ed8, hsl(221, 77%, 44%))
-          "bg-[hsl(var(--secondary))] text-[hsl(var(--option-foreground))] hover:bg-[hsl(var(--primary-muted))] hover:text-[hsl(var(--primary-hover))] border border-[hsl(var(--border))] hover:border-[hsl(var(--primary-muted))] shadow-none transition-all duration-200 shrink-0",
+          "border border-secondary-foreground bg-secondary text-secondary-foreground hover:bg-secondary-hover shadow-none transition-all duration-200 shrink-0",
 
         outline:
-          // Tailwind: border-gray-300 (#d1d5db, hsl(220, 13%, 91%)), bg-white (#fff, hsl(0, 0%, 100%)), text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-50 (#f9fafb, hsl(220, 20%, 98%))
-          "border border-[hsl(var(--primary))] bg-[hsl(var(--background))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--muted))] shadow-none transition-all duration-200 shrink-0",
+          "border border-primary bg-background text-primary hover:bg-primary-muted shadow-none transition-all duration-200 shrink-0",
 
         ghost:
-          // Tailwind: text-gray-700 (#374151, hsl(222, 9%, 46%)), hover:bg-gray-100 (#f3f4f6, hsl(220, 14%, 96%))
-          "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]",
+          "text-muted-foreground border-muted-foreground hover:text-foreground",
 
         outlinedestructive:
-          // Tailwind: bg-red-600 (#dc2626, hsl(0, 84%, 60%)), text-white (#fff), hover:bg-red-700 (#b91c1c, hsl(0, 74%, 36%))
-          "border border-[hsl(var(--destructive))] bg-[hsl(var(--background))] text-[hsl(var(--destructive))] hover:bg-[hsl(var(--muted))] shadow-none transition-all duration-200 shrink-0",
+          "border border-destructive bg-background text-destructive hover:bg-destructive hover:text-card shadow-none transition-all duration-200 shrink-0",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -173,11 +166,11 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
         variant={
           isSelected
             ? "primary" // Active style
-            : "option" // Inactive style
+            : "outline" // Inactive style
         }
         size="sm"
         className={
-          "h-auto px-3 py-1.5 text-sm font-normal rounded-full  transition-colors shadow-none hover:shadow-none"
+          "h-auto px-3 py-1.5 text-sm font-normal rounded-full transition-colors shadow-none hover:shadow-none"
         }
         {...props}
       >

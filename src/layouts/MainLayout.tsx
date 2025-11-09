@@ -7,9 +7,9 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>
       <Footer />
     </div>
   );

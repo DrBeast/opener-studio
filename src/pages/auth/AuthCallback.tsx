@@ -79,7 +79,7 @@ const AuthCallback = () => {
         // Only navigate to pipeline after linking is complete
         if (isLinkingComplete) {
           setRedirectStatus("Redirecting to pipeline...");
-          navigate("/pipeline");
+          navigate("/studio");
         } else {
           setRedirectStatus("Preparing your account...");
         }
@@ -154,7 +154,7 @@ const AuthCallback = () => {
   useEffect(() => {
     if (isLinkingComplete) {
       setRedirectStatus("Redirecting to pipeline...");
-      navigate("/pipeline");
+      navigate("/studio");
     }
   }, [isLinkingComplete, navigate]);
 
