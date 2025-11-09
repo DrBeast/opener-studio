@@ -56,17 +56,18 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
             </h4>
             {contact.role && (
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <Briefcase className="h-4 w-4" /> {contact.role}
+                <Briefcase className="h-4 w-4 flex-shrink-0" /> {contact.role}
               </p>
             )}
             {contact.current_company && (
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <Building className="h-4 w-4" /> {contact.current_company}
+                <Building className="h-4 w-4 flex-shrink-0" />{" "}
+                {contact.current_company}
               </p>
             )}
             {contact.location && (
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <MapPin className="h-4 w-4" /> {contact.location}
+                <MapPin className="h-4 w-4 flex-shrink-0" /> {contact.location}
               </p>
             )}
             {contact.linkedin_url && (
@@ -77,12 +78,12 @@ export const ContactPreview: React.FC<ContactPreviewProps> = ({
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Linkedin className="h-4 w-4" /> LinkedIn
+                <Linkedin className="h-4 w-4 flex-shrink-0" /> LinkedIn
               </a>
             )}
           </div>
           <span className="text-muted-foreground transition-colors group-hover:text-primary">
-            <IdCard className="h-5 w-5" />
+            <IdCard className="h-5 w-5 flex-shrink-0" />
           </span>
         </CardContent>
       </PrimaryCard>

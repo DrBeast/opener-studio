@@ -55,19 +55,6 @@ const Header = ({}: HeaderProps) => {
             <div className="flex items-center space-x-3">
               <Button
                 variant={
-                  location.pathname === "/message-history"
-                    ? "primary"
-                    : "outline"
-                }
-                size="sm"
-                onClick={() => navigate("/message-history")}
-                className="flex items-center gap-2"
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">History</span>
-              </Button>
-              <Button
-                variant={
                   location.pathname === "/profile" ? "primary" : "outline"
                 }
                 size="sm"
