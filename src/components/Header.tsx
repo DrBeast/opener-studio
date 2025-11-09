@@ -30,7 +30,7 @@ const Header = ({}: HeaderProps) => {
           {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
           <div className="flex items-center space-x-0 gap-4">
             <Link
-              to={user ? "/pipeline" : "/"}
+              to={user ? "/studio" : "/"}
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
             >
               <img
@@ -50,8 +50,8 @@ const Header = ({}: HeaderProps) => {
 
           {/* MIDDLE: Breadcrumb Navigation removed per request */}
 
-          {/* RIGHT SIDE: Message History, Profile and Logout Buttons */}
-          {user && (
+          {/* RIGHT SIDE ACTIONS */}
+          {user ? (
             <div className="flex items-center space-x-3">
               <Button
                 variant={
@@ -85,6 +85,22 @@ const Header = ({}: HeaderProps) => {
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Log Out</span>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/auth/login"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                Login
+              </Link>
+              <Button
+                asChild
+                size="sm"
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              >
+                <Link to="/auth/signup">Sign Up</Link>
               </Button>
             </div>
           )}

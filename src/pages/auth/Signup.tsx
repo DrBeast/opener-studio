@@ -46,7 +46,7 @@ const Signup = () => {
 
   // Check for redirect param - default to pipeline instead of profile
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get("redirectTo") || "/pipeline";
+  const redirectTo = searchParams.get("redirectTo") || "/studio";
 
   // Get session ID when component mounts
   useEffect(() => {
