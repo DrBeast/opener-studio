@@ -201,7 +201,7 @@ export const MessageGeneration = forwardRef(
       getInitialState("medium", "LinkedIn connection note")
     );
     const [objective, setObjective] = useState<string>(() =>
-      getInitialState("objective", "Explore roles, find hiring managers")
+      getInitialState("objective", "Explore roles, find managers")
     );
     const [customObjective, setCustomObjective] = useState<string>(() =>
       getInitialState("customObjective", "")
@@ -251,9 +251,7 @@ export const MessageGeneration = forwardRef(
 
           // Reload all state from the new contact's storage
           setMedium(getState("medium", "LinkedIn connection note"));
-          setObjective(
-            getState("objective", "Explore roles, find hiring managers")
-          );
+          setObjective(getState("objective", "Explore roles, find managers"));
           setCustomObjective(getState("customObjective", ""));
           setAdditionalContext(getState("additionalContext", ""));
           setGeneratedMessages(getState("generatedMessages", {}));
@@ -265,7 +263,7 @@ export const MessageGeneration = forwardRef(
         } else {
           // Contact is null - reset to defaults
           setMedium("LinkedIn connection note");
-          setObjective("Explore roles, find hiring managers");
+          setObjective("Explore roles, find managers");
           setCustomObjective("");
           setAdditionalContext("");
           setGeneratedMessages({});
@@ -363,7 +361,7 @@ export const MessageGeneration = forwardRef(
     }, [generatedMessages, selectedVersion]);
 
     const objectiveOptions = [
-      "Explore roles, find hiring managers",
+      "Explore roles, find managers",
       "Ask for a referral",
       "Get info interview",
       "Build relationship",
@@ -662,7 +660,7 @@ export const MessageGeneration = forwardRef(
     // Memorize the MessageContent to prevent unnecessary re-renders
     const MessageContent = useMemo(() => {
       const objectiveOptions = [
-        "Explore roles, find hiring managers",
+        "Explore roles, find managers",
         "Ask for a referral",
         "Get info interview",
         "Build relationship",
@@ -697,7 +695,7 @@ export const MessageGeneration = forwardRef(
         >
           <div className="flex-1 space-y-6 overflow-auto pr-1 pb-2">
             <div className="space-y-3">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="flex gap-2 pb-0">
                 {objectiveOptions.map((option) => {
                   const isSelected = objective === option;
 
@@ -707,7 +705,7 @@ export const MessageGeneration = forwardRef(
                       type="button"
                       onClick={() => handleObjectiveChange(option)}
                       className={cn(
-                        "flex h-10 items-center justify-center rounded-full border text-sm font-medium transition-colors px-3 text-center",
+                        "flex-1 min-w-0 rounded-[25px] border px-4 py-2 text-center text-sm font-medium leading-tight transition-colors whitespace-normal",
                         isSelected
                           ? "border-primary bg-primary text-primary-foreground shadow-sm"
                           : "border-primary/40 bg-card text-primary hover:bg-primary-muted"
@@ -727,7 +725,7 @@ export const MessageGeneration = forwardRef(
                   objective === "Custom objective" ? "xl:flex-row xl:gap-6" : ""
                 )}
               >
-                <div className="flex-1 rounded-xl border border-border bg-secondary p-4 shadow-sm">
+                <div className="flex-1 rounded-xl border border-border bg-secondary p-3 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <NotebookPen className="h-4 w-4 text-primary" />
@@ -751,7 +749,7 @@ export const MessageGeneration = forwardRef(
                 </div>
 
                 {objective === "Custom objective" && (
-                  <div className="flex-1 rounded-xl border border-border bg-secondary p-4 shadow-sm">
+                  <div className="flex-1 rounded-xl border border-border bg-secondary p-3 shadow-sm">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Goal className="h-4 w-4 text-primary" />
@@ -776,7 +774,7 @@ export const MessageGeneration = forwardRef(
               </div>
             )}
 
-            <div className="flex justify-end gap-6 pr-2">
+            <div className="flex justify-end gap-4 pr-2">
               {MEDIUM_OPTIONS.map((option) => {
                 const mediumConfig = mediumIconMap[option.id];
                 const Icon = mediumConfig?.icon ?? PenSquare;
@@ -837,7 +835,7 @@ export const MessageGeneration = forwardRef(
               })}
             </div>
 
-            <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0">
+            <div className="flex flex-col xl:flex-row xl:gap-4 space-y-4 xl:space-y-0 pt-0">
               {displayedVersions.map(({ version, content, index }) => {
                 const hasContent = Boolean(content?.text);
                 const value = hasContent
@@ -922,7 +920,7 @@ export const MessageGeneration = forwardRef(
           </div>
 
           <div className="sticky bottom-0 left-0 right-0 bg-transparent">
-            <div className="flex flex-col items-stretch gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 pb-2">
+            <div className="flex flex-col items-stretch gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 pb-2 pr-1">
               {hasGeneratedMessages ? (
                 <>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
