@@ -226,7 +226,7 @@ const Studio = () => {
                   <div className="pt-4">
                     <PrimaryAction
                       onClick={() => setIsAddContactModalOpen(true)}
-                      className="w-full rounded-lg h-16 px-4 py-3 text-sm font-semibold justify-center gap-2"
+                      className="w-full rounded-lg h-auto px-4 py-3 text-sm font-semibold justify-center gap-2"
                     >
                       <UserPlus className="h-4 w-4" />
                       Create Contact

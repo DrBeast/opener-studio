@@ -25,10 +25,10 @@ const Header = ({}: HeaderProps) => {
 
   return (
     <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4">
+      <div className="w-full px-6">
         <div className="flex items-center justify-between h-16">
           {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-0 gap-4">
             <Link
               to={user ? "/pipeline" : "/"}
               className="flex items-center space-x-2" // Keep flex for logo and badge alignment
@@ -45,46 +45,10 @@ const Header = ({}: HeaderProps) => {
                 DEV
               </Badge>
             </Link>
-            {/* Beta Feedback button moved here */}
             {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
-          {/* MIDDLE: Breadcrumb Navigation */}
-          {user ? (
-            <nav className="hidden md:flex items-center space-x-2 text-sm">
-              <Link
-                to="/pipeline"
-                className="text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                Studio
-              </Link>
-              {(location.pathname === "/profile" ||
-                location.pathname === "/message-history") && (
-                <>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 font-medium">
-                    {location.pathname === "/profile" ? "Profile" : "History"}
-                  </span>
-                </>
-              )}
-            </nav>
-          ) : (
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link
-                to="/auth/login"
-                className="text-sm font-medium text-gray-600 hover:text-primary transition-colors"
-              >
-                Login
-              </Link>
-              <Button
-                asChild
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-              >
-                <Link to="/auth/signup">Sign Up</Link>
-              </Button>
-            </nav>
-          )}
+          {/* MIDDLE: Breadcrumb Navigation removed per request */}
 
           {/* RIGHT SIDE: Message History, Profile and Logout Buttons */}
           {user && (
