@@ -198,39 +198,32 @@ const Studio = () => {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground " />
                 </div>
-              ) : filteredContacts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <UserPlus className="h-12 w-12 text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {searchTerm
-                      ? "No contacts match your search"
-                      : "No contacts yet"}
-                  </p>
-                  {!searchTerm && (
-                    <PrimaryAction
-                      onClick={() => setIsAddContactModalOpen(true)}
-                      className="rounded-lg h-auto px-4 py-3 text-sm font-semibold justify-center gap-2"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      Create Contact
-                    </PrimaryAction>
-                  )}
-                </div>
               ) : (
                 <>
-                  {filteredContacts.map((contact) => (
-                    <ContactCard
-                      key={contact.contact_id}
-                      firstName={contact.first_name}
-                      lastName={contact.last_name}
-                      role={contact.role}
-                      company={contact.company_name}
-                      isSelected={contact.contact_id === selectedContactId}
-                      onClick={() => handleContactSelect(contact.contact_id)}
-                    />
-                  ))}
-                  {/* Create Contact Button - Below contacts */}
-                  <div className="pt-2">
+                  {filteredContacts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <UserPlus className="h-12 w-12 text-muted-foreground mb-3" />
+                      <p className="text-sm text-muted-foreground">
+                        {searchTerm
+                          ? "No contacts match your search"
+                          : "No contacts yet"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredContacts.map((contact) => (
+                      <ContactCard
+                        key={contact.contact_id}
+                        firstName={contact.first_name}
+                        lastName={contact.last_name}
+                        role={contact.role}
+                        company={contact.company_name}
+                        isSelected={contact.contact_id === selectedContactId}
+                        onClick={() => handleContactSelect(contact.contact_id)}
+                      />
+                    ))
+                  )}
+
+                  <div className="pt-4">
                     <PrimaryAction
                       onClick={() => setIsAddContactModalOpen(true)}
                       className="w-full rounded-lg h-16 px-4 py-3 text-sm font-semibold justify-center gap-2"
