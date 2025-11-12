@@ -53,7 +53,7 @@ const Header = ({}: HeaderProps) => {
                 variant="secondary"
                 className="bg-green-100 text-green-700 border-green-200 text-xs font-medium"
               >
-                BETA 0.4
+                BETA 0.5
               </Badge>
             </Link>
             {user && <FeedbackBox viewName={location.pathname} />}
