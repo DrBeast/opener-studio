@@ -23,19 +23,16 @@ const About = () => {
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
               <div className="relative z-10">
-                <div className="flex items-start gap-4 mb-6">
+                <div className="flex items-start gap-4 mb-4">
                   <div className="bg-primary/10 p-3 rounded-xl">
                     <Target className="h-8 w-8 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-4">
-                      Our Mission
-                    </h2>
                     <p className="text-xl md:text-2xl text-gray-700 leading-relaxed">
-                      Our mission is to help talented, ambitious professionals
-                      make the meaningful connections that shape their careers.
-                      We're replacing the anxiety of the "blank box" with the
-                      confidence of the perfect opener.
+                      <strong>Our mission</strong> is to help talented,
+                      ambitious professionals make the meaningful connections
+                      that shape their careers. We're replacing the anxiety of
+                      the "blank box" with the confidence of the perfect opener.
                     </p>
                   </div>
                 </div>
@@ -65,7 +62,7 @@ const About = () => {
                   generic, low-effort spam than ever.
                 </p>
                 <p>
-                  We decided to build something different. Not an "auto-mailer,"
+                  We decided to build something different. Not an "mail bot,"
                   but a creative partner. A tool that acts like a sparring
                   coach, helping you find the right words to build a real,
                   meaningful, and professional connection.
@@ -129,10 +126,14 @@ const About = () => {
                 Ready to craft your opener?
               </h2>
               <p className="text-xl text-gray-700 mt-4 mb-8 max-w-2xl mx-auto">
-                Go from a blank page to a brilliant message in seconds. Join the
-                free beta and see for yourself.
+                Go from a blank page to a brilliant message in seconds. Join for
+                free and see for yourself.
               </p>
-              <PrimaryAction onClick={openModal} size="lg" className="text-lg">
+              <PrimaryAction
+                onClick={openModal}
+                size="lg"
+                className="text-lg flex mx-auto"
+              >
                 <Sparkles className="mr-2 h-5 w-5" />
                 Open the Studio
               </PrimaryAction>
