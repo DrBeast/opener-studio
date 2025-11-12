@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { GuestSessionProvider } from "@/contexts/GuestSessionContext";
+import { ModalProvider } from "@/contexts/ModalContext";
 import { Toaster } from "@/components/ui/airtable-ds/toaster";
 
 // Layouts
@@ -19,11 +20,15 @@ import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import Studio from "@/pages/Studio";
 import MessageHistory from "@/pages/MessageHistory";
+import Pricing from "@/pages/Pricing";
+import About from "@/pages/About";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
 import { ComingSoon } from "@/pages/ComingSoon";
 
 // Components
-import LandingPage from "@/components/LandingPage";
+import Index from "@/pages/Index";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -36,78 +41,95 @@ const App = () => {
       <TooltipProvider>
         <AuthProvider>
           <GuestSessionProvider>
-            <BrowserRouter>
-              {showComingSoon ? (
-                <Routes>
-                  <Route path="/*" element={<ComingSoon />} />
-                </Routes>
-              ) : (
-                <MainLayout>
+            <ModalProvider>
+              <BrowserRouter>
+                {showComingSoon ? (
                   <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<LandingPage />} />
-
-                    {/* Auth Routes */}
-                    <Route path="/auth/login" element={<Login />} />
-                    <Route path="/auth/signup" element={<Signup />} />
-                    <Route
-                      path="/auth/verification-pending"
-                      element={<VerificationPending />}
-                    />
-                    <Route path="/auth/callback" element={<AuthCallback />} />
-                    <Route
-                      path="/auth/forgot-password"
-                      element={<ForgotPassword />}
-                    />
-                    <Route
-                      path="/auth/update-password"
-                      element={<UpdatePassword />}
-                    />
-
-                    {/* Protected Routes */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/studio" element={<Studio />} />
-                      <Route
-                        path="/message-history"
-                        element={<MessageHistory />}
-                      />
-                      <Route path="/profile" element={<Profile />} />
-                    </Route>
-
-                    {/* Admin Routes */}
-                    <Route
-                      path="/admin/feedback-review"
-                      element={<FeedbackReview />}
-                    />
-
-                    {/* Redirect old routes */}
-                    <Route
-                      path="/profile/edit"
-                      element={<Navigate to="/profile" replace />}
-                    />
-                    <Route
-                      path="/pipeline"
-                      element={<Navigate to="/studio" replace />}
-                    />
-                    <Route
-                      path="/companies"
-                      element={<Navigate to="/studio" replace />}
-                    />
-                    <Route
-                      path="/profile/enrichment"
-                      element={<Navigate to="/profile" replace />}
-                    />
-                    <Route
-                      path="/navigate-to-profile"
-                      element={<Navigate to="/profile" replace />}
-                    />
-
-                    {/* 404 Route */}
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="/*" element={<ComingSoon />} />
                   </Routes>
-                </MainLayout>
-              )}
-            </BrowserRouter>
+                ) : (
+                  <Routes>
+                    {/* Public Routes - These pages use PublicLayout internally */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+
+                    {/* Routes that need MainLayout */}
+                    <Route
+                      path="/*"
+                      element={
+                        <MainLayout>
+                          <Routes>
+                            {/* Auth Routes */}
+                            <Route path="/auth/login" element={<Login />} />
+                            <Route path="/auth/signup" element={<Signup />} />
+                            <Route
+                              path="/auth/verification-pending"
+                              element={<VerificationPending />}
+                            />
+                            <Route
+                              path="/auth/callback"
+                              element={<AuthCallback />}
+                            />
+                            <Route
+                              path="/auth/forgot-password"
+                              element={<ForgotPassword />}
+                            />
+                            <Route
+                              path="/auth/update-password"
+                              element={<UpdatePassword />}
+                            />
+
+                            {/* Protected Routes */}
+                            <Route element={<ProtectedRoute />}>
+                              <Route path="/studio" element={<Studio />} />
+                              <Route
+                                path="/message-history"
+                                element={<MessageHistory />}
+                              />
+                              <Route path="/profile" element={<Profile />} />
+                            </Route>
+
+                            {/* Admin Routes */}
+                            <Route
+                              path="/admin/feedback-review"
+                              element={<FeedbackReview />}
+                            />
+
+                            {/* Redirect old routes */}
+                            <Route
+                              path="/profile/edit"
+                              element={<Navigate to="/profile" replace />}
+                            />
+                            <Route
+                              path="/pipeline"
+                              element={<Navigate to="/studio" replace />}
+                            />
+                            <Route
+                              path="/companies"
+                              element={<Navigate to="/studio" replace />}
+                            />
+                            <Route
+                              path="/profile/enrichment"
+                              element={<Navigate to="/profile" replace />}
+                            />
+                            <Route
+                              path="/navigate-to-profile"
+                              element={<Navigate to="/profile" replace />}
+                            />
+
+                            {/* 404 Route */}
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </MainLayout>
+                      }
+                    />
+                  </Routes>
+                )}
+              </BrowserRouter>
+            </ModalProvider>
           </GuestSessionProvider>
         </AuthProvider>
         <Toaster />
