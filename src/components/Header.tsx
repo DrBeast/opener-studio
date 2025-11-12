@@ -36,7 +36,7 @@ const Header = ({}: HeaderProps) => {
 
   return (
     <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
-      <div className="w-full px-6">
+      <div className="w-full px-6 relative">
         <div className="flex items-center justify-between h-16">
           {/* LEFT SIDE: Logo, DEV Badge, and Beta Feedback */}
           <div className="flex items-center space-x-0 gap-4">
@@ -59,9 +59,9 @@ const Header = ({}: HeaderProps) => {
             {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
-          {/* MIDDLE: Navigation Links (for non-authenticated users) */}
+          {/* MIDDLE: Navigation Links (for non-authenticated users) - Centered on screen */}
           {!user && (
-            <nav className="hidden md:flex items-center space-x-6">
+            <nav className="hidden md:flex items-center space-x-6 absolute left-1/2 transform -translate-x-1/2">
               <Link
                 to="/#how-it-works"
                 onClick={handleHowItWorksClick}
