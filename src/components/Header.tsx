@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/design-system/buttons";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, MessageSquare, ChevronRight } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 
@@ -23,6 +23,17 @@ const Header = ({}: HeaderProps) => {
     }
   };
 
+  const handleHowItWorksClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (location.pathname === "/") {
+      e.preventDefault();
+      const section = document.getElementById("how-it-works");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+    // Otherwise, let the Link handle navigation to "/#how-it-works"
+  };
+
   return (
     <header className="bg-background backdrop-blur-sm border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="w-full px-6">
@@ -31,7 +42,7 @@ const Header = ({}: HeaderProps) => {
           <div className="flex items-center space-x-0 gap-4">
             <Link
               to={user ? "/studio" : "/"}
-              className="flex items-center space-x-2" // Keep flex for logo and badge alignment
+              className="flex items-center space-x-2"
             >
               <img
                 src="/Logo_5_main_rs_cr.png"
@@ -48,7 +59,30 @@ const Header = ({}: HeaderProps) => {
             {user && <FeedbackBox viewName={location.pathname} />}
           </div>
 
-          {/* MIDDLE: Breadcrumb Navigation removed per request */}
+          {/* MIDDLE: Navigation Links (for non-authenticated users) */}
+          {!user && (
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link
+                to="/#how-it-works"
+                onClick={handleHowItWorksClick}
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                How It Works
+              </Link>
+              <Link
+                to="/pricing"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                Pricing
+              </Link>
+              <Link
+                to="/about"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                About
+              </Link>
+            </nav>
+          )}
 
           {/* RIGHT SIDE ACTIONS */}
           {user ? (
