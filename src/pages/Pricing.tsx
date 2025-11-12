@@ -41,12 +41,9 @@ const Pricing = () => {
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-green-500 mr-3 shrink-0" />
                   <span>
-                    <strong>Unlimited Openers</strong> in Beta
+                    <strong>Unlimited Openers</strong> in Beta, 15 per month
+                    after launch
                   </span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-3 shrink-0" />
-                  <span>15 free Openers per month</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-green-500 mr-3 shrink-0" />
