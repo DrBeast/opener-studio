@@ -1,7 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PublicLayout from "@/components/layout/PublicLayout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const Terms = () => {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isMobile) {
+      navigate("/landing-mobile", { replace: true });
+    }
+  }, [isMobile, navigate]);
+
   return (
     <PublicLayout>
       <div className="py-20 bg-white">
