@@ -91,7 +91,7 @@ export function LandingMobile() {
         return;
       }
 
-      toast.success("Check your email for your magic link.");
+      toast.success("Check your email for your desktop link.");
       setIsSubmitted(true);
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -108,7 +108,7 @@ export function LandingMobile() {
   return (
     <div className="flex flex-col bg-gray-100 min-h-screen">
       {/* Hero Section */}
-      <section className="py-8 sm:py-12 md:py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-screen flex items-center">
+      <section className="py-2 sm:py-12 md:py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-[hsl(var(--primary))] opacity-10 rounded-full blur-3xl animate-pulse"></div>
@@ -128,9 +128,9 @@ export function LandingMobile() {
 
         <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 relative z-10">
           {/* Hero Content */}
-          <div className="text-center space-y-6 sm:space-y-8 md:space-y-12 max-w-5xl mx-auto">
+          <div className="text-center space-y-2 sm:space-y-8 md:space-y-12 max-w-5xl mx-auto pt-16 sm:pt-8 md:pt-12">
             {/* Headline */}
-            <div className="space-y-3 sm:space-y-4 md:space-y-6">
+            <div className="space-y-2 sm:space-y-4 md:space-y-6">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight px-2">
                 Turn a Blank Box into a{" "}
                 <span className="text-[hsl(var(--primary))]">
@@ -149,27 +149,27 @@ export function LandingMobile() {
             {/* TODO: Add GIF/video here when ready */}
 
             {/* Call to Action - Waitlist Form */}
-            <div className="pt-4 sm:pt-6 md:pt-8 flex justify-center px-2">
+            <div className="pt-8 sm:pt-6 md:pt-8 pb-16 sm:pb-8 md:pb-12 flex justify-center px-2">
               {isSubmitted ? (
                 <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl px-6 sm:px-8 md:px-12 py-6 sm:py-8 border-2 border-green-200 w-full max-w-md">
                   <p className="text-base sm:text-lg md:text-xl text-green-600 font-semibold">
-                    Check your email for your magic link.
+                    Check your email for your desktop link.
                   </p>
                 </div>
               ) : (
                 <form
                   onSubmit={handleSubmit}
-                  className="flex flex-col gap-3 sm:gap-4 bg-white rounded-xl sm:rounded-2xl shadow-2xl px-5 sm:px-6 md:px-8 py-5 sm:py-6 border-2 border-primary/20 max-w-md w-full"
+                  className="flex flex-col gap-2.5 sm:gap-4 bg-white rounded-xl sm:rounded-2xl shadow-2xl px-5 sm:px-6 md:px-8 py-4 sm:py-6 border-2 border-primary/20 max-w-md w-full"
                 >
-                  <p className="text-sm sm:text-base text-gray-700 text-center leading-relaxed mb-1">
+                  <p className="text-sm sm:text-base text-gray-700 text-center leading-relaxed mb-0.5">
                     <strong>
                       Opener Studio is a desktop-first experience.
                     </strong>
                     <br />
                     Save this for later: enter your email and we'll instantly
-                    send you a magic link for your computer.
+                    send you a link for your computer.
                   </p>
-                  <div className="flex flex-col gap-3 sm:gap-4">
+                  <div className="flex flex-col gap-2.5 sm:gap-4">
                     <Input
                       type="email"
                       placeholder="Enter your email"
@@ -184,7 +184,7 @@ export function LandingMobile() {
                       disabled={isLoading}
                       className="w-full px-6 sm:px-8 py-4 sm:py-5 md:py-6 text-base sm:text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                     >
-                      {isLoading ? "Submitting..." : "Magic Link"}
+                      {isLoading ? "Submitting..." : "Desktop Link"}
                     </Button>
                   </div>
                 </form>
@@ -195,7 +195,7 @@ export function LandingMobile() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-gray-100 to-gray-200 relative overflow-hidden">
+      <section className="py-8 sm:py-16 md:py-20 bg-gradient-to-b from-gray-100 to-gray-200 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div
@@ -208,8 +208,8 @@ export function LandingMobile() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           {/* Section Headline */}
-          <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4 sm:mb-5 md:mb-6 text-gray-900 px-2">
+          <div className="text-center mb-6 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-3 sm:mb-5 md:mb-6 text-gray-900 px-2">
               The Awkward Silence of a Blank Message Box
             </h2>
           </div>
@@ -313,87 +313,99 @@ export function LandingMobile() {
       {/* How It Works Section */}
       <section
         id="how-it-works"
-        className="py-12 sm:py-16 md:py-20 bg-white relative"
+        className="py-8 sm:py-16 md:py-20 bg-white relative"
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Section Headline */}
-          <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4 sm:mb-5 md:mb-6 text-gray-900 px-2">
+          <div className="text-center mb-6 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-3 sm:mb-5 md:mb-6 text-gray-900 px-2">
               Your Personal Message Crafting Studio
             </h2>
           </div>
 
           {/* 3-Step Guide */}
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8 md:gap-12 max-w-5xl mx-auto">
-            {/* Step 1: Provide Context */}
-            <div className="text-center group">
-              <div className="relative mb-4 sm:mb-6 md:mb-8">
-                {/* Step Number Badge */}
-                <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
-                  1
-                </div>
-                {/* Icon Container */}
-                <div className="bg-white border border-blue-200 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-indigo-100/60 rounded-xl sm:rounded-2xl"></div>
-                  <div className="relative">
-                    <User className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-blue-600 mx-auto" />
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
+            {/* Step 1: Introduce Yourself */}
+            <div className="group relative">
+              {/* Step Number Badge */}
+              <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
+                1
+              </div>
+              {/* Card Container */}
+              <div className="bg-white border border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-indigo-100/60 rounded-xl sm:rounded-2xl"></div>
+                <div className="relative flex items-start gap-3 sm:gap-4">
+                  {/* Icon Container */}
+                  <div className="bg-white border border-blue-200 rounded-lg sm:rounded-xl p-2 sm:p-3 shrink-0">
+                    <User className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-blue-600" />
+                  </div>
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 text-gray-900">
+                      Introduce Yourself
+                    </h3>
+                    <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
+                      Paste your bio or LinkedIn profile.
+                    </p>
                   </div>
                 </div>
               </div>
-              <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-2 sm:mb-3 md:mb-4 text-gray-900">
-                Introduce Yourself
-              </h3>
-              <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
-                Paste your bio or LinkedIn profile.
-              </p>
             </div>
 
-            {/* Step 2: Define Your Goal */}
-            <div className="text-center group">
-              <div className="relative mb-4 sm:mb-6 md:mb-8">
-                {/* Step Number Badge */}
-                <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
-                  2
-                </div>
-                {/* Icon Container */}
-                <div className="bg-white border border-green-200 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 to-emerald-100/60 rounded-xl sm:rounded-2xl"></div>
-                  <div className="relative">
-                    <Target className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-green-600 mx-auto" />
+            {/* Step 2: Provide Context */}
+            <div className="group relative">
+              {/* Step Number Badge */}
+              <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
+                2
+              </div>
+              {/* Card Container */}
+              <div className="bg-white border border-green-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 to-emerald-100/60 rounded-xl sm:rounded-2xl"></div>
+                <div className="relative flex items-start gap-3 sm:gap-4">
+                  {/* Icon Container */}
+                  <div className="bg-white border border-green-200 rounded-lg sm:rounded-xl p-2 sm:p-3 shrink-0">
+                    <Target className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-green-600" />
+                  </div>
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 text-gray-900">
+                      Provide Context
+                    </h3>
+                    <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
+                      Paste the bio of your contact and choose your outreach
+                      objective.
+                    </p>
                   </div>
                 </div>
               </div>
-              <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-2 sm:mb-3 md:mb-4 text-gray-900">
-                Provide Context
-              </h3>
-              <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
-                Paste the bio of your contact and choose your outreach
-                objective.
-              </p>
             </div>
 
             {/* Step 3: Open Up */}
-            <div className="text-center group">
-              <div className="relative mb-4 sm:mb-6 md:mb-8">
-                {/* Step Number Badge */}
-                <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
-                  3
-                </div>
-                {/* Icon Container */}
-                <div className="bg-white border border-purple-200 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 to-violet-100/60 rounded-xl sm:rounded-2xl"></div>
-                  <div className="relative">
-                    <Sparkles className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-purple-600 mx-auto" />
+            <div className="group relative">
+              {/* Step Number Badge */}
+              <div className="absolute -top-2 sm:-top-3 md:-top-4 -left-2 sm:-left-3 md:-left-4 bg-primary text-primary-foreground w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-20 shadow-lg">
+                3
+              </div>
+              {/* Card Container */}
+              <div className="bg-white border border-purple-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 group-hover:shadow-lg transition-all duration-300 relative shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 to-violet-100/60 rounded-xl sm:rounded-2xl"></div>
+                <div className="relative flex items-start gap-3 sm:gap-4">
+                  {/* Icon Container */}
+                  <div className="bg-white border border-purple-200 rounded-lg sm:rounded-xl p-2 sm:p-3 shrink-0">
+                    <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-purple-600" />
+                  </div>
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 text-gray-900">
+                      Open Up
+                    </h3>
+                    <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
+                      Instantly get three personalized professionally crafted
+                      messages.
+                    </p>
                   </div>
                 </div>
               </div>
-              <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-2 sm:mb-3 md:mb-4 text-gray-900">
-                Open Up
-              </h3>
-              <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
-                Instantly get three personalized professionally crafted
-                messages.
-              </p>
             </div>
           </div>
         </div>
