@@ -40,9 +40,7 @@ export function LandingMobile() {
       const { error: waitlistError } = await (
         supabase as unknown as {
           from: (table: string) => {
-            insert: (data: {
-              email: string;
-            }) => Promise<{
+            insert: (data: { email: string }) => Promise<{
               error: { message?: string; code?: string } | null;
             }>;
           };
@@ -72,7 +70,7 @@ export function LandingMobile() {
 
       // Step 2: Send email via edge function
       const { data: emailData, error: emailError } =
-        await supabase.functions.invoke("send_magic_link", {
+        await supabase.functions.invoke("mobile_bridge", {
           body: {
             email: email,
           },
