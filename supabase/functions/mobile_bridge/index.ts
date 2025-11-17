@@ -1,5 +1,8 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { getAllResponseHeaders } from '../_shared/cors.ts';
+import { render } from 'npm:@react-email/render@0.0.15';
+import React from 'npm:react@18.3.1';
+import { MobileBridgeEmail } from '../_shared/emails/MobileBridge.tsx';
 
 serve(async (req) => {
   const corsHeaders = getAllResponseHeaders(req);
@@ -49,33 +52,10 @@ serve(async (req) => {
     const subject = 'Your Opener Studio Link';
     const magicLink = 'https://openerstudio.com';
     
-    // HTML email body - you can replace this with your template later
-    const htmlBody = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #4a5568;">Your Opener Studio Link</h2>
-            <p>Thanks for your interest in Opener Studio!</p>
-            <p>Click the link below to access the Studio on your computer:</p>
-            <p style="margin: 30px 0;">
-              <a href="${magicLink}" 
-                 style="background-color: #6366f1; color: white; padding: 12px 24px; 
-                        text-decoration: none; border-radius: 6px; display: inline-block;">
-                Open Opener Studio
-              </a>
-            </p>
-            <p style="color: #666; font-size: 14px;">
-              Or copy and paste this link into your browser:<br>
-              <a href="${magicLink}" style="color: #6366f1;">${magicLink}</a>
-            </p>
-          </div>
-        </body>
-      </html>
-    `;
+    // Render React Email template to HTML
+    const htmlBody = await render(
+      React.createElement(MobileBridgeEmail, { actionUrl: magicLink })
+    );
 
     // Send email via Resend API
     const resendResponse = await fetch('https://api.resend.com/emails', {
