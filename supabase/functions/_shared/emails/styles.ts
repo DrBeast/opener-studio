@@ -3,70 +3,126 @@
 // Edit this manually when updating CSS variables in src/index.css
 
 export const sharedStyles = {
-  // Main container
+  // Main body background
   main: {
-    backgroundColor: "#f5f5f5", // --background: 0 0% 96%
-    fontFamily: "Inter, system-ui, sans-serif",
+    backgroundColor: "#f4f4f7", // Matching email template background
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
+    margin: "0",
+    padding: "0",
   },
-  
-  // Content container
+
+  // Main email container (table wrapper)
   container: {
-    margin: "0 auto",
-    padding: "20px 0 48px",
-    maxWidth: "580px",
+    maxWidth: "600px",
+    margin: "20px auto",
     backgroundColor: "#ffffff", // --card: 0 0% 100%
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
-  
+
+  // Logo section
+  logoSection: {
+    padding: "40px 0 30px 0",
+    textAlign: "center" as const,
+  },
+
+  // Logo image
+  logo: {
+    display: "block",
+    width: "150px",
+    height: "auto",
+    margin: "0 auto",
+  },
+
+  // Main content section
+  contentSection: {
+    padding: "0 30px 40px 30px",
+  },
+
   // Heading (uses SF Pro Display equivalent styling)
   heading: {
-    fontSize: "32px",
+    fontSize: "24px",
     fontWeight: "bold",
-    color: "#0f0f0f", // --foreground: 0 0% 9%
-    fontFamily: "system-ui, -apple-system, sans-serif", // SF Pro Display fallback
-    marginBottom: "8px",
+    color: "#333333", // Slightly lighter than pure black for readability
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    marginBottom: "20px",
+    marginTop: "0",
   },
-  
+
   // Paragraph text
   paragraph: {
     fontSize: "16px",
-    lineHeight: "26px",
-    color: "#0f0f0f", // --foreground: 0 0% 9%
-    fontFamily: "Inter, system-ui, sans-serif",
+    lineHeight: "1.6",
+    color: "#555555", // Softer than pure black
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     marginBottom: "16px",
+    marginTop: "0",
   },
-  
+
+  // Small paragraph text (for footer-like content)
+  paragraphSmall: {
+    fontSize: "14px",
+    lineHeight: "1.6",
+    color: "#555555",
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    marginBottom: "16px",
+    marginTop: "0",
+  },
+
+  // Button container (for centering)
+  buttonContainer: {
+    padding: "20px 0",
+    textAlign: "center" as const,
+  },
+
   // Primary button (matches --primary: 266 49% 33% = #542C7C)
   button: {
     backgroundColor: "#542C7C", // Primary purple
-    borderRadius: "8px", // --radius: 0.5rem
+    borderRadius: "5px", // Matching template
     color: "#ffffff", // --primary-foreground: 0 0% 100%
-    padding: "12px 24px",
-    fontWeight: "600",
+    padding: "12px 25px",
+    fontWeight: "bold",
     textDecoration: "none",
     display: "inline-block",
-    fontFamily: "Inter, system-ui, sans-serif",
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     fontSize: "16px",
-    marginTop: "8px",
-    marginBottom: "8px",
   },
-  
-  // Horizontal rule
-  hr: {
-    borderColor: "#e6e6e6", // --border: 0 0% 90.2%
-    margin: "20px 0",
+
+  // Footer horizontal rule
+  footerHr: {
+    borderColor: "#e6e6e6",
+    margin: "30px 0 20px 0",
     borderWidth: "1px",
     borderStyle: "solid",
   },
-  
+
+  // Footer section
+  footerSection: {
+    padding: "0 30px 20px 30px",
+    textAlign: "center" as const,
+  },
+
   // Footer text
   footer: {
-    color: "#737373", // --muted-foreground: 0 0% 45.1%
-    fontSize: "14px",
-    lineHeight: "20px",
-    marginTop: "24px",
-    fontFamily: "Inter, system-ui, sans-serif",
+    color: "#888888",
+    fontSize: "12px",
+    lineHeight: "1.6",
+    fontFamily:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    margin: "8px 0",
   },
-  
+
+  // Footer link styling
+  footerLink: {
+    color: "#888888",
+    textDecoration: "underline",
+  },
+
   // Link styling
   link: {
     color: "#542C7C", // Primary purple
