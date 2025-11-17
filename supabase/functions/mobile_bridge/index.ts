@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { getAllResponseHeaders } from '../_shared/cors.ts';
-import { render } from 'npm:@react-email/render@0.0.15';
-import React from 'npm:react@18.3.1';
+import { sendEmail } from '../_shared/emails/sendEmail.ts';
 import { MobileBridgeEmail } from '../_shared/emails/MobileBridge.tsx';
 
 serve(async (req) => {
@@ -52,33 +51,16 @@ serve(async (req) => {
     const subject = 'Your Opener Studio Link';
     const magicLink = 'https://openerstudio.com';
     
-    // Render React Email template to HTML
-    const htmlBody = await render(
-      React.createElement(MobileBridgeEmail, { actionUrl: magicLink })
-    );
-
-    // Send email via Resend API
-    const resendResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: email,
-        subject: subject,
-        html: htmlBody,
-      }),
+    // Send email using shared helper
+    const resendData = await sendEmail({
+      to: email,
+      subject: subject,
+      component: MobileBridgeEmail,
+      props: { actionUrl: magicLink },
+      resendApiKey,
+      fromEmail,
     });
 
-    if (!resendResponse.ok) {
-      const errorData = await resendResponse.json().catch(() => ({}));
-      console.error('Resend API error:', errorData);
-      throw new Error(errorData.message || `Resend API error: ${resendResponse.status}`);
-    }
-
-    const resendData = await resendResponse.json();
     console.log('Email sent successfully:', resendData);
 
     return new Response(
