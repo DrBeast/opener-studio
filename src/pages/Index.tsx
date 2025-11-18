@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PrimaryAction } from "@/components/ui/design-system";
 import {
   UserX,
@@ -12,9 +13,18 @@ import {
 } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useModal } from "@/contexts/ModalContext";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const Index = () => {
   const { openModal } = useModal();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isMobile) {
+      navigate("/landing-mobile", { replace: true });
+    }
+  }, [isMobile, navigate]);
 
   return (
     <PublicLayout>

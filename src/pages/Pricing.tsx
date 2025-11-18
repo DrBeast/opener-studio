@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { useModal } from "@/contexts/ModalContext";
 import { Check } from "lucide-react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const Pricing = () => {
   const { openModal } = useModal();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isMobile) {
+      navigate("/landing-mobile", { replace: true });
+    }
+  }, [isMobile, navigate]);
 
   return (
     <PublicLayout>

@@ -26,6 +26,7 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import FeedbackReview from "@/pages/admin/FeedbackReview";
 import { ComingSoon } from "@/pages/ComingSoon";
+import { LandingMobile } from "@/pages/LandingMobile";
 
 // Components
 import Index from "@/pages/Index";
@@ -51,6 +52,7 @@ const App = () => {
                   <Routes>
                     {/* Public Routes - These pages use PublicLayout internally */}
                     <Route path="/" element={<Index />} />
+                    <Route path="/landing-mobile" element={<LandingMobile />} />
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/privacy" element={<Privacy />} />
