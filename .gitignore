@@ -24,6 +24,7 @@ dist-ssr
 *.sln
 *.sw?
 .pnpm-store/
+.npm/
 
 .env.local
 .env*
