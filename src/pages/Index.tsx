@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import { PrimaryAction } from "@/components/ui/design-system";
 import {
   UserX,
@@ -28,6 +29,7 @@ const Index = () => {
 
   return (
     <PublicLayout>
+      <SEO page="home" />
       <div className="flex flex-1 flex-col bg-gray-100 min-h-screen">
         {/* Hero Section */}
         <section className="py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-screen flex items-center">

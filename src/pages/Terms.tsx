@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -15,6 +16,7 @@ const Terms = () => {
 
   return (
     <PublicLayout>
+      <SEO page="terms" />
       <div className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -114,11 +116,11 @@ const Terms = () => {
               </p>
               <p className="mb-4">
                 <strong>Your License to Us:</strong> To provide the Service, we
-                need you to grant us certain permissions. You grant Opener Studio
-                a limited, non-exclusive, worldwide, royalty-free license to
-                use, process, store, and display "Your Content" solely for the
-                purpose of operating, providing, and improving the Service. This
-                includes:
+                need you to grant us certain permissions. You grant Opener
+                Studio a limited, non-exclusive, worldwide, royalty-free license
+                to use, process, store, and display "Your Content" solely for
+                the purpose of operating, providing, and improving the Service.
+                This includes:
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
                 <li>
@@ -136,7 +138,8 @@ const Terms = () => {
               </ul>
               <p className="mb-4">
                 We will never sell Your Content or use it to train AI models
-                without your explicit consent, as detailed in our Privacy Policy.
+                without your explicit consent, as detailed in our Privacy
+                Policy.
               </p>
             </div>
           </section>
@@ -191,9 +194,9 @@ const Terms = () => {
                 co-pilot, not an auto-pilot.
               </p>
               <p className="mb-4">
-                We are not liable for any action you take based on the AI Output,
-                or for any replies (or lack thereof) you receive from your
-                outreach.
+                We are not liable for any action you take based on the AI
+                Output, or for any replies (or lack thereof) you receive from
+                your outreach.
               </p>
             </div>
           </section>
@@ -275,9 +278,9 @@ const Terms = () => {
               </p>
               <p className="mb-4">
                 THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT ANY
-                WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
-                THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-                PURPOSE, OR NON-INFRINGEMENT.
+                WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING THE
+                WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+                OR NON-INFRINGEMENT.
               </p>
               <p className="mb-4 font-semibold uppercase text-sm">
                 AI OUTPUT DISCLAIMER:
@@ -302,18 +305,14 @@ const Terms = () => {
               <ul className="list-disc pl-6 mb-4 space-y-2">
                 <li>(A) YOUR USE OF, OR INABILITY TO USE, THE SERVICE;</li>
                 <li>(B) ANY AI OUTPUT YOU RELY ON;</li>
-                <li>
-                  (C) ANY UNAUTHORIZED ACCESS TO OR USE OF YOUR ACCOUNT;
-                </li>
-                <li>
-                  (D) ANY CONDUCT OF ANY THIRD PARTY ON THE SERVICE.
-                </li>
+                <li>(C) ANY UNAUTHORIZED ACCESS TO OR USE OF YOUR ACCOUNT;</li>
+                <li>(D) ANY CONDUCT OF ANY THIRD PARTY ON THE SERVICE.</li>
               </ul>
               <p className="mb-4">
                 OUR TOTAL LIABILITY TO YOU FOR ALL CLAIMS RELATING TO THE
-                SERVICE WILL NOT EXCEED THE GREATER OF ONE HUNDRED DOLLARS ($100)
-                OR THE AMOUNT YOU PAID US (IF ANY) IN THE 12 MONTHS PRECEDING
-                THE CLAIM.
+                SERVICE WILL NOT EXCEED THE GREATER OF ONE HUNDRED DOLLARS
+                ($100) OR THE AMOUNT YOU PAID US (IF ANY) IN THE 12 MONTHS
+                PRECEDING THE CLAIM.
               </p>
             </div>
           </section>
@@ -325,13 +324,13 @@ const Terms = () => {
             </h2>
             <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
               <p className="mb-4">
-                You agree to defend, indemnify, and hold harmless Two Steps Ahead
-                LLC and its officers, directors, employees, and agents from and
-                against any claims, liabilities, damages, losses, and expenses,
-                including, without limitation, reasonable legal and accounting
-                fees, arising out of or in any way connected with (i) your
-                breach of these Terms, (or) (ii) your use of the Service, or
-                (iii) Your Content, especially if it infringes on a third
+                You agree to defend, indemnify, and hold harmless Two Steps
+                Ahead LLC and its officers, directors, employees, and agents
+                from and against any claims, liabilities, damages, losses, and
+                expenses, including, without limitation, reasonable legal and
+                accounting fees, arising out of or in any way connected with (i)
+                your breach of these Terms, (or) (ii) your use of the Service,
+                or (iii) Your Content, especially if it infringes on a third
                 party's rights.
               </p>
             </div>
@@ -365,8 +364,8 @@ const Terms = () => {
                 <strong>Changes to Terms:</strong> We may modify these Terms at
                 any time. We will notify you of material changes by email or
                 through an in-app notification. Your continued use of the
-                Service after such changes constitutes your acceptance of the new
-                Terms.
+                Service after such changes constitutes your acceptance of the
+                new Terms.
               </p>
               <p className="mb-4">
                 <strong>Entire Agreement:</strong> These Terms (and our Privacy
@@ -399,4 +398,3 @@ const Terms = () => {
 };
 
 export default Terms;
-
