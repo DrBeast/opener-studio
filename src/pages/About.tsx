@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { Sparkles, Linkedin, Target } from "lucide-react";
 import { PrimaryAction } from "@/components/ui/design-system";
@@ -23,6 +24,7 @@ const About = () => {
 
   return (
     <PublicLayout>
+      <SEO page="about" />
       <div className="bg-white min-h-screen">
         {/* Main Content Area */}
         <div className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

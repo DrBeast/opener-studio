@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
@@ -15,6 +16,7 @@ const Privacy = () => {
 
   return (
     <PublicLayout>
+      <SEO page="privacy" />
       <div className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -54,15 +56,13 @@ const Privacy = () => {
               2. Information We Collect
             </h2>
             <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-              <p className="mb-4">
-                We collect information in three main ways:
-              </p>
+              <p className="mb-4">We collect information in three main ways:</p>
               <p className="mb-4">
                 <strong>A. Information You Provide to Us</strong>
               </p>
               <p className="mb-4">
-                <strong>Account Information:</strong> When you create an account,
-                we collect your email address and name.
+                <strong>Account Information:</strong> When you create an
+                account, we collect your email address and name.
               </p>
               <p className="mb-4">
                 <strong>Input Data:</strong> This is the core data you provide
@@ -75,7 +75,8 @@ const Privacy = () => {
                 </li>
                 <li>
                   <strong>Contact Profile:</strong> The information you provide
-                  about the person you are contacting (e.g., their LinkedIn bio).
+                  about the person you are contacting (e.g., their LinkedIn
+                  bio).
                 </li>
                 <li>
                   <strong>Your Objective:</strong> The context you provide about
@@ -172,9 +173,7 @@ const Privacy = () => {
                 <strong>B. What We Will NEVER Do</strong>
               </p>
               <ul className="list-disc pl-6 mb-4 space-y-2">
-                <li>
-                  We DO NOT sell your Input Data or Saved Content.
-                </li>
+                <li>We DO NOT sell your Input Data or Saved Content.</li>
                 <li>
                   We DO NOT allow our third-party AI providers to use your data
                   to train their models. We have configured our service to
@@ -232,8 +231,8 @@ const Privacy = () => {
                   Supabase) to host our application and database.
                 </li>
                 <li>
-                  <strong>Analytics Providers:</strong> (e.g., Google
-                  Analytics, PostHog) to help us understand our Usage Data.
+                  <strong>Analytics Providers:</strong> (e.g., Google Analytics,
+                  PostHog) to help us understand our Usage Data.
                 </li>
                 <li>
                   <strong>Legal Requirements:</strong> If we are required by
@@ -335,4 +334,3 @@ const Privacy = () => {
 };
 
 export default Privacy;
-

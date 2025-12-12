@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { useModal } from "@/contexts/ModalContext";
@@ -19,6 +20,7 @@ const Pricing = () => {
 
   return (
     <PublicLayout>
+      <SEO page="pricing" />
       <div className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
