@@ -14,29 +14,23 @@ export const SEO = ({ page, customData }: SEOProps) => {
       <title>{seoData.title}</title>
       <meta name="description" content={seoData.description} />
 
-      {/* Open Graph */}
+      {/* Open Graph - Always render, Helmet will handle updates */}
       <meta property="og:type" content="website" />
-      {seoData.ogTitle && (
-        <meta property="og:title" content={seoData.ogTitle} />
-      )}
-      {seoData.ogDescription && (
-        <meta property="og:description" content={seoData.ogDescription} />
-      )}
-      {seoData.ogImage && (
-        <meta property="og:image" content={seoData.ogImage} />
-      )}
-      {seoData.ogUrl && <meta property="og:url" content={seoData.ogUrl} />}
+      <meta property="og:title" content={seoData.ogTitle || seoData.title} />
+      <meta
+        property="og:description"
+        content={seoData.ogDescription || seoData.description}
+      />
+      <meta property="og:image" content={seoData.ogImage || ""} />
+      <meta property="og:url" content={seoData.ogUrl || ""} />
 
       {/* Twitter */}
-      {seoData.twitterCard && (
-        <meta name="twitter:card" content={seoData.twitterCard} />
-      )}
-      {seoData.ogTitle && (
-        <meta name="twitter:title" content={seoData.ogTitle} />
-      )}
-      {seoData.ogDescription && (
-        <meta name="twitter:description" content={seoData.ogDescription} />
-      )}
+      <meta name="twitter:card" content={seoData.twitterCard || "summary"} />
+      <meta name="twitter:title" content={seoData.ogTitle || seoData.title} />
+      <meta
+        name="twitter:description"
+        content={seoData.ogDescription || seoData.description}
+      />
     </Helmet>
   );
 };
