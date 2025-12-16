@@ -1,11 +1,9 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { Sparkles, Linkedin, Target } from "lucide-react";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { useModal } from "@/contexts/ModalContext";
-import { useIsMobile } from "@/hooks/useIsMobile";
 
 // [TODO: User]
 // 1. Find a good, professional photo of yourself and add it to /public/images/
@@ -13,14 +11,6 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 
 const About = () => {
   const { openModal } = useModal();
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isMobile) {
-      navigate("/landing-mobile", { replace: true });
-    }
-  }, [isMobile, navigate]);
 
   return (
     <PublicLayout>

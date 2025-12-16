@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SEO } from "@/components/SEO";
+import Header from "@/components/Header";
 import {
   UserX,
   MessageSquare,
@@ -109,6 +110,7 @@ export function LandingMobile() {
   return (
     <>
       <SEO page="landingMobile" />
+      <Header />
       <div className="flex flex-col bg-gray-100 min-h-screen">
         {/* Hero Section */}
         <section className="py-2 sm:py-12 md:py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden">
