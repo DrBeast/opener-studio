@@ -1,19 +1,8 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { SEO } from "@/components/SEO";
 import PublicLayout from "@/components/layout/PublicLayout";
-import { useIsMobile } from "@/hooks/useIsMobile";
 
 const Privacy = () => {
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isMobile) {
-      navigate("/landing-mobile", { replace: true });
-    }
-  }, [isMobile, navigate]);
-
   return (
     <PublicLayout>
       <SEO page="privacy" />
