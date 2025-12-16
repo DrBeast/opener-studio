@@ -74,14 +74,13 @@ export const SEO_CONFIG: Record<string, SEOData> = {
   },
   
   landingMobile: {
-        title: "Opener Studio | Professional Networking Workspace",
-    
+    title: "Opener Studio | The AI Networking Workspace for Job Seekers",
     description:
-      "Opener Studio is designed for deep work with a wide screen, not quick scrolling. Send yourself a link to access the desktop experience.",
+      "Stop staring at a blank LinkedIn message box. Opener Studio is the AI workspace that helps you draft authentic, personalized connection requests that actually get replies.",
     
-    ogTitle: "Opener Studio is a Desktop-First Workspace",
+    ogTitle: "Stop sending generic connection requests.",
     ogDescription:
-      "Crafting the perfect message requires focus. Access the Studio from your desktop to start building connections.",
+      "Turn a blank message box into a brilliant Opener. Craft personalized, professional outreach in seconds. Try the private beta.",
     ogImage: `${BASE_URL}/opener-studio-logo-head.png`,
     ogUrl: `${BASE_URL}/landing-mobile`,
     twitterCard: "summary",
