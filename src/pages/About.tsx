@@ -5,12 +5,20 @@ import { Sparkles, Linkedin, Target } from "lucide-react";
 import { PrimaryAction } from "@/components/ui/design-system";
 import { useModal } from "@/contexts/ModalContext";
 
+import { usePostHog } from "posthog-js/react";
+
 // [TODO: User]
 // 1. Find a good, professional photo of yourself and add it to /public/images/
 // 2. Uncomment the <img> component below (around line 70) and update the `src` path.
 
 const About = () => {
   const { openModal } = useModal();
+  const posthog = usePostHog();
+
+  const handleOpenStudio = () => {
+    posthog?.capture("clicked_open_studio", { source: "about" });
+    openModal();
+  };
 
   return (
     <PublicLayout>
@@ -132,7 +140,7 @@ const About = () => {
                 free and see for yourself.
               </p>
               <PrimaryAction
-                onClick={openModal}
+                onClick={handleOpenStudio}
                 size="lg"
                 className="text-lg flex mx-auto"
               >
