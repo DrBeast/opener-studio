@@ -25,6 +25,10 @@ interface CreatedContact {
   recent_activity_summary: string;
 }
 
+import { usePostHog } from "posthog-js/react";
+
+// ... imports
+
 export const AddContactModal = ({
   isOpen,
   onClose,
@@ -36,8 +40,12 @@ export const AddContactModal = ({
   const [createdContact, setCreatedContact] = useState<CreatedContact | null>(
     null
   );
+  const posthog = usePostHog();
 
   const handleContactCreated = (newContact: CreatedContact) => {
+    posthog?.capture("contact_created", {
+      source: companyId ? "company_page" : "global_add",
+    });
     setCreatedContact(newContact);
     onSuccess();
     if (onContactCreated) {

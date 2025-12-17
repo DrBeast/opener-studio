@@ -36,6 +36,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+import { usePostHog } from "posthog-js/react";
+
 const Signup = () => {
   const { signUp, signInWithLinkedIn, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +45,7 @@ const Signup = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const posthog = usePostHog();
 
   // Check for redirect param - default to pipeline instead of profile
   const searchParams = new URLSearchParams(location.search);
@@ -86,8 +89,12 @@ const Signup = () => {
       // Perform signup (this will also trigger profile linking internally via useAuth)
       await signUp(data.email, data.password);
 
+      posthog?.capture("signup_completed", { method: "email" });
+      posthog?.identify(data.email);
+
       // Show a toast about profile linking if a session ID exists
       if (sessionId) {
+        posthog?.capture("guest_profile_linked");
         toast.info("Your profile data will be linked to your new account", {
           id: "profile-linking-progress",
           duration: 3000,
@@ -229,6 +236,10 @@ const Signup = () => {
                 setIsLoading(true);
                 try {
                   await signInWithLinkedIn();
+                  posthog?.capture("signup_completed", { method: "linkedin" });
+                  if (sessionId) {
+                    posthog?.capture("guest_profile_linked");
+                  }
                 } catch (error: any) {
                   console.error("LinkedIn sign-up error:", error);
                   toast.error(
@@ -252,6 +263,10 @@ const Signup = () => {
                 setIsLoading(true);
                 try {
                   await signInWithGoogle();
+                  posthog?.capture("signup_completed", { method: "google" });
+                  if (sessionId) {
+                    posthog?.capture("guest_profile_linked");
+                  }
                 } catch (error: any) {
                   console.error("Google sign-up error:", error);
                   toast.error(error.message || "Failed to sign up with Google");

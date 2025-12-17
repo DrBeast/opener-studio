@@ -162,6 +162,10 @@ interface GeneratedMessageResponse {
   };
 }
 
+import { usePostHog } from "posthog-js/react";
+
+// ... existing imports
+
 export const MessageGeneration = forwardRef(
   (
     {
@@ -183,6 +187,7 @@ export const MessageGeneration = forwardRef(
     }: MessageGenerationProps,
     ref
   ) => {
+    const posthog = usePostHog();
     // Generate a unique storage key based on contact to maintain separate states
     const storageKey = `messageGeneration_${contact?.contact_id || "default"}`;
 
@@ -948,7 +953,12 @@ export const MessageGeneration = forwardRef(
                     </OutlineAction>
                     {isGuest ? (
                       <PrimaryAction
-                        onClick={() => (window.location.href = "/auth/signup")}
+                        onClick={() => {
+                          posthog?.capture("clicked_signup", {
+                            source: "guest_result",
+                          });
+                          window.location.href = "/auth/signup";
+                        }}
                         className="sm:w-auto h-10"
                       >
                         Sign up to copy and save

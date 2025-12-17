@@ -5,6 +5,8 @@ import { LogOut, User } from "lucide-react";
 import { Badge } from "@/components/ui/airtable-ds/badge";
 import FeedbackBox from "@/components/FeedbackBox";
 
+import { usePostHog } from "posthog-js/react";
+
 interface HeaderProps {
   // Empty interface - no props needed
 }
@@ -13,6 +15,7 @@ const Header = ({}: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const posthog = usePostHog();
 
   const handleSignOut = async () => {
     try {
@@ -120,6 +123,9 @@ const Header = ({}: HeaderProps) => {
                 asChild
                 size="sm"
                 className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                onClick={() =>
+                  posthog?.capture("clicked_signup", { source: "header" })
+                }
               >
                 <Link to="/auth/signup">Sign Up</Link>
               </Button>

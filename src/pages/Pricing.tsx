@@ -5,8 +5,16 @@ import { PrimaryAction } from "@/components/ui/design-system";
 import { useModal } from "@/contexts/ModalContext";
 import { Check } from "lucide-react";
 
+import { usePostHog } from "posthog-js/react";
+
 const Pricing = () => {
   const { openModal } = useModal();
+  const posthog = usePostHog();
+
+  const handleOpenStudio = () => {
+    posthog?.capture("clicked_open_studio", { source: "pricing" });
+    openModal();
+  };
 
   return (
     <PublicLayout>
@@ -36,7 +44,11 @@ const Pricing = () => {
                 $0 <span className="text-lg font-normal">/ month</span>
               </p>
               <p className="text-gray-500 mb-6">&nbsp;</p>
-              <PrimaryAction onClick={openModal} size="lg" className="w-full">
+              <PrimaryAction
+                onClick={handleOpenStudio}
+                size="lg"
+                className="w-full"
+              >
                 Get Started - It's Free
               </PrimaryAction>
               <ul className="space-y-4 mt-8 text-gray-700 flex-1">
