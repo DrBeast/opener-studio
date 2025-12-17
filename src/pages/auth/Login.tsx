@@ -34,11 +34,14 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+import { usePostHog } from "posthog-js/react";
+
 const Login = () => {
   const { signIn, signInWithLinkedIn, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const posthog = usePostHog();
 
   // Check for redirect param
   const searchParams = new URLSearchParams(location.search);
@@ -235,6 +238,9 @@ const Login = () => {
               <Link
                 to="/auth/signup"
                 className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+                onClick={() =>
+                  posthog?.capture("clicked_signup", { source: "login_page" })
+                }
               >
                 Create one now
               </Link>

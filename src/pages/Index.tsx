@@ -16,10 +16,18 @@ import PublicLayout from "@/components/layout/PublicLayout";
 import { useModal } from "@/contexts/ModalContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
+import { usePostHog } from "posthog-js/react";
+
 const Index = () => {
   const { openModal } = useModal();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const posthog = usePostHog();
+
+  const handleOpenStudio = () => {
+    posthog?.capture("clicked_open_studio", { source: "hero" });
+    openModal();
+  };
 
   useEffect(() => {
     if (isMobile) {
@@ -75,7 +83,7 @@ const Index = () => {
               {/* Call to Action */}
               <div className="pt-8 flex justify-center">
                 <PrimaryAction
-                  onClick={openModal}
+                  onClick={handleOpenStudio}
                   size="lg"
                   className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 h-24"
                 >
@@ -305,7 +313,7 @@ const Index = () => {
             {/* Final CTA Button */}
             <div className="pt-4 flex justify-center">
               <PrimaryAction
-                onClick={openModal}
+                onClick={handleOpenStudio}
                 size="lg"
                 className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0"
               >
