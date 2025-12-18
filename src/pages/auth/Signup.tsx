@@ -90,7 +90,6 @@ const Signup = () => {
       await signUp(data.email, data.password);
 
       posthog?.capture("signup_completed", { method: "email" });
-      posthog?.identify(data.email);
 
       // Show a toast about profile linking if a session ID exists
       if (sessionId) {
