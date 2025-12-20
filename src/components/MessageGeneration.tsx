@@ -617,6 +617,18 @@ export const MessageGeneration = forwardRef(
 
           toast.success("Message copied and saved to conversation history!");
 
+          try {
+            if (posthog) {
+              posthog.capture("message_saved", {
+                medium: medium,
+                objective: effectiveObjective,
+                contact_id: contact?.contact_id,
+              });
+            }
+          } catch (e) {
+            console.error("Failed to capture posthog event", e);
+          }
+
           if (onMessageSaved) {
             onMessageSaved();
           }

@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { usePostHog } from "posthog-js/react";
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const posthog = usePostHog();
 
   // Simplified function to link a guest profile
   const linkUserProfile = async (
@@ -154,6 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Sign out completed successfully");
       toast.success("Signed out successfully");
 
+      posthog?.reset();
+
       // Force a redirect to the homepage to ensure a clean state
       window.location.href = "/";
     } catch (error: any) {
@@ -169,6 +173,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (storageError) {
         console.error("Failed to clear localStorage:", storageError);
       }
+
+      posthog?.reset();
 
       toast.error("Signed out locally due to error");
     }
@@ -202,6 +208,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       async (event, session) => {
         setUser(session?.user ?? null);
         setIsLoading(false);
+
+        if (session?.user) {
+          posthog?.identify(session.user.id, { email: session.user.email });
+        }
       }
     );
 
