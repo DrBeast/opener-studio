@@ -1,33 +1,22 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
-import { PrimaryAction } from "@/components/ui/design-system";
 import {
   UserX,
   MessageSquare,
   Clock,
   HelpCircle,
-  FileText,
   Target,
   Sparkles,
   User,
 } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";
-import { useModal } from "@/contexts/ModalContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
-
-import { usePostHog } from "posthog-js/react";
+import { GuestWorkspace } from "@/components/guest/GuestWorkspace";
 
 const Index = () => {
-  const { openModal } = useModal();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const posthog = usePostHog();
-
-  const handleOpenStudio = () => {
-    posthog?.capture("clicked_open_studio", { source: "hero" });
-    openModal();
-  };
 
   useEffect(() => {
     if (isMobile) {
@@ -58,9 +47,9 @@ const Index = () => {
             ></div>
           </div>
 
-          <div className="max-w-6xl mx-auto w-full px-4 relative z-10">
+          <div className="max-w-7xl mx-auto w-full px-4 relative z-10">
             {/* Hero Content */}
-            <div className="text-center space-y-12 max-w-5xl mx-auto">
+            <div className="text-center space-y-12 max-w-6xl mx-auto">
               {/* Headline */}
               <div className="space-y-6">
                 <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
@@ -77,19 +66,11 @@ const Index = () => {
                 </p>
               </div>
 
-              {/* Visual Element - Enhanced Video Container */}
-              {/* TODO: Add GIF/video here when ready */}
-
-              {/* Call to Action */}
-              <div className="pt-8 flex justify-center">
-                <PrimaryAction
-                  onClick={handleOpenStudio}
-                  size="lg"
-                  className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 h-24"
-                >
-                  <Sparkles className="mr-3 h-6 w-6" />
-                  Open the Studio
-                </PrimaryAction>
+              {/* Guest Workspace - Replaces the CTA Button */}
+              <div className="pt-4 flex justify-center w-full">
+                <div className="max-w-5xl w-full mx-auto text-left">
+                  <GuestWorkspace />
+                </div>
               </div>
             </div>
           </div>
@@ -312,14 +293,17 @@ const Index = () => {
 
             {/* Final CTA Button */}
             <div className="pt-4 flex justify-center">
-              <PrimaryAction
-                onClick={handleOpenStudio}
-                size="lg"
-                className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0"
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0 rounded-full inline-flex items-center"
               >
                 <Sparkles className="mr-3 h-6 w-6" />
-                Open the Studio
-              </PrimaryAction>
+                Start Crafting Now
+              </a>
             </div>
           </div>
         </section>
