@@ -64,9 +64,9 @@ const Index = () => {
               {/* Headline */}
               <div className="space-y-6">
                 <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
-                  Turn a Blank Box into a{" "}
+                  Turn a blank box into a{" "}
                   <span className="text-[hsl(var(--primary))]">
-                    Brilliant Opener
+                    brilliant Opener
                   </span>
                 </h1>
 
@@ -111,7 +111,7 @@ const Index = () => {
             {/* Section Headline */}
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-gray-900">
-                The Awkward Silence of a Blank Message Box
+                The awkward silence of a blank message box
               </h2>
             </div>
 
@@ -127,7 +127,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Awkward Networking
+                        Awkward networking
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         Networking is key, but it can feel awkward, salesy, and
@@ -149,7 +149,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Fear of Sounding Generic
+                        Fear of sounding generic
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         You know a template won't work, but personalizing every
@@ -172,7 +172,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        The Time Sink
+                        The time sink
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         Spending 20 minutes crafting a single, perfect message
@@ -195,7 +195,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Self-Doubt
+                        Self-doubt
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         'Am I even good enough to reach out?' We know you are.
@@ -217,7 +217,7 @@ const Index = () => {
             {/* Section Headline */}
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-gray-900">
-                Your Personal Message Crafting Studio
+                Your personal message crafting Studio
               </h2>
             </div>
 
@@ -262,7 +262,7 @@ const Index = () => {
                   </div>
                 </div>
                 <h3 className="font-display font-bold text-xl mb-4 text-gray-900">
-                  Provide Context
+                  Provide context
                 </h3>
                 <p className="font-sans text-gray-600 leading-relaxed">
                   Paste the bio of your contact and choose your outreach
@@ -286,7 +286,7 @@ const Index = () => {
                   </div>
                 </div>
                 <h3 className="font-display font-bold text-xl mb-4 text-gray-900">
-                  Open Up
+                  Open up
                 </h3>
                 <p className="font-sans text-gray-600 leading-relaxed">
                   Instantly get three personalized professionally crafted
@@ -307,7 +307,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
             {/* Final CTA Headline */}
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 leading-tight">
-              Ready to Write the Perfect Opener?
+              Ready to write the perfect opener?
             </h2>
 
             {/* Final CTA Button */}
