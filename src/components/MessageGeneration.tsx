@@ -929,13 +929,6 @@ export const MessageGeneration = forwardRef(
               })}
             </div>
 
-            {isGuest && hasGeneratedMessages && (
-              <div className="rounded-lg border border-border bg-secondary/50 px-6 py-4 text-sm text-muted-foreground">
-                Sign up to copy and save your personalized opener, keep history,
-                and track follow-ups.
-              </div>
-            )}
-
             <div ref={bottomRef} />
           </div>
 

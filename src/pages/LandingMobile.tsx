@@ -137,9 +137,9 @@ export function LandingMobile() {
               {/* Headline */}
               <div className="space-y-2 sm:space-y-4 md:space-y-6">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight px-2">
-                  Turn a Blank Box into a{" "}
+                  Turn a blank box into a{" "}
                   <span className="text-[hsl(var(--primary))]">
-                    Brilliant Opener
+                    brilliant Opener
                   </span>
                 </h1>
 
@@ -215,7 +215,7 @@ export function LandingMobile() {
             {/* Section Headline */}
             <div className="text-center mb-6 sm:mb-12 md:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-3 sm:mb-5 md:mb-6 text-gray-900 px-2">
-                The Awkward Silence of a Blank Message Box
+                The awkward silence of a blank message box
               </h2>
             </div>
 
@@ -231,7 +231,7 @@ export function LandingMobile() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 md:mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Awkward Networking
+                        Awkward networking
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg">
                         Networking is key, but it can feel awkward, salesy, and
@@ -253,7 +253,7 @@ export function LandingMobile() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 md:mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Fear of Sounding Generic
+                        Fear of sounding generic
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg">
                         You know a template won't work, but personalizing every
@@ -276,7 +276,7 @@ export function LandingMobile() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 md:mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        The Time Sink
+                        The time sink
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg">
                         Spending 20 minutes crafting a single, perfect message
@@ -299,7 +299,7 @@ export function LandingMobile() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-lg sm:text-xl md:text-2xl mb-2 sm:mb-3 md:mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Self-Doubt
+                        Self-doubt
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg">
                         'Am I even good enough to reach out?' We know you are.
@@ -324,7 +324,7 @@ export function LandingMobile() {
             {/* Section Headline */}
             <div className="text-center mb-6 sm:mb-12 md:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-3 sm:mb-5 md:mb-6 text-gray-900 px-2">
-                Your Personal Message Crafting Studio
+                Your personal message crafting Studio
               </h2>
             </div>
 
@@ -374,7 +374,7 @@ export function LandingMobile() {
                     {/* Text Content */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 text-gray-900">
-                        Provide Context
+                        Provide context
                       </h3>
                       <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
                         Paste the bio of your contact and choose your outreach
@@ -402,7 +402,7 @@ export function LandingMobile() {
                     {/* Text Content */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 text-gray-900">
-                        Open Up
+                        Open up
                       </h3>
                       <p className="font-sans text-gray-600 leading-relaxed text-sm sm:text-base">
                         Instantly get three personalized professionally crafted
