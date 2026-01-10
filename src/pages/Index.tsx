@@ -29,7 +29,11 @@ const Index = () => {
       <SEO page="home" />
       <div className="flex flex-1 flex-col bg-gray-100 min-h-screen">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-screen flex items-center">
+
+        <section
+          id="hero-top"
+          className="py-12 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-[85vh] flex flex-col justify-center"
+        >
           {/* Animated background elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-[hsl(var(--primary))] opacity-10 rounded-full blur-3xl animate-pulse"></div>
@@ -49,11 +53,11 @@ const Index = () => {
 
           <div className="max-w-7xl mx-auto w-full px-4 relative z-10">
             {/* Hero Content */}
-            <div className="text-center space-y-12 max-w-6xl mx-auto">
+            <div className="text-center space-y-8 max-w-6xl mx-auto">
               {/* Headline */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
-                  Turn a blank box into a{" "}
+                  Turn a blank page into a{" "}
                   <span className="text-[hsl(var(--primary))]">
                     brilliant Opener
                   </span>
@@ -61,13 +65,13 @@ const Index = () => {
 
                 {/* Sub-headline */}
                 <p className="text-xl md:text-2xl font-sans text-[hsl(var(--secondary-foreground))] leading-relaxed max-w-4xl mx-auto">
-                  Opener Studio is your AI-powered workspace for crafting
-                  personalized, professional outreach that gets replies.
+                  Don't start from scratch. Paste your bio and their profile
+                  below. We'll craft a personalized draft in seconds.
                 </p>
               </div>
 
               {/* Guest Workspace - Replaces the CTA Button */}
-              <div className="pt-4 flex justify-center w-full">
+              <div className="pt-2 flex justify-center w-full">
                 <div className="max-w-5xl w-full mx-auto text-left">
                   <GuestWorkspace />
                 </div>
@@ -75,7 +79,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-
         {/* Problem Section */}
         <section className="py-20 bg-gradient-to-b from-gray-100 to-gray-200 relative overflow-hidden">
           {/* Background Pattern */}
@@ -191,7 +194,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-
         {/* How It Works Section */}
         <section id="how-it-works" className="py-20 bg-white relative">
           <div className="max-w-6xl mx-auto px-4">
@@ -277,7 +279,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-
         {/* Final CTA Section */}
         <section className="py-20 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white relative overflow-hidden">
           {/* Background Elements */}
@@ -293,17 +294,19 @@ const Index = () => {
 
             {/* Final CTA Button */}
             <div className="pt-4 flex justify-center">
-              <a
-                href="#"
+              <button
                 onClick={(e) => {
                   e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  // Since we are inside a scrolling container (main), window.scrollTo won't work.
+                  // We target the top element instead.
+                  const hero = document.getElementById("hero-top");
+                  hero?.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0 rounded-full inline-flex items-center"
               >
                 <Sparkles className="mr-3 h-6 w-6" />
                 Start Crafting Now
-              </a>
+              </button>
             </div>
           </div>
         </section>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { User, Users, Sparkles, MessageSquare } from "lucide-react";
+import { Sparkles, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GuestContactPreview } from "./GuestContactPreview";
@@ -140,85 +140,77 @@ export const GuestWorkspace = () => {
 
   return (
     <div className="w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-      <div className="p-6 md:p-8 space-y-8">
+      <div className="p-6 space-y-4">
         {/* Top Section: Inputs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: User Bio */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <User className="h-5 w-5 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                About You
-              </h3>
-            </div>
-
+          <div className="space-y-2 h-full flex flex-col">
             {isCrafting && !sessionData.userProfile ? (
               <ProfileSkeleton />
             ) : !sessionData.userProfile ? (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-500">
-                  Paste your LinkedIn "About" section or a short professional bio.
-                </p>
-                <DsTextarea
-                  tone="white"
-                  value={userBio}
-                  onChange={(e) => setUserBio(e.target.value)}
-                  placeholder={`Example: "I'm a Product Manager with 5 years of experience in Fintech..." (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                  className="min-h-[160px] text-base resize-none bg-gray-50 border-gray-200 focus:bg-white transition-colors"
-                />
+              <div className="space-y-2 h-full flex flex-col">
+                <div className="flex-1">
+                  <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
+                    Your context
+                  </label>
+                  <DsTextarea
+                    tone="white"
+                    value={userBio}
+                    onChange={(e) => setUserBio(e.target.value)}
+                    placeholder={`Paste your LinkedIn profile or resume summary. (Tip: "Select All" on your profile page works best).`}
+                    className="h-32 text-sm resize-none"
+                  />
+                </div>
               </div>
             ) : (
               <GuestProfileSummary
                 userProfile={sessionData.userProfile}
                 userSummary={sessionData.userSummary}
+                className="flex-1"
               />
             )}
           </div>
 
           {/* Right: Contact Bio */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                About Them
-              </h3>
-            </div>
-
+          <div className="space-y-2 h-full flex flex-col">
             {isCrafting && !sessionData.guestContact ? (
               <ProfileSkeleton />
             ) : !sessionData.guestContact ? (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-500">
-                  Paste their LinkedIn "About" section or bio.
-                </p>
-                <DsTextarea
-                  tone="white"
-                  value={contactBio}
-                  onChange={(e) => setContactBio(e.target.value)}
-                  placeholder={`Example: "CTO at TechCorp. Passionate about AI and scaling engineering teams..." (${VALIDATION_LIMITS.MIN_WORDS_BG} words min)`}
-                  className="min-h-[160px] text-base resize-none bg-gray-50 border-gray-200 focus:bg-white transition-colors"
-                />
+              <div className="space-y-2 h-full flex flex-col">
+                <div className="flex-1">
+                  <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
+                    Their profile
+                  </label>
+                  <DsTextarea
+                    tone="white"
+                    value={contactBio}
+                    onChange={(e) => setContactBio(e.target.value)}
+                    placeholder={`Paste their LinkedIn profile or bio. (Tip: "Select All" on their profile ensures the best personalization).`}
+                    className="h-32 text-sm resize-none"
+                  />
+                </div>
               </div>
             ) : (
-              <GuestContactPreview contact={sessionData.guestContact} />
+              <GuestContactPreview
+                contact={sessionData.guestContact}
+                className="flex-1"
+              />
             )}
           </div>
         </div>
 
         {/* Middle Section: Action Button */}
         {(!showResults || isCrafting) && (
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center mt-4">
             <PrimaryAction
               onClick={handleCraftOpener}
               disabled={!biosAreReady || isCrafting}
               size="lg"
               className={cn(
-                "text-lg font-semibold px-12 py-6 shadow-lg transform transition-all duration-200",
-                biosAreReady && !isCrafting ? "hover:scale-105 hover:shadow-xl" : "opacity-70"
+                "text-lg font-semibold px-12 py-4 shadow-lg transform transition-all duration-200",
+                biosAreReady && !isCrafting
+                  ? "hover:scale-105 hover:shadow-xl"
+                  : "opacity-70"
               )}
             >
               {isCrafting ? (
@@ -229,7 +221,7 @@ export const GuestWorkspace = () => {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Craft My Opener
+                  Craft First Draft
                 </>
               )}
             </PrimaryAction>
@@ -240,18 +232,20 @@ export const GuestWorkspace = () => {
         <div
           className={cn(
             "transition-all duration-700 ease-in-out overflow-hidden",
-            showResults ? "opacity-100 max-h-[2000px] border-t border-gray-100 pt-8" : "opacity-0 max-h-0"
+            showResults
+              ? "opacity-100 max-h-[2000px] border-t border-gray-100 pt-8"
+              : "opacity-0 max-h-0"
           )}
         >
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-green-50 rounded-lg">
-              <MessageSquare className="h-5 w-5 text-green-600" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">
+                What Are You Trying to Achieve?
+              </h3>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              Your Drafts
-            </h3>
           </div>
-          
+
           {/* Always render MessageGeneration to maintain ref, but hide it visually until needed */}
           <div className={cn(!showResults && "invisible h-0")}>
             <MessageGeneration
