@@ -1,33 +1,22 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
-import { PrimaryAction } from "@/components/ui/design-system";
 import {
   UserX,
   MessageSquare,
   Clock,
   HelpCircle,
-  FileText,
   Target,
   Sparkles,
   User,
 } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";
-import { useModal } from "@/contexts/ModalContext";
 import { useIsMobile } from "@/hooks/useIsMobile";
-
-import { usePostHog } from "posthog-js/react";
+import { GuestWorkspace } from "@/components/guest/GuestWorkspace";
 
 const Index = () => {
-  const { openModal } = useModal();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const posthog = usePostHog();
-
-  const handleOpenStudio = () => {
-    posthog?.capture("clicked_open_studio", { source: "hero" });
-    openModal();
-  };
 
   useEffect(() => {
     if (isMobile) {
@@ -40,7 +29,11 @@ const Index = () => {
       <SEO page="home" />
       <div className="flex flex-1 flex-col bg-gray-100 min-h-screen">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-screen flex items-center">
+
+        <section
+          id="hero-top"
+          className="py-12 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-[85vh] flex flex-col justify-center"
+        >
           {/* Animated background elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-[hsl(var(--primary))] opacity-10 rounded-full blur-3xl animate-pulse"></div>
@@ -58,43 +51,34 @@ const Index = () => {
             ></div>
           </div>
 
-          <div className="max-w-6xl mx-auto w-full px-4 relative z-10">
+          <div className="max-w-7xl mx-auto w-full px-4 relative z-10">
             {/* Hero Content */}
-            <div className="text-center space-y-12 max-w-5xl mx-auto">
+            <div className="text-center space-y-8 max-w-6xl mx-auto">
               {/* Headline */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
-                  Turn a Blank Box into a{" "}
+                  Turn a blank page into a{" "}
                   <span className="text-[hsl(var(--primary))]">
-                    Brilliant Opener
+                    brilliant Opener
                   </span>
                 </h1>
 
                 {/* Sub-headline */}
                 <p className="text-xl md:text-2xl font-sans text-[hsl(var(--secondary-foreground))] leading-relaxed max-w-4xl mx-auto">
-                  Opener Studio is your AI-powered workspace for crafting
-                  personalized, professional outreach that gets replies.
+                  Don't start from scratch. Paste your bio and their profile
+                  below. We'll craft a personalized draft in seconds.
                 </p>
               </div>
 
-              {/* Visual Element - Enhanced Video Container */}
-              {/* TODO: Add GIF/video here when ready */}
-
-              {/* Call to Action */}
-              <div className="pt-8 flex justify-center">
-                <PrimaryAction
-                  onClick={handleOpenStudio}
-                  size="lg"
-                  className="text-xl font-semibold px-16 py-6 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 h-24"
-                >
-                  <Sparkles className="mr-3 h-6 w-6" />
-                  Open the Studio
-                </PrimaryAction>
+              {/* Guest Workspace - Replaces the CTA Button */}
+              <div className="pt-2 flex justify-center w-full">
+                <div className="max-w-5xl w-full mx-auto text-left">
+                  <GuestWorkspace />
+                </div>
               </div>
             </div>
           </div>
         </section>
-
         {/* Problem Section */}
         <section className="py-20 bg-gradient-to-b from-gray-100 to-gray-200 relative overflow-hidden">
           {/* Background Pattern */}
@@ -111,7 +95,7 @@ const Index = () => {
             {/* Section Headline */}
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-gray-900">
-                The Awkward Silence of a Blank Message Box
+                The awkward silence of a blank message box
               </h2>
             </div>
 
@@ -127,7 +111,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Awkward Networking
+                        Awkward networking
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         Networking is key, but it can feel awkward, salesy, and
@@ -149,7 +133,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Fear of Sounding Generic
+                        Fear of sounding generic
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         You know a template won't work, but personalizing every
@@ -172,7 +156,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        The Time Sink
+                        The time sink
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         Spending 20 minutes crafting a single, perfect message
@@ -195,7 +179,7 @@ const Index = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display font-bold text-2xl mb-4 text-gray-800 group-hover:text-gray-900 transition-colors">
-                        Self-Doubt
+                        Self-doubt
                       </h3>
                       <p className="font-sans text-gray-700 leading-relaxed text-lg">
                         'Am I even good enough to reach out?' We know you are.
@@ -210,14 +194,13 @@ const Index = () => {
             </div>
           </div>
         </section>
-
         {/* How It Works Section */}
         <section id="how-it-works" className="py-20 bg-white relative">
           <div className="max-w-6xl mx-auto px-4">
             {/* Section Headline */}
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 text-gray-900">
-                Your Personal Message Crafting Studio
+                Your personal message crafting Studio
               </h2>
             </div>
 
@@ -262,7 +245,7 @@ const Index = () => {
                   </div>
                 </div>
                 <h3 className="font-display font-bold text-xl mb-4 text-gray-900">
-                  Provide Context
+                  Provide context
                 </h3>
                 <p className="font-sans text-gray-600 leading-relaxed">
                   Paste the bio of your contact and choose your outreach
@@ -286,7 +269,7 @@ const Index = () => {
                   </div>
                 </div>
                 <h3 className="font-display font-bold text-xl mb-4 text-gray-900">
-                  Open Up
+                  Open up
                 </h3>
                 <p className="font-sans text-gray-600 leading-relaxed">
                   Instantly get three personalized professionally crafted
@@ -296,7 +279,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-
         {/* Final CTA Section */}
         <section className="py-20 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white relative overflow-hidden">
           {/* Background Elements */}
@@ -307,19 +289,24 @@ const Index = () => {
           <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
             {/* Final CTA Headline */}
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 leading-tight">
-              Ready to Write the Perfect Opener?
+              Ready to write the perfect opener?
             </h2>
 
             {/* Final CTA Button */}
             <div className="pt-4 flex justify-center">
-              <PrimaryAction
-                onClick={handleOpenStudio}
-                size="lg"
-                className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0"
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Since we are inside a scrolling container (main), window.scrollTo won't work.
+                  // We target the top element instead.
+                  const hero = document.getElementById("hero-top");
+                  hero?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="text-xl font-semibold px-16 py-6 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform transition-all duration-200 hover:scale-105 border-0 rounded-full inline-flex items-center"
               >
                 <Sparkles className="mr-3 h-6 w-6" />
-                Open the Studio
-              </PrimaryAction>
+                Start Crafting Now
+              </button>
             </div>
           </div>
         </section>

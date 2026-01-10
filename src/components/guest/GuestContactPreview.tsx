@@ -31,7 +31,7 @@ export const GuestContactPreview: React.FC<GuestContactPreviewProps> = ({
 
   return (
     <PrimaryCard
-      className={cn("bg-green-50 border-green-200 min-h-[400px]", className)}
+      className={cn("bg-green-50 border-green-200 h-full", className)}
     >
       <CardContent className="p-4 h-full flex flex-col">
         {/* Main Flex Container */}

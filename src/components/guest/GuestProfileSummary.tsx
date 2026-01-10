@@ -38,7 +38,7 @@ export const GuestProfileSummary: React.FC<GuestProfileSummaryProps> = ({
 
   return (
     <PrimaryCard
-      className={cn("bg-blue-50 border-blue-200 min-h-[400px]", className)}
+      className={cn("bg-blue-50 border-blue-200 h-full", className)}
     >
       <CardContent className="p-4 h-full flex flex-col">
         {/* Main Flex Container */}
