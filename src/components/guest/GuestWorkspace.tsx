@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,10 +37,25 @@ export const GuestWorkspace = () => {
   const [isCrafting, setIsCrafting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const messageGenRef = useRef<MessageGenerationHandle>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const biosAreReady =
     userBio.trim().split(/\s+/).length >= VALIDATION_LIMITS.MIN_WORDS_BG &&
     contactBio.trim().split(/\s+/).length >= VALIDATION_LIMITS.MIN_WORDS_BG;
+
+  useEffect(() => {
+    if (showResults && resultsRef.current) {
+      // Scroll to the results section smoothly
+      // Using 'start' ensures the header of the results is visible.
+      // The content will expand below it.
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [showResults]);
 
   const handleGenerateUserProfile = async () => {
     if (!userBio.trim()) {
@@ -230,6 +245,7 @@ export const GuestWorkspace = () => {
 
         {/* Bottom Section: Message Generation Results */}
         <div
+          ref={resultsRef}
           className={cn(
             "transition-all duration-700 ease-in-out overflow-hidden",
             showResults
