@@ -69,7 +69,7 @@ export function ComingSoon() {
             {/* Headline */}
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
-                Turn a blank box into a{" "}
+                Turn a blank page into a{" "}
                 <span className="text-[hsl(var(--primary))]">
                   brilliant Opener
                 </span>
