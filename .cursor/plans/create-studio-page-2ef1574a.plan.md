@@ -1,4 +1,36 @@
-<!-- 2ef1574a-d610-4a66-9d7f-de378fa28e36 63027629-e116-4a07-bf36-45cac498ca93 -->
+---
+name: Create Studio Page Implementation Plan
+overview: ""
+todos:
+  - id: 932b1396-0a5b-4d3d-9ddf-bcfeecdc77b6
+    content: Create /src/pages/Studio.tsx with three-panel resizable layout structure
+    status: pending
+  - id: 093ecb18-3f9e-42bf-b77c-83ca54099f54
+    content: Create StudioContactCard component or inline contact card for left panel with name, role, company display
+    status: pending
+  - id: d8c53bab-546e-4e06-ad23-76bccc1fa324
+    content: Implement contact selection logic with localStorage persistence and cross-tab synchronization
+    status: pending
+  - id: 65c3202b-be77-465e-9085-09499d04f891
+    content: Build left panel with contacts list, selection handling, and Create Contact button
+    status: pending
+  - id: d5f87a74-fd73-4a07-8121-299f4755a051
+    content: Integrate MessageGeneration component in center panel, remove overlay logic, ensure proper spacing
+    status: pending
+  - id: 8d2bd4fa-0fc9-4cca-8052-00be73b68353
+    content: Integrate ContactPreview in right panel with empty state message when no contact selected
+    status: pending
+  - id: a5ecd8ad-bf15-482c-ab63-8d6279f20bdf
+    content: Integrate AddContactModal with onSuccess callback that selects newly created contact
+    status: pending
+  - id: 4b392bf2-ee50-4f97-b378-c9bd4eea7c0c
+    content: Add /studio route to App.tsx within ProtectedRoute section
+    status: pending
+  - id: d9b9cd04-9e18-4197-a9dd-8dea9dd2cfdf
+    content: Create helper function to map Contact interface to ContactForMessage interface for MessageGeneration and ContactPreview
+    status: pending
+---
+
 # Create Studio Page Implementation Plan
 
 ## Overview
@@ -127,15 +159,3 @@ Create a new `/studio` route with a three-panel horizontal layout using the resi
 - Ensure resizable handles are visible and functional
 - Left panel should scroll if contacts list is long
 - Right panel should handle empty state gracefully
-
-### To-dos
-
-- [ ] Create /src/pages/Studio.tsx with three-panel resizable layout structure
-- [ ] Create StudioContactCard component or inline contact card for left panel with name, role, company display
-- [ ] Implement contact selection logic with localStorage persistence and cross-tab synchronization
-- [ ] Build left panel with contacts list, selection handling, and Create Contact button
-- [ ] Integrate MessageGeneration component in center panel, remove overlay logic, ensure proper spacing
-- [ ] Integrate ContactPreview in right panel with empty state message when no contact selected
-- [ ] Integrate AddContactModal with onSuccess callback that selects newly created contact
-- [ ] Add /studio route to App.tsx within ProtectedRoute section
-- [ ] Create helper function to map Contact interface to ContactForMessage interface for MessageGeneration and ContactPreview
