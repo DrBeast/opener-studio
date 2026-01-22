@@ -37,7 +37,7 @@ const CONTACT_RESPONSE_SCHEMA = {
     },
     how_i_can_help: {
       type: "string",
-      description: "2-3 sentence explanation of how the user can potentially be of help or provide value to this specific contact or their team/company. Use examples from the user's background to provide examples and justification. Aim to show the logical connection between the user's expertise and the contact's needs. Use 'you can' format, eg 'You can leverage my experience with X to solve Y problem' or 'You can benefit from my expertise in Z area'."
+      description: "2-3 sentence explanation of how the user can potentially be of help or provide value to this specific contact or their team/company. Use examples from the user's background to provide examples and justification. Aim to show the logical connection between the user's expertise and the contact's needs. Address the user directly using 'you' and 'your', e.g. 'You can leverage your experience with X to solve Y problem' or 'Your expertise in Z can help...'."
     }
   },
   required: ["first_name", "last_name", "role", "current_company", "location", "bio_summary", "how_i_can_help"]
