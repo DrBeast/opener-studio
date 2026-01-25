@@ -72,7 +72,7 @@ const About = () => {
                   generic, low-effort spam than ever.
                 </p>
                 <p>
-                  We decided to build something different. Not an "mail bot,"
+                  I decided to build something different. Not an "mail bot,"
                   but a creative partner. A tool that acts like a sparring
                   coach, helping you find the right words to build a real,
                   meaningful, and professional connection.
@@ -114,6 +114,27 @@ const About = () => {
                       people move from "Let's connect" to "Here's why we should
                       talk."
                     </p>
+                    <p className="text-lg">
+                    Opener Studio is built with AI. To avoid the vibe-coding swamp,I developed a workflow I call Roguelite Development inspired by video games like Hades and Returnal. With my synthetic team of AI assistants, we sprint fast, break things, learn from failures, and then — instead of patching buggy code — we wipe the slate clean and rebuild it stronger.
+                    </p>
+                    <p className="text-lg">
+                    <strong>Run. Die. Learn. Repeat.</strong>
+                    </p>
+                    <p className="text-lg">
+                    Want to see how the sausage is made? I publish my learnings and my workflow, including my .cursorrules and my "Synthetic Team" org chart. Read the full story here on dev.to:
+                    </p>
+                    <p className="text-lg">
+                    <a
+                      href="https://dev.to/alex_rakitin/why-i-stopped-debugging-ai-code-the-case-for-roguelite-development-5065"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-primary transition-colors"
+                    >
+                      <strong>
+                        <span>Why I stopped debugging AI code: The case for Roguelite Development</span>
+                      </strong>
+                    </a>
+                    </p>  
                   </div>
                   <a
                     href="https://www.linkedin.com/in/aleksandrrakitin/?lipi=urn%3Ali%3Apage%3Ad_flagship3_feed%3BIqjXSwyNRqG%2B5quFywxEzg%3D%3D"
@@ -121,8 +142,11 @@ const About = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 mt-6 text-lg font-semibold text-primary hover:text-primary-hover transition-colors"
                   >
-                    <Linkedin className="h-5 w-5" />
-                    Connect on LinkedIn
+                    
+                    <span className="inline-flex items-center text-blue-600 hover:text-primary transition-colors">
+                      <Linkedin className="h-6 w-6 mr-2 pb-1" />
+                      <strong>Connect on LinkedIn</strong>
+                    </span>
                   </a>
                 </div>
               </div>

@@ -33,3 +33,5 @@ dist-ssr
 # Test files
 ratelimit_test_function
 validation_test_function
+tmp_my_profile
+tmp_test_contact
