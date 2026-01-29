@@ -1,11 +1,11 @@
 {
   "name": "ConnectorAI Development Environment",
-  "image": "mcr.microsoft.com/devcontainers/universal:latest",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    },
-    "ghcr.io/devcontainers/features/sshd:1":{"version":"latest"}
+    "ghcr.io/devcontainers/features/sshd:1": {
+      "version": "latest"
+    }
+
   },
   "customizations": {
     "vscode": {
