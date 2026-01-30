@@ -4,8 +4,10 @@
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {
       "version": "latest"
-    }
-
+    },
+    "ghcr.io/devcontainers/features/git-lfs:1": {
+    "version": "latest"
+  }
   },
   "customizations": {
     "vscode": {
