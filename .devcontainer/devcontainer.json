@@ -23,9 +23,6 @@
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "ms-vscode.vscode-typescript-next",
-        "GitHub.vscode-github-actions",
-        "ms-azuretools.vscode-docker",
-        "ms-azuretools.vscode-azurefunctions",
         "vscode.github-authentication",
         "github.vscode-pull-request-github",
         "supabase.supabase"
