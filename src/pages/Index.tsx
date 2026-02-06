@@ -56,17 +56,18 @@ const Index = () => {
             <div className="text-center space-y-8 max-w-6xl mx-auto">
               {/* Headline */}
               <div className="space-y-4">
-                <h1 className="text-5xl md:text-7xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
-                  Turn a blank page into a{" "}
-                  <span className="text-[hsl(var(--primary))]">
-                    brilliant Opener
+                <h1 className="text-5xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
+                  Turn a blank page into a<br />
+                  <span
+                    className="text-6xl bg-gradient-to-r to-blue-700 from-[hsl(var(--primary))] bg-clip-text text-transparent"
+                  >
+                    perfect networking message
                   </span>
                 </h1>
 
                 {/* Sub-headline */}
-                <p className="text-xl md:text-2xl font-sans text-[hsl(var(--secondary-foreground))] leading-relaxed max-w-4xl mx-auto">
-                  Don't start from scratch. Paste your bio and their profile
-                  below. We'll craft a personalized draft in seconds.
+                <p className="text-xl font-sans text-[hsl(var(--secondary-foreground))] leading-relaxed max-w-4xl mx-auto">
+                  Generate your first message in seconds without registration. Just paste two profiles.
                 </p>
               </div>
 
