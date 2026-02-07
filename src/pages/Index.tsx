@@ -9,6 +9,7 @@ import {
   Target,
   Sparkles,
   User,
+  ArrowDown,
 } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -32,7 +33,7 @@ const Index = () => {
 
         <section
           id="hero-top"
-          className="py-12 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden min-h-[85vh] flex flex-col justify-center"
+          className="pt-24 pb-20 bg-gradient-to-br from-[hsl(var(--primary-muted))] via-[hsl(var(--background))] to-[hsl(var(--accent))] relative overflow-hidden z-10"
         >
           {/* Animated background elements */}
           <div className="absolute inset-0 overflow-hidden">
@@ -53,7 +54,7 @@ const Index = () => {
 
           <div className="max-w-7xl mx-auto w-full px-4 relative z-10">
             {/* Hero Content */}
-            <div className="text-center space-y-8 max-w-6xl mx-auto">
+            <div className="text-center space-y-6 max-w-6xl mx-auto">
               {/* Headline */}
               <div className="space-y-4">
                 <h1 className="text-5xl font-display font-bold text-[hsl(var(--foreground))] leading-tight">
@@ -69,6 +70,21 @@ const Index = () => {
                 <p className="text-xl font-sans text-[hsl(var(--secondary-foreground))] leading-relaxed max-w-4xl mx-auto">
                   Generate your first message in seconds without registration. Just paste two profiles.
                 </p>
+
+                {/* Anchor Link */}
+                <div className="flex justify-center pt-2">
+                  <a 
+                    href="#video-demo" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById('video-demo')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="group flex items-center gap-2 text-sm font-medium text-muted-foreground bg-secondary border border-border px-5 py-2 rounded-full transition-all duration-200 hover:text-primary hover:border-primary/50 hover:bg-white hover:shadow-sm hover:-translate-y-0.5"
+                  >
+                    See how it works 
+                    <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+                  </a>
+                </div>
               </div>
 
               {/* Guest Workspace - Replaces the CTA Button */}
@@ -80,6 +96,31 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Video Demo Section */}
+        <section id="video-demo" className="relative w-full -mt-20">
+             {/* Full width background container */}
+             <div className="w-full bg-gradient-to-b from-white via-purple-50 to-[hsl(var(--primary-muted))] pt-[60px] pb-20">
+                 <div className="w-full mx-auto px-4">
+                     {/* Constrained content container */}
+                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white aspect-video max-w-7xl mx-auto z-20">
+                         <video 
+                             className="w-full h-full object-cover"
+                             autoPlay
+                             loop
+                             muted
+                             playsInline
+                             preload="metadata"
+                             poster="/placeholder_poster.jpg"
+                         >
+                             <source src="/OpenerStudio_howitworks.mp4" type="video/mp4" />
+                             Your browser does not support the video tag.
+                         </video>
+                     </div>
+                 </div>
+             </div>
+        </section>
+
         {/* Problem Section */}
         <section className="py-20 bg-gradient-to-b from-gray-100 to-gray-200 relative overflow-hidden">
           {/* Background Pattern */}

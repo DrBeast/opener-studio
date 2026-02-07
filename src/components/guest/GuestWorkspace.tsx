@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles, MessageCircle, Clipboard, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GuestContactPreview } from "./GuestContactPreview";
@@ -157,23 +157,35 @@ export const GuestWorkspace = () => {
     <div className="w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       <div className="p-6 space-y-4">
         {/* Top Section: Inputs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
+          {/* Central Divider Badge */}
+          <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center w-10 h-10 bg-white rounded-full border border-gray-200 shadow-sm z-20 text-gray-400">
+            <Plus className="h-5 w-5" />
+          </div>
+
           {/* Left: User Bio */}
           <div className="space-y-2 h-full flex flex-col">
             {isCrafting && !sessionData.userProfile ? (
               <ProfileSkeleton />
             ) : !sessionData.userProfile ? (
               <div className="space-y-2 h-full flex flex-col">
-                <div className="flex-1">
+                <div className="flex-1 relative group">
                   <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
                     Your context
                   </label>
+                  {!userBio && (
+                    <div className="absolute top-[42px] inset-x-0 bottom-0 flex items-center justify-center pointer-events-none z-10">
+                      <div className="flex flex-col items-center gap-2">
+                         <Clipboard className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
                   <DsTextarea
                     tone="white"
                     value={userBio}
                     onChange={(e) => setUserBio(e.target.value)}
-                    placeholder={`Paste your LinkedIn profile or resume summary. (Tip: "Select All" on your profile page works best).`}
-                    className="h-32 text-sm resize-none"
+                    placeholder="Paste your LinkedIn bio or resume..."
+                    className="h-32 text-md font-mono resize-none border-2 border-dashed border-gray-300 bg-slate-50 focus:bg-white transition-colors placeholder:text-text-muted-foreground"
                   />
                 </div>
               </div>
@@ -192,16 +204,23 @@ export const GuestWorkspace = () => {
               <ProfileSkeleton />
             ) : !sessionData.guestContact ? (
               <div className="space-y-2 h-full flex flex-col">
-                <div className="flex-1">
+                <div className="flex-1 relative group">
                   <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
-                    Their profile
+                    Your Contact's Profile
                   </label>
+                  {!contactBio && (
+                    <div className="absolute top-[42px] inset-x-0 bottom-0 flex items-center justify-center pointer-events-none z-10">
+                      <div className="flex flex-col items-center gap-2">
+                         <Clipboard className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
                   <DsTextarea
                     tone="white"
                     value={contactBio}
                     onChange={(e) => setContactBio(e.target.value)}
-                    placeholder={`Paste their LinkedIn profile or bio. (Tip: "Select All" on their profile ensures the best personalization).`}
-                    className="h-32 text-sm resize-none"
+                    placeholder="Paste their LinkedIn bio or about section..."
+                    className="h-32 text-md font-mono  resize-none border-2 border-dashed border-gray-300 bg-slate-50 focus:bg-white transition-colors placeholder:text-text-muted-foreground"
                   />
                 </div>
               </div>
