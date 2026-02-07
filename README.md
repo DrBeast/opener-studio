@@ -10,7 +10,7 @@ Built for ambitious professionals, job seekers, and anyone tired of facing the b
 - Focused "Studio" Workspace: A clean, intuitive interface designed for the single task of writing the perfect opener.
 - Contextual Input: Simply provide your own bio and your target's profile for personalized results.
 - Free tier and "Fair Credit" System: Generate freely; credits ("Openers") are only used when you save a message you love.
-- Message History: Automatically saves your generated openers for context and follow-ups (for registered users).
+- Message History: Automatically saves your generated openers for context and follow-ups (for registered users). 
 
 ## Tech Stack 🛠️
 
