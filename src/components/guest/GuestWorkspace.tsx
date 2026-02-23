@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, MessageCircle, Clipboard, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 import { GuestContactPreview } from "./GuestContactPreview";
 import { GuestProfileSummary } from "./GuestProfileSummary";
 import { MessageGeneration } from "../MessageGeneration";
@@ -9,6 +10,9 @@ import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { VALIDATION_LIMITS } from "@/lib/validation-constants";
 import { DsTextarea, PrimaryAction } from "@/components/ui/design-system";
 import { cn } from "@/lib/utils";
+import { FOUNDER_PROFILE } from "@/data/founderProfile";
+import { DEMO_PROFILE } from "@/data/demoProfile";
+import { Switch } from "@/components/ui/airtable-ds/switch";
 
 interface MessageGenerationHandle {
   generateMessages: () => void;
@@ -32,12 +36,58 @@ export const GuestWorkspace = () => {
     updateGeneratedMessages,
   } = useGuestSession();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [userBio, setUserBio] = useState<string>("");
   const [contactBio, setContactBio] = useState<string>("");
   const [isCrafting, setIsCrafting] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [useFounderProfile, setUseFounderProfile] = useState(false);
+  const [useDemoProfile, setUseDemoProfile] = useState(false);
   const messageGenRef = useRef<MessageGenerationHandle>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const shouldPitchAlex = searchParams.get("pitchalex") === "true";
+
+    if (shouldPitchAlex) {
+      setUseFounderProfile(true);
+      if (!contactBio) {
+        setContactBio(FOUNDER_PROFILE);
+      }
+    }
+  }, []); // Run only on mount
+
+  const handleFounderProfileToggle = (checked: boolean) => {
+    setUseFounderProfile(checked);
+    if (checked) {
+      setContactBio(FOUNDER_PROFILE);
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set("pitchalex", "true");
+        return newParams;
+      });
+    } else {
+      if (contactBio === FOUNDER_PROFILE) {
+        setContactBio("");
+      }
+      setSearchParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete("pitchalex");
+        return newParams;
+      });
+    }
+  };
+
+  const handleDemoProfileToggle = (checked: boolean) => {
+    setUseDemoProfile(checked);
+    if (checked) {
+      setUserBio(DEMO_PROFILE);
+    } else {
+      if (userBio === DEMO_PROFILE) {
+        setUserBio("");
+      }
+    }
+  };
 
   const biosAreReady =
     userBio.trim().split(/\s+/).length >= VALIDATION_LIMITS.MIN_WORDS_BG &&
@@ -170,9 +220,24 @@ export const GuestWorkspace = () => {
             ) : !sessionData.userProfile ? (
               <div className="space-y-2 h-full flex flex-col">
                 <div className="flex-1 relative group">
-                  <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
-                    Your context
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs uppercase font-bold text-gray-500">
+                      Your context
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <label
+                        htmlFor="demo-mode"
+                        className="text-xs font-medium text-gray-600 cursor-pointer select-none"
+                      >
+                        USE DEMO PROFILE
+                      </label>
+                      <Switch
+                        id="demo-mode"
+                        checked={useDemoProfile}
+                        onCheckedChange={handleDemoProfileToggle}
+                      />
+                    </div>
+                  </div>
                   {!userBio && (
                     <div className="absolute top-[42px] inset-x-0 bottom-0 flex items-center justify-center pointer-events-none z-10">
                       <div className="flex flex-col items-center gap-2">
@@ -205,9 +270,24 @@ export const GuestWorkspace = () => {
             ) : !sessionData.guestContact ? (
               <div className="space-y-2 h-full flex flex-col">
                 <div className="flex-1 relative group">
-                  <label className="block text-xs uppercase font-bold text-gray-500 mb-2">
-                    Your Contact's Profile
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs uppercase font-bold text-gray-500">
+                      Your Contact's Profile
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <label
+                        htmlFor="founder-mode"
+                        className="text-xs font-medium text-gray-600 cursor-pointer select-none"
+                      >
+                        TRY WITH FOUNDER'S PROFILE
+                      </label>
+                      <Switch
+                        id="founder-mode"
+                        checked={useFounderProfile}
+                        onCheckedChange={handleFounderProfileToggle}
+                      />
+                    </div>
+                  </div>
                   {!contactBio && (
                     <div className="absolute top-[42px] inset-x-0 bottom-0 flex items-center justify-center pointer-events-none z-10">
                       <div className="flex flex-col items-center gap-2">
