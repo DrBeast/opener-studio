@@ -203,10 +203,10 @@ export const MessageGeneration = forwardRef(
 
     // State with localStorage persistence
     const [medium, setMedium] = useState<string>(() =>
-      getInitialState("medium", "LinkedIn connection note")
+      getInitialState("medium", "Premium LinkedIn connection note")
     );
     const [objective, setObjective] = useState<string>(() =>
-      getInitialState("objective", "Explore roles, find managers")
+      isGuest ? "Build relationship" : getInitialState("objective", "Build relationship")
     );
     const [customObjective, setCustomObjective] = useState<string>(() =>
       getInitialState("customObjective", "")
@@ -254,9 +254,9 @@ export const MessageGeneration = forwardRef(
             }
           };
 
-          // Reload all state from the new contact's storage
-          setMedium(getState("medium", "LinkedIn connection note"));
-          setObjective(getState("objective", "Explore roles, find managers"));
+          // Reload all state from the new contact's storage (guests: objective always defaults to "Build relationship")
+          setMedium(getState("medium", "Premium LinkedIn connection note"));
+          setObjective(isGuest ? "Build relationship" : getState("objective", "Build relationship"));
           setCustomObjective(getState("customObjective", ""));
           setAdditionalContext(getState("additionalContext", ""));
           setGeneratedMessages(getState("generatedMessages", {}));
@@ -267,8 +267,8 @@ export const MessageGeneration = forwardRef(
           setIsGenerating(false); // Stop any in-progress generation
         } else {
           // Contact is null - reset to defaults
-          setMedium("LinkedIn connection note");
-          setObjective("Explore roles, find managers");
+          setMedium("Premium LinkedIn connection note");
+          setObjective("Build relationship");
           setCustomObjective("");
           setAdditionalContext("");
           setGeneratedMessages({});
@@ -292,13 +292,13 @@ export const MessageGeneration = forwardRef(
     }, [medium, storageKey, contact?.contact_id]);
 
     useEffect(() => {
-      if (contact?.contact_id) {
+      if (contact?.contact_id && !isGuest) {
         localStorage.setItem(
           `${storageKey}_objective`,
           JSON.stringify(objective)
         );
       }
-    }, [objective, storageKey, contact?.contact_id]);
+    }, [objective, storageKey, contact?.contact_id, isGuest]);
 
     useEffect(() => {
       if (contact?.contact_id) {
@@ -676,14 +676,22 @@ export const MessageGeneration = forwardRef(
 
     // Memorize the MessageContent to prevent unnecessary re-renders
     const MessageContent = useMemo(() => {
-      const objectiveOptions = [
-        "Explore roles, find managers",
-        "Ask for a referral",
-        "Get info interview",
-        "Build relationship",
-        "Follow up",
-        "Custom objective",
-      ];
+      const objectiveOptions = isGuest
+        ? [
+            "Build relationship",
+            "Explore roles, find managers",
+            "Ask for a referral",
+            "Get info interview",
+            "Follow up",
+          ]
+        : [
+            "Explore roles, find managers",
+            "Ask for a referral",
+            "Get info interview",
+            "Build relationship",
+            "Follow up",
+            "Custom objective",
+          ];
       const versionEntries = Object.entries(generatedMessages);
       const hasGeneratedMessages = versionEntries.length > 0;
       const versionOrder = ["Version 1", "Version 2", "Version 3"];
